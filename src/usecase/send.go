@@ -3,6 +3,7 @@ package usecase
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"math"
@@ -1031,6 +1032,23 @@ func (service serviceSend) SendLink(ctx context.Context, request domainSend.Link
 	metadata, err := utils.GetMetaDataFromURL(request.Link)
 	if err != nil {
 		return response, err
+	}
+
+	// Override metadata if request provides custom values
+	if request.Title != "" {
+		metadata.Title = request.Title
+	}
+	if request.Description != "" {
+		metadata.Description = request.Description
+	}
+	if request.ImageBase64 != "" {
+		imageData, err := base64.StdEncoding.DecodeString(request.ImageBase64)
+		if err == nil {
+			metadata.ImageThumb = imageData
+			metadata.JPEGThumb = imageData
+		} else {
+			logrus.Warnf("Failed to decode base64 thumbnail: %v", err)
+		}
 	}
 
 	// Log image dimensions if available, otherwise note it's a square image or dimensions not available
