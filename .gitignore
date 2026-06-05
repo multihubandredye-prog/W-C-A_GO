@@ -39,4 +39,3 @@ tmp/
 
 # whatsmeow store (legacy path)
 src/whatsapp/
-build-wca.sh
