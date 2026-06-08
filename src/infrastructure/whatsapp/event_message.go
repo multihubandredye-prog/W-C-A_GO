@@ -431,11 +431,25 @@ func buildOptionalFields(ctx context.Context, client *whatsmeow.Client, evt *eve
             if v := extendedText.GetDescription(); v != "" {
                 payload["LinkDescription"] = v
             }
-            // LinkURL extraction removed due to compilation error with GetCanonicalUrl.
-            // The raw URL might still be available in the message's 'Body' field.
-            if v := extendedText.GetJPEGThumbnail(); len(v) > 0 {
-                payload["LinkThumbnailBase64"] = base64.StdEncoding.EncodeToString(v)
-            }        }
+
+            // Try to get the high-quality image from the URL
+            url := extendedText.GetMatchedText()
+            if url != "" {
+                meta, err := utils.GetMetaDataFromURL(url)
+                if err == nil && len(meta.JPEGThumb) > 0 {
+                    payload["LinkThumbnailBase64"] = base64.StdEncoding.EncodeToString(meta.JPEGThumb)
+                    payload["LinkImageHighQuality"] = true
+                }
+            }
+            
+            // Fallback to WhatsApp's low-quality thumbnail if high-quality image wasn't found or added
+            if _, exists := payload["LinkThumbnailBase64"]; !exists {
+                if v := extendedText.GetJPEGThumbnail(); len(v) > 0 {
+                    payload["LinkThumbnailBase64"] = base64.StdEncoding.EncodeToString(v)
+                    payload["LinkImageHighQuality"] = false
+                }
+            }
+        }
     }
 
 	if err := buildMediaFields(ctx, client, msg, payload); err != nil {

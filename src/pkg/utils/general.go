@@ -89,9 +89,9 @@ type Metadata struct {
 
 const (
 	linkPreviewMaxImageDimension = 1024
-	linkPreviewMaxJPEGDimension  = 400
+	linkPreviewMaxJPEGDimension  = 800
 	linkPreviewImageQuality      = 85
-	linkPreviewJPEGQuality       = 80
+	linkPreviewJPEGQuality       = 90
 )
 
 func resizeWithinBounds(src image.Image, maxDimension int) image.Image {
