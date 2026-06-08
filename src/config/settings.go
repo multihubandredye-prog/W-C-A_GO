@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	AppVersion             = "v8.6.0"
+	AppVersion             = "v.1.2.5"
 	AppPort                = "3000"
 	AppHost                = "0.0.0.0"
 	AppDebug               = false
@@ -21,7 +21,6 @@ var (
 	McpHost = "localhost"
 
 	PathQrCode    = "statics/qrcode"
-	PathSendItems = "statics/senditems"
 	PathMedia     = "statics/media"
 	PathStorages  = "storages"
 

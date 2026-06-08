@@ -3,9 +3,9 @@ package usecase
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
+	"image"
 	"math"
 	"mime"
 	"net/http"
@@ -266,7 +266,7 @@ func (service serviceSend) SendImage(ctx context.Context, request domainSend.Ima
 			imageData = pngBuffer.Bytes()
 		}
 
-		oriImagePath = fmt.Sprintf("%s/%s", config.PathSendItems, fileName)
+		oriImagePath = fmt.Sprintf("%s/%s", config.PathMedia, fileName)
 		imageName = fileName
 		err = os.WriteFile(oriImagePath, imageData, 0644)
 		if err != nil {
@@ -280,13 +280,13 @@ func (service serviceSend) SendImage(ctx context.Context, request domainSend.Ima
 		}
 
 		imageName = fmt.Sprintf("upload_%s.jpg", fiberUtils.UUIDv4())
-		oriImagePath = fmt.Sprintf("%s/%s", config.PathSendItems, imageName)
+		oriImagePath = fmt.Sprintf("%s/%s", config.PathMedia, imageName)
 		err = os.WriteFile(oriImagePath, imageData, 0644)
 		if err != nil {
 			return response, pkgError.InternalServerError(fmt.Sprintf("failed to save base64 image: %v", err))
 		}
 	} else if request.Image != nil {		// Save image to server
-		oriImagePath = fmt.Sprintf("%s/%s", config.PathSendItems, request.Image.Filename)
+		oriImagePath = fmt.Sprintf("%s/%s", config.PathMedia, request.Image.Filename)
 		err = fasthttp.SaveMultipartFile(request.Image, oriImagePath)
 		if err != nil {
 			return response, err
@@ -296,6 +296,17 @@ func (service serviceSend) SendImage(ctx context.Context, request domainSend.Ima
 	deletedItems = append(deletedItems, oriImagePath)
 
 	/* Generate thumbnail with smalled image size */
+	// Use net/http to detect content type to be sure what we are opening
+	imageDataForCheck, err := os.ReadFile(oriImagePath)
+	if err != nil {
+		return response, pkgError.InternalServerError(fmt.Sprintf("Failed to read image file for format check: %v", err))
+	}
+	contentType := http.DetectContentType(imageDataForCheck)
+	logrus.Infof("Detected content type for %s: %s (size: %d bytes)", oriImagePath, contentType, len(imageDataForCheck))
+	if !strings.HasPrefix(contentType, "image/") {
+		return response, pkgError.InternalServerError(fmt.Sprintf("Unsupported file format: %s", contentType))
+	}
+
 	srcImage, err := imaging.Open(oriImagePath)
 	if err != nil {
 		return response, pkgError.InternalServerError(fmt.Sprintf("Failed to open image file '%s' for thumbnail generation: %v. Possible causes: file not found, unsupported format, or permission denied.", oriImagePath, err))
@@ -303,7 +314,7 @@ func (service serviceSend) SendImage(ctx context.Context, request domainSend.Ima
 
 	// Resize Thumbnail
 	resizedImage := imaging.Resize(srcImage, 100, 0, imaging.Lanczos)
-	imageThumbnail = fmt.Sprintf("%s/thumbnails-%s", config.PathSendItems, imageName)
+	imageThumbnail = fmt.Sprintf("%s/thumbnails-%s", config.PathMedia, imageName)
 	if err = imaging.Save(resizedImage, imageThumbnail); err != nil {
 		return response, pkgError.InternalServerError(fmt.Sprintf("failed to save thumbnail %v", err))
 	}
@@ -316,7 +327,7 @@ func (service serviceSend) SendImage(ctx context.Context, request domainSend.Ima
 			return response, pkgError.InternalServerError(fmt.Sprintf("Failed to open image file '%s' for compression: %v. Possible causes: file not found, unsupported format, or permission denied.", oriImagePath, err))
 		}
 		newImage := imaging.Resize(openImageBuffer, 600, 0, imaging.Lanczos)
-		newImagePath := fmt.Sprintf("%s/new-%s", config.PathSendItems, imageName)
+		newImagePath := fmt.Sprintf("%s/new-%s", config.PathMedia, imageName)
 		if err = imaging.Save(newImage, newImagePath); err != nil {
 			return response, pkgError.InternalServerError(fmt.Sprintf("failed to save image %v", err))
 		}
@@ -510,14 +521,14 @@ func generateDocumentThumbnail(fileBytes []byte, fileName string, mimeType strin
 // generatePDFThumbnail renders the first page of a PDF as a JPEG thumbnail.
 // Tries pdftoppm first (from poppler-utils), falls back to ImageMagick convert.
 func generatePDFThumbnail(pdfBytes []byte, uuid string) []byte {
-	tempPDF := fmt.Sprintf("%s/thumb_%s.pdf", config.PathSendItems, uuid)
-	tempPNG := fmt.Sprintf("%s/thumb_%s.png", config.PathSendItems, uuid)
-	thumbPath := fmt.Sprintf("%s/thumb_%s_thumb.jpg", config.PathSendItems, uuid)
+	tempPDF := fmt.Sprintf("%s/thumb_%s.pdf", config.PathMedia, uuid)
+	tempPNG := fmt.Sprintf("%s/thumb_%s.png", config.PathMedia, uuid)
+	thumbPath := fmt.Sprintf("%s/thumb_%s_thumb.jpg", config.PathMedia, uuid)
 
 	defer func() {
 		_ = utils.RemoveFile(0, tempPDF, tempPNG, thumbPath)
 		// pdftoppm outputs with suffix, clean that too
-		pdftoppmOut := fmt.Sprintf("%s/thumb_%s-1.png", config.PathSendItems, uuid)
+		pdftoppmOut := fmt.Sprintf("%s/thumb_%s-1.png", config.PathMedia, uuid)
 		_ = utils.RemoveFile(0, pdftoppmOut)
 	}()
 
@@ -527,7 +538,7 @@ func generatePDFThumbnail(pdfBytes []byte, uuid string) []byte {
 
 	// Try pdftoppm first (poppler-utils) — widely available, no Ghostscript needed
 	pngGenerated := false
-	pdftoppmOut := fmt.Sprintf("%s/thumb_%s", config.PathSendItems, uuid)
+	pdftoppmOut := fmt.Sprintf("%s/thumb_%s", config.PathMedia, uuid)
 	cmdCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(cmdCtx, "pdftoppm", "-png", "-f", "1", "-l", "1", "-r", "150", "-singlefile", tempPDF, pdftoppmOut)
@@ -568,8 +579,8 @@ func generatePDFThumbnail(pdfBytes []byte, uuid string) []byte {
 // generateImageDocThumbnail creates a thumbnail for image files sent as documents.
 func generateImageDocThumbnail(imageBytes []byte, fileName string, uuid string) []byte {
 	safeFileName := filepath.Base(fileName)
-	tempPath := fmt.Sprintf("%s/docimg_%s_%s", config.PathSendItems, uuid, safeFileName)
-	thumbPath := fmt.Sprintf("%s/docimg_%s_thumb.jpg", config.PathSendItems, uuid)
+	tempPath := fmt.Sprintf("%s/docimg_%s_%s", config.PathMedia, uuid, safeFileName)
+	thumbPath := fmt.Sprintf("%s/docimg_%s_thumb.jpg", config.PathMedia, uuid)
 
 	defer func() {
 		_ = utils.RemoveFile(0, tempPath, thumbPath)
@@ -806,7 +817,7 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 			return response, pkgError.InternalServerError(fmt.Sprintf("failed to download video from URL %v", errDownload))
 		}
 		// Build file path to save the downloaded video temporarily
-		oriVideoPath = fmt.Sprintf("%s/%s", config.PathSendItems, generateUUID+fileName)
+		oriVideoPath = fmt.Sprintf("%s/%s", config.PathMedia, generateUUID+fileName)
 		if errWrite := os.WriteFile(oriVideoPath, videoBytes, 0644); errWrite != nil {
 			return response, pkgError.InternalServerError(fmt.Sprintf("failed to store downloaded video in server %v", errWrite))
 		}
@@ -818,14 +829,14 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 		}
 		
 		fileName := fmt.Sprintf("upload_%s.mp4", generateUUID)
-		oriVideoPath = fmt.Sprintf("%s/%s", config.PathSendItems, fileName)
+		oriVideoPath = fmt.Sprintf("%s/%s", config.PathMedia, fileName)
 		err = os.WriteFile(oriVideoPath, videoBytes, 0644)
 		if err != nil {
 			return response, pkgError.InternalServerError(fmt.Sprintf("failed to store base64 video in server %v", err))
 		}
 	} else if request.Video != nil {
 		// Save uploaded video to server
-		oriVideoPath = fmt.Sprintf("%s/%s", config.PathSendItems, generateUUID+request.Video.Filename)
+		oriVideoPath = fmt.Sprintf("%s/%s", config.PathMedia, generateUUID+request.Video.Filename)
 		err = fasthttp.SaveMultipartFile(request.Video, oriVideoPath)
 		if err != nil {
 			return response, pkgError.InternalServerError(fmt.Sprintf("failed to store video in server %v", err))
@@ -842,11 +853,12 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 	}
 
 	// Generate thumbnail using ffmpeg
-	thumbnailVideoPath := fmt.Sprintf("%s/%s", config.PathSendItems, generateUUID+".png")
+	thumbnailVideoPath := fmt.Sprintf("%s/%s", config.PathMedia, generateUUID+".png")
 	cmdThumbnail := wcaFFmpegCmd( "-i", oriVideoPath, "-ss", "00:00:01.000", "-vframes", "1", thumbnailVideoPath)
-	err = cmdThumbnail.Run()
+	output, err := cmdThumbnail.CombinedOutput()
 	if err != nil {
-		return response, pkgError.InternalServerError(fmt.Sprintf("failed to create thumbnail %v", err))
+		logrus.Errorf("ffmpeg thumbnail generation failed: %v, output: %s", err, string(output))
+		return response, pkgError.InternalServerError(fmt.Sprintf("failed to create thumbnail: %v, output: %s", err, string(output)))
 	}
 
 	// Resize Thumbnail
@@ -855,7 +867,7 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 		return response, pkgError.InternalServerError(fmt.Sprintf("Failed to open generated video thumbnail image '%s': %v. Possible causes: file not found, unsupported format, or permission denied.", thumbnailVideoPath, err))
 	}
 	resizedImage := imaging.Resize(srcImage, 100, 0, imaging.Lanczos)
-	thumbnailResizeVideoPath := fmt.Sprintf("%s/thumbnails-%s", config.PathSendItems, generateUUID+".png")
+	thumbnailResizeVideoPath := fmt.Sprintf("%s/thumbnails-%s", config.PathMedia, generateUUID+".png")
 	if err = imaging.Save(resizedImage, thumbnailResizeVideoPath); err != nil {
 		return response, pkgError.InternalServerError(fmt.Sprintf("failed to save thumbnail %v", err))
 	}
@@ -866,7 +878,7 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 
 	// Compress if requested
 	if request.Compress {
-		compresVideoPath := fmt.Sprintf("%s/%s", config.PathSendItems, generateUUID+".mp4")
+		compresVideoPath := fmt.Sprintf("%s/%s", config.PathMedia, generateUUID+".mp4")
 
 		// Use proper compression settings to reduce file size
 		// -crf 28: Constant Rate Factor (18-28 is good range, higher = smaller file)
@@ -1031,7 +1043,13 @@ func (service serviceSend) SendLink(ctx context.Context, request domainSend.Link
 
 	metadata, err := utils.GetMetaDataFromURL(request.Link)
 	if err != nil {
-		return response, err
+		// If custom title is provided, ignore metadata fetch error
+		if request.Title != "" {
+			logrus.Warnf("Failed to fetch metadata for %s, but continuing because custom title was provided: %v", request.Link, err)
+			err = nil // Reset error
+		} else {
+			return response, err
+		}
 	}
 
 	// Override metadata if request provides custom values
@@ -1042,10 +1060,29 @@ func (service serviceSend) SendLink(ctx context.Context, request domainSend.Link
 		metadata.Description = request.Description
 	}
 	if request.ImageBase64 != "" {
-		imageData, err := base64.StdEncoding.DecodeString(request.ImageBase64)
+		imageData, err := utils.Base64ToBytes(request.ImageBase64)
 		if err == nil {
-			metadata.ImageThumb = imageData
-			metadata.JPEGThumb = imageData
+			// Process the custom image to get thumbnails and dimensions
+			img, _, errDecode := image.Decode(bytes.NewReader(imageData))
+			if errDecode == nil {
+				imageThumb, jpegThumb, width, height, errThumb := utils.BuildLinkPreviewThumbnails(img)
+				if errThumb == nil {
+					metadata.ImageThumb = imageThumb
+					metadata.JPEGThumb = jpegThumb
+					metadata.Width = &width
+					metadata.Height = &height
+				} else {
+					logrus.Warnf("Failed to build thumbnails from custom image: %v", errThumb)
+					// Fallback to raw data if processing fails
+					metadata.ImageThumb = imageData
+					metadata.JPEGThumb = imageData
+				}
+			} else {
+				logrus.Warnf("Failed to decode custom image for link preview: %v", errDecode)
+				// Fallback to raw data if decoding fails
+				metadata.ImageThumb = imageData
+				metadata.JPEGThumb = imageData
+			}
 		} else {
 			logrus.Warnf("Failed to decode base64 thumbnail: %v", err)
 		}
@@ -1212,7 +1249,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 		audioMimeType = resolveAudioMIME(audioFilename, audioBytes)
 
 		// Save to temp file to get duration
-		tempAudioPath = fmt.Sprintf("%s/temp_audio_%s", config.PathSendItems, fiberUtils.UUIDv4()+filepath.Ext(audioFilename))
+		tempAudioPath = fmt.Sprintf("%s/temp_audio_%s", config.PathMedia, fiberUtils.UUIDv4()+filepath.Ext(audioFilename))
 		if err = os.WriteFile(tempAudioPath, audioBytes, 0644); err == nil {
 			deleteTempFile = true
 			audioDuration = getAudioDuration(tempAudioPath)
@@ -1227,7 +1264,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 		audioMimeType = resolveAudioMIME(audioFilename, audioBytes)
 
 		// Save to temp file to get duration
-		tempAudioPath = fmt.Sprintf("%s/temp_audio_%s", config.PathSendItems, audioFilename)
+		tempAudioPath = fmt.Sprintf("%s/temp_audio_%s", config.PathMedia, audioFilename)
 		if err = os.WriteFile(tempAudioPath, audioBytes, 0644); err == nil {
 			deleteTempFile = true
 			audioDuration = getAudioDuration(tempAudioPath)
@@ -1237,7 +1274,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 		audioMimeType = resolveAudioMIME(request.Audio.Filename, audioBytes)
 
 		// Save to temp file to get duration
-		tempAudioPath = fmt.Sprintf("%s/temp_audio_%s", config.PathSendItems, fiberUtils.UUIDv4()+filepath.Ext(request.Audio.Filename))
+		tempAudioPath = fmt.Sprintf("%s/temp_audio_%s", config.PathMedia, fiberUtils.UUIDv4()+filepath.Ext(request.Audio.Filename))
 		if err = os.WriteFile(tempAudioPath, audioBytes, 0644); err == nil {
 			deleteTempFile = true
 			audioDuration = getAudioDuration(tempAudioPath)
@@ -1276,7 +1313,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 			}
 
 			// Get absolute base directory for temporary files
-			absBaseDir, err := filepath.Abs(config.PathSendItems)
+			absBaseDir, err := filepath.Abs(config.PathMedia)
 			if err != nil {
 				return response, pkgError.InternalServerError(fmt.Sprintf("failed to resolve base directory: %v", err))
 			}
@@ -1567,7 +1604,7 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 	)
 
 	// Resolve absolute base directory for send items
-	absBaseDir, err := filepath.Abs(config.PathSendItems)
+	absBaseDir, err := filepath.Abs(config.PathMedia)
 	if err != nil {
 		return response, pkgError.InternalServerError(fmt.Sprintf("failed to resolve base directory: %v", err))
 	}

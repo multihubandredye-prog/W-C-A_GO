@@ -9,6 +9,7 @@ import (
 	_ "image/gif" // Register GIF format
 	"image/jpeg"
 	_ "image/png" // For PNG encoding
+	_ "golang.org/x/image/webp"
 	"io"
 	"math"
 	"math/rand"
@@ -119,7 +120,7 @@ func encodeJPEGWithBackground(src image.Image, quality int) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
-func buildLinkPreviewThumbnails(src image.Image) (imageThumb []byte, jpegThumb []byte, width uint32, height uint32, err error) {
+func BuildLinkPreviewThumbnails(src image.Image) (imageThumb []byte, jpegThumb []byte, width uint32, height uint32, err error) {
 	preview := resizeWithinBounds(src, linkPreviewMaxImageDimension)
 	previewBounds := preview.Bounds()
 	width = uint32(previewBounds.Dx())
@@ -306,7 +307,7 @@ func GetMetaDataFromURL(urlStr string) (meta Metadata, err error) {
 							if err != nil {
 								logrus.Warnf("Failed to decode image: %v", err)
 							} else {
-								imageThumb, jpegThumb, width, height, prepErr := buildLinkPreviewThumbnails(img)
+								imageThumb, jpegThumb, width, height, prepErr := BuildLinkPreviewThumbnails(img)
 								if prepErr != nil {
 									logrus.Warnf("Failed to prepare link preview thumbnail: %v", prepErr)
 								} else {
