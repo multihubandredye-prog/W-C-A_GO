@@ -7,7 +7,7 @@ import (
 
 const (
 	wcaLinker64  = "/system/bin/linker64"
-	wcaFFmpegBin = "/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca.bin"
+	wcaFFmpegBin = "/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
 )
 
 func wcaFFmpegCmd(args ...string) *exec.Cmd {
