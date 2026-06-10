@@ -145,45 +145,35 @@ func buildEventPayload(ctx context.Context, client *whatsmeow.Client, evt *event
 	payload["Type"] = messageType
 
 	// If it's a Status Reply Message, extract specific quoted status details
-	if messageType == EventTypeStatusResponseMessage {
-        if extendedText := msg.GetExtendedTextMessage(); extendedText != nil { // Status replies are typically ExtendedTextMessage
-            if quotedMsgInfo := extendedText.GetContextInfo(); quotedMsgInfo != nil && quotedMsgInfo.GetQuotedMessage() != nil {
-                // It's a reply to a status
-                payload["QuotedStatusID"] = quotedMsgInfo.GetStanzaID()     // ID of the status message being replied to
-                payload["QuotedStatusSender"] = quotedMsgInfo.GetParticipant() // Original sender of the status
+	if messageType == "StatusResponseMessage" {
+		if quotedMsgInfo := utils.ExtractContextInfo(msg); quotedMsgInfo != nil && quotedMsgInfo.GetQuotedMessage() != nil {
+			// It's a reply to a status
+			payload["QuotedStatusID"] = quotedMsgInfo.GetStanzaID()     // ID of the status message being replied to
+			payload["QuotedStatusSender"] = quotedMsgInfo.GetParticipant() // Original sender of the status
 
-                // Extract original status message content if available
-                quotedMsg := quotedMsgInfo.GetQuotedMessage()
-                if quotedMsg.GetExtendedTextMessage() != nil {
-                    payload["QuotedStatusText"] = quotedMsg.GetExtendedTextMessage().GetText()
-                    if quotedMsg.GetExtendedTextMessage().GetTitle() != "" {
-                        payload["QuotedStatusTitle"] = quotedMsg.GetExtendedTextMessage().GetTitle()
-                    }
-                    if quotedMsg.GetExtendedTextMessage().GetDescription() != "" {
-                        payload["QuotedStatusDescription"] = quotedMsg.GetExtendedTextMessage().GetDescription()
-                    }
-                } else if quotedMsg.GetConversation() != "" {
-                    payload["QuotedStatusText"] = quotedMsg.GetConversation()
-                } else if media := quotedMsg.GetImageMessage(); media != nil {
-                    payload["QuotedStatusType"] = "ImageStatus"
-                    payload["QuotedStatusCaption"] = media.GetCaption()
-                } else if media := quotedMsg.GetVideoMessage(); media != nil {
-                    payload["QuotedStatusType"] = "VideoStatus"
-                    payload["QuotedStatusCaption"] = media.GetCaption()
-                }
-                // The actual reply content (text/media) will be in the main message fields (payload["Body"], etc.)
-                // We return here because StatusResponseMessage is a distinct event type.
-                return EventTypeStatusResponseMessage, payload, nil
-            }
-        }
-        // Fallback if it's StatusResponseMessage type but we couldn't parse quoted info
-        // This might happen if it's a non-ExtendedTextMessage status reply (e.g., sticker reply)
-        // In this case, we still return the type, but without quoted details.
-        return EventTypeStatusResponseMessage, payload, nil
+			// Extract original status message content if available
+			quotedMsg := quotedMsgInfo.GetQuotedMessage()
+			if quotedMsg.GetExtendedTextMessage() != nil {
+				payload["QuotedStatusText"] = quotedMsg.GetExtendedTextMessage().GetText()
+				if quotedMsg.GetExtendedTextMessage().GetTitle() != "" {
+					payload["QuotedStatusTitle"] = quotedMsg.GetExtendedTextMessage().GetTitle()
+				}
+				if quotedMsg.GetExtendedTextMessage().GetDescription() != "" {
+					payload["QuotedStatusDescription"] = quotedMsg.GetExtendedTextMessage().GetDescription()
+				}
+			} else if quotedMsg.GetConversation() != "" {
+				payload["QuotedStatusText"] = quotedMsg.GetConversation()
+			} else if media := quotedMsg.GetImageMessage(); media != nil {
+				payload["QuotedStatusType"] = "ImageStatus"
+				payload["QuotedStatusCaption"] = media.GetCaption()
+			} else if media := quotedMsg.GetVideoMessage(); media != nil {
+				payload["QuotedStatusType"] = "VideoStatus"
+				payload["QuotedStatusCaption"] = media.GetCaption()
+			}
+		}
 	}
 
-
-	// Common fields for all message types (moved below StatusResponseMessage processing)
+	// Common fields for all message types
 	payload["ID"] = evt.Info.ID
 	payload["Timestamp"] = evt.Info.Timestamp.Format(time.RFC3339)
 	payload["IsFromMe"] = evt.Info.IsFromMe
@@ -284,22 +274,22 @@ func buildEventPayload(ctx context.Context, client *whatsmeow.Client, evt *event
 		return "", nil, err
 	}
 
+	if messageType == "StatusResponseMessage" {
+		return EventTypeStatusResponseMessage, payload, nil
+	}
+
 	return EventTypeMessage, payload, nil
 }
 
 func getMessagePascalType(msg *waE2E.Message) string {
+	if ci := utils.ExtractContextInfo(msg); ci != nil && ci.GetRemoteJID() == "status@broadcast" {
+		return "StatusResponseMessage"
+	}
 	switch {
 	case msg.GetExtendedTextMessage() != nil:
 		extendedText := msg.GetExtendedTextMessage()
 		if extendedText != nil {
-            // Check if it's a reply to a status message
-            if contextInfo := extendedText.GetContextInfo(); contextInfo != nil { // No need to check GetRemoteJID() for nil if it returns a string
-                if contextInfo.GetRemoteJID() == "status@broadcast" { // Direct string comparison
-                    return "StatusResponseMessage"
-                }
-            }
-
-            // Check for link preview via Title/Description directly on ExtendedTextMessage
+			// Check for link preview via Title/Description directly on ExtendedTextMessage
 			if extendedText.GetTitle() != "" || extendedText.GetDescription() != "" {
 				return "LinkMessage"
 			}
@@ -397,7 +387,9 @@ func buildMessageBody(ctx context.Context, client *whatsmeow.Client, evt *events
 	// Add reply context if present
 	if message.RepliedId != "" {
 		payload["RepliedToID"] = message.RepliedId
-		payload["Type"] = "QuoteMessage"
+		if payload["Type"] != "StatusResponseMessage" {
+			payload["Type"] = "QuoteMessage"
+		}
 	}
 	if message.QuotedMessage != "" {
 		payload["QuotedBody"] = message.QuotedMessage

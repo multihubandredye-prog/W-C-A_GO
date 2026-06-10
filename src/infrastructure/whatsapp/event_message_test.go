@@ -99,6 +99,58 @@ func TestBuildEventPayloadReactionIncludesTargetMessageID(t *testing.T) {
 	}
 }
 
+func TestBuildEventPayloadStatusResponseWithAudio(t *testing.T) {
+	config.WhatsappAutoDownloadMedia = false
+	evt := &events.Message{
+		Info: types.MessageInfo{
+			MessageSource: types.MessageSource{
+				Chat:     types.NewJID("123", types.DefaultUserServer),
+				Sender:   types.NewJID("123", types.DefaultUserServer),
+				IsFromMe: false,
+			},
+			ID:        "MSG_STATUS_REPLY",
+			Timestamp: time.Now(),
+		},
+		Message: &waE2E.Message{
+			AudioMessage: &waE2E.AudioMessage{
+				URL:      protoString("https://example.com/audio.ogg"),
+				Mimetype: protoString("audio/ogg"),
+				ContextInfo: &waE2E.ContextInfo{
+					RemoteJID:     protoString("status@broadcast"),
+					StanzaID:      protoString("STATUS_MSG_ID"),
+					Participant:   protoString("456@s.whatsapp.net"),
+					QuotedMessage: &waE2E.Message{Conversation: protoString("status text")},
+				},
+			},
+		},
+	}
+
+	eventType, payload, err := buildEventPayload(context.Background(), nil, evt)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if eventType != EventTypeStatusResponseMessage {
+		t.Fatalf("expected event type %s, got %s", EventTypeStatusResponseMessage, eventType)
+	}
+	if payload["Type"] != "StatusResponseMessage" {
+		t.Fatalf("expected Type=StatusResponseMessage, got %v", payload["Type"])
+	}
+	if payload["QuotedStatusID"] != "STATUS_MSG_ID" {
+		t.Fatalf("expected QuotedStatusID=STATUS_MSG_ID, got %v", payload["QuotedStatusID"])
+	}
+	if payload["QuotedStatusSender"] != "456@s.whatsapp.net" {
+		t.Fatalf("expected QuotedStatusSender=456@s.whatsapp.net, got %v", payload["QuotedStatusSender"])
+	}
+	if payload["QuotedStatusText"] != "status text" {
+		t.Fatalf("expected QuotedStatusText='status text', got %v", payload["QuotedStatusText"])
+	}
+
+	// Check if audio info is still there
+	if payload["Audio"] == nil {
+		t.Fatal("expected Audio payload to be present")
+	}
+}
+
 func TestBuildEventPayloadReactionWithoutKeyDoesNotPanic(t *testing.T) {
 	evt := reactionEventForTest("reaction-event-2", "MSG101", "\U0001f44d")
 	evt.Message.ReactionMessage.Key = nil
