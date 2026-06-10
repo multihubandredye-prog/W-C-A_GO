@@ -658,10 +658,10 @@ func runFFProbe(args ...string) ([]byte, error) {
 // runFFMpeg executes ffmpeg with the given arguments and returns the output.
 // Returns empty output and error if ffmpeg is not available or fails.
 func runFFMpeg(args ...string) ([]byte, error) {
-	if _, err := func() (string, error) { return wcaFFmpegBin, nil }(); err != nil {
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		return nil, fmt.Errorf("ffmpeg not found: %w", err)
 	}
-	return wcaFFmpegCmd( args...).Output()
+	return exec.Command("ffmpeg", args...).Output()
 }
 
 // getAudioDuration returns the duration of an audio file in seconds using ffprobe.
@@ -847,14 +847,14 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 	}
 
 	// Check if ffmpeg is installed
-	_, err = func() (string, error) { return wcaFFmpegBin, nil }()
+	_, err = exec.LookPath("ffmpeg")
 	if err != nil {
 		return response, pkgError.InternalServerError("ffmpeg not installed")
 	}
 
 	// Generate thumbnail using ffmpeg
 	thumbnailVideoPath := fmt.Sprintf("%s/%s", config.PathMedia, generateUUID+".png")
-	cmdThumbnail := wcaFFmpegCmd( "-i", oriVideoPath, "-ss", "00:00:01.000", "-vframes", "1", thumbnailVideoPath)
+	cmdThumbnail := exec.Command("ffmpeg", "-i", oriVideoPath, "-ss", "00:00:01.000", "-vframes", "1", thumbnailVideoPath)
 	output, err := cmdThumbnail.CombinedOutput()
 	if err != nil {
 		logrus.Errorf("ffmpeg thumbnail generation failed: %v, output: %s", err, string(output))
@@ -887,7 +887,7 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 		// -c:a aac: Use AAC codec for audio
 		// -movflags +faststart: Optimize for web streaming
 		// -vf scale=720:-2: Scale video to max width 720px, maintain aspect ratio
-		cmdCompress := wcaFFmpegCmd( "-i", oriVideoPath,
+		cmdCompress := exec.Command("ffmpeg", "-i", oriVideoPath,
 			"-c:v", "libx264",
 			"-crf", "28",
 			"-preset", "fast",
@@ -1307,7 +1307,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 
 		if !isAlreadyOgg {
 			// Check if ffmpeg is installed
-			_, err := func() (string, error) { return wcaFFmpegBin, nil }()
+			_, err := exec.LookPath("ffmpeg")
 			if err != nil {
 				return response, pkgError.InternalServerError("ffmpeg not installed (required for PTT voice notes)")
 			}
@@ -1342,7 +1342,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 			convCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 			defer cancel()
 
-			cmdConvert := wcaFFmpegCmdCtx(convCtx,
+			cmdConvert := exec.CommandContext(convCtx, "ffmpeg",
 				"-i", inputPath,
 				"-c:a", "libopus",
 				"-b:a", "64k",
@@ -1826,9 +1826,9 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 	defer cancel()
 
 	// Check if ffmpeg is available
-	if _, err := func() (string, error) { return wcaFFmpegBin, nil }(); err == nil {
+	if _, err := exec.LookPath("ffmpeg"); err == nil {
 		// Use ffmpeg to convert to WebP with transparency support, overwrite if exists
-		convertCmd = wcaFFmpegCmdCtx(convCtx, "-y", "-i", pngPath, "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", "60", "-preset", "default", "-loop", "0", "-an", "-vsync", "0", webpPath)
+		convertCmd = exec.CommandContext(convCtx, "ffmpeg", "-y", "-i", pngPath, "-vcodec", "libwebp", "-lossless", "0", "-compression_level", "6", "-q:v", "60", "-preset", "default", "-loop", "0", "-an", "-vsync", "0", webpPath)
 	} else if _, err := exec.LookPath("cwebp"); err == nil {
 		// Use cwebp as fallback
 		convertCmd = exec.CommandContext(convCtx, "cwebp", "-q", "60", "-o", webpPath, pngPath)
