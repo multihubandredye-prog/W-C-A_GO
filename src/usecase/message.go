@@ -165,6 +165,55 @@ func (service serviceMessage) RevokeMessage(ctx context.Context, request domainM
 	return response, nil
 }
 
+func (service serviceMessage) RevokeAllStatuses(ctx context.Context) (response domainMessage.GenericResponse, err error) {
+	client := whatsapp.ClientFromContext(ctx)
+	if client == nil {
+		return response, pkgError.ErrWaCLI
+	}
+
+	deviceID := ""
+	if inst, ok := whatsapp.DeviceFromContext(ctx); ok && inst != nil {
+		deviceID = inst.JID()
+		if deviceID == "" {
+			deviceID = inst.ID()
+		}
+	}
+
+	// Filter for our own status messages
+	isFromMe := true
+	filter := &domainChatStorage.MessageFilter{
+		ChatJID:  "status@broadcast",
+		DeviceID: deviceID,
+		IsFromMe: &isFromMe,
+		Limit:    100, // Reasonable limit for active statuses
+	}
+
+	messages, err := service.chatStorageRepo.GetMessages(filter)
+	if err != nil {
+		return response, fmt.Errorf("failed to fetch status messages: %w", err)
+	}
+
+	count := 0
+	dataWaRecipient := types.StatusBroadcastJID
+	for _, msg := range messages {
+		// Only revoke messages that are likely still active (last 24h)
+		if time.Since(msg.Timestamp) > 24*time.Hour {
+			continue
+		}
+
+		// WhatsApp status messages are always "from me" when sent from this account
+		_, err := client.SendMessage(ctx, dataWaRecipient, client.BuildRevoke(dataWaRecipient, types.EmptyJID, msg.ID))
+		if err != nil {
+			logrus.Warnf("Failed to revoke status message %s: %v", msg.ID, err)
+			continue
+		}
+		count++
+	}
+
+	response.Status = fmt.Sprintf("Successfully revoked %d status messages", count)
+	return response, nil
+}
+
 func (service serviceMessage) DeleteMessage(ctx context.Context, request domainMessage.DeleteRequest) (err error) {
 	if err = validations.ValidateDeleteMessage(ctx, request); err != nil {
 		return err

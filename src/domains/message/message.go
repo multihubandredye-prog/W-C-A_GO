@@ -43,6 +43,10 @@ type DownloadMediaRequest struct {
 	Phone     string `json:"phone" form:"phone"`
 }
 
+type RevokeAllStatusesRequest struct {
+	// No fields needed for now, but keeping struct for consistency and future expansion
+}
+
 type DownloadMediaResponse struct {
 	MessageID string `json:"message_id"`
 	Status    string `json:"status"`

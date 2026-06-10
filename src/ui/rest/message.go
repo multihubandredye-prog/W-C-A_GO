@@ -17,6 +17,7 @@ func InitRestMessage(app fiber.Router, service domainMessage.IMessageUsecase) Me
 	// Message action endpoints
 	app.Post("/message/:message_id/reaction", rest.ReactMessage)
 	app.Post("/message/:message_id/revoke", rest.RevokeMessage)
+	app.Post("/message/revoke_status_full", rest.RevokeAllStatuses)
 	app.Post("/message/:message_id/delete", rest.DeleteMessage)
 	app.Post("/message/:message_id/update", rest.UpdateMessage)
 	app.Post("/message/:message_id/read", rest.MarkAsRead)
@@ -35,6 +36,18 @@ func (controller *Message) RevokeMessage(c *fiber.Ctx) error {
 	utils.SanitizePhone(&request.Phone)
 
 	response, err := controller.Service.RevokeMessage(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
+	utils.PanicIfNeeded(err)
+
+	return c.JSON(utils.ResponseData{
+		Status:  200,
+		Code:    "SUCCESS",
+		Message: response.Status,
+		Results: response,
+	})
+}
+
+func (controller *Message) RevokeAllStatuses(c *fiber.Ctx) error {
+	response, err := controller.Service.RevokeAllStatuses(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)))
 	utils.PanicIfNeeded(err)
 
 	return c.JSON(utils.ResponseData{
