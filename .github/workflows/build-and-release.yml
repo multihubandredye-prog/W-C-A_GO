@@ -1,12 +1,9 @@
-name: Auto Build and Release
+name: Build and Release WCA
 
 on:
   push:
-    branches: [main]
-    paths-ignore:
-      - 'src/config/settings.go'
-      - '.github/workflows/**'
-      - 'readme.md'
+    tags:
+      - 'v*'
 
 jobs:
   build:
@@ -16,37 +13,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
-      - name: Auto-increment Version
+      # Necessário para cross-compilação para aarch64 (Android compatível)
+      - name: Install cross-compilation toolchains
         run: |
-          # Extrai a versão atual
-          VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
-          # Incrementa o patch (v1.1.5 -> v1.1.6)
-          NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
-          
-          # Atualiza o arquivo
-          sed -i "s/$VERSION/$NEW_VERSION/g" src/config/settings.go
-          
-          # Configura git
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          
-          # Commit e tag
-          git add src/config/settings.go
-          git commit -m "chore: bump version to $NEW_VERSION"
-          git tag $NEW_VERSION
-          git push origin main
-          git push origin $NEW_VERSION
-          
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: go mod tidy
         run: |
@@ -57,8 +34,9 @@ jobs:
         run: |
           cd src
           FFMPEG_PATH="/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
+
           FFMPEG_FILES=$(grep -rl 'exec\.LookPath("ffmpeg")\|exec\.Command("ffmpeg"\|exec\.CommandContext.*"ffmpeg"\|wcaFFmpegCmd\|wcaFFmpegBin' . --include="*.go" 2>/dev/null | grep -v "/vendor/" | grep -v "wca_ffmpeg_exec.go" || true)
-          
+
           if [ -n "$FFMPEG_FILES" ]; then
             echo "$FFMPEG_FILES" | while read -r FILE; do
               DIR=$(dirname "$FILE")
@@ -81,14 +59,33 @@ jobs:
       - name: Build
         run: |
           cd src
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
+          # Replicando as flags de build usadas no termux (CGO_ENABLED=1)
+          # usando o cross-compiler para aarch64
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
+            CC=aarch64-linux-gnu-gcc \
             go build -trimpath -ldflags="-s -w" \
-            -o whatsapp-wca-aarch64.bin .
+            -o whatsapp-wca .
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.NEW_VERSION }}
-          files: src/whatsapp-wca-aarch64.bin
+          name: Release ${{ github.ref_name }}
+          body: |
+            ### WCA - WhatsApp WCA (aarch64)
+            Binário compilado para Android.
+
+            #### Como executar no Tasker:
+            Use o seguinte código Java (Execute Shell/Script):
+            ```java
+            Runtime rt = Runtime.getRuntime();
+            String[] cmd = new String[]{
+                "/system/bin/sh",
+                "-c",
+                "cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"
+            };
+            rt.exec(cmd);
+            ```
+            **Nota:** O binário deve ser renomeado para `whatsapp-wca-aarch64.bin` e colocado em `/data/data/net.dinglisch.android.taskerm/files/WCA/`.
+          files: src/whatsapp-wca
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
