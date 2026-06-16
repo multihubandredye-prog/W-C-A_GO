@@ -12,6 +12,6 @@ var embedIndex embed.FS
 var embedViews embed.FS
 
 func main() {
-	// Trigger build v2
+	// Trigger build v3
 	cmd.Execute(embedIndex, embedViews)
 }

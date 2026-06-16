@@ -3,7 +3,6 @@ name: Build and Release WCA
 on:
   push:
     branches: [main]
-    paths: ['**.go', 'go.mod', 'go.sum']
 
 permissions:
   contents: write
@@ -25,6 +24,13 @@ jobs:
 
       - name: Auto-increment Version and Tag
         run: |
+          # Verifica se o commit foi feito pelo bot para evitar loop
+          if [[ "$(git log -1 --pretty=format:'%an')" == "github-actions" ]]; then
+            echo "Commit feito pelo bot, ignorando versionamento."
+            echo "NEW_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)" >> $GITHUB_ENV
+            exit 0
+          fi
+          
           VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
           NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
           sed -i "s/$VERSION/$NEW_VERSION/g" src/config/settings.go
@@ -73,7 +79,6 @@ jobs:
       - name: Build
         run: |
           cd src
-          # Compilação pura (sem CGO) usando a tag 'purego'
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
             go build -tags purego -trimpath -ldflags="-s -w" \
             -o whatsapp-wca-aarch64.bin .
