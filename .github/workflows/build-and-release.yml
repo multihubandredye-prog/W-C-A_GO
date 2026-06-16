@@ -73,10 +73,9 @@ jobs:
       - name: Build
         run: |
           cd src
-          # Replicando a lógica do script: CGO_ENABLED=1 e compilador do NDK
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
-            CC="${{ env.NDK_CC }}" \
-            go build -trimpath -ldflags="-s -w" \
+          # Compilação pura (sem CGO) usando a tag 'purego'
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
+            go build -tags purego -trimpath -ldflags="-s -w" \
             -o whatsapp-wca-aarch64.bin .
 
       - name: Create Release
