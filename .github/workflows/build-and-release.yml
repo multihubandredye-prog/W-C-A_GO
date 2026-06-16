@@ -83,16 +83,18 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_VERSION }}
-          name: Release ${{ env.NEW_VERSION }}
+          name: 🚀 Release ${{ env.NEW_VERSION }}
           body: |
-            ### WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
+            ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
             Binário compilado para Android.
             
-            #### Instalação:
+            ---
+            ### 🛠️ Instalação
             1. Insira o arquivo `whatsapp-wca-aarch64.bin` neste caminho no seu Android:
                `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
-            #### Como executar no Tasker (Java Code):
+            ### ⚙️ Como executar no Tasker (Java Code)
+            Utilize o seguinte código em uma tarefa **JavaScriptlet**:
             ```java
             Runtime rt = Runtime.getRuntime();
             String[] cmd = new String[]{
@@ -102,6 +104,8 @@ jobs:
             };
             rt.exec(cmd);
             ```
+            ---
+            *Compilado automaticamente via GitHub Actions.*
           files: src/whatsapp-wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
