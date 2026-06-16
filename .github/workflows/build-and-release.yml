@@ -3,6 +3,7 @@ name: Build and Release WCA
 on:
   push:
     branches: [main]
+    paths: ['**.go', 'go.mod', 'go.sum', '.github/workflows/build-and-release.yml']
 
 permissions:
   contents: write
@@ -22,15 +23,17 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+
       - name: Auto-increment Version and Tag
         run: |
-          # Verifica se o commit foi feito pelo bot para evitar loop
           if [[ "$(git log -1 --pretty=format:'%an')" == "github-actions" ]]; then
-            echo "Commit feito pelo bot, ignorando versionamento."
             echo "NEW_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)" >> $GITHUB_ENV
             exit 0
           fi
-          
           VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
           NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
           sed -i "s/$VERSION/$NEW_VERSION/g" src/config/settings.go
@@ -38,21 +41,12 @@ jobs:
           git config user.email "github-actions@github.com"
           git add src/config/settings.go
           git commit -m "update"
-          # Tenta deletar a tag local e remota se já existir para forçar a atualização
           git tag -d $NEW_VERSION || true
           git push --delete origin $NEW_VERSION || true
           git tag $NEW_VERSION
           git push origin main
           git push origin $NEW_VERSION
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
-      - name: Install NDK and dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y binutils
-          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
-          unzip -q android-ndk-r26d-linux.zip
-          echo "NDK_CC=$(pwd)/android-ndk-r26d/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang" >> $GITHUB_ENV
 
       - name: Patch ffmpeg calls
         run: |
@@ -82,8 +76,11 @@ jobs:
       - name: Build
         run: |
           cd src
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
-            go build -tags purego -trimpath -ldflags="-s -w" \
+          # Configuração exata conforme ambiente de build bem-sucedido
+          # CGO_ENABLED=1, GOOS=android, usando NDK clang
+          export CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
+          GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
+            go build -trimpath -ldflags="-s -w" \
             -o whatsapp-wca-aarch64.bin .
 
       - name: Create Release
@@ -93,7 +90,7 @@ jobs:
           name: 🚀 Release ${{ env.NEW_VERSION }}
           body: |
             ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
-            Binário compilado para Android.
+            Binário compilado para Android com NDK.
             
             ---
             ### 🛠️ Instalação
