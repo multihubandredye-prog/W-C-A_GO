@@ -1,9 +1,12 @@
-name: Build and Release WCA
+name: Auto Build and Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    paths-ignore:
+      - 'src/config/settings.go'
+      - '.github/workflows/**'
+      - 'readme.md'
 
 jobs:
   build:
@@ -13,17 +16,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
-      - name: Download Android NDK r26
+      - name: Auto-increment Version
         run: |
-          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
-          unzip -q android-ndk-r26d-linux.zip
-          echo "NDK_CC=$(pwd)/android-ndk-r26d/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang" >> $GITHUB_ENV
+          # Extrai a versão atual
+          VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
+          # Incrementa o patch (v1.1.5 -> v1.1.6)
+          NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
+          
+          # Atualiza o arquivo
+          sed -i "s/$VERSION/$NEW_VERSION/g" src/config/settings.go
+          
+          # Configura git
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          
+          # Commit e tag
+          git add src/config/settings.go
+          git commit -m "chore: bump version to $NEW_VERSION"
+          git tag $NEW_VERSION
+          git push origin main
+          git push origin $NEW_VERSION
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: go mod tidy
         run: |
@@ -34,43 +57,20 @@ jobs:
         run: |
           cd src
           FFMPEG_PATH="/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
-
-          FFMPEG_FILES=$(grep -rl \
-            'exec\.LookPath("ffmpeg")\|exec\.Command("ffmpeg"\|exec\.CommandContext.*"ffmpeg"\|wcaFFmpegCmd\|wcaFFmpegBin' \
-            . --include="*.go" 2>/dev/null \
-            | grep -v "/vendor/" \
-            | grep -v "wca_ffmpeg_exec.go" || true)
-
+          FFMPEG_FILES=$(grep -rl 'exec\.LookPath("ffmpeg")\|exec\.Command("ffmpeg"\|exec\.CommandContext.*"ffmpeg"\|wcaFFmpegCmd\|wcaFFmpegBin' . --include="*.go" 2>/dev/null | grep -v "/vendor/" | grep -v "wca_ffmpeg_exec.go" || true)
+          
           if [ -n "$FFMPEG_FILES" ]; then
             echo "$FFMPEG_FILES" | while read -r FILE; do
               DIR=$(dirname "$FILE")
               PKG=$(grep '^package ' "$FILE" | head -1 | awk '{print $2}')
               EXEC_FILE="$DIR/wca_ffmpeg_exec.go"
-
               cat > "$EXEC_FILE" << GOEXEC
           package $PKG
-
-          import (
-            "context"
-            "os/exec"
-          )
-
-          const (
-            wcaLinker64  = "/system/bin/linker64"
-            wcaFFmpegBin = "$FFMPEG_PATH"
-          )
-
-          func wcaFFmpegCmd(args ...string) *exec.Cmd {
-            full := append([]string{wcaFFmpegBin, "ffmpeg"}, args...)
-            return exec.Command(wcaLinker64, full...)
-          }
-
-          func wcaFFmpegCmdCtx(ctx context.Context, args ...string) *exec.Cmd {
-            full := append([]string{wcaFFmpegBin, "ffmpeg"}, args...)
-            return exec.CommandContext(ctx, wcaLinker64, full...)
-          }
+          import ("context"; "os/exec")
+          const ( wcaLinker64 = "/system/bin/linker64"; wcaFFmpegBin = "$FFMPEG_PATH" )
+          func wcaFFmpegCmd(args ...string) *exec.Cmd { full := append([]string{wcaFFmpegBin, "ffmpeg"}, args...); return exec.Command(wcaLinker64, full...) }
+          func wcaFFmpegCmdCtx(ctx context.Context, args ...string) *exec.Cmd { full := append([]string{wcaFFmpegBin, "ffmpeg"}, args...); return exec.CommandContext(ctx, wcaLinker64, full...) }
           GOEXEC
-
               sed -i 's/exec\.LookPath("ffmpeg")/func() (string, error) { return wcaFFmpegBin, nil }()/g' "$FILE"
               sed -i 's/exec\.Command("ffmpeg",/wcaFFmpegCmd(/g' "$FILE"
               sed -i 's/exec\.Command("ffmpeg")/wcaFFmpegCmd()/g' "$FILE"
@@ -81,7 +81,6 @@ jobs:
       - name: Build
         run: |
           cd src
-          # Tenta compilar com CGO_ENABLED=0 para evitar problemas de cross-compilação com CGO
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
             go build -trimpath -ldflags="-s -w" \
             -o whatsapp-wca-aarch64.bin .
@@ -89,6 +88,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.NEW_VERSION }}
           files: src/whatsapp-wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
