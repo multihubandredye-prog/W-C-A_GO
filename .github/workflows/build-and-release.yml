@@ -38,6 +38,9 @@ jobs:
           git config user.email "github-actions@github.com"
           git add src/config/settings.go
           git commit -m "update"
+          # Tenta deletar a tag local e remota se já existir para forçar a atualização
+          git tag -d $NEW_VERSION || true
+          git push --delete origin $NEW_VERSION || true
           git tag $NEW_VERSION
           git push origin main
           git push origin $NEW_VERSION
