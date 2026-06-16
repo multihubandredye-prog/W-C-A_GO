@@ -81,8 +81,8 @@ jobs:
       - name: Build
         run: |
           cd src
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=1 \
-            CC="${{ env.NDK_CC }}" \
+          # Tenta compilar com CGO_ENABLED=0 para evitar problemas de cross-compilação com CGO
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 \
             go build -trimpath -ldflags="-s -w" \
             -o whatsapp-wca-aarch64.bin .
 
