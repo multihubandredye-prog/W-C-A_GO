@@ -65,7 +65,7 @@ jobs:
           mv whatsapp-wca-aarch64.bin ../
           cd ..
 
-          # 4. Build Proxy (idêntico ao WCA)
+          # 4. Build Proxy
           cat > proxy.go << 'EOF'
           package main
           import ("bytes"; "encoding/json"; "fmt"; "io"; "net/http"; "time")
@@ -78,9 +78,45 @@ jobs:
           EOF
           GOOS=android GOARCH=arm64 CGO_ENABLED=1 CC="$CC" go build -trimpath -ldflags="-s -w" -o go_port_wca-aarch64.bin proxy.go
 
-          # 5. Commit, Tag e Release via GH CLI
+          # 5. Commit e Release
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add src/config/settings.go
-          git commit -m "update"
-          gh release create $NEW_VERSION --title "🚀 Release $NEW_VERSION" --body "Binários compilados para Android." whatsapp-wca-aarch64.bin go_port_wca-aarch64.bin
+          git commit -m "update version to $NEW_VERSION"
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          name: 🚀 Release ${{ env.NEW_VERSION }}
+          body: |
+            ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
+            Binários compilados para Android.
+            
+            ---
+            ### 📂 Instalação
+            1. Coloque os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            
+            ---
+            ### ⚙️ Comandos de Execução no Tasker (Java Code)
+            
+            **WCA Main:**
+            ```java
+            Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
+            ```
+            
+            **Proxy (Redirecionador):**
+            ```java
+            Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/go_port_wca-aarch64.bin </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
+            ```
+            
+            ### 🔍 Comandos de Monitoramento (Run Shell)
+            - **Verificar/Parar WCA:** 
+              `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+            - **Verificar/Parar Proxy:** 
+              `pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+          files: |
+            whatsapp-wca-aarch64.bin
+            go_port_wca-aarch64.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
