@@ -88,7 +88,8 @@ jobs:
           func iniciarServidor(portaOrigem string, fila chan DadosProxy) { mux := http.NewServeMux(); mux.HandleFunc(WEBHOOK_PATH, novoHandler(fila)); http.ListenAndServe(":"+portaOrigem, mux) }
           func main() { fila1 := make(chan DadosProxy, 10000); go processadorFila(fila1, "3129"); go iniciarServidor("8081", fila1); fila2 := make(chan DadosProxy, 10000); go processadorFila(fila2, "3130"); go iniciarServidor("8082", fila2); select {} }
           EOF
-          GOOS=android GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o go_port_wca-aarch64.bin proxy.go
+          # Compilação estática Go (CGO=0) como no script Termux
+          CGO_ENABLED=0 go build -ldflags="-s -w" -o go_port_wca-aarch64.bin proxy.go
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -98,26 +99,29 @@ jobs:
           body: |
             ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
             Binários compilados para Android.
-            *Nota: O binário ffmpeg deve ser providenciado separadamente conforme seu uso local.*
             
             ---
             ### 📂 Instalação
-            Coloque os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            1. Coloque os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
             ---
             ### ⚙️ Comandos de Execução no Tasker (Java Code)
-            - **WCA Main:**
+            
+            **WCA Main:**
             ```java
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
-            - **Proxy:**
+            
+            **Proxy (Redirecionador):**
             ```java
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/go_port_wca-aarch64.bin </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
             
             ### 🔍 Comandos de Monitoramento (Run Shell)
-            - **Verificar/Parar WCA:** `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
-            - **Verificar/Parar Proxy:** `pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+            - **Verificar/Parar WCA:** 
+              `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+            - **Verificar/Parar Proxy:** 
+              `pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
           files: |
             src/whatsapp-wca-aarch64.bin
             go_port_wca-aarch64.bin
