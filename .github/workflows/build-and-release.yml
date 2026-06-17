@@ -95,6 +95,9 @@ jobs:
         run: |
           export CC=$(find $ANDROID_NDK_HOME -name "aarch64-linux-android21-clang" | head -n 1)
           
+          # Garantir ferramentas necessárias: binutils (readelf) e dpkg
+          sudo apt-get install -y --no-install-recommends binutils dpkg zstd
+          
           # Rodar o script python para obter o res.tar.zst e available_commands.txt do ffmpeg
           python3 .github/scripts/build_ffmpeg_bundle.py
           
