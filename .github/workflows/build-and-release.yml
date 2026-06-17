@@ -28,12 +28,14 @@ jobs:
           unzip -q android-ndk-r26d-linux.zip
           echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r26d" >> $GITHUB_ENV
 
-      - name: Auto-increment Version and Tag
+      - name: Auto-increment Version
         run: |
           if [[ "$(git log -1 --pretty=format:'%an')" == "github-actions" ]]; then
             echo "NEW_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)" >> $GITHUB_ENV
             exit 0
           fi
+          
+          # Incrementa versão
           VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
           NEW_PATCH=$(echo $VERSION | cut -d. -f3 | sed 's/v//')
           NEW_PATCH=$((NEW_PATCH + 1))
@@ -41,12 +43,13 @@ jobs:
           NEW_VERSION="${MAJOR_MINOR}.${NEW_PATCH}"
           
           sed -i "s/AppVersion.*/AppVersion             = \"$NEW_VERSION\"/" src/config/settings.go
+          
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add src/config/settings.go
           git commit -m "chore: version $NEW_VERSION"
           
-          # Force create and push tag
+          # Cria tag e força push
           git tag -f $NEW_VERSION
           git push origin main
           git push -f origin $NEW_VERSION
@@ -55,7 +58,6 @@ jobs:
       - name: Build and Patch WCA
         run: |
           export CC=$(find $ANDROID_NDK_HOME -name "aarch64-linux-android21-clang" | head -n 1)
-          
           cd src
           FFMPEG_PATH="/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
           FFMPEG_FILES=$(grep -rl 'exec\.LookPath("ffmpeg")\|exec\.Command("ffmpeg"\|exec\.CommandContext.*"ffmpeg"\|wcaFFmpegCmd\|wcaFFmpegBin' . --include="*.go" 2>/dev/null | grep -v "/vendor/" || true)
@@ -89,22 +91,26 @@ jobs:
           tag_name: ${{ env.NEW_VERSION }}
           name: 🚀 Release ${{ env.NEW_VERSION }}
           body: |
-            ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
-            Binário compilado para Android.
+            ### 🤖 WCA - WhatsApp WCA - ${{ env.NEW_VERSION }}
             
-            ---
             ### 📂 Instalação
-            1. Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
-            ---
-            ### ⚙️ Comandos de Execução no Tasker (Java Code)
+            ### ⚙️ Executar no Tasker (Java Code)
             ```java
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
             
-            ### 🔍 Comandos de Monitoramento (Run Shell)
-            - **Verificar/Parar WCA:** 
-              `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+            ### 🔍 Verificar API (Run Shell)
+            ```bash
+            sleep 0.2
+            pgrep -f whatsapp-wca-aarch64 >/dev/null && echo "wca running" || echo "wca not running"
+            ```
+            
+            ### 🛑 Parar API (Run Shell)
+            ```bash
+            pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Process terminated"
+            ```
           files: whatsapp-wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
