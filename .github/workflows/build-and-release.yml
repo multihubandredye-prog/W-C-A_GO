@@ -91,6 +91,29 @@ jobs:
             go build -trimpath -ldflags="-s -w" -o go_port_wca-aarch64.bin ../proxy/proxy.go
           mv go_port_wca-aarch64.bin ../
 
+      - name: Build ffmpeg Standalone
+        run: |
+          export CC=$(find $ANDROID_NDK_HOME -name "aarch64-linux-android21-clang" | head -n 1)
+          
+          # Rodar o script python para obter o res.tar.zst e available_commands.txt do ffmpeg
+          python3 .github/scripts/build_ffmpeg_bundle.py
+          
+          # Clonar o repositório run-android-executable
+          git clone --depth 1 https://github.com/HunterXProgrammer/run-android-executable ffmpeg-builder
+          
+          # Copiar os assets gerados para o diretório clonado
+          cp res.tar.zst ffmpeg-builder/
+          cp available_commands.txt ffmpeg-builder/
+          
+          # Compilar o wrapper
+          cd ffmpeg-builder
+          GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
+            CC="$CC" \
+            go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" -o ffmpeg-wca-aarch64.bin .
+            
+          # Mover binário gerado para a raiz do repositório principal
+          mv ffmpeg-wca-aarch64.bin ../
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -140,8 +163,22 @@ jobs:
             ```bash
             pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Process terminated"
             ```
+
+            ---
+
+            ### 🎥 WCA - Build FFmpeg Standalone - ${{ env.NEW_VERSION }}
+
+            ### 📂 Instalação (FFmpeg Standalone)
+            Coloque o binário `ffmpeg-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+
+            ### ⚙️ Uso no Tasker (Java Code)
+            ```java
+            // Exemplo de uso para conversão de áudio
+            Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/linker64", "/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin", "ffmpeg", "-y", "-i", "INPUT_AUDIO", "-c:a", "libopus", "OUTPUT_AUDIO"}; rt.exec(cmd);
+            ```
           files: |
             whatsapp-wca-aarch64.bin
             go_port_wca-aarch64.bin
+            ffmpeg-wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
