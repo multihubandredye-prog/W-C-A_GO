@@ -80,7 +80,7 @@ jobs:
         run: |
           cat > proxy.go << 'EOF'
           package main
-          import ("bytes"; "encoding/json"; "fmt"; "io"; "log"; "net/http"; "time")
+          import ("bytes"; "encoding/json"; "fmt"; "io"; "net/http"; "time")
           const (WEBHOOK_PATH = "/Tasker"; HOSTNAME = "127.0.0.1"; DELAY_MS = 200)
           type DadosProxy struct { RecebidoEm time.Time; Origem string; Metodo string; URLOriginal string; Headers http.Header; Body json.RawMessage }
           func processadorFila(fila chan DadosProxy, portaDestino string) { for dados := range fila { time.Sleep(time.Duration(DELAY_MS) * time.Millisecond); payloadJSON, _ := json.Marshal(dados); destinoURL := fmt.Sprintf("http://%s:%s%s", HOSTNAME, portaDestino, WEBHOOK_PATH); proxyReq, _ := http.NewRequest("POST", destinoURL, bytes.NewBuffer(payloadJSON)); proxyReq.Header.Set("Content-Type", "application/json"); client := &http.Client{Timeout: 5 * time.Second}; client.Do(proxyReq) } }
