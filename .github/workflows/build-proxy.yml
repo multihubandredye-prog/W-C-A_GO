@@ -1,0 +1,188 @@
+name: Build Proxy - go_port_wca-aarch64.bin
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── 2. Go ─────────────────────────────────────────────────
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      # ── 3. Versionamento automático ───────────────────────────
+      - name: Bump version
+        id: version
+        run: |
+          LAST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            NEW_VERSION="1.0.0"
+          else
+            MAJOR=$(echo $LAST_TAG | cut -dv -f2 | cut -d. -f1)
+            MINOR=$(echo $LAST_TAG | cut -dv -f2 | cut -d. -f2)
+            PATCH=$(echo $LAST_TAG | cut -dv -f2 | cut -d. -f3)
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          fi
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$NEW_VERSION"    >> $GITHUB_OUTPUT
+          echo "Versao: v$NEW_VERSION"
+
+      # ── 4. Gerar código-fonte Go em tempo de execução ─────────
+      - name: Gerar codigo fonte
+        run: |
+          mkdir -p proxy-build
+          
+          cat > proxy-build/go.mod << 'GOMOD'
+module proxy
+
+go 1.22
+GOMOD
+
+          cat > proxy-build/proxy.go << 'GOEOF'
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+)
+
+const (
+	WEBHOOK_PATH = "/Tasker"
+	HOSTNAME     = "127.0.0.1"
+	DELAY_MS     = 200
+)
+
+type DadosProxy struct {
+	RecebidoEm  time.Time       `json:"recebido_em"`
+	Origem      string          `json:"origem"`
+	Metodo      string          `json:"metodo"`
+	URLOriginal string          `json:"url_original"`
+	Headers     http.Header     `json:"headers"`
+	Body        json.RawMessage `json:"body"`
+}
+
+func processadorFila(fila chan DadosProxy, portaDestino string) {
+	for dados := range fila {
+		time.Sleep(time.Duration(DELAY_MS) * time.Millisecond)
+		payloadJSON, _ := json.Marshal(dados)
+		destinoURL := fmt.Sprintf("http://%s:%s%s", HOSTNAME, portaDestino, WEBHOOK_PATH)
+		proxyReq, _ := http.NewRequest("POST", destinoURL, bytes.NewBuffer(payloadJSON))
+		proxyReq.Header.Set("Content-Type", "application/json")
+		client := &http.Client{Timeout: 5 * time.Second}
+		client.Do(proxyReq)
+	}
+}
+
+func novoHandler(fila chan DadosProxy) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != WEBHOOK_PATH {
+			http.NotFound(w, r)
+			return
+		}
+		bodyBytes, _ := io.ReadAll(r.Body)
+		var rawBody json.RawMessage
+		json.Unmarshal(bodyBytes, &rawBody)
+		dados := DadosProxy{
+			RecebidoEm:  time.Now(),
+			Origem:      "tasker",
+			Metodo:      r.Method,
+			URLOriginal: r.URL.Path,
+			Headers:     r.Header,
+			Body:        rawBody,
+		}
+		fila <- dados
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "OK"})
+	}
+}
+
+func iniciarServidor(portaOrigem string, fila chan DadosProxy) {
+	mux := http.NewServeMux()
+	mux.HandleFunc(WEBHOOK_PATH, novoHandler(fila))
+	if err := http.ListenAndServe(":"+portaOrigem, mux); err != nil {
+		fmt.Printf("Erro na porta %s: %v", portaOrigem, err)
+	}
+}
+
+func main() {
+	fila1 := make(chan DadosProxy, 10000)
+	go processadorFila(fila1, "3129")
+	go iniciarServidor("8081", fila1)
+
+	fila2 := make(chan DadosProxy, 10000)
+	go processadorFila(fila2, "3130")
+	go iniciarServidor("8082", fila2)
+
+	select {}
+}
+GOEOF
+
+      # ── 5. Compilar ───────────────────────────────────────────
+      - name: Build go_port_wca-aarch64.bin
+        working-directory: proxy-build
+        env:
+          GOOS: linux
+          GOARCH: arm64
+          CGO_ENABLED: '0'
+        run: |
+          go mod tidy
+          go build \
+            -trimpath \
+            -ldflags="-s -w" \
+            -o go_port_wca-aarch64.bin \
+            proxy.go
+          ls -lh go_port_wca-aarch64.bin
+
+      # ── 6. Criar tag e publicar Release ─────────
+      - name: Create tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Proxy WCA ${{ steps.version.outputs.tag }}"
+          body: |
+            ## go_port_wca-aarch64.bin — ${{ steps.version.outputs.tag }}
+
+            Proxy duplo: `8081→3129` e `8082→3130`
+
+            ### Instalar no Android
+            Copie o binário para: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+
+            ### Iniciar no Tasker (Java Code)
+            ```java
+            Runtime rt = Runtime.getRuntime();
+            String[] cmd = new String[]{
+                "/system/bin/sh", "-c",
+                "cd /data/data/net.dinglisch.android.taskerm/files/WCA && " +
+                "nohup /system/bin/linker64 go_port_wca-aarch64.bin " +
+                "</dev/null >/dev/null 2>&1 &"
+            };
+            rt.exec(cmd);
+            ```
+          files: proxy-build/go_port_wca-aarch64.bin
