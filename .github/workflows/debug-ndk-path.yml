@@ -1,0 +1,33 @@
+name: Build and Release WCA
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Install NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r26d" >> $GITHUB_ENV
+      - name: Debug NDK Path
+        run: |
+          echo "Buscando o compilador clang..."
+          find $ANDROID_NDK_HOME -name "aarch64-linux-android*-clang"
+      - name: Build WCA
+        run: |
+          export CC=$(find $ANDROID_NDK_HOME -name "aarch64-linux-android21-clang" | head -n 1)
+          echo "CC é: $CC"
+          cd src
+          # ... rest of build ...
+          GOOS=android GOARCH=arm64 CGO_ENABLED=1 CC="$CC" go build -trimpath -ldflags="-s -w" -o whatsapp-wca-aarch64.bin .
