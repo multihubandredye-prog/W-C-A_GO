@@ -42,13 +42,14 @@ jobs:
           git push origin $NEW_VERSION
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+
       - name: Build Main Binary (WCA)
         run: |
-          sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
-          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
-          unzip -q android-ndk-r26d-linux.zip
-          export NDK_CC=$(pwd)/android-ndk-r26d/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
-          
+          export CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
           cd src
           FFMPEG_PATH="/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
           FFMPEG_FILES=$(grep -rl 'exec\.LookPath("ffmpeg")\|exec\.Command("ffmpeg"\|exec\.CommandContext.*"ffmpeg"\|wcaFFmpegCmd\|wcaFFmpegBin' . --include="*.go" 2>/dev/null | grep -v "/vendor/" || true)
@@ -72,18 +73,8 @@ jobs:
           fi
           
           GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
-            CC="$NDK_CC" \
+            CC="$CC" \
             go build -trimpath -ldflags="-s -w" -o whatsapp-wca-aarch64.bin .
-
-      - name: Build ffmpeg-wca
-        run: |
-          sudo apt-get install -y ffmpeg zstd
-          git clone --depth 1 https://github.com/HunterXProgrammer/run-android-executable /tmp/run-android
-          cd /tmp/run-android
-          bash build_dynamic_bundle.sh ffmpeg
-          echo "ffmpeg," > available_commands.txt
-          GOOS=android GOARCH=arm64 CGO_ENABLED=1 go build -ldflags "-s -w -buildid=" -o ffmpeg-wca-aarch64.bin .
-          mv ffmpeg-wca-aarch64.bin ${{ github.workspace }}/
 
       - name: Build Proxy
         run: |
@@ -107,10 +98,11 @@ jobs:
           body: |
             ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
             Binários compilados para Android.
+            *Nota: O binário ffmpeg deve ser providenciado separadamente conforme seu uso local.*
             
             ---
             ### 📂 Instalação
-            Coloque todos os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            Coloque os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
             ---
             ### ⚙️ Comandos de Execução no Tasker (Java Code)
@@ -127,8 +119,7 @@ jobs:
             - **Verificar/Parar WCA:** `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
             - **Verificar/Parar Proxy:** `pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
           files: |
-            whatsapp-wca-aarch64.bin
-            ffmpeg-wca-aarch64.bin
+            src/whatsapp-wca-aarch64.bin
             go_port_wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
