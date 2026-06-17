@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	AppVersion             = "v1.1.7"
+	AppVersion             = "v1.1.8"
 	AppPort                = "3000"
 	AppHost                = "0.0.0.0"
 	AppDebug               = false
