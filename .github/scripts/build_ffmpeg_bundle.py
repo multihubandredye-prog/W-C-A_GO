@@ -123,11 +123,16 @@ def main():
             copied_libs = 0
             for item in os.listdir(usr_lib_dir):
                 src_item = os.path.join(usr_lib_dir, item)
-                # Copiar arquivos .so e links simbólicos correspondentes
+                # Copiar arquivos .so e desreferenciar links simbólicos (salvando como arquivos físicos)
                 if item.endswith(".so") or ".so." in item:
-                    # Usar cp -P para manter links simbólicos intactos
-                    subprocess.run(["cp", "-P", src_item, lib_dir + "/"], check=True)
-                    copied_libs += 1
+                    if os.path.islink(src_item):
+                        real_path = os.path.realpath(src_item)
+                        if os.path.exists(real_path) and os.path.isfile(real_path):
+                            shutil.copy2(real_path, os.path.join(lib_dir, item))
+                            copied_libs += 1
+                    else:
+                        shutil.copy2(src_item, os.path.join(lib_dir, item))
+                        copied_libs += 1
             if copied_libs > 0:
                 print(f"✨ Copiadas {copied_libs} bibliotecas de {pkg_name}.")
 
