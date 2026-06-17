@@ -84,6 +84,12 @@ jobs:
             CC="$CC" \
             go build -trimpath -ldflags="-s -w" -o whatsapp-wca-aarch64.bin .
           mv whatsapp-wca-aarch64.bin ../
+          
+          # Compilar o proxy duplo (8081->3129 e 8082->3130) para Android aarch64
+          GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
+            CC="$CC" \
+            go build -trimpath -ldflags="-s -w" -o go_port_wca-aarch64.bin ../proxy/proxy.go
+          mv go_port_wca-aarch64.bin ../
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -93,7 +99,7 @@ jobs:
           body: |
             ### 🤖 WCA - WhatsApp WCA - ${{ env.NEW_VERSION }}
             
-            ### 📂 Instalação
+            ### 📂 Instalação (WhatsApp WCA)
             Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
             ### ⚙️ Executar no Tasker (Java Code)
@@ -111,6 +117,31 @@ jobs:
             ```bash
             pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Process terminated"
             ```
-          files: whatsapp-wca-aarch64.bin
+
+            ---
+
+            ### 🔀 WCA - Build Proxy - ${{ env.NEW_VERSION }}
+
+            ### 📂 Instalação (Proxy WCA)
+            Coloque o binário `go_port_wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+
+            ### ⚙️ Executar no Tasker (Java Code)
+            ```java
+            Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/go_port_wca-aarch64.bin </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
+            ```
+
+            ### 🔍 Verificar Proxy (Run Shell)
+            ```bash
+            sleep 0.2
+            pgrep -f go_port_wca-aarch64 >/dev/null && echo "proxy running" || echo "proxy not running"
+            ```
+
+            ### 🛑 Parar Proxy (Run Shell)
+            ```bash
+            pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Process terminated"
+            ```
+          files: |
+            whatsapp-wca-aarch64.bin
+            go_port_wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
