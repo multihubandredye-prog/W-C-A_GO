@@ -40,3 +40,8 @@ tmp/
 # whatsmeow store (legacy path)
 src/whatsapp/
 src/whatsapp
+
+# FFmpeg build temporaries
+res.tar.zst
+available_commands.txt
+ffmpeg-builder/

@@ -7,10 +7,10 @@ import shutil
 import subprocess
 
 def main():
-    # 1. Configurar caminhos
+    # 1. Configurar caminhos (usando pastas locais no workspace)
     workspace = os.getcwd()
-    extracted_dir = "/tmp/termux_extracted"
-    bundle_dir = "/tmp/ffmpeg_bundle"
+    extracted_dir = os.path.join(workspace, "_tmp_termux_extracted")
+    bundle_dir = os.path.join(workspace, "_tmp_ffmpeg_bundle")
     bin_dir = os.path.join(bundle_dir, "bin")
     lib_dir = os.path.join(bin_dir, "lib")
     
@@ -21,8 +21,8 @@ def main():
     
     os.makedirs(lib_dir, exist_ok=True)
     
-    # 2. Baixar e extrair o índice Packages.xz do Termux aarch64
-    url_packages = "https://packages-cf.termux.dev/apt/termux-main/dists/stable/main/binary-aarch64/Packages.xz"
+    # 2. Baixar o índice Packages do Termux aarch64
+    url_packages = "https://packages-cf.termux.dev/apt/termux-main/dists/stable/main/binary-aarch64/Packages"
     print("📥 Baixando índice de pacotes do Termux (aarch64)...")
     req = urllib.request.Request(url_packages, headers={'User-Agent': 'Mozilla/5.0'})
     try:
@@ -32,8 +32,7 @@ def main():
         print(f"❌ Erro ao baixar índice de pacotes: {e}")
         exit(1)
         
-    print("📦 Descompactando índice...")
-    packages_text = lzma.decompress(data).decode('utf-8')
+    packages_text = data.decode('utf-8')
 
     # 3. Fazer o parse do arquivo Packages
     print("🔍 Analisando dependências...")
@@ -93,7 +92,7 @@ def main():
         pkg_name = pkg['Package']
         filename = pkg['Filename']
         url = f"https://packages-cf.termux.dev/apt/termux-main/{filename}"
-        deb_path = f"/tmp/{pkg_name}.deb"
+        deb_path = os.path.join(workspace, f"_tmp_{pkg_name}.deb")
         
         print(f"📥 Baixando {pkg_name}...")
         try:
@@ -140,6 +139,11 @@ def main():
     with open(os.path.join(workspace, "available_commands.txt"), "w") as f:
         f.write("ffmpeg,")
         
+    # Limpar pastas temporárias locais
+    for path in [extracted_dir, bundle_dir]:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+            
     print("🎉 Geração de res.tar.zst e available_commands.txt concluída com sucesso!")
 
 if __name__ == "__main__":
