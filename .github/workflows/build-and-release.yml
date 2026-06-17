@@ -52,9 +52,7 @@ jobs:
 
       - name: Build and Patch WCA
         run: |
-          # Encontrar o compilador dinamicamente
           export CC=$(find $ANDROID_NDK_HOME -name "aarch64-linux-android21-clang" | head -n 1)
-          echo "Compilador encontrado: $CC"
           
           cd src
           FFMPEG_PATH="/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
@@ -89,23 +87,26 @@ jobs:
           tag_name: ${{ env.NEW_VERSION }}
           name: 🚀 Release ${{ env.NEW_VERSION }}
           body: |
-            ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
-            Binário compilado para Android com NDK (compatibilidade total).
+            ### 🤖 WCA - WhatsApp WCA - ${{ env.NEW_VERSION }}
             
-            ---
             ### 📂 Instalação
-            1. Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
-            ---
-            ### ⚙️ Comandos de Execução no Tasker (Java Code)
-            
+            ### ⚙️ Executar no Tasker (Java Code)
             ```java
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
             
-            ### 🔍 Comandos de Monitoramento (Run Shell)
-            - **Verificar/Parar WCA:** 
-              `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+            ### 🔍 Verificar API (Run Shell)
+            ```bash
+            sleep 0.2
+            pgrep -f whatsapp-wca-aarch64 >/dev/null && echo "wca running" || echo "wca not running"
+            ```
+            
+            ### 🛑 Parar API (Run Shell)
+            ```bash
+            pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid && echo "Process terminated" || echo "Process not found"
+            ```
           files: whatsapp-wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
