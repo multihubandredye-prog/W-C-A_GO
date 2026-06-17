@@ -81,24 +81,6 @@ jobs:
           mv whatsapp-wca-aarch64.bin ../
           cd ..
 
-      - name: Build Proxy
-        run: |
-          cat > proxy.go << 'EOF'
-          package main
-          import ("bytes"; "encoding/json"; "fmt"; "io"; "net/http"; "time")
-          const (WEBHOOK_PATH = "/Tasker"; HOSTNAME = "127.0.0.1"; DELAY_MS = 200)
-          type DadosProxy struct { RecebidoEm time.Time; Origem string; Metodo string; URLOriginal string; Headers http.Header; Body json.RawMessage }
-          func processadorFila(fila chan DadosProxy, portaDestino string) { for dados := range fila { time.Sleep(time.Duration(DELAY_MS) * time.Millisecond); payloadJSON, _ := json.Marshal(dados); destinoURL := fmt.Sprintf("http://%s:%s%s", HOSTNAME, portaDestino, WEBHOOK_PATH); proxyReq, _ := http.NewRequest("POST", destinoURL, bytes.NewBuffer(payloadJSON)); proxyReq.Header.Set("Content-Type", "application/json"); client := &http.Client{Timeout: 5 * time.Second}; client.Do(proxyReq) } }
-          func novoHandler(fila chan DadosProxy) http.HandlerFunc { return func(w http.ResponseWriter, r *http.Request) { if r.URL.Path != WEBHOOK_PATH { http.NotFound(w, r); return }; bodyBytes, _ := io.ReadAll(r.Body); var rawBody json.RawMessage; json.Unmarshal(bodyBytes, &rawBody); dados := DadosProxy{RecebidoEm: time.Now(), Origem: "tasker", Metodo: r.Method, URLOriginal: r.URL.Path, Headers: r.Header, Body: rawBody}; fila <- dados; w.WriteHeader(http.StatusOK); json.NewEncoder(w).Encode(map[string]string{"status": "OK"}) } }
-          func iniciarServidor(portaOrigem string, fila chan DadosProxy) { mux := http.NewServeMux(); mux.HandleFunc(WEBHOOK_PATH, novoHandler(fila)); http.ListenAndServe(":"+portaOrigem, mux) }
-          func main() { fila1 := make(chan DadosProxy, 10000); go processadorFila(fila1, "3129"); go iniciarServidor("8081", fila1); fila2 := make(chan DadosProxy, 10000); go processadorFila(fila2, "3130"); go iniciarServidor("8082", fila2); select {} }
-          EOF
-          
-          export CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
-          GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
-            CC="$CC" \
-            go build -trimpath -ldflags="-s -w" -o go_port_wca-aarch64.bin proxy.go
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -106,11 +88,11 @@ jobs:
           name: 🚀 Release ${{ env.NEW_VERSION }}
           body: |
             ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
-            Binários compilados para Android com NDK (compatibilidade total).
+            Binário compilado para Android com NDK.
             
             ---
             ### 📂 Instalação
-            1. Coloque os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            1. Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
             ---
             ### ⚙️ Comandos de Execução no Tasker (Java Code)
@@ -120,18 +102,9 @@ jobs:
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
             
-            **Proxy:**
-            ```java
-            Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/go_port_wca-aarch64.bin </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
-            ```
-            
             ### 🔍 Comandos de Monitoramento (Run Shell)
             - **Verificar/Parar WCA:** 
               `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
-            - **Verificar/Parar Proxy:** 
-              `pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
-          files: |
-            whatsapp-wca-aarch64.bin
-            go_port_wca-aarch64.bin
+          files: whatsapp-wca-aarch64.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
