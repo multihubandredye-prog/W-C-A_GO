@@ -1,65 +1,137 @@
 name: Build and Release WCA
+
 on:
   push:
     branches: [main]
+
 permissions:
   contents: write
+
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-      - name: Build and Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup NDK
         run: |
-          # 1. Ajuste Versao
-          sed -i 's/AppVersion.*/AppVersion             = "v1.0.5"/' src/config/settings.go
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Auto-increment Version and Tag
+        run: |
+          if [[ "$(git log -1 --pretty=format:'%an')" == "github-actions" ]]; then
+            echo "NEW_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)" >> $GITHUB_ENV
+            exit 0
+          fi
+          VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
+          NEW_VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
+          sed -i "s/$VERSION/$NEW_VERSION/g" src/config/settings.go
+          
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add src/config/settings.go
-          git commit -m "chore: version 1.0.5"
-          git tag v1.0.5
+          git commit -m "update"
+          git tag $NEW_VERSION
           git push origin main
-          git push origin v1.0.5
+          git push origin $NEW_VERSION
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Build and Patch WCA
+        run: |
+          export CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
           
-          # 2. Build
+          # 1. Patch FFMPEG
           cd src
-          go build -trimpath -ldflags="-s -w" -o whatsapp-wca-aarch64.bin .
-          mv whatsapp-wca-aarch64.bin ../
+          FFMPEG_PATH="/data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin"
+          FFMPEG_FILES=$(grep -rl 'exec\.LookPath("ffmpeg")\|exec\.Command("ffmpeg"\|exec\.CommandContext.*"ffmpeg"\|wcaFFmpegCmd\|wcaFFmpegBin' . --include="*.go" 2>/dev/null | grep -v "/vendor/" || true)
+          if [ -n "$FFMPEG_FILES" ]; then
+            echo "$FFMPEG_FILES" | while read -r FILE; do
+              DIR=$(dirname "$FILE")
+              PKG=$(grep '^package ' "$FILE" | head -1 | awk '{print $2}')
+              EXEC_FILE="$DIR/wca_ffmpeg_exec.go"
+              cat > "$EXEC_FILE" << GOEXEC
+          package $PKG
+          import ("context"; "os/exec")
+          const ( wcaLinker64 = "/system/bin/linker64"; wcaFFmpegBin = "$FFMPEG_PATH" )
+          func wcaFFmpegCmd(args ...string) *exec.Cmd { full := append([]string{wcaFFmpegBin, "ffmpeg"}, args...); return exec.Command(wcaLinker64, full...) }
+          func wcaFFmpegCmdCtx(ctx context.Context, args ...string) *exec.Cmd { full := append([]string{wcaFFmpegBin, "ffmpeg"}, args...); return exec.CommandContext(ctx, wcaLinker64, full...) }
+          GOEXEC
+              sed -i 's/exec\.LookPath("ffmpeg")/func() (string, error) { return wcaFFmpegBin, nil }()/g' "$FILE"
+              sed -i 's/exec\.Command("ffmpeg",/wcaFFmpegCmd(/g' "$FILE"
+              sed -i 's/exec\.Command("ffmpeg")/wcaFFmpegCmd()/g' "$FILE"
+              sed -i 's/exec\.CommandContext(\([^,]*\), "ffmpeg",/wcaFFmpegCmdCtx(\1,/g' "$FILE"
+            done
+          fi
           
+          # 2. Build WCA
+          GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
+            CC="$CC" \
+            go build -trimpath -ldflags="-s -w" -o whatsapp-wca-aarch64.bin .
+          mv whatsapp-wca-aarch64.bin ../
+          cd ..
+
+      - name: Build Proxy
+        run: |
+          cat > proxy.go << 'EOF'
+          package main
+          import ("bytes"; "encoding/json"; "fmt"; "io"; "net/http"; "time")
+          const (WEBHOOK_PATH = "/Tasker"; HOSTNAME = "127.0.0.1"; DELAY_MS = 200)
+          type DadosProxy struct { RecebidoEm time.Time; Origem string; Metodo string; URLOriginal string; Headers http.Header; Body json.RawMessage }
+          func processadorFila(fila chan DadosProxy, portaDestino string) { for dados := range fila { time.Sleep(time.Duration(DELAY_MS) * time.Millisecond); payloadJSON, _ := json.Marshal(dados); destinoURL := fmt.Sprintf("http://%s:%s%s", HOSTNAME, portaDestino, WEBHOOK_PATH); proxyReq, _ := http.NewRequest("POST", destinoURL, bytes.NewBuffer(payloadJSON)); proxyReq.Header.Set("Content-Type", "application/json"); client := &http.Client{Timeout: 5 * time.Second}; client.Do(proxyReq) } }
+          func novoHandler(fila chan DadosProxy) http.HandlerFunc { return func(w http.ResponseWriter, r *http.Request) { if r.URL.Path != WEBHOOK_PATH { http.NotFound(w, r); return }; bodyBytes, _ := io.ReadAll(r.Body); var rawBody json.RawMessage; json.Unmarshal(bodyBytes, &rawBody); dados := DadosProxy{RecebidoEm: time.Now(), Origem: "tasker", Metodo: r.Method, URLOriginal: r.URL.Path, Headers: r.Header, Body: rawBody}; fila <- dados; w.WriteHeader(http.StatusOK); json.NewEncoder(w).Encode(map[string]string{"status": "OK"}) } }
+          func iniciarServidor(portaOrigem string, fila chan DadosProxy) { mux := http.NewServeMux(); mux.HandleFunc(WEBHOOK_PATH, novoHandler(fila)); http.ListenAndServe(":"+portaOrigem, mux) }
+          func main() { fila1 := make(chan DadosProxy, 10000); go processadorFila(fila1, "3129"); go iniciarServidor("8081", fila1); fila2 := make(chan DadosProxy, 10000); go processadorFila(fila2, "3130"); go iniciarServidor("8082", fila2); select {} }
+          EOF
+          
+          export CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
+          GOOS=android GOARCH=arm64 CGO_ENABLED=1 \
+            CC="$CC" \
+            go build -trimpath -ldflags="-s -w" -o go_port_wca-aarch64.bin proxy.go
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.5
-          name: "🚀 Release v1.0.5"
+          tag_name: ${{ env.NEW_VERSION }}
+          name: 🚀 Release ${{ env.NEW_VERSION }}
           body: |
-            ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão v1.0.5
+            ### 🤖 WCA - WhatsApp WCA (aarch64) - Versão ${{ env.NEW_VERSION }}
+            Binários compilados para Android com NDK (compatibilidade total).
             
             ---
             ### 📂 Instalação
-            1. Coloque o binário `whatsapp-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
+            1. Coloque os binários em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
             
             ---
-            ### ⚙️ Executar no Tasker (Java Code)
+            ### ⚙️ Comandos de Execução no Tasker (Java Code)
+            
+            **WCA Main:**
             ```java
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/whatsapp-wca-aarch64.bin rest --port 3000 </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
             
-            ### 🛑 Parar API (Run Shell)
-            ```bash
-            pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid && echo "Process terminated" || echo "Process not found"
+            **Proxy:**
+            ```java
+            Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/go_port_wca-aarch64.bin </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
             
-            ### 🔍 Verificar API (Run Shell)
-            ```bash
-            sleep 0.2
-            pgrep -f whatsapp-wca-aarch64 >/dev/null && echo "wca running" || echo "wca not running"
-            ```
-          files: whatsapp-wca-aarch64.bin
+            ### 🔍 Comandos de Monitoramento (Run Shell)
+            - **Verificar/Parar WCA:** 
+              `pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+            - **Verificar/Parar Proxy:** 
+              `pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Not running"`
+          files: |
+            whatsapp-wca-aarch64.bin
+            go_port_wca-aarch64.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
