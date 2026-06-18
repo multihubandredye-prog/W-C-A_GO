@@ -22,32 +22,33 @@ jobs:
         run: |
           TAG_NAME="${{ github.ref_name }}"
           
-          # Caso 1: Tag com prefixo e versão (ex: core-1.2.1, ui-1.2.1)
-          if [[ "$TAG_NAME" =~ ^([a-zA-Z0-9]+)-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-            PREFIX="${BASH_REMATCH[1]}"
-            VERSION="${BASH_REMATCH[2]}"
-            PREFIX_UPPER=$(echo "$PREFIX" | tr '[:lower:]' '[:upper:]')
-            RELEASE_TITLE="🚀 [$PREFIX_UPPER] $VERSION"
-            IS_RELEASE=true
-          # Caso 2: Tag apenas com versão (ex: 1.2.1)
-          elif [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-            VERSION="${BASH_REMATCH[1]}"
-            RELEASE_TITLE="🚀 $VERSION"
-            IS_RELEASE=true
-          # Caso 3: Tag de teste (ex: teste, dev, wip)
-          else
-            VERSION="$TAG_NAME"
+          # Tenta obter a mensagem do subject da tag anotada
+          TAG_MSG=$(git tag -l --format='%(contents:subject)' "$TAG_NAME")
+          
+          # Se não houver mensagem de tag (tag simples), usa a própria tag como fallback
+          if [ -z "$TAG_MSG" ]; then
             RELEASE_TITLE="🚀 $TAG_NAME"
+          else
+            RELEASE_TITLE="$TAG_MSG"
+          fi
+          
+          # Remove prefixo "v" se houver para extrair a versão limpa (ex: v1.2.2 -> 1.2.2)
+          VERSION_CLEAN="${TAG_NAME#v}"
+          
+          # Verifica se a versão limpa é uma versão real (X.Y.Z)
+          if [[ "$VERSION_CLEAN" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            IS_RELEASE=true
+          else
             IS_RELEASE=false
           fi
           
-          echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "NEW_VERSION=$VERSION_CLEAN" >> $GITHUB_ENV
           echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
           echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
           
-          echo "✅ Configurações da build:"
-          echo "   Tag Original:  $TAG_NAME"
-          echo "   Versão Extraída: $VERSION"
+          echo "✅ Configurações do Release:"
+          echo "   Tag Original:     $TAG_NAME"
+          echo "   Versão Limpa:     $VERSION_CLEAN"
           echo "   Título do Release: $RELEASE_TITLE"
           echo "   É Release Real?   $IS_RELEASE"
 
