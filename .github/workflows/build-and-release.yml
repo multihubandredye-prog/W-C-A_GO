@@ -20,6 +20,9 @@ jobs:
 
       - name: Set Version from Tag
         run: |
+          # Garante que as tags locais tenham seus metadados (anotações) baixados
+          git fetch --tags --force
+          
           TAG_NAME="${{ github.ref_name }}"
           
           # Tenta obter a mensagem do subject da tag anotada
@@ -42,9 +45,12 @@ jobs:
             IS_RELEASE=false
           fi
           
+          # Salva no GITHUB_ENV de forma robusta a emojis e caracteres especiais usando heredoc
           echo "NEW_VERSION=$VERSION_CLEAN" >> $GITHUB_ENV
-          echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
           echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
+          echo "RELEASE_TITLE<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_TITLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           
           echo "✅ Configurações do Release:"
           echo "   Tag Original:     $TAG_NAME"
