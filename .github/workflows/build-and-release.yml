@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag da release (ex: v5.0.3- tasker). Deixe vazio para calcular automaticamente'
+        required: false
+        default: ''
+      release_title:
+        description: 'Título do release (ex: 🚀 [CORE] 1.2.4). Opcional'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -23,29 +33,73 @@ jobs:
           # Garante que as tags locais tenham seus metadados (anotações) baixados
           git fetch --tags --force
           
-          TAG_NAME="${{ github.ref_name }}"
+          EVENT_NAME="${{ github.event_name }}"
           
-          # Tenta obter a mensagem do subject da tag anotada
-          TAG_MSG=$(git tag -l --format='%(contents:subject)' "$TAG_NAME")
-          
-          # Se não houver mensagem de tag (tag simples), usa a própria tag como fallback
-          if [ -z "$TAG_MSG" ]; then
-            RELEASE_TITLE="🚀 $TAG_NAME"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name }}"
+            INPUT_TITLE="${{ github.event.inputs.release_title }}"
+            
+            # Se a tag foi deixada vazia, calcula automaticamente com base no settings.go
+            if [ -z "$INPUT_TAG" ]; then
+              CURRENT_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
+              MAJOR_MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f1-2)
+              PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3 | sed 's/v//')
+              NEW_PATCH=$((PATCH + 1))
+              TAG_NAME="${MAJOR_MINOR}.${NEW_PATCH}"
+              echo "💡 Versão auto-calculada: $TAG_NAME"
+            else
+              TAG_NAME="$INPUT_TAG"
+            fi
+            
+            # Se o título foi preenchido, usa ele. Se não, usa o padrão com foguetinho
+            if [ -n "$INPUT_TITLE" ]; then
+              RELEASE_TITLE="$INPUT_TITLE"
+            else
+              RELEASE_TITLE="🚀 $TAG_NAME"
+            fi
+            
+            # Remove "v" prefixo para obter a versão limpa
+            VERSION_CLEAN="${TAG_NAME#v}"
+            
+            # Configura git para realizar o commit e push da tag (se for release real)
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            
+            # Se for uma versão numérica de release real (X.Y.Z), atualiza o settings.go no git
+            if [[ "$VERSION_CLEAN" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              sed -i "s/AppVersion.*/AppVersion             = \"$VERSION_CLEAN\"/" src/config/settings.go
+              git add src/config/settings.go
+              git diff --cached --quiet || git commit -m "chore: release version $VERSION_CLEAN"
+              git push origin main || true
+            fi
+            
+            # Cria a tag no Git e faz push para disparar o release na tag correta
+            git tag -f "$TAG_NAME" -m "$RELEASE_TITLE"
+            git push -f origin "$TAG_NAME"
+            
           else
-            RELEASE_TITLE="$TAG_MSG"
+            # Disparado por push de tag do Git (fluxo normal via terminal)
+            TAG_NAME="${{ github.ref_name }}"
+            
+            # Tenta obter a mensagem da tag anotada
+            TAG_MSG=$(git tag -l --format='%(contents:subject)' "$TAG_NAME")
+            if [ -z "$TAG_MSG" ]; then
+              RELEASE_TITLE="🚀 $TAG_NAME"
+            else
+              RELEASE_TITLE="$TAG_MSG"
+            fi
+            
+            VERSION_CLEAN="${TAG_NAME#v}"
           fi
           
-          # Remove prefixo "v" se houver para extrair a versão limpa (ex: v1.2.2 -> 1.2.2)
-          VERSION_CLEAN="${TAG_NAME#v}"
-          
-          # Verifica se a versão limpa é uma versão real (X.Y.Z)
+          # Verifica se a versão é estável (X.Y.Z) para marcar no env
           if [[ "$VERSION_CLEAN" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             IS_RELEASE=true
           else
             IS_RELEASE=false
           fi
           
-          # Salva no GITHUB_ENV de forma robusta a emojis e caracteres especiais usando heredoc
+          # Salva no GITHUB_ENV usando heredoc
           echo "NEW_VERSION=$VERSION_CLEAN" >> $GITHUB_ENV
           echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
           echo "RELEASE_TITLE<<EOF" >> $GITHUB_ENV
@@ -53,7 +107,8 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
           
           echo "✅ Configurações do Release:"
-          echo "   Tag Original:     $TAG_NAME"
+          echo "   Evento:           $EVENT_NAME"
+          echo "   Tag Utilizada:    $TAG_NAME"
           echo "   Versão Limpa:     $VERSION_CLEAN"
           echo "   Título do Release: $RELEASE_TITLE"
           echo "   É Release Real?   $IS_RELEASE"
