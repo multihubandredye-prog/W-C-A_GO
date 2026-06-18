@@ -20,18 +20,36 @@ jobs:
 
       - name: Set Version from Tag
         run: |
-          # O nome da tag vem direto do git push (ex: "test", "dev", "1.0.3")
           TAG_NAME="${{ github.ref_name }}"
-          echo "NEW_VERSION=$TAG_NAME" >> $GITHUB_ENV
           
-          # Verifica se é versão real (X.Y.Z) ou tag de teste
-          if [[ "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "IS_RELEASE=true" >> $GITHUB_ENV
-            echo "✅ Tag de RELEASE: $TAG_NAME → usuários receberão atualização"
+          # Caso 1: Tag com prefixo e versão (ex: core-1.2.1, ui-1.2.1)
+          if [[ "$TAG_NAME" =~ ^([a-zA-Z0-9]+)-([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            PREFIX="${BASH_REMATCH[1]}"
+            VERSION="${BASH_REMATCH[2]}"
+            PREFIX_UPPER=$(echo "$PREFIX" | tr '[:lower:]' '[:upper:]')
+            RELEASE_TITLE="🚀 [$PREFIX_UPPER] $VERSION"
+            IS_RELEASE=true
+          # Caso 2: Tag apenas com versão (ex: 1.2.1)
+          elif [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            RELEASE_TITLE="🚀 $VERSION"
+            IS_RELEASE=true
+          # Caso 3: Tag de teste (ex: teste, dev, wip)
           else
-            echo "IS_RELEASE=false" >> $GITHUB_ENV
-            echo "🧪 Tag de TESTE: $TAG_NAME → usuários NÃO receberão"
+            VERSION="$TAG_NAME"
+            RELEASE_TITLE="🚀 $TAG_NAME"
+            IS_RELEASE=false
           fi
+          
+          echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
+          echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
+          
+          echo "✅ Configurações da build:"
+          echo "   Tag Original:  $TAG_NAME"
+          echo "   Versão Extraída: $VERSION"
+          echo "   Título do Release: $RELEASE_TITLE"
+          echo "   É Release Real?   $IS_RELEASE"
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -109,8 +127,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.NEW_VERSION }}
-          name: 🚀 ${{ env.NEW_VERSION }}
+          tag_name: ${{ github.ref_name }}
+          name: ${{ env.RELEASE_TITLE }}
           body: |
             ### 🤖 WCA - WhatsApp WCA - ${{ env.NEW_VERSION }}
             
