@@ -110,7 +110,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_VERSION }}
-          name: 🚀 Release ${{ env.NEW_VERSION }}
+          name: 🚀 ${{ env.NEW_VERSION }}
           body: |
             ### 🤖 WCA - WhatsApp WCA - ${{ env.NEW_VERSION }}
             
@@ -132,60 +132,60 @@ jobs:
             ```bash
             pid=$(ps -e -o PID,ARGS | grep "whatsapp-wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Process terminated"
             ```
-
+ 
             ---
-
+ 
             ### 🔀 WCA - Build Proxy - ${{ env.NEW_VERSION }}
-
+ 
             ### 📂 Instalação (Proxy WCA)
             Coloque o binário `go_port_wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
-
+ 
             ### ⚙️ Executar no Tasker (Java Code)
             ```java
             Runtime rt = Runtime.getRuntime(); String[] cmd = new String[]{"/system/bin/sh","-c","cd /data/data/net.dinglisch.android.taskerm/files/WCA && nohup /system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/go_port_wca-aarch64.bin </dev/null >/dev/null 2>&1 &"}; rt.exec(cmd);
             ```
-
+ 
             ### 🔍 Verificar Proxy (Run Shell)
             ```bash
             sleep 0.2
             pgrep -f go_port_wca-aarch64 >/dev/null && echo "proxy running" || echo "proxy not running"
             ```
-
+ 
             ### 🛑 Parar Proxy (Run Shell)
             ```bash
             pid=$(ps -e -o PID,ARGS | grep "go_port_wca-aarch64" | grep -v grep | awk '{print $1}') && [ -n "$pid" ] && kill -9 $pid || echo "Process terminated"
             ```
-
+ 
             ---
-
+ 
             ### 🎥 WCA - FFmpeg Standalone - ${{ env.NEW_VERSION }}
-
+ 
             ### 📂 Instalação (FFmpeg Standalone)
             Coloque o binário `ffmpeg-wca-aarch64.bin` em: `/data/data/net.dinglisch.android.taskerm/files/WCA/`
-
+ 
             ### ⚙️ Conversão de Áudio no Tasker (Java Code)
-
+ 
             > **`inputFile`** → caminho completo do arquivo de áudio de entrada (ex: `/storage/emulated/0/Download/audio.mp3`)
             > **`outputDir`** → pasta onde o arquivo `.opus` convertido será salvo
-
+ 
             ```java
             String inputFile = "path_input";
             String outputDir = "path_output";
             String baseName = inputFile.substring(inputFile.lastIndexOf("/") + 1).replaceAll("\\.[^.]*$", "");
             String outputFile = outputDir + "/" + baseName + ".opus";
-
+ 
             String quote = new String(new char[]{34});
             String newline = new String(new char[]{10});
-
+ 
             rt = Runtime.getRuntime();
             rt.exec(new String[]{"/system/bin/sh", "-c", "mkdir -p " + outputDir}).waitFor();
             rt.exec(new String[]{"/system/bin/sh", "-c", "rm -f " + outputDir + "/*.mp3 " + outputDir + "/*.wav " + outputDir + "/*.m4a " + outputDir + "/*.aac " + outputDir + "/*.ogg " + outputDir + "/*.flac " + outputDir + "/*.opus " + outputDir + "/*.amr"}).waitFor();
-
+ 
             String ffmpegCmd = "/system/bin/linker64 /data/data/net.dinglisch.android.taskerm/files/WCA/ffmpeg-wca-aarch64.bin ffmpeg -y -i " + quote + inputFile + quote + " -c:a libopus -b:a 32k -ar 24000 -ac 1 -application audio -vbr off -compression_level 10 -frame_duration 60 -packet_loss 1 -threads auto " + quote + outputFile + quote + " 2>&1";
-
+ 
             Process p = rt.exec(new String[]{"/system/bin/sh", "-c", ffmpegCmd});
             p.waitFor();
-
+ 
             java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
             StringBuilder sb = new StringBuilder();
             String line;
@@ -199,5 +199,6 @@ jobs:
             whatsapp-wca-aarch64.bin
             go_port_wca-aarch64.bin
             ffmpeg-wca-aarch64.bin
+            task-project/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
