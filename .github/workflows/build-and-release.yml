@@ -2,7 +2,8 @@ name: Build and Release WCA
 
 on:
   push:
-    branches: [main]
+    tags:
+      - '*'
 
 permissions:
   contents: write
@@ -17,6 +18,21 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Set Version from Tag
+        run: |
+          # O nome da tag vem direto do git push (ex: "test", "dev", "1.0.3")
+          TAG_NAME="${{ github.ref_name }}"
+          echo "NEW_VERSION=$TAG_NAME" >> $GITHUB_ENV
+          
+          # Verifica se é versão real (X.Y.Z) ou tag de teste
+          if [[ "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "IS_RELEASE=true" >> $GITHUB_ENV
+            echo "✅ Tag de RELEASE: $TAG_NAME → usuários receberão atualização"
+          else
+            echo "IS_RELEASE=false" >> $GITHUB_ENV
+            echo "🧪 Tag de TESTE: $TAG_NAME → usuários NÃO receberão"
+          fi
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -27,33 +43,6 @@ jobs:
           wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
           unzip -q android-ndk-r26d-linux.zip
           echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r26d" >> $GITHUB_ENV
-
-      - name: Auto-increment Version
-        run: |
-          if [[ "$(git log -1 --pretty=format:'%an')" == "github-actions" ]]; then
-            echo "NEW_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)" >> $GITHUB_ENV
-            exit 0
-          fi
-          
-          # Incrementa versão
-          VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
-          NEW_PATCH=$(echo $VERSION | cut -d. -f3 | sed 's/v//')
-          NEW_PATCH=$((NEW_PATCH + 1))
-          MAJOR_MINOR=$(echo $VERSION | cut -d. -f1-2)
-          NEW_VERSION="${MAJOR_MINOR}.${NEW_PATCH}"
-          
-          sed -i "s/AppVersion.*/AppVersion             = \"$NEW_VERSION\"/" src/config/settings.go
-          
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add src/config/settings.go
-          git commit -m "chore: version $NEW_VERSION"
-          
-          # Cria tag e força push
-          git tag -f $NEW_VERSION
-          git push origin main
-          git push -f origin $NEW_VERSION
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Build and Patch WCA
         run: |
