@@ -70,7 +70,7 @@ jobs:
               sed -i "s/AppVersion.*/AppVersion             = \"$VERSION_CLEAN\"/" src/config/settings.go
               git add src/config/settings.go
               git diff --cached --quiet || git commit -m "chore: release version $VERSION_CLEAN"
-              git push origin main || true
+              git push origin refs/heads/main || true
             fi
             
             # Cria a tag no Git e faz push para disparar o release na tag correta
@@ -100,6 +100,7 @@ jobs:
           fi
           
           # Salva no GITHUB_ENV usando heredoc
+          echo "RELEASE_TAG=$TAG_NAME" >> $GITHUB_ENV
           echo "NEW_VERSION=$VERSION_CLEAN" >> $GITHUB_ENV
           echo "IS_RELEASE=$IS_RELEASE" >> $GITHUB_ENV
           echo "RELEASE_TITLE<<EOF" >> $GITHUB_ENV
@@ -189,7 +190,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
           name: ${{ env.RELEASE_TITLE }}
           body: |
             ### 🤖 WCA - WhatsApp WCA - ${{ env.NEW_VERSION }}
