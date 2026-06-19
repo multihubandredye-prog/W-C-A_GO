@@ -1,0 +1,147 @@
+<TaskerData sr="" dvi="1" tv="6.7.5-beta">
+	<Project sr="proj0" ve="2">
+		<cdate>1770330172370</cdate>
+		<id>6e5026ee-7ab1-4ca7-9a46-e3893988cf76</id>
+		<name>W-C-A API RECEIVER</name>
+		<tids>415</tids>
+		<Img sr="icon" ve="2">
+			<fle>/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/system-receive.png</fle>
+		</Img>
+	</Project>
+	<Task sr="task415">
+		<cdate>1770338086782</cdate>
+		<edate>1781846548083</edate>
+		<id>415</id>
+		<nme>W-C-A_API_RECEIVE [wca]</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>548</code>
+			<Str sr="arg0" ve="3">=== INFORMAÇÕES GERAIS DA REQUISIÇÃO ===
+\%device_id ➪ %device_id
+\%phone ➪ %phone
+\%event ➪ %event
+\%type_message ➪ %type_message
+\%message_id ➪ %message_id
+\%message_text ➪ %message_text
+\%parse_success ➪ %parse_success
+\%parse_error ➪ %parse_error
+
+=== REMETENTE / DESTINATÁRIO / CHAT ===
+\%from_lid ➪ %from_lid
+\%chat_id ➪ %chat_id
+\%recipient_number ➪ %recipient_number
+\%sender_number ➪ %sender_number
+\%sender_name ➪ %sender_name
+\%is_from_me ➪ %is_from_me
+\%is_group ➪ %is_group
+\%group_jid ➪ %group_jid
+\%group_name ➪ %group_name
+
+=== MENSAGEM DE VÍDEO ===
+\%video_path ➪ %video_path
+\%caption_video ➪ %caption_video
+\%video_note_path ➪ %video_note_path
+\%caption_video_note ➪ %caption_video_note
+
+=== MENSAGEM DE IMAGEM ===
+\%image_path ➪ %image_path
+\%caption_image ➪ %caption_image
+
+=== MENSAGEM DE ÁUDIO ===
+\%audio_path ➪ %audio_path
+\%caption_audio ➪ %caption_audio
+
+=== MENSAGEM DE DOCUMENTO ===
+\%document_path ➪ %document_path
+\%caption_document ➪ %caption_document
+
+=== INFORMAÇÕES DO ARQUIVO ===
+\%extension ➪ %extension
+\%file_size_kb ➪ %file_size_kb
+
+=== MENSAGEM DE LINK ===
+\%link_title ➪ %link_title
+\%link_description ➪ %link_description
+\%link_url ➪ %link_url
+
+⚠️ \%thumbnail_base64 ➪ Existe porém NÃO deve ser usada no Tasker (base64 muito grande trava o app). Consulte o help do projeto para aprender como salvar a imagem corretamente.
+
+=== MENSAGEM DE LOCALIZAÇÃO ===
+\%location_latitude ➪ %location_latitude
+\%location_longitude ➪ %location_longitude
+\%live_location_sequence_number ➪ %live_location_sequence_number
+
+=== MENSAGEM DE ENQUETE (POLL) ===
+\%poll_question ➪ %poll_question
+\%poll_options_json ➪ %poll_options_json
+\%poll_options_count ➪ %poll_options_count
+\%poll_enc_key ➪ %poll_enc_key
+\%poll_json ➪ %poll_json
+\%poll_original_message_id ➪ %poll_original_message_id
+\%poll_response_question ➪ %poll_response_question
+\%poll_response_options_json ➪ %poll_response_options_json
+\%poll_response_options_count ➪ %poll_response_options_count
+\%poll_response_vote ➪ %poll_response_vote
+\%poll_response_votes_json ➪ %poll_response_votes_json
+\%poll_response_votes_count ➪ %poll_response_votes_count
+
+=== MENSAGEM COM CITAÇÃO (QUOTE) ===
+\%quoted_body ➪ %quoted_body
+\%replied_to_id ➪ %replied_to_id
+
+=== MENSAGEM APAGADA (REVOKED) ===
+\%revoked_message_id ➪ %revoked_message_id
+\%revoked_chat ➪ %revoked_chat
+\%revoked_from_me ➪ %revoked_from_me
+
+=== MENSAGEM DE CONTATO ===
+\%contact_display_name ➪ %contact_display_name
+\%contact_vcard ➪ %contact_vcard
+\%contacts_json ➪ %contacts_json
+\%contacts_count ➪ %contacts_count
+
+=== MENSAGEM DE RECIBO (RECEIPT) ===
+\%is_receipt ➪ %is_receipt
+\%receipt_type ➪ %receipt_type
+\%receipt_type_description ➪ %receipt_type_description
+\%is_delivered ➪ %is_delivered
+\%is_read ➪ %is_read
+
+=== MENSAGEM DE PRESENÇA (PRESENCE) ===
+\%state ➪ %state
+\%media_type ➪ %media_type
+
+=== MENSAGEM DE RESPOSTA A STATUS (STATUS RESPONSE) ===
+\%quoted_status_id ➪ %quoted_status_id
+\%quoted_status_caption ➪ %quoted_status_caption
+\%quoted_status_sender ➪ %quoted_status_sender
+\%quoted_status_type ➪ %quoted_status_type
+
+=== MENSAGEM DE CHAMADA (CALL) ===
+\%call_id ➪ %call_id
+\%call_status ➪ %call_status
+\%call_type ➪ %call_type
+\%call_sender_number ➪ %call_sender_number
+\%call_is_group ➪ %call_is_group
+\%call_shutdown_causer ➪ %call_shutdown_causer
+\%call_terminated_by ➪ %call_terminated_by
+\%call_auto_rejected ➪ %call_auto_rejected
+\%call_type_message ➪ %call_type_message</Str>
+			<Int sr="arg1" val="0"/>
+			<Str sr="arg10" ve="3"/>
+			<Int sr="arg11" val="1"/>
+			<Int sr="arg12" val="0"/>
+			<Str sr="arg13" ve="3"/>
+			<Int sr="arg14" val="0"/>
+			<Str sr="arg15" ve="3"/>
+			<Int sr="arg2" val="1"/>
+			<Str sr="arg3" ve="3"/>
+			<Str sr="arg4" ve="3"/>
+			<Str sr="arg5" ve="3"/>
+			<Str sr="arg6" ve="3"/>
+			<Str sr="arg7" ve="3"/>
+			<Str sr="arg8" ve="3">100</Str>
+			<Int sr="arg9" val="1"/>
+		</Action>
+	</Task>
+</TaskerData>
