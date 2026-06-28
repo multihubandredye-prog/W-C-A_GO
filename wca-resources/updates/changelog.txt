@@ -1,0 +1,5 @@
+Últimas Novidades
+
+➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
+➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
+➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
