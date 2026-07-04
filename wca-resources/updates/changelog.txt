@@ -1,30 +1,11 @@
-Últimas Novidades
+➪ Sistema independente do Termux: os binários ficam armazenados localmente e são executados e gerenciados pelo Tasker.
 
-➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
-➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
-➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
-Últimas Novidades
+➪ Aprimoramento do agendamento de conteúdos: envio programado de mensagens de texto, documentos, atualizações de status, vídeos e imagens.
 
-➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
-➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
-➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
-Últimas Novidades
+➪ Melhoria no processo de atualização.
 
-➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
-➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
-➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
-Últimas Novidades
+➪ Verificação de atualização direta via releases do GitHub.
 
-➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
-➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
-➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
-Últimas Novidades
+➪ Na primeira instalação, é possível definir o nome da conexão web.
 
-➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
-➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
-➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
-Últimas Novidades
-
-➪ adicionar uma nova tarefa 010-BROADCAST_MASTER [wca] para pequenas automações 
-➪ Melhorias na cena 007-GUIA/HELP [wca] em relação à responsabilidade .
-➪ adicionado a variável group_jid onde retorna o jid do grupo recebido .
+➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
