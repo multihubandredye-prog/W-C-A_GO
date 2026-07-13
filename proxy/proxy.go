@@ -13,7 +13,7 @@ import (
 const (
 	WEBHOOK_PATH = "/Tasker"
 	HOSTNAME     = "127.0.0.1"
-	DELAY_MS     = 200
+	DELAY_MS     = 1000
 )
 
 type DadosProxy struct {
