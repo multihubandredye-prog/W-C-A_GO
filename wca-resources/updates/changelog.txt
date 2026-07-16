@@ -9,6 +9,16 @@
 ➪ Na primeira instalação, é possível definir o nome da conexão web.
 
 ➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
+1
+
+
+
+
+
+
+
+
+
 
 
 
@@ -24,6 +34,13 @@
 ➪ Na primeira instalação, é possível definir o nome da conexão web.
 
 ➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
+
+2
+
+
+
+
+
 
 
 
