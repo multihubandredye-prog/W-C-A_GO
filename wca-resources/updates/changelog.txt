@@ -24,3 +24,32 @@
 ➪ Na primeira instalação, é possível definir o nome da conexão web.
 
 ➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
+
+
+
+➪ Sistema independente do Termux: os binários ficam armazenados localmente e são executados e gerenciados pelo Tasker.
+
+➪ Aprimoramento do agendamento de conteúdos: envio programado de mensagens de texto, documentos, atualizações de status, vídeos e imagens.
+
+➪ Melhoria no processo de atualização.
+
+➪ Verificação de atualização direta via releases do GitHub.
+
+➪ Na primeira instalação, é possível definir o nome da conexão web.
+
+➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
+
+
+
+
+➪ Sistema independente do Termux: os binários ficam armazenados localmente e são executados e gerenciados pelo Tasker.
+
+➪ Aprimoramento do agendamento de conteúdos: envio programado de mensagens de texto, documentos, atualizações de status, vídeos e imagens.
+
+➪ Melhoria no processo de atualização.
+
+➪ Verificação de atualização direta via releases do GitHub.
+
+➪ Na primeira instalação, é possível definir o nome da conexão web.
+
+➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
