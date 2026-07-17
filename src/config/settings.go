@@ -31,6 +31,7 @@ var (
 	WhatsappAutoMarkRead              = false // Auto-mark incoming messages as read
 	WhatsappAutoDownloadMedia         = true  // Auto-download media from incoming messages
 	AutoDeleteMedia                   = false // Toggle automatic media deletion
+	AutoDeleteMediaDuration           = 300   // Duration in seconds to keep media files before deletion
 	WhatsappWebhook                   []string
 	WhatsappWebhookSecret             = "secret"
 	WhatsappWebhookInsecureSkipVerify = false          // Skip TLS certificate verification for webhooks (insecure)

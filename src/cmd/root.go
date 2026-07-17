@@ -126,6 +126,9 @@ func initEnvConfig() {
 	if viper.IsSet("auto_delete_media") {
 		config.AutoDeleteMedia = viper.GetBool("auto_delete_media")
 	}
+	if viper.IsSet("auto_delete_media_duration") {
+		config.AutoDeleteMediaDuration = viper.GetInt("auto_delete_media_duration")
+	}
 	if envWebhook := viper.GetString("whatsapp_webhook"); envWebhook != "" {
 		webhook := strings.Split(envWebhook, ",")
 		config.WhatsappWebhook = webhook

@@ -13,14 +13,17 @@ import (
 // RunMediaCleanup scans directories and removes files not matching exclusion criteria automatically.
 func RunMediaCleanup() {
 	go func() {
-		// Wait for 30 seconds as requested
-		time.Sleep(30 * time.Second)
+		// Wait for a short moment to ensure the current operation finishes
+		time.Sleep(5 * time.Second)
 
 		// Use relative paths from config
 		dirs := []string{
 			config.PathMedia,
 			config.PathStorages,
 		}
+
+		// Calculate the threshold for deletion based on configuration (in seconds)
+		threshold := time.Duration(config.AutoDeleteMediaDuration) * time.Second
 
 		for _, dir := range dirs {
 			files, err := os.ReadDir(dir)
@@ -29,9 +32,19 @@ func RunMediaCleanup() {
 				continue
 			}
 
-
 			for _, file := range files {
 				if file.IsDir() {
+					continue
+				}
+
+				info, err := file.Info()
+				if err != nil {
+					logrus.Warnf("Failed to get file info: %s: %v", file.Name(), err)
+					continue
+				}
+
+				// Only delete files that are older than the threshold
+				if time.Since(info.ModTime()) < threshold {
 					continue
 				}
 
@@ -44,7 +57,7 @@ func RunMediaCleanup() {
 				}
 
 				// Remove the file
-				err := os.Remove(filepath.Join(dir, name))
+				err = os.Remove(filepath.Join(dir, name))
 				if err != nil {
 					logrus.Warnf("Failed to remove file during cleanup: %s: %v", name, err)
 				} else {
