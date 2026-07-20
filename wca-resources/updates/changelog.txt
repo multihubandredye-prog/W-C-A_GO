@@ -1,6 +1,9 @@
 [20/07/2026]
 ➪ Ajuste no sistema de comentários dos usuários: agora o desenvolvedor pode visualizar, responder e interagir com avaliações, dúvidas e comentários por meio de respostas específicas para cada usuário.
 
+[20/07/2026]
+➪ Pequenas correções nas tarefas de envio.
+
 [17/07/2026]
 ➪ Sistema independente do Termux: os binários ficam armazenados localmente e são executados e gerenciados pelo Tasker.
 
