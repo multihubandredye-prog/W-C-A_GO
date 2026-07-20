@@ -1,13 +1,23 @@
+[20/07/2026]
+➪ Ajuste no sistema de comentários dos usuários: agora o desenvolvedor pode visualizar, responder e interagir com avaliações, dúvidas e comentários por meio de respostas específicas para cada usuário.
+
+[17/07/2026]
 ➪ Sistema independente do Termux: os binários ficam armazenados localmente e são executados e gerenciados pelo Tasker.
 
+[15/07/2026]
 ➪ Aprimoramento do agendamento de conteúdos: envio programado de mensagens de texto, documentos, atualizações de status, vídeos e imagens.
 
+[12/07/2026]
 ➪ Melhoria no processo de atualização.
 
+[09/07/2026]
 ➪ Verificação de atualização direta via releases do GitHub.
 
+[05/07/2026]
 ➪ Na primeira instalação, é possível definir o nome da conexão web.
 
+[02/07/2026]
 ➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, que serão visíveis para todos os usuários, e também podem dar likes nos comentários publicados por outros usuários.
 
+[30/06/2026]
 ➪ Projeto 009-BROADCAST_MASTER [wca] funcionando.
