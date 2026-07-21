@@ -1,7 +1,11 @@
+[21/07/2026]
+➪ Aprimorado o método de identificação de atualizações.
+
+➪ Adicionado um novo botão dinâmico para desativar ou reativar a API.
+
 [20/07/2026]
 ➪ Ajuste no sistema de comentários dos usuários: agora o desenvolvedor pode visualizar, responder e interagir com avaliações, dúvidas e comentários por meio de respostas específicas para cada usuário.
 
-[20/07/2026]
 ➪ Pequenas correções nas tarefas de envio.
 
 [17/07/2026]
