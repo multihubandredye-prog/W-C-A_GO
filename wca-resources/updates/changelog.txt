@@ -1,3 +1,8 @@
+[24/07/2026]
+➪ Criptografia do número de telefone do usuário, visando reforçar a segurança dos dados armazenados.
+
+➪ Aprimoramento no processo de ativação do prêmio, no qual a solicitação do usuário permanecerá como pendente até a confirmação do pagamento e a posterior ativação pelo desenvolvedor.
+
 [22/07/2026]
 ➪ Aprimoramento relacionado ao cache da tela principal.
 
