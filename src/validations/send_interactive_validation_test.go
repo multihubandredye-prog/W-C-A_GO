@@ -1,6 +1,7 @@
 package validations_test
 
 import (
+	"fmt"
 	"context"
 	"strings"
 	"testing"
@@ -296,4 +297,113 @@ func makeRows(n int) []domainSend.ListRow {
 		rows = append(rows, domainSend.ListRow{RowID: id, Title: "Row " + id})
 	}
 	return rows
+}
+
+// TestValidateSendListPagination covers the caps that change once pagination
+// is enabled: a large catalogue becomes valid, but the per page size must
+// still leave room for the navigation row.
+func TestValidateSendListPagination(t *testing.T) {
+	catalogue := func(n int) []domainSend.ListSection {
+		rows := make([]domainSend.ListRow, 0, n)
+		for i := 1; i <= n; i++ {
+			rows = append(rows, domainSend.ListRow{
+				RowID: fmt.Sprintf("produto_%d", i),
+				Title: fmt.Sprintf("Produto %d", i),
+			})
+		}
+		return []domainSend.ListSection{{Title: "Tipos de Roupa", Rows: rows}}
+	}
+
+	tests := []struct {
+		name    string
+		request domainSend.ListRequest
+		wantErr bool
+		errPart string
+	}{
+		{
+			name: "30 rows accepted when paginating",
+			request: domainSend.ListRequest{
+				BaseRequest: domainSend.BaseRequest{Phone: testPhone},
+				Description: "Escolha",
+				Paginate:    true,
+				Sections:    catalogue(30),
+			},
+		},
+		{
+			name: "custom page size accepted",
+			request: domainSend.ListRequest{
+				BaseRequest: domainSend.BaseRequest{Phone: testPhone},
+				Description: "Escolha",
+				Paginate:    true,
+				PageSize:    5,
+				Sections:    catalogue(15),
+			},
+		},
+		{
+			name: "30 rows rejected without pagination",
+			request: domainSend.ListRequest{
+				BaseRequest: domainSend.BaseRequest{Phone: testPhone},
+				Description: "Escolha",
+				Sections:    catalogue(30),
+			},
+			wantErr: true,
+			errPart: "paginate",
+		},
+		{
+			name: "page size must leave room for the navigation row",
+			request: domainSend.ListRequest{
+				BaseRequest: domainSend.BaseRequest{Phone: testPhone},
+				Description: "Escolha",
+				Paginate:    true,
+				PageSize:    10,
+				Sections:    catalogue(30),
+			},
+			wantErr: true,
+			errPart: "maximum 9 rows per page",
+		},
+		{
+			name: "pagination rejects multiple sections",
+			request: domainSend.ListRequest{
+				BaseRequest: domainSend.BaseRequest{Phone: testPhone},
+				Description: "Escolha",
+				Paginate:    true,
+				Sections: []domainSend.ListSection{
+					{Title: "A", Rows: []domainSend.ListRow{{RowID: "a", Title: "A"}}},
+					{Title: "B", Rows: []domainSend.ListRow{{RowID: "b", Title: "B"}}},
+				},
+			},
+			wantErr: true,
+			errPart: "single section",
+		},
+		{
+			name: "duplicated ids still rejected when paginating",
+			request: domainSend.ListRequest{
+				BaseRequest: domainSend.BaseRequest{Phone: testPhone},
+				Description: "Escolha",
+				Paginate:    true,
+				Sections: []domainSend.ListSection{{
+					Rows: []domainSend.ListRow{
+						{RowID: "igual", Title: "Um"},
+						{RowID: "igual", Title: "Dois"},
+					},
+				}},
+			},
+			wantErr: true,
+			errPart: "duplicated",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validations.ValidateSendList(context.Background(), tt.request)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errPart != "" {
+					assert.Contains(t, strings.ToLower(err.Error()), strings.ToLower(tt.errPart))
+				}
+				return
+			}
+			assert.NoError(t, err)
+		})
+	}
 }

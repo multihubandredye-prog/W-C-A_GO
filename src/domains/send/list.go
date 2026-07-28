@@ -44,4 +44,27 @@ type ListRequest struct {
 	Footer string `json:"footer,omitempty" form:"footer"`
 	// Sections holds one or more groups of rows. Required.
 	Sections []ListSection `json:"sections" form:"sections"`
+
+	// Paginate splits a catalogue larger than the WhatsApp limit across
+	// several messages, appending a navigation row that sends the next page.
+	Paginate bool `json:"paginate,omitempty" form:"paginate"`
+	// PageSize is how many catalogue rows each page carries, excluding the
+	// navigation row. Defaults to DefaultPageSize.
+	PageSize int `json:"page_size,omitempty" form:"page_size"`
+	// PaginationLabel is the text of the navigation row. Defaults to "Ver mais".
+	PaginationLabel string `json:"pagination_label,omitempty" form:"pagination_label"`
+	// ForwardPagination reports navigation taps to the webhook, flagged with
+	// IsPagination, instead of consuming them silently.
+	ForwardPagination bool `json:"forward_pagination,omitempty" form:"forward_pagination"`
 }
+
+// DefaultPageSize is the catalogue rows per page when PageSize is omitted.
+// One row of the ten allowed is reserved for navigation.
+const DefaultPageSize = 9
+
+// PaginationRowPrefix marks navigation rows. A row id starting with this
+// prefix is a page request, never a customer choice.
+const PaginationRowPrefix = "__wca_page_"
+
+// DefaultPaginationLabel is the navigation row text when none is supplied.
+const DefaultPaginationLabel = "Ver mais"

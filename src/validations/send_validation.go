@@ -637,6 +637,21 @@ func ValidateSendList(ctx context.Context, request domainSend.ListRequest) error
 		return pkgError.ValidationError(err.Error())
 	}
 
+	// Paginated catalogues are split across several messages, so the per
+	// message caps apply to each page rather than to the payload as a whole.
+	if request.Paginate {
+		if request.PageSize < 0 {
+			return pkgError.ValidationError("page_size: cannot be negative.")
+		}
+		if request.PageSize > domainSend.MaxListRowsPerSection-1 {
+			return pkgError.ValidationError(fmt.Sprintf("page_size: maximum %d rows per page, got %d. One row of the %d allowed is reserved for the navigation entry.",
+				domainSend.MaxListRowsPerSection-1, request.PageSize, domainSend.MaxListRowsPerSection))
+		}
+		if len(request.Sections) > 1 {
+			return pkgError.ValidationError("sections: pagination supports a single section, split the catalogue into separate requests instead.")
+		}
+	}
+
 	totalRows := 0
 	uniqueRowIDs := make(map[string]bool)
 
@@ -645,8 +660,8 @@ func ValidateSendList(ctx context.Context, request domainSend.ListRequest) error
 			return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows: cannot be blank.", i))
 		}
 
-		if len(section.Rows) > domainSend.MaxListRowsPerSection {
-			return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows: maximum %d rows per section, got %d.", i, domainSend.MaxListRowsPerSection, len(section.Rows)))
+		if !request.Paginate && len(section.Rows) > domainSend.MaxListRowsPerSection {
+			return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows: maximum %d rows per section, got %d. Set \"paginate\": true to split a larger catalogue across pages.", i, domainSend.MaxListRowsPerSection, len(section.Rows)))
 		}
 
 		for j, row := range section.Rows {
@@ -668,8 +683,8 @@ func ValidateSendList(ctx context.Context, request domainSend.ListRequest) error
 		}
 	}
 
-	if totalRows > domainSend.MaxListRows {
-		return pkgError.ValidationError(fmt.Sprintf("sections: maximum %d rows in total, got %d.", domainSend.MaxListRows, totalRows))
+	if !request.Paginate && totalRows > domainSend.MaxListRows {
+		return pkgError.ValidationError(fmt.Sprintf("sections: maximum %d rows in total, got %d. Set \"paginate\": true to split a larger catalogue across pages.", domainSend.MaxListRows, totalRows))
 	}
 
 	if err := validatePhoneNumber(request.Phone); err != nil {

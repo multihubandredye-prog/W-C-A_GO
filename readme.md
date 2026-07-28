@@ -725,6 +725,68 @@ Perfeito para cardápios, catálogos, agendamentos e qualquer escolha com muitas
 - `row_id` deve ser único entre **todas** as seções
 - Títulos e descrições são truncados no limite
 
+> Para catálogos maiores que 10 itens, use a [paginação](#paginação-de-listas).
+
+#### Paginação de listas
+
+O WhatsApp entrega no máximo 10 linhas por mensagem. Para oferecer um catálogo
+maior, envie todos os itens de uma vez com `paginate` e a API divide em páginas,
+reservando a última linha de cada uma para a navegação.
+
+| Campo | Padrão | Descrição |
+|---|---|---|
+| `paginate` | `false` | Divide o catálogo em páginas |
+| `page_size` | `9` | Itens por página, sem contar a linha de navegação (máx. 9) |
+| `pagination_label` | `Ver mais` | Texto da linha de navegação |
+| `forward_pagination` | `false` | Notifica o webhook quando o cliente navega |
+
+Com 30 itens e `page_size: 9`:
+
+| Página | Itens | Linha de navegação |
+|---|---|---|
+| 1 | 1 a 9 | Ver mais — Página 2 de 4 |
+| 2 | 10 a 18 | Ver mais — Página 3 de 4 |
+| 3 | 19 a 27 | Ver mais — Página 4 de 4 |
+| 4 | 28 a 30 | — |
+
+Quando o cliente toca na navegação, a API envia a próxima página
+automaticamente. O catálogo fica disponível por **7 dias** e sobrevive a
+reinícios do servidor.
+
+```bash
+curl -X POST http://localhost:3000/send/list \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "title": "Moda & Estilo",
+    "description": "Escolha a peça que deseja comprar hoje:",
+    "footer": "Entrega em até 3 dias úteis",
+    "button_text": "Ver produtos",
+    "paginate": true,
+    "page_size": 9,
+    "pagination_label": "Ver mais",
+    "forward_pagination": true,
+    "sections": [
+      {
+        "title": "Tipos de Roupa",
+        "rows": [
+          { "row_id": "camiseta_basica_preta",  "title": "Camiseta Básica Preta",  "description": "Algodão 100% — R$ 49,90" },
+          { "row_id": "camiseta_basica_branca", "title": "Camiseta Básica Branca", "description": "Algodão 100% — R$ 49,90" }
+        ]
+      }
+    ]
+  }'
+```
+
+**Restrições:** a paginação aceita uma única seção e `page_size` de no máximo 9,
+já que a décima linha é reservada para a navegação.
+
+**Notificação da navegação:** com `forward_pagination: true`, o clique em
+"Ver mais" gera um webhook com `IsPagination: true`, a página aberta e os itens
+exibidos — veja
+[respostas de botões e listas](#recebendo-respostas-de-botões-e-listas). Com
+`false`, a próxima página é enviada do mesmo jeito, mas sem notificar.
+
 #### Exemplo 1 — Cardápio com várias seções
 
 ```bash
@@ -1277,6 +1339,52 @@ para botões e listas, evitando tratamento condicional no consumidor.
   }
 }
 ```
+
+### Navegação em listas paginadas
+
+Quando a lista foi enviada com `forward_pagination: true`, o clique em
+"Ver mais" também gera um webhook. Ele traz `IsPagination: true` e o conteúdo
+da página que acabou de ser entregue:
+
+```json
+{
+  "Payload": {
+    "Type": "ListResponseMessage",
+    "InteractiveReply": {
+      "SelectedID": "__wca_page_2",
+      "IsPagination": true,
+      "Page": 2,
+      "TotalPages": 4,
+      "TotalRows": 30
+    },
+    "PaginationSent": {
+      "MessageID": "3EB0C7...",
+      "Page": 2,
+      "TotalPages": 4,
+      "RowsCount": 10,
+      "HasMore": true,
+      "Rows": [
+        { "RowID": "camiseta_polo_azul", "Title": "Camiseta Polo Azul", "Description": "R$ 79,90" }
+      ]
+    }
+  }
+}
+```
+
+Use `IsPagination` para separar navegação de escolha real:
+
+```javascript
+const reply = req.body.Payload?.InteractiveReply;
+
+if (reply?.IsPagination) {
+  return res.sendStatus(200);   // navegação: a API já enviou a próxima página
+}
+
+processarPedido(reply.SelectedID);
+```
+
+Com `forward_pagination: false` (padrão), esse evento não é enviado e o webhook
+recebe apenas as escolhas de produto.
 
 ### Consultando o que foi enviado
 

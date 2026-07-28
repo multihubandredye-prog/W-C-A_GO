@@ -62,6 +62,17 @@ func handleMessage(ctx context.Context, evt *events.Message, chatStorageRepo dom
 	// Handle auto-reply if configured
 	handleAutoReply(ctx, evt, chatStorageRepo, client)
 
+	// A tap on a "see more" row is navigation, not a customer choice: send the
+	// next page and only report it when the caller asked to be told.
+	if pagination := HandleListPagination(ctx, evt, client); pagination != nil {
+		if !pagination.Forward {
+			log.Debugf("Suppressing pagination event for %s (forward_pagination disabled)", evt.Info.ID)
+			return
+		}
+		handleWebhookForwardWithPagination(ctx, evt, client, pagination)
+		return
+	}
+
 	// Forward to webhook if configured
 	handleWebhookForward(ctx, evt, client)
 }
@@ -207,4 +218,23 @@ func handlePollCreationMessage(ctx context.Context, evt *events.Message, client 
 		pollstore.DefaultPollStore.SavePoll(evt.Info.ID, pollData)
 		log.Infof("Poll metadata saved for %s", evt.Info.ID)
 	}
+}
+
+// handleWebhookForwardWithPagination forwards a navigation tap together with
+// the page it produced.
+func handleWebhookForwardWithPagination(_ context.Context, evt *events.Message, client *whatsmeow.Client, result *PaginationResult) {
+	if len(config.WhatsappWebhook) == 0 && !config.ChatwootEnabled {
+		return
+	}
+	if strings.Contains(evt.Info.SourceString(), "broadcast") {
+		return
+	}
+
+	go func(e *events.Message, c *whatsmeow.Client, r *PaginationResult) {
+		webhookCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := forwardMessageToWebhookWithPagination(webhookCtx, c, e, r); err != nil {
+			logrus.Error("Failed forward pagination to webhook: ", err)
+		}
+	}(evt, client, result)
 }

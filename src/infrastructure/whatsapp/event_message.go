@@ -18,6 +18,7 @@ import (
 	"go.mau.fi/whatsmeow/types"
 
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
+	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/pollstore"
 	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
@@ -853,7 +854,11 @@ func buildInteractiveReplyFields(msg *waE2E.Message, payload map[string]any) {
 			"Title": listResponse.GetTitle(),
 		}
 		if singleSelect := listResponse.GetSingleSelectReply(); singleSelect != nil {
-			reply["SelectedID"] = singleSelect.GetSelectedRowID()
+			selectedID := singleSelect.GetSelectedRowID()
+			reply["SelectedID"] = selectedID
+			// Navigation rows are not customer choices; flag them so consumers
+			// can filter them out with a single condition.
+			reply["IsPagination"] = strings.HasPrefix(selectedID, domainSend.PaginationRowPrefix)
 		}
 		if description := listResponse.GetDescription(); description != "" {
 			reply["Description"] = description

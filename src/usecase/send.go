@@ -46,10 +46,16 @@ type serviceSend struct {
 }
 
 func NewSendService(appService app.IAppUsecase, chatStorageRepo domainChatStorage.IChatStorageRepository) domainSend.ISendUsecase {
-	return &serviceSend{
+	service := &serviceSend{
 		appService:      appService,
 		chatStorageRepo: chatStorageRepo,
 	}
+
+	// Let the event layer deliver the next page of a paginated list without
+	// importing this package, which would create an import cycle.
+	whatsapp.RegisterListPageSender(service.SendListPage)
+
+	return service
 }
 
 // wrapSendMessage sends the message and stores it asynchronously on success.

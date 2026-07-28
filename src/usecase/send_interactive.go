@@ -277,6 +277,12 @@ func (service serviceSend) SendList(ctx context.Context, request domainSend.List
 		return response, err
 	}
 
+	// A paginated catalogue is stored and delivered one page at a time; the
+	// remaining rows are fetched when the customer taps the navigation entry.
+	if request.Paginate {
+		return service.sendPaginatedList(ctx, client, recipient, request)
+	}
+
 	sections := make([]*waE2E.ListMessage_Section, 0, len(request.Sections))
 	for _, section := range request.Sections {
 		rows := make([]*waE2E.ListMessage_Row, 0, len(section.Rows))
