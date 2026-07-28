@@ -147,6 +147,20 @@ func buildEventPayload(ctx context.Context, client *whatsmeow.Client, evt *event
 	// the reply explicitly so the selection is never lost.
 	if reply := utils.FindInteractiveReply(msg); reply != nil {
 		msg = reply
+	} else if evt.RawMessage != nil && evt.RawMessage != evt.Message {
+		// whatsmeow keeps the untouched protobuf in RawMessage. Button taps on
+		// LID accounts have been observed arriving with an emptied Message
+		// while the NativeFlow response is still intact in RawMessage, so fall
+		// back to it rather than reporting an empty "Unknown" event.
+		if rawReply := utils.FindInteractiveReply(evt.RawMessage); rawReply != nil {
+			logrus.Debugf("[INTERACTIVE] recovered reply from RawMessage for %s", evt.Info.ID)
+			msg = rawReply
+		} else if isEmptyMessage(msg) {
+			if rawUnwrapped := utils.UnwrapMessage(evt.RawMessage); !isEmptyMessage(rawUnwrapped) {
+				logrus.Debugf("[INTERACTIVE] falling back to RawMessage for %s", evt.Info.ID)
+				msg = rawUnwrapped
+			}
+		}
 	}
 
 	// Determine general message type (e.g., Message, LinkMessage, StatusResponseMessage)
@@ -157,7 +171,13 @@ func buildEventPayload(ctx context.Context, client *whatsmeow.Client, evt *event
 	// names present in the protobuf so the gap can be identified from the logs
 	// instead of guessing. Only runs in debug mode and only for Unknown.
 	if messageType == "Unknown" && config.AppDebug {
-		logrus.Warnf("[UNKNOWN_MESSAGE] id=%s fields=%v", evt.Info.ID, populatedMessageFields(msg))
+		logrus.Warnf("[UNKNOWN_MESSAGE] id=%s msgFields=%v rawFields=%v retries=%d unavailableReq=%q",
+			evt.Info.ID,
+			populatedMessageFields(msg),
+			populatedMessageFields(evt.RawMessage),
+			evt.RetryCount,
+			evt.UnavailableRequestID,
+		)
 	}
 
 	// If it's a Status Reply Message, extract specific quoted status details
@@ -896,4 +916,23 @@ func populatedMessageFields(msg *waE2E.Message) []string {
 		return true
 	})
 	return fields
+}
+
+// isEmptyMessage reports whether every field of the protobuf is unset, apart
+// from MessageContextInfo which travels on almost every message and carries no
+// content of its own. An empty message means the real payload is elsewhere.
+func isEmptyMessage(msg *waE2E.Message) bool {
+	if msg == nil {
+		return true
+	}
+
+	empty := true
+	msg.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
+		if fd.Name() == "messageContextInfo" {
+			return true // keep scanning
+		}
+		empty = false
+		return false // stop at the first real field
+	})
+	return empty
 }

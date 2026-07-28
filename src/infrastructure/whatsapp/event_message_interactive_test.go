@@ -325,3 +325,45 @@ func TestFindInteractiveReplyDigsDeep(t *testing.T) {
 		})
 	}
 }
+
+// TestIsEmptyMessage guards the RawMessage fallback trigger.
+func TestIsEmptyMessage(t *testing.T) {
+	assert.True(t, isEmptyMessage(nil))
+	assert.True(t, isEmptyMessage(&waE2E.Message{}))
+
+	// MessageContextInfo alone still counts as empty: it carries no content.
+	assert.True(t, isEmptyMessage(&waE2E.Message{
+		MessageContextInfo: &waE2E.MessageContextInfo{},
+	}))
+
+	assert.False(t, isEmptyMessage(&waE2E.Message{Conversation: proto.String("oi")}))
+	assert.False(t, isEmptyMessage(buttonReply("ja_paguei", "Já paguei")))
+}
+
+// TestRecoverReplyFromRawMessage reproduces the reported failure: a button tap
+// from a LID account arrives with an emptied Message while the NativeFlow
+// response is still present in RawMessage.
+func TestRecoverReplyFromRawMessage(t *testing.T) {
+	raw := &waE2E.Message{
+		DeviceSentMessage: &waE2E.DeviceSentMessage{
+			Message: buttonReply("ja_paguei", "Já paguei"),
+		},
+	}
+
+	// The processed message is empty, so the type would be Unknown.
+	emptied := &waE2E.Message{MessageContextInfo: &waE2E.MessageContextInfo{}}
+	require.True(t, isEmptyMessage(emptied))
+	assert.Equal(t, "Unknown", getMessagePascalType(emptied))
+
+	// The fallback must locate the reply in RawMessage.
+	recovered := utils.FindInteractiveReply(raw)
+	require.NotNil(t, recovered, "reply must be recoverable from RawMessage")
+	assert.Equal(t, "ButtonsResponseMessage", getMessagePascalType(recovered))
+
+	payload := map[string]any{}
+	buildInteractiveReplyFields(recovered, payload)
+	reply, ok := payload["InteractiveReply"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "ja_paguei", reply["SelectedID"])
+	assert.Equal(t, "Já paguei", reply["SelectedText"])
+}
