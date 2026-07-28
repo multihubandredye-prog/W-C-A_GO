@@ -496,10 +496,6 @@ Envia uma mensagem com **até 3 botões** clicáveis. Ideal para decisões rápi
 | `cta_call` | Inicia uma ligação | `title`, `phone_number` |
 | `copy` | Copia um código | `title`, `copy_code` |
 
-> ⚠️ **Atenção ao nome do tipo.** O tipo é `copy`, não `copy_code`.
-> O `copy_code` é o *campo* que carrega o valor a ser copiado.
-> Trocar um pelo outro retorna `400 VALIDATION_ERROR`.
-
 | `type` | Campo obrigatório além do `title` |
 |---|---|
 | `reply` | `id` |
