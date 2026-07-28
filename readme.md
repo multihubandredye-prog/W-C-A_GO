@@ -3,8 +3,6 @@
 API REST em Go para WhatsApp multi-dispositivo, construída sobre [whatsmeow](https://github.com/tulir/whatsmeow).
 Envia e recebe mensagens, mídia, enquetes, **botões interativos** e **listas**, gerencia grupos, contatos e múltiplos dispositivos.
 
-> **Repositório de teste.** Este é o `Wca-Test`, usado para desenvolvimento e experimentação.
-
 ---
 
 ## Índice
@@ -17,8 +15,8 @@ Envia e recebe mensagens, mídia, enquetes, **botões interativos** e **listas**
   - [App / Sessão](#1-app--sessão)
   - [Dispositivos](#2-dispositivos)
   - [Envio de mensagens](#3-envio-de-mensagens)
-  - [🔘 Botões interativos](#4--botões-interativos) ← *novo*
-  - [📋 Listas interativas](#5--listas-interativas) ← *novo*
+  - [🔘 Botões interativos](#4--botões-interativos)
+  - [📋 Listas interativas](#5--listas-interativas)
   - [Gerenciar mensagens](#6-gerenciar-mensagens)
   - [Conversas](#7-conversas)
   - [Usuário](#8-usuário)
@@ -498,6 +496,17 @@ Envia uma mensagem com **até 3 botões** clicáveis. Ideal para decisões rápi
 | `cta_call` | Inicia uma ligação | `title`, `phone_number` |
 | `copy` | Copia um código | `title`, `copy_code` |
 
+> ⚠️ **Atenção ao nome do tipo.** O tipo é `copy`, não `copy_code`.
+> O `copy_code` é o *campo* que carrega o valor a ser copiado.
+> Trocar um pelo outro retorna `400 VALIDATION_ERROR`.
+
+| `type` | Campo obrigatório além do `title` |
+|---|---|
+| `reply` | `id` |
+| `cta_url` | `url` |
+| `cta_call` | `phone_number` |
+| `copy` | `copy_code` |
+
 **Regras aplicadas automaticamente:**
 - Máximo de **3 botões** — mais que isso retorna erro de validação
 - `title` é truncado em **20 caracteres** (contando acentos e emoji corretamente)
@@ -556,6 +565,26 @@ curl -X POST http://localhost:3000/send/buttons \
   }'
 ```
 
+#### Exemplo 4 — Cobrança com chave PIX copiável
+
+O botão `copy` é ideal para PIX: o cliente copia a chave com um toque, sem
+risco de errar ao digitar.
+
+```bash
+curl -X POST http://localhost:3000/send/buttons \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "body": "Para realizar o pagamento, use a chave PIX abaixo:\n\n*Chave PIX (Telefone):*\n(81) 84752-564\n\n*Nome:* João Silva\n*Banco:* Nubank",
+    "footer": "Clínica Bem Estar",
+    "buttons": [
+      { "type": "copy",  "title": "Copiar PIX",  "copy_code": "558184752564" },
+      { "type": "reply", "title": "Já paguei",   "id": "ja_paguei" },
+      { "type": "reply", "title": "Comprovante", "id": "enviar_comprovante" }
+    ]
+  }'
+```
+
 #### Resposta
 
 ```json
@@ -609,7 +638,7 @@ Perfeito para cardápios, catálogos, agendamentos e qualquer escolha com muitas
 
 **Limites aplicados automaticamente:**
 - Até **10 linhas por seção**
-- Até **30 linhas no total**
+- Até **10 linhas no total, somando todas as seções (limite do WhatsApp)**
 - `row_id` deve ser único entre **todas** as seções
 - Títulos e descrições são truncados no limite
 
@@ -696,7 +725,7 @@ curl -X POST http://localhost:3000/send/list \
 
 | | Botões | Listas |
 |---|---|---|
-| Quantidade de opções | Até **3** | Até **30** (10 por seção) |
+| Quantidade de opções | Até **3** | Até **10** no total |
 | Visual | Botões fixos abaixo da mensagem | Botão único que abre um menu |
 | Agrupamento por categoria | ❌ | ✅ Seções com título |
 | Descrição em cada opção | ❌ | ✅ |
