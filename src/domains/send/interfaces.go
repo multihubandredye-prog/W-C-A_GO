@@ -24,6 +24,10 @@ type IInteractionSender interface {
 	SendLink(ctx context.Context, request LinkRequest) (response GenericResponse, err error)
 	SendLocation(ctx context.Context, request LocationRequest) (response GenericResponse, err error)
 	SendPoll(ctx context.Context, request PollRequest) (response GenericResponse, err error)
+	// SendButtons sends an interactive message with up to 3 NativeFlow buttons.
+	SendButtons(ctx context.Context, request ButtonsRequest) (response GenericResponse, err error)
+	// SendList sends an interactive list, the way to offer more than 3 options.
+	SendList(ctx context.Context, request ListRequest) (response GenericResponse, err error)
 }
 
 // IPresenceSender handles presence-related operations

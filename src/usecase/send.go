@@ -56,8 +56,12 @@ func NewSendService(appService app.IAppUsecase, chatStorageRepo domainChatStorag
 // The send goes through whatsapp.SendMessageWithReachoutRetry, which retries
 // once on WhatsApp error 463 after a SubscribePresence pre-warm — see
 // infrastructure/whatsapp/send_retry.go for the protocol-level rationale.
-func (service serviceSend) wrapSendMessage(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message, content string) (whatsmeow.SendResponse, error) {
-	ts, err := whatsapp.SendMessageWithReachoutRetry(ctx, client, recipient, msg)
+// wrapSendMessage sends msg and performs the shared post-send bookkeeping
+// (webhook trigger + chat storage). The optional extras forward a
+// whatsmeow.SendRequestExtra, required by interactive buttons and lists to
+// attach their "biz" node; existing callers pass nothing and are unaffected.
+func (service serviceSend) wrapSendMessage(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message, content string, extras ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
+	ts, err := whatsapp.SendMessageWithReachoutRetry(ctx, client, recipient, msg, extras...)
 	if err != nil {
 		return whatsmeow.SendResponse{}, normalizeSendError(err)
 	}

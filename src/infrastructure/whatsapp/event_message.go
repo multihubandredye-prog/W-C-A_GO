@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"encoding/base64"
+	"encoding/json"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -647,6 +648,84 @@ func buildOtherMessageTypes(msg *waE2E.Message, payload map[string]any) {
 			"Question": pollCreation.GetName(),
 			"Options":  options,
 			"EncKey":   msg.GetMessageContextInfo().GetMessageSecret(),
+		}
+	}
+
+	buildInteractiveReplyFields(msg, payload)
+}
+
+// buildInteractiveReplyFields exposes which button or list row the user picked.
+//
+// Sending an interactive message is only half of the flow: without decoding the
+// reply there is no way to know what the recipient chose. The three shapes are:
+//
+//   - InteractiveResponseMessage  → NativeFlow buttons (/send/buttons)
+//   - ListResponseMessage         → list rows          (/send/list)
+//   - ButtonsResponseMessage      → legacy buttons
+//
+// Each one populates a normalised "InteractiveReply" object so webhook
+// consumers can read a single field regardless of the underlying format.
+func buildInteractiveReplyFields(msg *waE2E.Message, payload map[string]any) {
+	// NativeFlow buttons: the selection travels as a JSON blob whose "id"
+	// matches the id supplied when the button was created.
+	if interactiveResponse := msg.GetInteractiveResponseMessage(); interactiveResponse != nil {
+		reply := map[string]any{"Type": "buttons"}
+
+		if nativeFlow := interactiveResponse.GetNativeFlowResponseMessage(); nativeFlow != nil {
+			paramsJSON := nativeFlow.GetParamsJSON()
+			reply["Name"] = nativeFlow.GetName()
+			reply["ParamsJSON"] = paramsJSON
+
+			// Best effort: surface the button id/text without forcing the
+			// consumer to parse the blob themselves.
+			var params map[string]any
+			if paramsJSON != "" && json.Unmarshal([]byte(paramsJSON), &params) == nil {
+				if id, ok := params["id"].(string); ok {
+					reply["SelectedID"] = id
+				}
+				if displayText, ok := params["display_text"].(string); ok {
+					reply["SelectedText"] = displayText
+				}
+			}
+		}
+
+		if body := interactiveResponse.GetBody(); body != nil {
+			reply["Body"] = body.GetText()
+		}
+
+		payload["InteractiveReply"] = reply
+	}
+
+	// List selection: SelectedRowID is the row_id supplied when the list was built.
+	if listResponse := msg.GetListResponseMessage(); listResponse != nil {
+		reply := map[string]any{
+			"Type":  "list",
+			"Title": listResponse.GetTitle(),
+		}
+		if singleSelect := listResponse.GetSingleSelectReply(); singleSelect != nil {
+			reply["SelectedID"] = singleSelect.GetSelectedRowID()
+		}
+		if description := listResponse.GetDescription(); description != "" {
+			reply["Description"] = description
+		}
+		payload["ListReply"] = reply
+		if _, exists := payload["InteractiveReply"]; !exists {
+			payload["InteractiveReply"] = reply
+		}
+	}
+
+	// Legacy buttons kept for completeness: older clients answer this way.
+	if buttonsResponse := msg.GetButtonsResponseMessage(); buttonsResponse != nil {
+		reply := map[string]any{
+			"Type":       "buttons_legacy",
+			"SelectedID": buttonsResponse.GetSelectedButtonID(),
+		}
+		if displayText := buttonsResponse.GetSelectedDisplayText(); displayText != "" {
+			reply["SelectedText"] = displayText
+		}
+		payload["ButtonsReply"] = reply
+		if _, exists := payload["InteractiveReply"]; !exists {
+			payload["InteractiveReply"] = reply
 		}
 	}
 }

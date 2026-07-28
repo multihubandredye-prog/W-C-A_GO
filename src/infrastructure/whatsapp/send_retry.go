@@ -21,10 +21,24 @@ var (
 	sendMessageFn = func(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message) (whatsmeow.SendResponse, error) {
 		return client.SendMessage(ctx, recipient, msg)
 	}
+	// sendMessageWithExtraFn is used when the caller needs to attach extra
+	// binary nodes (interactive buttons/lists require a "biz" node).
+	sendMessageWithExtraFn = func(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message, extra whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
+		return client.SendMessage(ctx, recipient, msg, extra)
+	}
 	subscribePresenceFn = func(ctx context.Context, client *whatsmeow.Client, recipient types.JID) error {
 		return client.SubscribePresence(ctx, recipient)
 	}
 )
+
+// dispatchSend routes to the plain or the extra-aware send seam. Keeping
+// sendMessageFn's signature untouched preserves every existing caller and test.
+func dispatchSend(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message, extras []whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
+	if len(extras) == 0 {
+		return sendMessageFn(ctx, client, recipient, msg)
+	}
+	return sendMessageWithExtraFn(ctx, client, recipient, msg, extras[0])
+}
 
 // IsReachoutTimelockError reports whether err is WhatsApp server error 463
 // (NackCallerReachoutTimelocked) — surfaced when the recipient's privacy
@@ -51,8 +65,11 @@ func IsReachoutTimelockError(err error) bool {
 //
 // Group/broadcast/newsletter/legacy-server JIDs skip the retry — 463 does
 // not apply to them.
-func SendMessageWithReachoutRetry(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message) (whatsmeow.SendResponse, error) {
-	resp, err := sendMessageFn(ctx, client, recipient, msg)
+// The optional extras parameter forwards a whatsmeow.SendRequestExtra (used by
+// interactive buttons and lists to attach the required "biz" node). Existing
+// four-argument calls keep working unchanged.
+func SendMessageWithReachoutRetry(ctx context.Context, client *whatsmeow.Client, recipient types.JID, msg *waE2E.Message, extras ...whatsmeow.SendRequestExtra) (whatsmeow.SendResponse, error) {
+	resp, err := dispatchSend(ctx, client, recipient, msg, extras)
 	if err == nil || !IsReachoutTimelockError(err) || !isUserJID(recipient) {
 		return resp, err
 	}
@@ -67,7 +84,7 @@ func SendMessageWithReachoutRetry(ctx context.Context, client *whatsmeow.Client,
 	}
 	cancel()
 
-	resp, err = sendMessageFn(ctx, client, recipient, msg)
+	resp, err = dispatchSend(ctx, client, recipient, msg, extras)
 	if err != nil {
 		logrus.Warnf("Retry send to %s after pre-warm still failed: %v", recipient.String(), err)
 	} else {

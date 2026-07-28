@@ -547,3 +547,134 @@ func ValidateSendChatPresence(ctx context.Context, request domainSend.ChatPresen
 
 	return nil
 }
+
+// ValidateSendButtons validates the payload of POST /send/buttons.
+//
+// WhatsApp renders at most 3 buttons per interactive message; exceeding that
+// makes the message silently fail to render on the recipient device, so the
+// limit is enforced here instead of being passed through.
+func ValidateSendButtons(ctx context.Context, request domainSend.ButtonsRequest) error {
+	if len(request.Buttons) == 0 {
+		return pkgError.ValidationError("buttons: cannot be blank.")
+	}
+
+	if len(request.Buttons) > domainSend.MaxButtons {
+		return pkgError.ValidationError(fmt.Sprintf("buttons: maximum %d buttons allowed, got %d.", domainSend.MaxButtons, len(request.Buttons)))
+	}
+
+	err := validation.ValidateStructWithContext(ctx, &request,
+		validation.Field(&request.Phone, validation.Required),
+		validation.Field(&request.Body, validation.Required),
+	)
+	if err != nil {
+		return pkgError.ValidationError(err.Error())
+	}
+
+	uniqueIDs := make(map[string]bool)
+	for i, button := range request.Buttons {
+		title := strings.TrimSpace(button.Title)
+		if title == "" {
+			return pkgError.ValidationError(fmt.Sprintf("buttons[%d].title: cannot be blank.", i))
+		}
+
+		buttonType := strings.ToLower(strings.TrimSpace(button.Type))
+		if buttonType == "" {
+			buttonType = domainSend.ButtonTypeReply
+		}
+
+		switch buttonType {
+		case domainSend.ButtonTypeReply:
+			id := strings.TrimSpace(button.ID)
+			if id == "" {
+				id = title
+			}
+			if uniqueIDs[id] {
+				return pkgError.ValidationError(fmt.Sprintf("buttons[%d].id: duplicated value %q, reply button ids must be unique.", i, id))
+			}
+			uniqueIDs[id] = true
+		case domainSend.ButtonTypeURL:
+			if strings.TrimSpace(button.URL) == "" {
+				return pkgError.ValidationError(fmt.Sprintf("buttons[%d].url: cannot be blank for type cta_url.", i))
+			}
+			if err := validation.Validate(button.URL, is.URL); err != nil {
+				return pkgError.ValidationError(fmt.Sprintf("buttons[%d].url: must be a valid URL.", i))
+			}
+		case domainSend.ButtonTypeCall:
+			if strings.TrimSpace(button.PhoneNumber) == "" {
+				return pkgError.ValidationError(fmt.Sprintf("buttons[%d].phone_number: cannot be blank for type cta_call.", i))
+			}
+		case domainSend.ButtonTypeCopy:
+			if strings.TrimSpace(button.CopyCode) == "" {
+				return pkgError.ValidationError(fmt.Sprintf("buttons[%d].copy_code: cannot be blank for type copy.", i))
+			}
+		default:
+			return pkgError.ValidationError(fmt.Sprintf("buttons[%d].type: %q is not supported, use reply, cta_url, cta_call or copy.", i, button.Type))
+		}
+	}
+
+	if err := validatePhoneNumber(request.Phone); err != nil {
+		return err
+	}
+
+	return validateDuration(request.Duration)
+}
+
+// ValidateSendList validates the payload of POST /send/list.
+//
+// Lists are the way to offer more than 3 options: rows are grouped in sections
+// and rendered inside a picker. WhatsApp caps rows per section and in total;
+// exceeding either cap makes the list fail to render without an API error.
+func ValidateSendList(ctx context.Context, request domainSend.ListRequest) error {
+	if len(request.Sections) == 0 {
+		return pkgError.ValidationError("sections: cannot be blank.")
+	}
+
+	err := validation.ValidateStructWithContext(ctx, &request,
+		validation.Field(&request.Phone, validation.Required),
+		validation.Field(&request.Description, validation.Required),
+	)
+	if err != nil {
+		return pkgError.ValidationError(err.Error())
+	}
+
+	totalRows := 0
+	uniqueRowIDs := make(map[string]bool)
+
+	for i, section := range request.Sections {
+		if len(section.Rows) == 0 {
+			return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows: cannot be blank.", i))
+		}
+
+		if len(section.Rows) > domainSend.MaxListRowsPerSection {
+			return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows: maximum %d rows per section, got %d.", i, domainSend.MaxListRowsPerSection, len(section.Rows)))
+		}
+
+		for j, row := range section.Rows {
+			title := strings.TrimSpace(row.Title)
+			if title == "" {
+				return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows[%d].title: cannot be blank.", i, j))
+			}
+
+			rowID := strings.TrimSpace(row.RowID)
+			if rowID == "" {
+				rowID = title
+			}
+			if uniqueRowIDs[rowID] {
+				return pkgError.ValidationError(fmt.Sprintf("sections[%d].rows[%d].row_id: duplicated value %q, row ids must be unique across all sections.", i, j, rowID))
+			}
+			uniqueRowIDs[rowID] = true
+
+			totalRows++
+		}
+	}
+
+	if totalRows > domainSend.MaxListRows {
+		return pkgError.ValidationError(fmt.Sprintf("sections: maximum %d rows in total, got %d.", domainSend.MaxListRows, totalRows))
+	}
+
+	if err := validatePhoneNumber(request.Phone); err != nil {
+		return err
+	}
+
+	return validateDuration(request.Duration)
+}
