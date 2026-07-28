@@ -744,7 +744,18 @@ func UnwrapMessage(msg *waE2E.Message) *waE2E.Message {
 
 // BuildEventMessage builds event message structure
 func BuildEventMessage(evt *events.Message) (message EvtMessage) {
-	msg := UnwrapMessage(evt.Message)
+	return BuildEventMessageFrom(evt, nil)
+}
+
+// BuildEventMessageFrom behaves like BuildEventMessage but lets the caller
+// supply an already resolved message. This matters when the payload arrived as
+// a SecretEncryptedMessage: the decrypted content lives outside evt.Message, so
+// re-unwrapping the event would discard it and yield an empty body.
+func BuildEventMessageFrom(evt *events.Message, resolved *waE2E.Message) (message EvtMessage) {
+	msg := resolved
+	if msg == nil {
+		msg = UnwrapMessage(evt.Message)
+	}
 
 	message.Text = msg.GetConversation()
 	message.ID = evt.Info.ID
@@ -866,4 +877,50 @@ func ExtractExternalAdReply(msg *waE2E.Message) map[string]any {
 	}
 
 	return referral
+}
+
+// FindInteractiveReply searches a message tree for a button tap or list
+// selection and returns the message that carries it, or nil when there is
+// none.
+//
+// UnwrapMessage only peels the well-known envelopes. Interactive replies from
+// LID-migrated accounts sometimes sit deeper, inside a wrapper the generic
+// unwrap intentionally leaves alone (a real document, for instance). Without
+// this search the reply reaches the webhook as an empty payload typed Unknown.
+func FindInteractiveReply(msg *waE2E.Message) *waE2E.Message {
+	return findInteractiveReply(msg, 0)
+}
+
+func findInteractiveReply(msg *waE2E.Message, depth int) *waE2E.Message {
+	if msg == nil || depth > 6 {
+		return nil
+	}
+
+	if msg.GetInteractiveResponseMessage() != nil ||
+		msg.GetListResponseMessage() != nil ||
+		msg.GetButtonsResponseMessage() != nil ||
+		msg.GetTemplateButtonReplyMessage() != nil {
+		return msg
+	}
+
+	candidates := []*waE2E.Message{
+		msg.GetViewOnceMessage().GetMessage(),
+		msg.GetViewOnceMessageV2().GetMessage(),
+		msg.GetViewOnceMessageV2Extension().GetMessage(),
+		msg.GetEphemeralMessage().GetMessage(),
+		msg.GetDeviceSentMessage().GetMessage(),
+		msg.GetDocumentWithCaptionMessage().GetMessage(),
+		msg.GetEditedMessage().GetMessage(),
+		msg.GetProtocolMessage().GetEditedMessage(),
+	}
+
+	for _, candidate := range candidates {
+		if candidate == nil {
+			continue
+		}
+		if found := findInteractiveReply(candidate, depth+1); found != nil {
+			return found
+		}
+	}
+	return nil
 }

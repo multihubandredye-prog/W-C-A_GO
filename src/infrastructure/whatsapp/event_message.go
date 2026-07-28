@@ -23,6 +23,7 @@ import (
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow/types/events"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 var reMention = regexp.MustCompile(`\B@\w+`)
@@ -141,9 +142,23 @@ func buildEventPayload(ctx context.Context, client *whatsmeow.Client, evt *event
 		}
 	}
 
+	// Interactive replies from LID-migrated accounts can arrive with the
+	// payload nested one level deeper than the generic unwrap reaches. Dig for
+	// the reply explicitly so the selection is never lost.
+	if reply := utils.FindInteractiveReply(msg); reply != nil {
+		msg = reply
+	}
+
 	// Determine general message type (e.g., Message, LinkMessage, StatusResponseMessage)
 	messageType := getMessagePascalType(msg)
 	payload["Type"] = messageType
+
+	// An unrecognised message means a field we do not handle yet. Log the field
+	// names present in the protobuf so the gap can be identified from the logs
+	// instead of guessing. Only runs in debug mode and only for Unknown.
+	if messageType == "Unknown" && config.AppDebug {
+		logrus.Warnf("[UNKNOWN_MESSAGE] id=%s fields=%v", evt.Info.ID, populatedMessageFields(msg))
+	}
 
 	// If it's a Status Reply Message, extract specific quoted status details
 	if messageType == "StatusResponseMessage" {
@@ -266,7 +281,7 @@ func buildEventPayload(ctx context.Context, client *whatsmeow.Client, evt *event
 	}
 
 	// Regular message - build body and media fields
-	if err := buildMessageBody(ctx, client, evt, payload); err != nil {
+	if err := buildMessageBody(ctx, client, evt, msg, payload); err != nil {
 		return "", nil, err
 	}
 
@@ -361,8 +376,8 @@ func buildFromFields(ctx context.Context, client *whatsmeow.Client, evt *events.
 	}
 }
 
-func buildMessageBody(ctx context.Context, client *whatsmeow.Client, evt *events.Message, payload map[string]any) error {
-	message := utils.BuildEventMessage(evt)
+func buildMessageBody(ctx context.Context, client *whatsmeow.Client, evt *events.Message, msg *waE2E.Message, payload map[string]any) error {
+	message := utils.BuildEventMessageFrom(evt, msg)
 
 	// Replace LID mentions with phone numbers in text
 	if message.Text != "" && client != nil && client.Store != nil && client.Store.LIDs != nil {
@@ -865,4 +880,20 @@ func buildWebhookContactsArrayPayload(contacts []*waE2E.ContactMessage) []webhoo
 		result = append(result, buildWebhookContactPayload(contact))
 	}
 	return result
+}
+
+// populatedMessageFields lists the protobuf fields actually set on a message.
+// Used to diagnose payloads that fall through to "Unknown": the field names
+// reveal exactly which message variant is missing from getMessagePascalType.
+func populatedMessageFields(msg *waE2E.Message) []string {
+	if msg == nil {
+		return nil
+	}
+
+	var fields []string
+	msg.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
+		fields = append(fields, string(fd.Name()))
+		return true
+	})
+	return fields
 }

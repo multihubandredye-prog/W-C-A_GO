@@ -238,3 +238,90 @@ func TestUnwrapKeepsRealDocuments(t *testing.T) {
 	assert.NotNil(t, unwrapped.GetDocumentWithCaptionMessage(),
 		"a real document must not be unwrapped")
 }
+
+// TestFindInteractiveReplyDigsDeep covers replies nested deeper than the
+// generic unwrap reaches, which arrived at the webhook as an empty payload
+// typed "Unknown" on LID-migrated accounts.
+func TestFindInteractiveReplyDigsDeep(t *testing.T) {
+	inner := buttonReply("ja_paguei", "Já paguei")
+
+	tests := []struct {
+		name  string
+		msg   *waE2E.Message
+		found bool
+	}{
+		{
+			name:  "bare reply",
+			msg:   inner,
+			found: true,
+		},
+		{
+			name: "inside DocumentWithCaption",
+			msg: &waE2E.Message{
+				DocumentWithCaptionMessage: &waE2E.FutureProofMessage{Message: inner},
+			},
+			found: true,
+		},
+		{
+			name: "DeviceSent inside DocumentWithCaption",
+			msg: &waE2E.Message{
+				DocumentWithCaptionMessage: &waE2E.FutureProofMessage{
+					Message: &waE2E.Message{
+						DeviceSentMessage: &waE2E.DeviceSentMessage{Message: inner},
+					},
+				},
+			},
+			found: true,
+		},
+		{
+			name: "three levels deep",
+			msg: &waE2E.Message{
+				EphemeralMessage: &waE2E.FutureProofMessage{
+					Message: &waE2E.Message{
+						ViewOnceMessage: &waE2E.FutureProofMessage{
+							Message: &waE2E.Message{
+								DeviceSentMessage: &waE2E.DeviceSentMessage{Message: inner},
+							},
+						},
+					},
+				},
+			},
+			found: true,
+		},
+		{
+			name:  "plain text has no reply",
+			msg:   &waE2E.Message{Conversation: proto.String("oi")},
+			found: false,
+		},
+		{
+			name: "real document has no reply",
+			msg: &waE2E.Message{
+				DocumentWithCaptionMessage: &waE2E.FutureProofMessage{
+					Message: &waE2E.Message{
+						DocumentMessage: &waE2E.DocumentMessage{FileName: proto.String("a.pdf")},
+					},
+				},
+			},
+			found: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			found := utils.FindInteractiveReply(tt.msg)
+			if !tt.found {
+				assert.Nil(t, found)
+				return
+			}
+
+			require.NotNil(t, found, "the reply must be located at any depth")
+			assert.Equal(t, "ButtonsResponseMessage", getMessagePascalType(found))
+
+			payload := map[string]any{}
+			buildInteractiveReplyFields(found, payload)
+			reply, ok := payload["InteractiveReply"].(map[string]any)
+			require.True(t, ok)
+			assert.Equal(t, "ja_paguei", reply["SelectedID"])
+		})
+	}
+}
