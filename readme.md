@@ -1278,6 +1278,55 @@ para botões e listas, evitando tratamento condicional no consumidor.
 }
 ```
 
+### Consultando o que foi enviado
+
+Quando `WHATSAPP_WEBHOOK_INCLUDE_OUTGOING=true`, o webhook das mensagens que
+você envia inclui as opções oferecidas, em `ButtonsSent` (botões) ou
+`ListSent` (listas):
+
+```json
+{
+  "Payload": {
+    "Type": "ButtonsMessage",
+    "ButtonsSent": {
+      "Body": "Para realizar o pagamento, use a chave PIX abaixo:",
+      "Footer": "Clínica Bem Estar",
+      "ButtonsCount": 3,
+      "Buttons": [
+        { "Name": "cta_copy",    "Title": "Copiar PIX",  "CopyCode": "558184752564" },
+        { "Name": "quick_reply", "Title": "Já paguei",   "ID": "ja_paguei" },
+        { "Name": "quick_reply", "Title": "Comprovante", "ID": "enviar_comprovante" }
+      ]
+    }
+  }
+}
+```
+
+### Tipos reportados no campo `Type`
+
+| Situação | `Type` |
+|---|---|
+| Botões enviados por você | `ButtonsMessage` |
+| Lista enviada por você | `ListMessage` |
+| Clique em botão | `ButtonsResponseMessage` |
+| Seleção em lista | `ListResponseMessage` |
+
+### Botões que não geram resposta
+
+Apenas botões do tipo `reply` retornam evento. Os demais executam uma ação
+local no aparelho do destinatário, sem enviar nada ao servidor:
+
+| Tipo | Retorna evento |
+|---|---|
+| `reply` | Sim |
+| `copy` | Não — o texto é copiado localmente |
+| `cta_url` | Não — abre o navegador |
+| `cta_call` | Não — abre o discador |
+
+Essa é uma característica do protocolo do WhatsApp. Para saber que o cliente
+copiou uma chave PIX, por exemplo, ofereça também um botão `reply` como
+"Já paguei" e use o clique nele como confirmação.
+
 ### O campo que importa
 
 **`SelectedID`** é a chave de tudo. Ele devolve exatamente o `id` (botão) ou `row_id` (lista) que você definiu ao enviar a mensagem.

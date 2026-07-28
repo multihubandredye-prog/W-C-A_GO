@@ -706,7 +706,7 @@ func UnwrapMessage(msg *waE2E.Message) *waE2E.Message {
 		return msg
 	}
 	inner := msg
-	for i := 0; i < 3; i++ { // safeguard against excessively nested wrappers
+	for i := 0; i < 5; i++ { // safeguard against excessively nested wrappers
 		if vm := inner.GetViewOnceMessage(); vm != nil && vm.GetMessage() != nil {
 			inner = vm.GetMessage()
 			continue
@@ -722,6 +722,20 @@ func UnwrapMessage(msg *waE2E.Message) *waE2E.Message {
 		if vm2e := inner.GetViewOnceMessageV2Extension(); vm2e != nil && vm2e.GetMessage() != nil {
 			inner = vm2e.GetMessage()
 			continue
+		}
+		// Messages echoed from our own linked devices arrive wrapped here.
+		// Interactive replies (button taps) are commonly delivered this way.
+		if dsm := inner.GetDeviceSentMessage(); dsm != nil && dsm.GetMessage() != nil {
+			inner = dsm.GetMessage()
+			continue
+		}
+		// Interactive lists travel inside DocumentWithCaptionMessage; unwrap it
+		// only when it really carries a list, never for genuine documents.
+		if dwc := inner.GetDocumentWithCaptionMessage(); dwc != nil && dwc.GetMessage() != nil {
+			if wrapped := dwc.GetMessage(); wrapped.GetListMessage() != nil || wrapped.GetListResponseMessage() != nil {
+				inner = wrapped
+				continue
+			}
 		}
 		break
 	}

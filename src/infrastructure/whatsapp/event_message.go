@@ -318,6 +318,19 @@ func getMessagePascalType(msg *waE2E.Message) string {
 		return "LiveLocationMessage"
 	case msg.GetPtvMessage() != nil:
 		return "VideoNoteMessage"
+	// Replies to interactive messages. Checked before the outgoing variants so
+	// a tap is never reported as a new buttons/list message.
+	case msg.GetInteractiveResponseMessage() != nil, msg.GetButtonsResponseMessage() != nil:
+		return "ButtonsResponseMessage"
+	case msg.GetListResponseMessage() != nil:
+		return "ListResponseMessage"
+	// Interactive messages we sent ourselves (echoed back by the server).
+	case msg.GetInteractiveMessage() != nil, msg.GetButtonsMessage() != nil:
+		return "ButtonsMessage"
+	case msg.GetListMessage() != nil:
+		return "ListMessage"
+	case msg.GetTemplateMessage() != nil:
+		return "TemplateMessage"
 	default:
 		return "Unknown"
 	}
@@ -621,6 +634,13 @@ func buildOtherMessageTypes(msg *waE2E.Message, payload map[string]any) {
 
 	if listMessage := msg.GetListMessage(); listMessage != nil {
 		payload["List"] = listMessage
+		payload["ListSent"] = buildSentListPayload(listMessage)
+	}
+
+	// Interactive message we sent: expose the buttons in a flat, readable shape
+	// so the webhook consumer can tell which options were offered.
+	if interactive := msg.GetInteractiveMessage(); interactive != nil {
+		payload["ButtonsSent"] = buildSentButtonsPayload(interactive)
 	}
 
 	if liveLocationMessage := msg.GetLiveLocationMessage(); liveLocationMessage != nil {
@@ -665,6 +685,99 @@ func buildOtherMessageTypes(msg *waE2E.Message, payload map[string]any) {
 //
 // Each one populates a normalised "InteractiveReply" object so webhook
 // consumers can read a single field regardless of the underlying format.
+// buildSentButtonsPayload flattens the buttons of an outgoing interactive
+// message so the webhook shows which options were offered, mirroring the way
+// polls expose their options.
+func buildSentButtonsPayload(interactive *waE2E.InteractiveMessage) map[string]any {
+	sent := map[string]any{
+		"Body": interactive.GetBody().GetText(),
+	}
+	if footer := interactive.GetFooter().GetText(); footer != "" {
+		sent["Footer"] = footer
+	}
+	if title := interactive.GetHeader().GetTitle(); title != "" {
+		sent["Title"] = title
+	}
+
+	nativeFlow := interactive.GetNativeFlowMessage()
+	if nativeFlow == nil {
+		return sent
+	}
+
+	buttons := make([]map[string]any, 0, len(nativeFlow.GetButtons()))
+	for _, button := range nativeFlow.GetButtons() {
+		entry := map[string]any{"Name": button.GetName()}
+
+		// The button label and id live inside a JSON blob; decode it so the
+		// consumer does not have to.
+		var params map[string]any
+		if raw := button.GetButtonParamsJSON(); raw != "" {
+			entry["ParamsJSON"] = raw
+			if json.Unmarshal([]byte(raw), &params) == nil {
+				if id, ok := params["id"].(string); ok {
+					entry["ID"] = id
+				}
+				if text, ok := params["display_text"].(string); ok {
+					entry["Title"] = text
+				}
+				if url, ok := params["url"].(string); ok {
+					entry["URL"] = url
+				}
+				if phone, ok := params["phone_number"].(string); ok {
+					entry["PhoneNumber"] = phone
+				}
+				if code, ok := params["copy_code"].(string); ok {
+					entry["CopyCode"] = code
+				}
+			}
+		}
+		buttons = append(buttons, entry)
+	}
+
+	sent["Buttons"] = buttons
+	sent["ButtonsCount"] = len(buttons)
+	return sent
+}
+
+// buildSentListPayload flattens the sections and rows of an outgoing list.
+func buildSentListPayload(list *waE2E.ListMessage) map[string]any {
+	sent := map[string]any{
+		"Description": list.GetDescription(),
+		"ButtonText":  list.GetButtonText(),
+	}
+	if title := list.GetTitle(); title != "" {
+		sent["Title"] = title
+	}
+	if footer := list.GetFooterText(); footer != "" {
+		sent["Footer"] = footer
+	}
+
+	totalRows := 0
+	sections := make([]map[string]any, 0, len(list.GetSections()))
+	for _, section := range list.GetSections() {
+		rows := make([]map[string]any, 0, len(section.GetRows()))
+		for _, row := range section.GetRows() {
+			entry := map[string]any{
+				"RowID": row.GetRowID(),
+				"Title": row.GetTitle(),
+			}
+			if description := row.GetDescription(); description != "" {
+				entry["Description"] = description
+			}
+			rows = append(rows, entry)
+			totalRows++
+		}
+		sections = append(sections, map[string]any{
+			"Title": section.GetTitle(),
+			"Rows":  rows,
+		})
+	}
+
+	sent["Sections"] = sections
+	sent["RowsCount"] = totalRows
+	return sent
+}
+
 func buildInteractiveReplyFields(msg *waE2E.Message, payload map[string]any) {
 	// NativeFlow buttons: the selection travels as a JSON blob whose "id"
 	// matches the id supplied when the button was created.
