@@ -1,41 +1,77 @@
-# W-C-A GO — WhatsApp Cloud API (Go)
+<h1 align="center">Whats Connect Api</h1>
 
-API REST em Go para WhatsApp multi-dispositivo, construída sobre [whatsmeow](https://github.com/tulir/whatsmeow).
-Envia e recebe mensagens, mídia, enquetes, **botões interativos** e **listas**, gerencia grupos, contatos e múltiplos dispositivos.
+<p align="center">
+  API REST para WhatsApp multi-dispositivo, escrita em Go.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.25-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go 1.25">
+  <img src="https://img.shields.io/badge/Fiber-v2-00C7B7?style=flat-square" alt="Fiber v2">
+  <img src="https://img.shields.io/badge/whatsmeow-multidevice-25D366?style=flat-square&logo=whatsapp&logoColor=white" alt="whatsmeow">
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker ready">
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License">
+</p>
+
+---
+
+## Visão geral
+
+**Whats Connect Api** expõe o WhatsApp como uma API REST convencional. Toda a
+comunicação com o protocolo multi-dispositivo é feita pela biblioteca
+[whatsmeow](https://github.com/tulir/whatsmeow), sem depender da API oficial
+da Meta nem de emulação de navegador.
+
+| Recurso | Descrição |
+|---|---|
+| **Mensagens** | Texto, imagem, vídeo, áudio, documento, figurinha, contato, link e localização |
+| **Interativo** | Botões de ação e listas de seleção, com captura das respostas |
+| **Enquetes** | Criação e leitura dos votos |
+| **Conversas** | Histórico, busca, fixar, arquivar e mensagens temporárias |
+| **Grupos** | Criação, participantes, permissões, convites e solicitações |
+| **Multi-sessão** | Vários números conectados simultaneamente na mesma instância |
+| **Webhooks** | Eventos de entrada e saída entregues em tempo real |
 
 ---
 
 ## Índice
 
-- [Começando](#começando)
+**Primeiros passos**
+- [Instalação](#instalação)
+- [Configuração](#configuração)
 - [Autenticação](#autenticação)
 - [Múltiplos dispositivos](#múltiplos-dispositivos)
 - [Formato das respostas](#formato-das-respostas)
-- **Endpoints**
-  - [App / Sessão](#1-app--sessão)
-  - [Dispositivos](#2-dispositivos)
-  - [Envio de mensagens](#3-envio-de-mensagens)
-  - [🔘 Botões interativos](#4--botões-interativos)
-  - [📋 Listas interativas](#5--listas-interativas)
-  - [Gerenciar mensagens](#6-gerenciar-mensagens)
-  - [Conversas](#7-conversas)
-  - [Usuário](#8-usuário)
-  - [Grupos](#9-grupos)
-  - [Newsletter](#10-newsletter)
+
+**Referência da API**
+1. [App / Sessão](#1-app--sessão)
+2. [Dispositivos](#2-dispositivos)
+3. [Envio de mensagens](#3-envio-de-mensagens)
+4. [Botões interativos](#4-botões-interativos)
+5. [Listas interativas](#5-listas-interativas)
+6. [Gerenciar mensagens](#6-gerenciar-mensagens)
+7. [Conversas](#7-conversas)
+8. [Usuário](#8-usuário)
+9. [Grupos](#9-grupos)
+10. [Newsletter](#10-newsletter)
+
+**Integração**
 - [Recebendo respostas de botões e listas](#recebendo-respostas-de-botões-e-listas)
 - [Códigos de erro](#códigos-de-erro)
+- [Observações sobre mensagens interativas](#observações-sobre-mensagens-interativas)
 
 ---
 
-## Começando
+## Instalação
 
-### Docker (recomendado)
+### Docker
 
 ```bash
 docker compose up -d
 ```
 
-### Compilando do código-fonte
+### A partir do código-fonte
+
+Requer Go 1.25 ou superior.
 
 ```bash
 cd src
@@ -43,19 +79,70 @@ go mod download
 go run . rest
 ```
 
-A API sobe em `http://localhost:3000` por padrão.
+O serviço fica disponível em `http://localhost:3000`.
 
-### Variáveis de ambiente principais
+---
+
+## Configuração
+
+As opções são lidas de variáveis de ambiente ou de um arquivo `.env` na raiz
+do projeto.
+
+#### Aplicação
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `APP_PORT` | `3000` | Porta HTTP |
-| `APP_BASIC_AUTH` | — | Credenciais `user:senha` (separe múltiplas por vírgula) |
-| `APP_BASE_PATH` | — | Prefixo de path, ex: `/api` |
-| `APP_DEBUG` | `false` | Logs detalhados |
-| `WHATSAPP_WEBHOOK` | — | URL(s) que recebem os eventos |
-| `WHATSAPP_WEBHOOK_SECRET` | — | Segredo para assinar o webhook |
-| `DB_URI` | `file:storages/whatsapp.db` | Banco (SQLite ou Postgres) |
+| `APP_PORT` | `3000` | Porta HTTP do servidor |
+| `APP_HOST` | `0.0.0.0` | Interface de escuta |
+| `APP_DEBUG` | `false` | Habilita log detalhado das requisições |
+| `APP_OS` | Não | Nome exibido em *Aparelhos conectados* no WhatsApp |
+| `APP_BASIC_AUTH` | Não | Credenciais `usuario:senha`, separadas por vírgula |
+| `APP_BASE_PATH` | Não | Prefixo das rotas, por exemplo `/api` |
+| `APP_TRUSTED_PROXIES` | Não | Faixas de IP confiáveis atrás de proxy reverso |
+
+#### Banco de dados
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `DB_URI` | `file:storages/whatsapp.db` | Conexão principal — SQLite ou PostgreSQL |
+| `DB_KEYS_URI` | Não | Armazenamento das chaves de criptografia |
+
+#### Webhook
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `WHATSAPP_WEBHOOK` | Não | URLs que recebem os eventos, separadas por vírgula |
+| `WHATSAPP_WEBHOOK_SECRET` | Não | Segredo usado para assinar o payload |
+| `WHATSAPP_WEBHOOK_EVENTS` | *todos* | Filtra quais eventos são enviados |
+| `WHATSAPP_WEBHOOK_INCLUDE_OUTGOING` | `false` | Também notifica mensagens enviadas por você |
+| `WHATSAPP_WEBHOOK_INSECURE_SKIP_VERIFY` | `false` | Ignora validação de certificado TLS |
+
+#### Comportamento do WhatsApp
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `WHATSAPP_AUTO_REPLY` | Não | Resposta automática para toda mensagem recebida |
+| `WHATSAPP_AUTO_MARK_READ` | `false` | Marca as mensagens como lidas ao recebê-las |
+| `WHATSAPP_AUTO_REJECT_CALL` | `false` | Rejeita chamadas automaticamente |
+| `WHATSAPP_AUTO_DOWNLOAD_MEDIA` | `true` | Baixa as mídias recebidas para o disco |
+| `AUTO_DELETE_MEDIA_DURATION` | Não | Segundos até apagar a mídia baixada |
+| `WHATSAPP_ACCOUNT_VALIDATION` | `true` | Verifica se o número existe no WhatsApp antes de enviar |
+| `WHATSAPP_CHAT_STORAGE` | `true` | Persiste o histórico de conversas |
+
+#### Presença
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `WHATSAPP_PRESENCE_ON_CONNECT` | `unavailable` | Estado ao conectar: `available`, `unavailable` ou `none` |
+| `WHATSAPP_PRESENCE_PULSE_ENABLED` | `true` | Habilita o pulso periódico de presença |
+| `WHATSAPP_PRESENCE_PULSE_INTERVAL` | `24h` | Intervalo entre cada pulso |
+| `WHATSAPP_PRESENCE_PULSE_DURATION` | `5m` | Duração de cada pulso |
+
+> O pulso de presença fica *online* apenas pelo tempo definido em
+> `PULSE_DURATION`, a cada `PULSE_INTERVAL`, e volta a *offline* em seguida.
+> Com os valores padrão, isso equivale a 5 minutos online por dia. Para nunca
+> aparecer online, defina `WHATSAPP_PRESENCE_PULSE_ENABLED=false` e
+> `WHATSAPP_PRESENCE_ON_CONNECT=unavailable`.
 
 ---
 
@@ -466,11 +553,11 @@ curl -X POST http://localhost:3000/send/chat-presence \
 
 ---
 
-## 4. 🔘 Botões interativos
+## 4. Botões interativos
 
 Envia uma mensagem com **até 3 botões** clicáveis. Ideal para decisões rápidas: confirmar, escolher entre poucas opções, abrir um link ou ligar.
 
-> **Precisa de mais de 3 opções?** Use [listas](#5--listas-interativas).
+> **Precisa de mais de 3 opções?** Use [listas](#5-listas-interativas).
 
 ### `POST /send/buttons`
 
@@ -478,14 +565,14 @@ Envia uma mensagem com **até 3 botões** clicáveis. Ideal para decisões rápi
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
-| `phone` | string | ✅ | Destinatário |
-| `body` | string | ✅ | Texto principal da mensagem |
-| `buttons` | array | ✅ | 1 a 3 botões |
-| `title` | string | — | Cabeçalho acima do texto |
-| `footer` | string | — | Rodapé em letra menor |
-| `image_url` | string | — | Imagem no cabeçalho (URL http/https ou `data:image/...;base64,...`) |
-| `duration` | int | — | Mensagem temporária, em segundos |
-| `is_forwarded` | bool | — | Marca como encaminhada |
+| `phone` | string | Sim | Destinatário |
+| `body` | string | Sim | Texto principal da mensagem |
+| `buttons` | array | Sim | 1 a 3 botões |
+| `title` | string | Não | Cabeçalho acima do texto |
+| `footer` | string | Não | Rodapé em letra menor |
+| `image_url` | string | Não | Imagem no cabeçalho (URL http/https ou `data:image/...;base64,...`) |
+| `duration` | int | Não | Mensagem temporária, em segundos |
+| `is_forwarded` | bool | Não | Marca como encaminhada |
 
 #### Tipos de botão
 
@@ -596,7 +683,7 @@ curl -X POST http://localhost:3000/send/buttons \
 
 ---
 
-## 5. 📋 Listas interativas
+## 5. Listas interativas
 
 Envia um **menu suspenso** com muito mais opções que os botões. As opções ficam organizadas em **seções**, cada uma com título e itens que podem ter descrição.
 
@@ -608,14 +695,14 @@ Perfeito para cardápios, catálogos, agendamentos e qualquer escolha com muitas
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
-| `phone` | string | ✅ | Destinatário |
-| `description` | string | ✅ | Texto principal da mensagem |
-| `sections` | array | ✅ | Grupos de opções |
-| `button_text` | string | — | Rótulo do botão que abre a lista (padrão: `Select`) |
-| `title` | string | — | Cabeçalho acima do texto |
-| `footer` | string | — | Rodapé |
-| `duration` | int | — | Mensagem temporária |
-| `is_forwarded` | bool | — | Marca como encaminhada |
+| `phone` | string | Sim | Destinatário |
+| `description` | string | Sim | Texto principal da mensagem |
+| `sections` | array | Sim | Grupos de opções |
+| `button_text` | string | Não | Rótulo do botão que abre a lista (padrão: `Select`) |
+| `title` | string | Não | Cabeçalho acima do texto |
+| `footer` | string | Não | Rodapé |
+| `duration` | int | Não | Mensagem temporária |
+| `is_forwarded` | bool | Não | Marca como encaminhada |
 
 **Estrutura de `sections[]`:**
 
@@ -723,10 +810,10 @@ curl -X POST http://localhost:3000/send/list \
 |---|---|---|
 | Quantidade de opções | Até **3** | Até **10** no total |
 | Visual | Botões fixos abaixo da mensagem | Botão único que abre um menu |
-| Agrupamento por categoria | ❌ | ✅ Seções com título |
-| Descrição em cada opção | ❌ | ✅ |
-| Abrir link / ligar / copiar | ✅ | ❌ (apenas seleção) |
-| Imagem no cabeçalho | ✅ | ❌ |
+| Agrupamento por categoria | Não | Sim, seções com título |
+| Descrição em cada opção | Não | Sim |
+| Abrir link, ligar ou copiar | Sim | Não, apenas seleção |
+| Imagem no cabeçalho | Sim | Não |
 | Melhor para | Confirmações, sim/não, ações diretas | Cardápios, catálogos, menus de atendimento |
 
 ---
@@ -1146,9 +1233,12 @@ curl -X POST http://localhost:3000/newsletter/unfollow \
 
 ## Recebendo respostas de botões e listas
 
-Enviar o botão é só metade do trabalho — você precisa saber **no que o cliente clicou**. Quando ele responde, a API dispara um webhook para a URL configurada em `WHATSAPP_WEBHOOK`.
+Enviar o botão resolve apenas metade do fluxo: é preciso identificar qual opção
+o destinatário escolheu. Quando ele responde, a API dispara um webhook para a
+URL configurada em `WHATSAPP_WEBHOOK`.
 
-Para facilitar, o payload traz um campo unificado **`InteractiveReply`**, que funciona igual para botões e listas.
+O payload traz o campo unificado **`InteractiveReply`**, com a mesma estrutura
+para botões e listas, evitando tratamento condicional no consumidor.
 
 ### Clique em botão
 
@@ -1195,8 +1285,8 @@ Para facilitar, o payload traz um campo unificado **`InteractiveReply`**, que fu
 Por isso vale usar identificadores descritivos:
 
 ```json
-{ "row_id": "pizza_marg" }   ✅ fácil de tratar no código
-{ "row_id": "1" }            ❌ vira um enigma depois
+{ "row_id": "pizza_marg" }   // recomendado: legível no código
+{ "row_id": "1" }            // evite: perde o significado
 ```
 
 ### Exemplo de tratamento
@@ -1254,22 +1344,22 @@ Campos adicionais disponíveis:
 | `buttons[1].url: cannot be blank for type cta_url.` | Faltou a URL |
 | `buttons[0].id: duplicated value "x"` | Dois botões com o mesmo ID |
 | `sections[0].rows: maximum 10 rows per section` | Divida em mais seções |
-| `sections: maximum 30 rows in total` | Excedeu o total de linhas |
+| `sections: maximum 10 rows in total` | Excedeu o total de linhas permitido |
 
 ---
 
-## Observações importantes sobre botões e listas
+## Observações sobre mensagens interativas
 
-**Não é API oficial.** Mensagens interativas usam o protocolo NativeFlow do WhatsApp Web via engenharia reversa. Funcionam hoje, mas a Meta pode alterar o comportamento sem aviso prévio.
+**Recurso não oficial.** As mensagens interativas utilizam o protocolo NativeFlow do WhatsApp Web. O comportamento pode mudar sem aviso prévio a critério da Meta.
 
-**Teste com um número descartável.** Enviar mensagens interativas em volume por conta pessoal aumenta o risco de bloqueio. Valide tudo antes de usar o número principal do negócio.
+**Valide em um número de testes.** O envio de mensagens interativas em volume a partir de uma conta pessoal aumenta o risco de bloqueio. Homologue o fluxo antes de aplicá-lo ao número principal.
 
-**Contas Business renderizam melhor.** Listas, em especial, podem não aparecer em algumas versões do WhatsApp quando enviadas de conta pessoal — e falham em silêncio, sem retornar erro.
+**Contas Business têm melhor compatibilidade.** As listas podem não ser renderizadas em determinadas versões do aplicativo quando enviadas por conta pessoal, sem que a API retorne erro.
 
-**Estourar limites de caracteres não gera erro.** Se um título ultrapassar o limite, a mensagem pode simplesmente não renderizar no aparelho. Por isso a API já trunca automaticamente em 20 (botão), 24 (título de linha) e 72 (descrição) caracteres.
+**Exceder os limites de caracteres não gera erro.** A mensagem simplesmente deixa de ser renderizada no dispositivo. Para evitar esse cenário, a API trunca automaticamente em 20 caracteres (título de botão), 24 (título de linha) e 72 (descrição).
 
 ---
 
 ## Licença
 
-Veja [LICENCE.txt](LICENCE.txt).
+Distribuído sob a licença MIT. Consulte [LICENCE.txt](LICENCE.txt) para os termos completos.
