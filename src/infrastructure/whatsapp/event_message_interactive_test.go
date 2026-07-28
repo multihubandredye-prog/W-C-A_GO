@@ -367,3 +367,63 @@ func TestRecoverReplyFromRawMessage(t *testing.T) {
 	assert.Equal(t, "ja_paguei", reply["SelectedID"])
 	assert.Equal(t, "Já paguei", reply["SelectedText"])
 }
+
+// TestTemplateButtonReply reproduces the payload captured in production:
+// tapping a NativeFlow button produced a templateButtonReplyMessage, a shape
+// the event builder did not recognise, so the webhook reported Unknown with
+// no selection even though the data was fully present and unencrypted.
+func TestTemplateButtonReply(t *testing.T) {
+	msg := &waE2E.Message{
+		TemplateButtonReplyMessage: &waE2E.TemplateButtonReplyMessage{
+			SelectedID:          proto.String("ja_paguei"),
+			SelectedDisplayText: proto.String("Já paguei"),
+			SelectedIndex:       proto.Uint32(1),
+			ContextInfo: &waE2E.ContextInfo{
+				StanzaID: proto.String("3EB02C095FB5F81D2023AE"),
+			},
+		},
+		MessageContextInfo: &waE2E.MessageContextInfo{},
+	}
+
+	assert.Equal(t, "ButtonsResponseMessage", getMessagePascalType(msg),
+		"a template reply must not fall through to Unknown")
+
+	payload := map[string]any{}
+	buildInteractiveReplyFields(msg, payload)
+
+	reply, ok := payload["InteractiveReply"].(map[string]any)
+	require.True(t, ok, "InteractiveReply must be populated")
+	assert.Equal(t, "buttons", reply["Type"])
+	assert.Equal(t, "ja_paguei", reply["SelectedID"])
+	assert.Equal(t, "Já paguei", reply["SelectedText"])
+	assert.Equal(t, "3EB02C095FB5F81D2023AE", reply["RepliedToID"])
+}
+
+// TestTemplateButtonReplyWrapped ensures the same reply is still found when it
+// arrives nested, as happens on LID-migrated accounts.
+func TestTemplateButtonReplyWrapped(t *testing.T) {
+	inner := &waE2E.Message{
+		TemplateButtonReplyMessage: &waE2E.TemplateButtonReplyMessage{
+			SelectedID:          proto.String("enviar_comprovante"),
+			SelectedDisplayText: proto.String("Comprovante"),
+		},
+	}
+
+	wrapped := &waE2E.Message{
+		EphemeralMessage: &waE2E.FutureProofMessage{
+			Message: &waE2E.Message{
+				DeviceSentMessage: &waE2E.DeviceSentMessage{Message: inner},
+			},
+		},
+	}
+
+	found := utils.FindInteractiveReply(wrapped)
+	require.NotNil(t, found)
+	assert.Equal(t, "ButtonsResponseMessage", getMessagePascalType(found))
+
+	payload := map[string]any{}
+	buildInteractiveReplyFields(found, payload)
+	reply, ok := payload["InteractiveReply"].(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "enviar_comprovante", reply["SelectedID"])
+}

@@ -355,7 +355,9 @@ func getMessagePascalType(msg *waE2E.Message) string {
 		return "VideoNoteMessage"
 	// Replies to interactive messages. Checked before the outgoing variants so
 	// a tap is never reported as a new buttons/list message.
-	case msg.GetInteractiveResponseMessage() != nil, msg.GetButtonsResponseMessage() != nil:
+	case msg.GetInteractiveResponseMessage() != nil,
+		msg.GetButtonsResponseMessage() != nil,
+		msg.GetTemplateButtonReplyMessage() != nil:
 		return "ButtonsResponseMessage"
 	case msg.GetListResponseMessage() != nil:
 		return "ListResponseMessage"
@@ -857,6 +859,34 @@ func buildInteractiveReplyFields(msg *waE2E.Message, payload map[string]any) {
 			reply["Description"] = description
 		}
 		payload["ListReply"] = reply
+		if _, exists := payload["InteractiveReply"]; !exists {
+			payload["InteractiveReply"] = reply
+		}
+	}
+
+	// Clients that render a NativeFlow button in the older template style
+	// answer with TemplateButtonReply instead of InteractiveResponse. The tap
+	// carries the same id defined when sending, so it maps onto the same
+	// normalised shape and callers need no special handling.
+	if templateReply := msg.GetTemplateButtonReplyMessage(); templateReply != nil {
+		reply := map[string]any{
+			"Type":          "buttons",
+			"SelectedID":    templateReply.GetSelectedID(),
+			"SelectedIndex": templateReply.GetSelectedIndex(),
+		}
+		if text := templateReply.GetSelectedDisplayText(); text != "" {
+			reply["SelectedText"] = text
+		}
+
+		// The quoted context points back at the message that offered the
+		// buttons, which lets consumers correlate the tap with its origin.
+		if ctxInfo := templateReply.GetContextInfo(); ctxInfo != nil {
+			if stanzaID := ctxInfo.GetStanzaID(); stanzaID != "" {
+				reply["RepliedToID"] = stanzaID
+			}
+		}
+
+		payload["ButtonsReply"] = reply
 		if _, exists := payload["InteractiveReply"]; !exists {
 			payload["InteractiveReply"] = reply
 		}
