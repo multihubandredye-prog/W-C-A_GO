@@ -98,14 +98,26 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 	}
 
 	if mp3Source != nil {
-		call.Play(mp3Source)
+		call.OnPeerAccept(func() {
+			logrus.Infof("Peer accepted call %s; starting audio playback", call.ID())
+			call.Play(mp3Source)
+			go func() {
+				time.Sleep(time.Duration(durationSec) * time.Second)
+				_ = call.Hangup()
+			}()
+		})
+		// Fallback timeout in case the call rings forever and is never answered
+		go func() {
+			time.Sleep(time.Duration(durationSec+45) * time.Second)
+			_ = call.Hangup()
+		}()
+	} else {
+		// Schedule call termination after the duration
+		go func() {
+			time.Sleep(time.Duration(durationSec) * time.Second)
+			_ = call.Hangup()
+		}()
 	}
-
-	// Schedule call termination after the duration
-	go func() {
-		time.Sleep(time.Duration(durationSec) * time.Second)
-		_ = call.Hangup()
-	}()
 
 	response.CallID = call.ID()
 	response.Status = fmt.Sprintf("Call initiated successfully to %s (duration %ds)", request.Phone, durationSec)
