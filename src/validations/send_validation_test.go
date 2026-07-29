@@ -1134,6 +1134,15 @@ func TestValidateSendCall(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("valid call request with duration 15", func(t *testing.T) {
+		d := 15
+		req := domainSend.CallRequest{
+			BaseRequest: domainSend.BaseRequest{Phone: "5581999999999", Duration: &d},
+		}
+		err := ValidateSendCall(ctx, req)
+		assert.NoError(t, err)
+	})
+
 	t.Run("missing phone", func(t *testing.T) {
 		req := domainSend.CallRequest{}
 		err := ValidateSendCall(ctx, req)
