@@ -1,9 +1,9 @@
 Copyright (c) 2026 multihubandredye-prog
 Todos os direitos reservados.
 
-Este software, denominado "Whats Connect Api", é proprietário e confidencial,
-desenvolvido e mantido por multihubandredye-prog.
+Este software, denominado "Whats Connect Api", é mantido por multihubandredye-prog
+na modalidade Premium.
 
-É expressamente proibida a cópia, redistribuição, modificação, engenharia
-reversa, sublicenciamento ou comercialização não autorizada deste software
-sem a prévia autorização por escrito de multihubandredye-prog.
+Todos os direitos de propriedade intelectual, autorais e comerciais são
+reservados a multihubandredye-prog. O uso e integração deste software
+devem seguir os termos do serviço Premium.

@@ -1519,4 +1519,5 @@ Campos adicionais disponíveis:
 ## Direitos Autorais e Uso
 
 Todos os direitos reservados a **multihubandredye-prog**.  
-Este é um software proprietário e Premium. A cópia, redistribuição ou uso não autorizado é expressamente proibida.
+Este software, denominado **Whats Connect Api**, é mantido na modalidade Premium.  
+Consulte [LICENCE.txt](LICENCE.txt) para os termos completos.
