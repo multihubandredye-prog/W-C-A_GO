@@ -63,12 +63,8 @@ func handleMessage(ctx context.Context, evt *events.Message, chatStorageRepo dom
 	handleAutoReply(ctx, evt, chatStorageRepo, client)
 
 	// A tap on a "see more" row is navigation, not a customer choice: send the
-	// next page and only report it when the caller asked to be told.
+	// next page and forward the event so the caller can track navigation.
 	if pagination := HandleListPagination(ctx, evt, client); pagination != nil {
-		if !pagination.Forward {
-			log.Debugf("Suppressing pagination event for %s (forward_pagination disabled)", evt.Info.ID)
-			return
-		}
 		handleWebhookForwardWithPagination(ctx, evt, client, pagination)
 		return
 	}

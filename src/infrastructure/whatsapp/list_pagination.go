@@ -116,11 +116,27 @@ func HandleListPagination(ctx context.Context, evt *events.Message, client *what
 	}
 
 	if !ok {
-		var fallbackKey string
-		fallbackKey, stored, ok = liststore.Default.GetLatestForChat(recipientJID.String())
-		if ok {
-			logrus.Debugf("[LIST_PAGINATION] quoted id %q unusable, resolved catalogue by chat (%s)", sourceID, fallbackKey)
-			sourceID = fallbackKey
+		seen := make(map[string]bool)
+		candidates := []string{
+			evt.Info.Chat.String(),
+			evt.Info.Chat.ToNonAD().String(),
+			NormalizeJIDFromLID(ctx, evt.Info.Chat, client).ToNonAD().String(),
+			evt.Info.Sender.ToNonAD().String(),
+			NormalizeJIDFromLID(ctx, evt.Info.Sender, client).ToNonAD().String(),
+		}
+		for _, candidate := range candidates {
+			if candidate == "" || seen[candidate] {
+				continue
+			}
+			seen[candidate] = true
+
+			var fallbackKey string
+			fallbackKey, stored, ok = liststore.Default.GetLatestForChat(candidate)
+			if ok {
+				logrus.Debugf("[LIST_PAGINATION] quoted id %q unusable, resolved catalogue by chat (%s -> %s)", sourceID, candidate, fallbackKey)
+				sourceID = fallbackKey
+				break
+			}
 		}
 	}
 
@@ -143,9 +159,6 @@ func HandleListPagination(ctx context.Context, evt *events.Message, client *what
 
 	rows, hasMore := stored.Page(page)
 	logrus.Infof("[LIST_PAGINATION] sent page %d of %d to %s", page, stored.TotalPages(), recipient)
-
-	// The previous page is no longer the head of the catalogue.
-	liststore.Default.Delete(sourceID)
 
 	return &PaginationResult{
 		Page:       page,
@@ -176,6 +189,7 @@ func forwardMessageToWebhookWithPagination(ctx context.Context, client *whatsmeo
 				reply["Page"] = result.Page
 				reply["TotalPages"] = result.TotalPages
 				reply["TotalRows"] = result.TotalRows
+				reply["ForwardPagination"] = result.Forward
 			}
 		}
 
@@ -192,13 +206,14 @@ func forwardMessageToWebhookWithPagination(ctx context.Context, client *whatsmeo
 		}
 
 		webhookEvent.Payload["PaginationSent"] = map[string]any{
-			"MessageID":  result.MessageID,
-			"Page":       result.Page,
-			"TotalPages": result.TotalPages,
-			"TotalRows":  result.TotalRows,
-			"RowsCount":  len(rows),
-			"HasMore":    result.HasMore,
-			"Rows":       rows,
+			"MessageID":         result.MessageID,
+			"Page":              result.Page,
+			"TotalPages":        result.TotalPages,
+			"TotalRows":         result.TotalRows,
+			"RowsCount":         len(rows),
+			"HasMore":           result.HasMore,
+			"Rows":              rows,
+			"ForwardPagination": result.Forward,
 		}
 	}
 

@@ -166,12 +166,9 @@ func (service serviceSend) sendListPage(ctx context.Context, client *whatsmeow.C
 		return whatsmeow.SendResponse{}, err
 	}
 
-	// Link the catalogue to the message just sent so the reply, which quotes
-	// it, can locate the remaining rows. Once the last page is out there is
-	// nothing left to navigate to.
-	if hasMore {
-		liststore.Default.Save(ts.ID, stored)
-	}
+	// Link the catalogue to the message just sent so any reply quoting a
+	// page in the sequence can locate the catalogue.
+	liststore.Default.Save(ts.ID, stored)
 
 	return ts, nil
 }
