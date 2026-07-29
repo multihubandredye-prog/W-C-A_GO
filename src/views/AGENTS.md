@@ -12,7 +12,7 @@ The UI is embedded into the Go binary and served by Fiber. It uses Vue 3 plain J
 views/
 ├── index.html          # Imports all components, creates Vue app, manages selected device
 ├── assets/app.css      # Local CSS
-├── assets/gowa.svg     # Logo
+├── assets/wca-logo.svg # Logo
 └── components/         # One plain JS module per card/modal
     └── generic/        # Reused form pieces
 ```

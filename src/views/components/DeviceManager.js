@@ -143,7 +143,7 @@ export default {
                     <i class="play icon"></i>
                     <div class="content">
                         Device setup
-                        <div class="sub header">Create or select a device_id, then open login.</div>
+                        <div class="sub header" style="color: var(--cyan); font-weight: 600;">Create or select a device_id, then open login.</div>
                     </div>
                 </h3>
                 <div class="ui form">

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src/views/assets/wca-logo.svg" width="140" alt="Whats Connect Api Logo">
+</p>
+
 <h1 align="center">Whats Connect Api</h1>
 
 <p align="center">

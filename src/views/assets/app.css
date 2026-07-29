@@ -1124,3 +1124,9 @@ code {
 .messages-container-custom .item .meta span {
     color: var(--text-muted) !important;
 }
+
+/* Garante que os subtítulos dos cabeçalhos não fiquem pretos */
+.ui.header .sub.header {
+    color: var(--cyan) !important;
+    font-weight: 500 !important;
+}
