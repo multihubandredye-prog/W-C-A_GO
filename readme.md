@@ -904,12 +904,23 @@ curl -X POST http://localhost:3000/send/call \
 ```
 
 ```bash
-# Exemplo 2: Chamada com reprodução de áudio (toca o arquivo MP3 ao atender)
+# Exemplo 2: Chamada com reprodução de áudio via URL
 curl -X POST http://localhost:3000/send/call \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "5588999999999",
-    "audio_path": "/caminho/para/alerta.mp3",
+    "audio_url": "https://meusite.com/audio/alerta.mp3",
+    "duration": 30
+  }'
+```
+
+```bash
+# Exemplo 3: Chamada com reprodução de áudio em Base64 ou arquivo local do servidor
+curl -X POST http://localhost:3000/send/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "audio_path": "data:audio/mp3;base64,//uQx...",
     "duration": 30
   }'
 ```
@@ -918,7 +929,8 @@ curl -X POST http://localhost:3000/send/call \
 |---|---|---|
 | `phone` | string | **Obrigatório.** Número do destinatário com DDI e DDD |
 | `duration` | int | *Opcional.* Duração da chamada em segundos antes de desligar (padrão 15s) |
-| `audio_path` | string | *Opcional.* Caminho de um arquivo MP3 no servidor para reproduzir quando o usuário atender |
+| `audio_url` | string | *Opcional.* URL pública (http/https) do áudio MP3 para a API baixar e tocar na chamada |
+| `audio_path` | string | *Opcional.* Áudio em formato Base64 (`data:audio/...;base64,...` ou string bruta) OU caminho de arquivo MP3 local *dentro do servidor da API* |
 
 ---
 
