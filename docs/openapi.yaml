@@ -1193,7 +1193,7 @@ paths:
                   description: Phone number with country code
                 contact_name:
                   type: string
-                  example: Aldino Kemal
+                  example: multihubandredye-prog
                   description: Contact name
                 contact_phone:
                   type: string
@@ -3531,7 +3531,7 @@ components:
           properties:
             verified_name:
               type: string
-              example: Aldino Kemal
+              example: multihubandredye-prog
             status:
               type: string
               example: Hello World
@@ -3640,7 +3640,7 @@ components:
             properties:
               name:
                 type: string
-                example: 'Aldino Kemal'
+                example: 'multihubandredye-prog'
               device:
                 type: string
                 example: '628960561XXX.0:64@s.whatsapp.net'
@@ -3982,7 +3982,7 @@ components:
           example: "628123123123123@s.whatsapp.net"
         name:
           type: string
-          example: "Aldino Kemal"
+          example: "multihubandredye-prog"
 
 
     GroupParticipantRequestItem:

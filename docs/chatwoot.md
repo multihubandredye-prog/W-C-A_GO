@@ -61,7 +61,7 @@ CHATWOOT_DAYS_LIMIT_IMPORT_MESSAGES=7
 ```yaml
 services:
   whatsapp-api:
-    image: aldinokemal2104/go-whatsapp-web-multidevice:latest
+    image: multihubandredye-prog/whats-connect-api:latest
     environment:
       - CHATWOOT_ENABLED=true
       - CHATWOOT_URL=https://app.chatwoot.com

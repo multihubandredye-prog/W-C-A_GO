@@ -9,7 +9,6 @@
   <img src="https://img.shields.io/badge/Fiber-v2-00C7B7?style=flat-square" alt="Fiber v2">
   <img src="https://img.shields.io/badge/whatsmeow-multidevice-25D366?style=flat-square&logo=whatsapp&logoColor=white" alt="whatsmeow">
   <img src="https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker ready">
-  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License">
 </p>
 
 ---
@@ -1517,6 +1516,7 @@ Campos adicionais disponíveis:
 
 ---
 
-## Licença
+## Direitos Autorais e Uso
 
-Distribuído sob a licença MIT. Consulte [LICENCE.txt](LICENCE.txt) para os termos completos.
+Todos os direitos reservados a **multihubandredye-prog**.  
+Este é um software proprietário e Premium. A cópia, redistribuição ou uso não autorizado é expressamente proibida.
