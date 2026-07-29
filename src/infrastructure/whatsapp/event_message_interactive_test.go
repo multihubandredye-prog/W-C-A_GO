@@ -427,3 +427,54 @@ func TestTemplateButtonReplyWrapped(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "enviar_comprovante", reply["SelectedID"])
 }
+
+// TestExtractContextInfoFromInteractiveReplies guards the fix for a paginated
+// list that stopped responding: the quoted stanza id identifies the catalogue,
+// and ExtractContextInfo did not cover interactive replies, so every "see
+// more" tap failed to resolve and nothing was sent back.
+func TestExtractContextInfoFromInteractiveReplies(t *testing.T) {
+	const stanza = "3EB0PAGE1"
+
+	tests := []struct {
+		name string
+		msg  *waE2E.Message
+	}{
+		{
+			name: "list selection",
+			msg: &waE2E.Message{
+				ListResponseMessage: &waE2E.ListResponseMessage{
+					SingleSelectReply: &waE2E.ListResponseMessage_SingleSelectReply{
+						SelectedRowID: proto.String("__wca_page_2"),
+					},
+					ContextInfo: &waE2E.ContextInfo{StanzaID: proto.String(stanza)},
+				},
+			},
+		},
+		{
+			name: "template button reply",
+			msg: &waE2E.Message{
+				TemplateButtonReplyMessage: &waE2E.TemplateButtonReplyMessage{
+					SelectedID:  proto.String("ja_paguei"),
+					ContextInfo: &waE2E.ContextInfo{StanzaID: proto.String(stanza)},
+				},
+			},
+		},
+		{
+			name: "interactive response",
+			msg: &waE2E.Message{
+				InteractiveResponseMessage: &waE2E.InteractiveResponseMessage{
+					ContextInfo: &waE2E.ContextInfo{StanzaID: proto.String(stanza)},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ci := utils.ExtractContextInfo(tt.msg)
+			require.NotNil(t, ci, "interactive replies must expose their context info")
+			assert.Equal(t, stanza, ci.GetStanzaID(),
+				"the quoted id is how the catalogue is located")
+		})
+	}
+}

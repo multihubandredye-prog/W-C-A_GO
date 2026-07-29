@@ -166,8 +166,13 @@ func (s *Store) save() {
 
 // Save associates a catalogue with the message ID of the page just sent.
 func (s *Store) Save(messageID string, data PagedList) {
+	now := time.Now()
+	// Stamp on every save so the newest page of a conversation is always the
+	// one the chat fallback resolves to.
+	data.CreatedAt = now
+
 	s.mu.Lock()
-	s.data[messageID] = entry{Data: data, ExpiresAt: time.Now().Add(s.ttl)}
+	s.data[messageID] = entry{Data: data, ExpiresAt: now.Add(s.ttl)}
 	s.pruneLocked()
 	s.mu.Unlock()
 	s.save()
@@ -187,6 +192,36 @@ func (s *Store) Get(messageID string) (PagedList, bool) {
 		return PagedList{}, false
 	}
 	return item.Data, true
+}
+
+// GetLatestForChat returns the most recent catalogue still pending for a chat.
+//
+// Used as a fallback when a navigation tap arrives without the quoted message
+// id: some clients omit it, and without this the customer would tap "see more"
+// and get nothing back. Matching by chat is safe because only one paginated
+// catalogue is pending per conversation at a time.
+func (s *Store) GetLatestForChat(chat string) (string, PagedList, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	now := time.Now()
+	var bestKey string
+	var best entry
+	found := false
+
+	for key, item := range s.data {
+		if item.Data.Chat != chat || now.After(item.ExpiresAt) {
+			continue
+		}
+		if !found || item.Data.CreatedAt.After(best.Data.CreatedAt) {
+			bestKey, best, found = key, item, true
+		}
+	}
+
+	if !found {
+		return "", PagedList{}, false
+	}
+	return bestKey, best.Data, true
 }
 
 // Delete removes a catalogue, used once the customer reaches the last page.

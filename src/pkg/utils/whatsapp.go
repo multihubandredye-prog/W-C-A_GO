@@ -327,6 +327,21 @@ func ExtractContextInfo(msg *waE2E.Message) *waE2E.ContextInfo {
 		return msg.GetPtvMessage().GetContextInfo()
 	case msg.GetLiveLocationMessage() != nil:
 		return msg.GetLiveLocationMessage().GetContextInfo()
+	// Interactive replies quote the message that offered the options. That
+	// quoted id is how a paginated list finds the catalogue it belongs to, so
+	// these must be covered or the "see more" row leads nowhere.
+	case msg.GetListResponseMessage() != nil:
+		return msg.GetListResponseMessage().GetContextInfo()
+	case msg.GetTemplateButtonReplyMessage() != nil:
+		return msg.GetTemplateButtonReplyMessage().GetContextInfo()
+	case msg.GetButtonsResponseMessage() != nil:
+		return msg.GetButtonsResponseMessage().GetContextInfo()
+	case msg.GetInteractiveResponseMessage() != nil:
+		return msg.GetInteractiveResponseMessage().GetContextInfo()
+	case msg.GetListMessage() != nil:
+		return msg.GetListMessage().GetContextInfo()
+	case msg.GetInteractiveMessage() != nil:
+		return msg.GetInteractiveMessage().GetContextInfo()
 	}
 	return nil
 }

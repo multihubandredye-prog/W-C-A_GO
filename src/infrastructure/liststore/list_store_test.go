@@ -164,3 +164,36 @@ func TestStoreExpiry(t *testing.T) {
 	_, ok := store.Get("MSG1")
 	assert.False(t, ok, "an expired catalogue must not be returned")
 }
+
+// TestGetLatestForChat covers the fallback used when a navigation tap arrives
+// without a usable quoted id: the newest pending catalogue of that chat wins.
+func TestGetLatestForChat(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "list_store.json")
+	store := New(path, time.Hour)
+
+	const chat = "5588999999999@s.whatsapp.net"
+
+	store.Save("OLD", PagedList{Chat: chat, Rows: makeRows(30), PageSize: 9})
+	time.Sleep(2 * time.Millisecond)
+	store.Save("NEW", PagedList{Chat: chat, Rows: makeRows(12), PageSize: 5})
+	store.Save("OTHER", PagedList{Chat: "5511888888888@s.whatsapp.net", Rows: makeRows(20), PageSize: 9})
+
+	key, got, ok := store.GetLatestForChat(chat)
+	require.True(t, ok)
+	assert.Equal(t, "NEW", key, "the most recent catalogue must win")
+	assert.Len(t, got.Rows, 12)
+
+	_, _, ok = store.GetLatestForChat("5599777777777@s.whatsapp.net")
+	assert.False(t, ok, "an unknown chat has no catalogue")
+}
+
+func TestGetLatestForChatIgnoresExpired(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "list_store.json")
+	store := New(path, time.Nanosecond)
+
+	store.Save("MSG1", PagedList{Chat: "5588999999999@s.whatsapp.net", Rows: makeRows(30), PageSize: 9})
+	time.Sleep(2 * time.Millisecond)
+
+	_, _, ok := store.GetLatestForChat("5588999999999@s.whatsapp.net")
+	assert.False(t, ok, "expired catalogues must not be resolved")
+}

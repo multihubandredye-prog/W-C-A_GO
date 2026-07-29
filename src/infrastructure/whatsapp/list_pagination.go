@@ -99,15 +99,33 @@ func HandleListPagination(ctx context.Context, evt *events.Message, client *what
 		return nil
 	}
 
+	logrus.Infof("[LIST_PAGINATION] navigation tap %q from %s requesting page %d", selectedID, evt.Info.Chat, page)
+
+	recipientJID := evt.Info.Chat.ToNonAD()
+
+	// The tap normally quotes the page it came from, which identifies the
+	// catalogue. Not every client sends that quote, so fall back to the newest
+	// pending catalogue of this chat rather than leaving the tap unanswered.
 	sourceID := quotedMessageID(evt)
-	if sourceID == "" {
-		logrus.Warnf("[LIST_PAGINATION] tap on %s has no quoted message, cannot locate the catalogue", selectedID)
-		return nil
+
+	var stored liststore.PagedList
+	var ok bool
+
+	if sourceID != "" {
+		stored, ok = liststore.Default.Get(sourceID)
 	}
 
-	stored, ok := liststore.Default.Get(sourceID)
 	if !ok {
-		logrus.Warnf("[LIST_PAGINATION] no catalogue stored for message %s; it may have expired", sourceID)
+		var fallbackKey string
+		fallbackKey, stored, ok = liststore.Default.GetLatestForChat(recipientJID.String())
+		if ok {
+			logrus.Debugf("[LIST_PAGINATION] quoted id %q unusable, resolved catalogue by chat (%s)", sourceID, fallbackKey)
+			sourceID = fallbackKey
+		}
+	}
+
+	if !ok {
+		logrus.Warnf("[LIST_PAGINATION] no catalogue pending for %s (quoted id %q); it may have expired", recipientJID, sourceID)
 		return nil
 	}
 
@@ -116,7 +134,7 @@ func HandleListPagination(ctx context.Context, evt *events.Message, client *what
 		return nil
 	}
 
-	recipient := evt.Info.Chat.ToNonAD()
+	recipient := recipientJID
 	ts, err := listPageSender(ctx, client, recipient, stored, page)
 	if err != nil {
 		logrus.Errorf("[LIST_PAGINATION] failed to send page %d to %s: %v", page, recipient, err)
