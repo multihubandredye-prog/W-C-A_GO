@@ -98,41 +98,33 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 	}
 
 	call.OnPeerAccept(func() {
-		logrus.Infof("Peer accepted call %s; waiting for media path (RTP/relay) to become ready...", call.ID())
+		logrus.Infof("Peer accepted call %s; relay negotiation in progress...", call.ID())
+	})
+
+	call.OnReady(func() {
+		logrus.Infof("Call %s is ready (RTP/relay media flowing); starting duration timer (%ds)", call.ID(), durationSec)
+		go func() {
+			time.Sleep(time.Duration(durationSec) * time.Second)
+			_ = call.Hangup()
+		}()
 	})
 
 	call.OnEnd(func(reason string) {
 		logrus.Infof("Call %s ended with reason: %s", call.ID(), reason)
 	})
 
+	// Play audio source immediately so meowcaller streams RTP packets to the relay.
+	// Sending outgoing RTP is required to complete NAT traversal and transition WhatsApp
+	// from "Connecting..." to connected audio playback.
 	if mp3Source != nil {
-		call.OnReady(func() {
-			logrus.Infof("Call %s is ready (media flowing); starting audio playback", call.ID())
-			call.Play(mp3Source)
-			go func() {
-				time.Sleep(time.Duration(durationSec) * time.Second)
-				_ = call.Hangup()
-			}()
-		})
-		// Fallback timeout in case the call rings forever and is never answered or ready
-		go func() {
-			time.Sleep(time.Duration(durationSec+45) * time.Second)
-			_ = call.Hangup()
-		}()
-	} else {
-		call.OnReady(func() {
-			logrus.Infof("Call %s is ready (media flowing); starting duration timer (%ds)", call.ID(), durationSec)
-			go func() {
-				time.Sleep(time.Duration(durationSec) * time.Second)
-				_ = call.Hangup()
-			}()
-		})
-		// Fallback timeout
-		go func() {
-			time.Sleep(time.Duration(durationSec+45) * time.Second)
-			_ = call.Hangup()
-		}()
+		call.Play(mp3Source)
 	}
+
+	// Fallback timeout in case the call rings forever and is never answered or ready
+	go func() {
+		time.Sleep(time.Duration(durationSec+45) * time.Second)
+		_ = call.Hangup()
+	}()
 
 	response.CallID = call.ID()
 	response.Status = fmt.Sprintf("Call initiated successfully to %s (duration %ds)", request.Phone, durationSec)
