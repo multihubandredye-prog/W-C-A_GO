@@ -97,24 +97,39 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		durationSec = *request.Duration
 	}
 
+	call.OnPeerAccept(func() {
+		logrus.Infof("Peer accepted call %s; waiting for media path (RTP/relay) to become ready...", call.ID())
+	})
+
+	call.OnEnd(func(reason string) {
+		logrus.Infof("Call %s ended with reason: %s", call.ID(), reason)
+	})
+
 	if mp3Source != nil {
-		call.OnPeerAccept(func() {
-			logrus.Infof("Peer accepted call %s; starting audio playback", call.ID())
+		call.OnReady(func() {
+			logrus.Infof("Call %s is ready (media flowing); starting audio playback", call.ID())
 			call.Play(mp3Source)
 			go func() {
 				time.Sleep(time.Duration(durationSec) * time.Second)
 				_ = call.Hangup()
 			}()
 		})
-		// Fallback timeout in case the call rings forever and is never answered
+		// Fallback timeout in case the call rings forever and is never answered or ready
 		go func() {
 			time.Sleep(time.Duration(durationSec+45) * time.Second)
 			_ = call.Hangup()
 		}()
 	} else {
-		// Schedule call termination after the duration
+		call.OnReady(func() {
+			logrus.Infof("Call %s is ready (media flowing); starting duration timer (%ds)", call.ID(), durationSec)
+			go func() {
+				time.Sleep(time.Duration(durationSec) * time.Second)
+				_ = call.Hangup()
+			}()
+		})
+		// Fallback timeout
 		go func() {
-			time.Sleep(time.Duration(durationSec) * time.Second)
+			time.Sleep(time.Duration(durationSec+45) * time.Second)
 			_ = call.Hangup()
 		}()
 	}
