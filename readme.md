@@ -554,6 +554,36 @@ curl -X POST http://localhost:3000/send/chat-presence \
 
 `action`: `start` (digitando) ou `stop`.
 
+### `POST /send/call`
+Realiza uma chamada de voz (VoIP) no WhatsApp para o contato. Ideal para alertas de sistema, avisos de emergência ou URA.
+
+```bash
+# Exemplo 1: Chamada simples de alerta (faz tocar e encerra após o tempo definido)
+curl -X POST http://localhost:3000/send/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "duration": 15
+  }'
+```
+
+```bash
+# Exemplo 2: Chamada com reprodução de áudio (toca o arquivo MP3 ao atender)
+curl -X POST http://localhost:3000/send/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "audio_path": "/caminho/para/alerta.mp3",
+    "duration": 30
+  }'
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `phone` | string | **Obrigatório.** Número do destinatário com DDI e DDD |
+| `duration` | int | *Opcional.* Duração da chamada em segundos antes de desligar (padrão 15s) |
+| `audio_path` | string | *Opcional.* Caminho de um arquivo MP3 no servidor para reproduzir quando o usuário atender |
+
 ---
 
 ## 4. Botões interativos

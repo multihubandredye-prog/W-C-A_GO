@@ -36,10 +36,16 @@ type IPresenceSender interface {
 	SendChatPresence(ctx context.Context, request ChatPresenceRequest) (response GenericResponse, err error)
 }
 
+// ICallSender handles VoIP calling operations
+type ICallSender interface {
+	SendCall(ctx context.Context, request CallRequest) (response CallResponse, err error)
+}
+
 // ISendUsecase combines all sender interfaces for backward compatibility
 type ISendUsecase interface {
 	ITextSender
 	IMediaSender
 	IInteractionSender
 	IPresenceSender
+	ICallSender
 }

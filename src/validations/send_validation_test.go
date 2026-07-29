@@ -1122,3 +1122,21 @@ func TestValidateSendAudio_WithDuration(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateSendCall(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("valid call request", func(t *testing.T) {
+		req := domainSend.CallRequest{
+			BaseRequest: domainSend.BaseRequest{Phone: "5581999999999"},
+		}
+		err := ValidateSendCall(ctx, req)
+		assert.NoError(t, err)
+	})
+
+	t.Run("missing phone", func(t *testing.T) {
+		req := domainSend.CallRequest{}
+		err := ValidateSendCall(ctx, req)
+		assert.Error(t, err)
+	})
+}

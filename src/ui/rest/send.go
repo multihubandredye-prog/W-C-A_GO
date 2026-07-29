@@ -2,12 +2,12 @@ package rest
 
 import (
 	"encoding/base64"
-	"strconv"
 	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/rest/helpers"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 type Send struct {
@@ -28,6 +28,7 @@ func InitRestSend(app fiber.Router, service domainSend.ISendUsecase) Send {
 	app.Post("/send/poll", rest.SendPoll)
 	app.Post("/send/buttons", rest.SendButtons)
 	app.Post("/send/list", rest.SendList)
+	app.Post("/send/call", rest.SendCall)
 	app.Post("/send/presence", rest.SendPresence)
 	app.Post("/send/chat-presence", rest.SendChatPresence)
 
@@ -44,10 +45,10 @@ func InitRestSend(app fiber.Router, service domainSend.ISendUsecase) Send {
 
 func (controller *Send) SendLinkJSON(c *fiber.Ctx) error {
 	var request domainSend.LinkRequest
-	
+
 	// Check Content-Type to determine how to parse
 	contentType := c.Get("Content-Type")
-	
+
 	if contentType == "application/json" {
 		if err := c.BodyParser(&request); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Invalid JSON"})
@@ -59,14 +60,14 @@ func (controller *Send) SendLinkJSON(c *fiber.Ctx) error {
 		request.Caption = c.FormValue("caption")
 		request.Title = c.FormValue("title")
 		request.Description = c.FormValue("description")
-		
+
 		// Handle image file
 		file, errFile := c.FormFile("image")
 		if errFile == nil {
 			fileBytes := helpers.MultipartFormFileHeaderToBytes(file)
 			request.ImageBase64 = base64.StdEncoding.EncodeToString(fileBytes)
 		}
-		
+
 		request.IsForwarded = c.FormValue("is_forwarded") == "true"
 		if dur := c.FormValue("duration"); dur != "" {
 			d, _ := strconv.Atoi(dur)
@@ -161,7 +162,6 @@ func (controller *Send) SendFileJSON(c *fiber.Ctx) error {
 		Results: response,
 	})
 }
-
 
 func (controller *Send) SendText(c *fiber.Ctx) error {
 	var request domainSend.MessageRequest
@@ -433,6 +433,25 @@ func (controller *Send) SendList(c *fiber.Ctx) error {
 	utils.SanitizePhone(&request.Phone)
 
 	response, err := controller.Service.SendList(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
+	utils.PanicIfNeeded(err)
+
+	return c.JSON(utils.ResponseData{
+		Status:  200,
+		Code:    "SUCCESS",
+		Message: response.Status,
+		Results: response,
+	})
+}
+
+// SendCall handles POST /send/call — initiates a WhatsApp VoIP audio call.
+func (controller *Send) SendCall(c *fiber.Ctx) error {
+	var request domainSend.CallRequest
+	err := c.BodyParser(&request)
+	utils.PanicIfNeeded(err)
+
+	utils.SanitizePhone(&request.Phone)
+
+	response, err := controller.Service.SendCall(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
 	return c.JSON(utils.ResponseData{

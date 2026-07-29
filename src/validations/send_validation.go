@@ -693,3 +693,19 @@ func ValidateSendList(ctx context.Context, request domainSend.ListRequest) error
 
 	return validateDuration(request.Duration)
 }
+
+func ValidateSendCall(ctx context.Context, request domainSend.CallRequest) error {
+	err := validation.ValidateStructWithContext(ctx, &request,
+		validation.Field(&request.Phone, validation.Required),
+	)
+
+	if err != nil {
+		return pkgError.ValidationError(err.Error())
+	}
+
+	if err := validatePhoneNumber(request.Phone); err != nil {
+		return err
+	}
+
+	return validateDuration(request.Duration)
+}
