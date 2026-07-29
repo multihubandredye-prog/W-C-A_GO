@@ -29,6 +29,7 @@ da Meta nem de emulação de navegador.
 | **Mensagens** | Texto, imagem, vídeo, áudio, documento, figurinha, contato, link e localização |
 | **Interativo** | Botões de ação e listas de seleção, com captura das respostas |
 | **Enquetes** | Criação e leitura dos votos |
+| **Chamadas** | Ligação de voz (VoIP) com reprodução opcional de áudio na linha |
 | **Conversas** | Histórico, busca, fixar, arquivar e mensagens temporárias |
 | **Grupos** | Criação, participantes, permissões, convites e solicitações |
 | **Multi-sessão** | Vários números conectados simultaneamente na mesma instância |
@@ -51,11 +52,12 @@ da Meta nem de emulação de navegador.
 3. [Envio de mensagens](#3-envio-de-mensagens)
 4. [Botões interativos](#4-botões-interativos)
 5. [Listas interativas](#5-listas-interativas)
-6. [Gerenciar mensagens](#6-gerenciar-mensagens)
-7. [Conversas](#7-conversas)
-8. [Usuário](#8-usuário)
-9. [Grupos](#9-grupos)
-10. [Newsletter](#10-newsletter)
+6. [Chamadas de voz (VoIP)](#6-chamadas-de-voz-voip)
+7. [Gerenciar mensagens](#7-gerenciar-mensagens)
+8. [Conversas](#8-conversas)
+9. [Usuário](#9-usuário)
+10. [Grupos](#10-grupos)
+11. [Newsletter](#11-newsletter)
 
 **Integração**
 - [Recebendo respostas de botões e listas](#recebendo-respostas-de-botões-e-listas)
@@ -554,36 +556,6 @@ curl -X POST http://localhost:3000/send/chat-presence \
 
 `action`: `start` (digitando) ou `stop`.
 
-### `POST /send/call`
-Realiza uma chamada de voz (VoIP) no WhatsApp para o contato. Ideal para alertas de sistema, avisos de emergência ou URA.
-
-```bash
-# Exemplo 1: Chamada simples de alerta (faz tocar e encerra após o tempo definido)
-curl -X POST http://localhost:3000/send/call \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "5588999999999",
-    "duration": 15
-  }'
-```
-
-```bash
-# Exemplo 2: Chamada com reprodução de áudio (toca o arquivo MP3 ao atender)
-curl -X POST http://localhost:3000/send/call \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "5588999999999",
-    "audio_path": "/caminho/para/alerta.mp3",
-    "duration": 30
-  }'
-```
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `phone` | string | **Obrigatório.** Número do destinatário com DDI e DDD |
-| `duration` | int | *Opcional.* Duração da chamada em segundos antes de desligar (padrão 15s) |
-| `audio_path` | string | *Opcional.* Caminho de um arquivo MP3 no servidor para reproduzir quando o usuário atender |
-
 ---
 
 ## 4. Botões interativos
@@ -913,7 +885,44 @@ curl -X POST http://localhost:3000/send/list \
 
 ---
 
-## 6. Gerenciar mensagens
+## 6. Chamadas de voz (VoIP)
+
+Realiza chamadas de voz (VoIP) no WhatsApp para contatos. Ideal para alertas de sistema, avisos de emergência, notificações prioritárias ou URA.
+
+### `POST /send/call`
+
+Realiza uma chamada de voz (VoIP) no WhatsApp para o contato.
+
+```bash
+# Exemplo 1: Chamada simples de alerta (faz tocar e encerra após o tempo definido)
+curl -X POST http://localhost:3000/send/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "duration": 15
+  }'
+```
+
+```bash
+# Exemplo 2: Chamada com reprodução de áudio (toca o arquivo MP3 ao atender)
+curl -X POST http://localhost:3000/send/call \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "5588999999999",
+    "audio_path": "/caminho/para/alerta.mp3",
+    "duration": 30
+  }'
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `phone` | string | **Obrigatório.** Número do destinatário com DDI e DDD |
+| `duration` | int | *Opcional.* Duração da chamada em segundos antes de desligar (padrão 15s) |
+| `audio_path` | string | *Opcional.* Caminho de um arquivo MP3 no servidor para reproduzir quando o usuário atender |
+
+---
+
+## 7. Gerenciar mensagens
 
 ### `POST /message/:message_id/reaction`
 Reage com emoji. Use `""` para remover a reação.
@@ -992,7 +1001,7 @@ curl -X POST http://localhost:3000/message/revoke_status_full
 
 ---
 
-## 7. Conversas
+## 8. Conversas
 
 ### `GET /chats`
 Lista as conversas.
@@ -1054,7 +1063,7 @@ Valores: `0` (desliga), `86400` (24h), `604800` (7 dias), `7776000` (90 dias).
 
 ---
 
-## 8. Usuário
+## 9. Usuário
 
 ### `GET /user/info`
 Informações de um número.
@@ -1131,7 +1140,7 @@ curl -X GET http://localhost:3000/user/my/contacts
 
 ---
 
-## 9. Grupos
+## 10. Grupos
 
 ### `POST /group`
 Cria um grupo.
@@ -1313,7 +1322,7 @@ curl -X GET "http://localhost:3000/group/invite-link?group_id=120363XXXXXXXXXX@g
 
 ---
 
-## 10. Newsletter
+## 11. Newsletter
 
 ### `POST /newsletter/unfollow`
 Deixa de seguir um canal.
