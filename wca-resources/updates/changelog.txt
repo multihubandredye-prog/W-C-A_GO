@@ -1,3 +1,10 @@
+[30/07/2026]
+➪ Adicionada implementação na API para o Tasker receber as funcionalidades de envio de lista de botões e botões interativos.
+
+➪ Adicionada funcionalidade para o Tasker receber o método para realizar chamadas automaticamente via secretária eletrônica.
+
+➪ Melhorias de performance da API.
+
 [27/07/2026]
 ➪ Aprimoramento na tarefa 010-OBTER_INFO_CONTATO/GRUPO [wca], com a inclusão da seleção múltipla de usuários e grupos para cópia em lote, permitindo copiar nomes, números, JIDs ou combinações de nome e número, conforme o tipo de item selecionado, com separação por quebra de linha.
 
