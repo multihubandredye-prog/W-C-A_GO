@@ -1,3 +1,6 @@
+[11/08/2026]
+➪ Agora, a API respeita rigorosamente a variável WHATSAPP_PRESENCE_ON_CONNECT=unavailable, iniciando a sessão como offline/indisponível logo após a conexão.
+
 [30/07/2026]
 ➪ Adicionada implementação na API para o Tasker receber as funcionalidades de envio de lista de botões e botões interativos.
 
