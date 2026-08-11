@@ -186,12 +186,10 @@ func handleConnectionEvents(ctx context.Context, client *whatsmeow.Client, insta
 	if instance != nil {
 		instance.UpdateStateFromClient()
 
-		// Send presence immediately to "warm up" the connection.
-		// This helps ensure webhooks start firing immediately after restart.
+		// Send configured presence immediately to "warm up" the connection
+		// without overriding the user's WHATSAPP_PRESENCE_ON_CONNECT setting.
 		go func(c *whatsmeow.Client) {
-			warmupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			_ = c.SendPresence(warmupCtx, types.PresenceAvailable)
+			sendConfiguredPresence(context.Background(), c)
 		}(client)
 
 		// Persist updated JID/DisplayName to database after successful connection
