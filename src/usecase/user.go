@@ -301,6 +301,14 @@ func (service serviceUser) MyListContacts(ctx context.Context) (response domainU
 
 	contacts, err := client.Store.Contacts.GetAllContacts(ctx)
 	if err != nil {
+		if utils.IsSQLiteCorruptError(err) {
+			return response, pkgError.InternalServerError(
+				"o banco de dados do WhatsApp está corrompido (database disk image is malformed). " +
+					"Para corrigir: pare a API, remova os arquivos storages/whatsapp.db, " +
+					"storages/whatsapp.db-wal e storages/whatsapp.db-shm e reinicie a API para " +
+					"vincular novamente o número pelo QR code. O histórico de conversas (chatstorage.db) é preservado.",
+			)
+		}
 		return
 	}
 

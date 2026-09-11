@@ -660,3 +660,16 @@ func DownloadFileFromURL(fileURL string) ([]byte, string, error) {
 
 	return fileData, fileName, nil
 }
+
+// IsSQLiteCorruptError reports whether err indicates a corrupted SQLite
+// database file ("database disk image is malformed" / SQLITE_CORRUPT).
+func IsSQLiteCorruptError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "database disk image is malformed") ||
+		strings.Contains(msg, "sqlite_corrupt") ||
+		strings.Contains(msg, "database or disk is full") ||
+		strings.Contains(msg, "code = corrupt")
+}

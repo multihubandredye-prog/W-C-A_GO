@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -39,4 +40,36 @@ func initDatabase(ctx context.Context, dbLog waLog.Logger, DBURI string) (*sqlst
 	}
 
 	return nil, fmt.Errorf("unknown database type: %s. Currently only sqlite3(file:) and postgres are supported", DBURI)
+}
+
+// DatabaseIntegrityResult describes the outcome of a SQLite integrity check.
+type DatabaseIntegrityResult struct {
+	OK      bool   `json:"ok"`
+	Detail  string `json:"detail"`
+	URI     string `json:"uri"`
+}
+
+// CheckDatabaseIntegrity opens a fresh connection to the configured WhatsApp
+// store database and runs PRAGMA quick_check. It reports whether the SQLite
+// file is healthy so callers can detect a corrupted database (for example the
+// "database disk image is malformed" error) before it surfaces on endpoints.
+func CheckDatabaseIntegrity(ctx context.Context) DatabaseIntegrityResult {
+	result := DatabaseIntegrityResult{URI: config.DBURI}
+
+	db, err := sql.Open(sqlite.DriverName, sqlite.FormatChatStorageURI(strings.Trim(config.DBURI, `"'`), true, true))
+	if err != nil {
+		result.Detail = fmt.Sprintf("failed to open database: %v", err)
+		return result
+	}
+	defer db.Close()
+
+	var status string
+	if err := db.QueryRowContext(ctx, "PRAGMA quick_check").Scan(&status); err != nil {
+		result.Detail = fmt.Sprintf("failed to run quick_check: %v", err)
+		return result
+	}
+
+	result.OK = status == "ok"
+	result.Detail = status
+	return result
 }

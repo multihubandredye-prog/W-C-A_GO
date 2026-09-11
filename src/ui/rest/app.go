@@ -22,8 +22,30 @@ func InitRestApp(app fiber.Router, service domainApp.IAppUsecase) App {
 	app.Get("/app/reconnect", rest.Reconnect)
 	app.Get("/app/devices", rest.Devices)
 	app.Get("/app/status", rest.ConnectionStatus)
+	app.Get("/app/database/check", rest.DatabaseCheck)
 
 	return App{Service: service}
+}
+
+// DatabaseCheck handles GET /app/database/check — verifies the integrity of
+// the WhatsApp store database (SQLite) so a corrupted file can be detected
+// before endpoints such as /user/my/contacts start returning 500 errors.
+func (handler *App) DatabaseCheck(c *fiber.Ctx) error {
+	result := whatsapp.CheckDatabaseIntegrity(c.UserContext())
+
+	status := 200
+	code := "OK"
+	if !result.OK {
+		status = 500
+		code = "CORRUPT"
+	}
+
+	return c.Status(status).JSON(utils.ResponseData{
+		Status:  status,
+		Code:    code,
+		Message: "database integrity check",
+		Results: result,
+	})
 }
 
 func (handler *App) Login(c *fiber.Ctx) error {

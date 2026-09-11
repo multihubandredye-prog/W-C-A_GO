@@ -2,6 +2,7 @@ package utils_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -686,4 +687,25 @@ func (suite *UtilsTestSuite) TestDownloadVideoFromURL() {
 
 func TestUtilsTestSuite(t *testing.T) {
 	suite.Run(t, new(UtilsTestSuite))
+}
+
+func TestIsSQLiteCorruptError(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected bool
+	}{
+		{"nil error", nil, false},
+		{"malformed", errors.New("database disk image is malformed"), true},
+		{"sqlite_corrupt", errors.New("SQLITE_CORRUPT: database disk image is malformed"), true},
+		{"disk full", errors.New("database or disk is full"), true},
+		{"unrelated error", errors.New("connection refused"), false},
+		{"plain text", errors.New("failed to fetch contacts"), false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, utils.IsSQLiteCorruptError(tc.err))
+		})
+	}
 }
