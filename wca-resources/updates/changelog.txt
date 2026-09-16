@@ -5,6 +5,8 @@
 
 ➪ Suporte a menções fantasmas no envio de mensagens: agora é possível mencionar um ou vários participantes do grupo, ou todos de uma vez usando "@everyone", sem que o @número apareça no texto da mensagem.
 
+➪ Corrigido o problema que fazia algumas mensagens recebidas em grupos chegarem ao webhook com o tipo "Unknown": álbuns de fotos, convites de grupo, eventos, figurinhas animadas, imagens editadas e outras variantes agora são reportadas com o tipo correto (ex.: AlbumMessage, GroupInviteMessage, EventMessage), inclusive quando a mensagem vem encapsulada nos novos formatos do WhatsApp.
+
 [11/08/2026]
 ➪ Agora, a API respeita rigorosamente a variável WHATSAPP_PRESENCE_ON_CONNECT=unavailable, iniciando a sessão como offline/indisponível logo após a conexão.
 
