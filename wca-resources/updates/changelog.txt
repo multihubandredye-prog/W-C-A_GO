@@ -1,7 +1,7 @@
 [16/09/2026]
 ➪ Corrigido o problema que fazia algumas mensagens recebidas em grupos chegarem ao webhook com o tipo "Unknown": álbuns de fotos, convites de grupo, eventos, figurinhas animadas, imagens editadas e outras variantes agora são reportadas com o tipo correto (ex.: AlbumMessage, GroupInviteMessage, EventMessage), inclusive quando a mensagem vem encapsulada nos novos formatos do WhatsApp.
 
-➪ Enquetes agora podem ser criadas com encerramento automático: informe o dia e o horário em que a enquete deve ser fechada (campo end_time, em milissegundos) e o próprio WhatsApp encerra a votação no momento definido. Sem esse campo, a enquete continua aberta como antes.
+➪ Enquetes agora podem ser criadas com encerramento automático: informe o dia e o horário em que a enquete deve ser fechada com os campos end_date e end_time (ex.: "2026-09-20" e "18:00", interpretados no horário de Brasília) — sem precisar calcular milissegundos — ou, se preferir, envie apenas o campo end_time em milissegundos, como no formato original. Em ambos os casos o próprio WhatsApp encerra a votação no momento definido. Sem esses campos, a enquete continua aberta como antes.
 
 ➪ API atualizada para a versão mais recente da biblioteca whatsmeow, responsável pela conexão com o WhatsApp Web, trazendo mais estabilidade, correções de protocolo e maior compatibilidade com as mudanças recentes do WhatsApp.
 
