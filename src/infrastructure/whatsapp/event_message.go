@@ -354,6 +354,51 @@ func getMessagePascalType(msg *waE2E.Message) string {
 		return "LiveLocationMessage"
 	case msg.GetPtvMessage() != nil:
 		return "VideoNoteMessage"
+	// Content variants that used to fall through to "Unknown", leaving group
+	// webhooks with an untyped payload (albums, invites, catalog, edits...).
+	case msg.GetAlbumMessage() != nil:
+		return "AlbumMessage"
+	case msg.GetEventMessage() != nil:
+		return "EventMessage"
+	case msg.GetEventInviteMessage() != nil:
+		return "EventInviteMessage"
+	case msg.GetGroupInviteMessage() != nil:
+		return "GroupInviteMessage"
+	case msg.GetNewsletterAdminInviteMessage() != nil:
+		return "NewsletterAdminInviteMessage"
+	case msg.GetPollAddOptionMessage() != nil:
+		return "PollAddOptionMessage"
+	case msg.GetPollResultSnapshotMessage() != nil:
+		return "PollResultSnapshotMessage"
+	case msg.GetStickerPackMessage() != nil:
+		return "StickerPackMessage"
+	case msg.GetCommentMessage() != nil:
+		return "CommentMessage"
+	case msg.GetPinInChatMessage() != nil:
+		return "PinInChatMessage"
+	case msg.GetKeepInChatMessage() != nil:
+		return "KeepInChatMessage"
+	case msg.GetOrderMessage() != nil:
+		return "OrderMessage"
+	case msg.GetProductMessage() != nil:
+		return "ProductMessage"
+	case msg.GetInvoiceMessage() != nil:
+		return "InvoiceMessage"
+	case msg.GetContactsArrayMessage() != nil:
+		return "ContactsArrayMessage"
+	case msg.GetEncReactionMessage() != nil:
+		return "EncReactionMessage"
+	case msg.GetMusicMessage() != nil:
+		return "MusicMessage"
+	case msg.GetScheduledCallCreationMessage() != nil:
+		return "ScheduledCallCreationMessage"
+	case msg.GetPlaceholderMessage() != nil:
+		return "PlaceholderMessage"
+	// LID-migrated accounts wrap content in SecretEncryptedMessage. When the
+	// decryption failed (or was not possible), reporting the envelope at least
+	// tells the consumer what happened instead of a bare "Unknown".
+	case msg.GetSecretEncryptedMessage() != nil:
+		return "SecretEncryptedMessage"
 	// Replies to interactive messages. Checked before the outgoing variants so
 	// a tap is never reported as a new buttons/list message.
 	case msg.GetInteractiveResponseMessage() != nil,
@@ -370,6 +415,14 @@ func getMessagePascalType(msg *waE2E.Message) string {
 	case msg.GetTemplateMessage() != nil:
 		return "TemplateMessage"
 	default:
+		// UnwrapMessage deliberately keeps genuine documents wrapped in
+		// DocumentWithCaptionMessage (guarded by TestUnwrapKeepsRealDocuments).
+		// Type those by the content they carry instead of reporting "Unknown".
+		if dwc := msg.GetDocumentWithCaptionMessage(); dwc != nil && dwc.GetMessage() != nil {
+			if inner := getMessagePascalType(dwc.GetMessage()); inner != "Unknown" {
+				return inner
+			}
+		}
 		return "Unknown"
 	}
 }

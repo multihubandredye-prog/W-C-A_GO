@@ -245,3 +245,46 @@ func TestExtractMessageTextFromProtoContactsArrayMessage(t *testing.T) {
 func strPtr(value string) *string {
 	return &value
 }
+
+// TestUnwrapMessagePeelsFutureProofWrappers covers the FutureProof wrappers
+// UnwrapMessage must open so the content (not the envelope) is typed: without
+// these, edited media and group mentions reached the webhook as "Unknown".
+func TestUnwrapMessagePeelsFutureProofWrappers(t *testing.T) {
+	image := &waE2E.Message{ImageMessage: &waE2E.ImageMessage{}}
+	wrapped := func(field func(*waE2E.Message, *waE2E.FutureProofMessage)) *waE2E.Message {
+		msg := &waE2E.Message{}
+		field(msg, &waE2E.FutureProofMessage{Message: image})
+		return msg
+	}
+
+	tests := []struct {
+		name string
+		msg  *waE2E.Message
+	}{
+		{"editedMessage", wrapped(func(m *waE2E.Message, f *waE2E.FutureProofMessage) { m.EditedMessage = f })},
+		{"groupMentionedMessage", wrapped(func(m *waE2E.Message, f *waE2E.FutureProofMessage) { m.GroupMentionedMessage = f })},
+		{"botInvokeMessage", wrapped(func(m *waE2E.Message, f *waE2E.FutureProofMessage) { m.BotInvokeMessage = f })},
+		{"lottieStickerMessage", wrapped(func(m *waE2E.Message, f *waE2E.FutureProofMessage) { m.LottieStickerMessage = f })},
+		{"associatedChildMessage", wrapped(func(m *waE2E.Message, f *waE2E.FutureProofMessage) { m.AssociatedChildMessage = f })},
+		{
+			name: "nested editedMessage(viewOnce(image))",
+			msg: &waE2E.Message{EditedMessage: &waE2E.FutureProofMessage{
+				Message: &waE2E.Message{ViewOnceMessage: &waE2E.FutureProofMessage{Message: image}},
+			}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			unwrapped := UnwrapMessage(tt.msg)
+			if unwrapped.GetImageMessage() == nil {
+				t.Fatalf("expected the inner ImageMessage after unwrapping %s", tt.name)
+			}
+		})
+	}
+
+	// Sanity: a bare message is returned untouched.
+	if got := UnwrapMessage(image); got.GetImageMessage() == nil {
+		t.Fatal("bare image message must stay untouched")
+	}
+}

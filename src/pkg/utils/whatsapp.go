@@ -738,6 +738,31 @@ func UnwrapMessage(msg *waE2E.Message) *waE2E.Message {
 			inner = vm2e.GetMessage()
 			continue
 		}
+		// Edited messages arrive wrapped here; the inner message is the new
+		// content. Without this unwrap they reached the webhook as "Unknown".
+		if em := inner.GetEditedMessage(); em != nil && em.GetMessage() != nil {
+			inner = em.GetMessage()
+			continue
+		}
+		// Mentions of the whole group and bot payloads travel in these wrappers.
+		if gm := inner.GetGroupMentionedMessage(); gm != nil && gm.GetMessage() != nil {
+			inner = gm.GetMessage()
+			continue
+		}
+		if bi := inner.GetBotInvokeMessage(); bi != nil && bi.GetMessage() != nil {
+			inner = bi.GetMessage()
+			continue
+		}
+		// Lottie (animated) stickers carry a StickerMessage inside.
+		if ls := inner.GetLottieStickerMessage(); ls != nil && ls.GetMessage() != nil {
+			inner = ls.GetMessage()
+			continue
+		}
+		// Child content (e.g. poll option images) rides in this wrapper.
+		if ac := inner.GetAssociatedChildMessage(); ac != nil && ac.GetMessage() != nil {
+			inner = ac.GetMessage()
+			continue
+		}
 		// Messages echoed from our own linked devices arrive wrapped here.
 		// Interactive replies (button taps) are commonly delivered this way.
 		if dsm := inner.GetDeviceSentMessage(); dsm != nil && dsm.GetMessage() != nil {
