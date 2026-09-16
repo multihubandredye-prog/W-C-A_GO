@@ -215,8 +215,8 @@ func handlePollCreationMessage(ctx context.Context, evt *events.Message, client 
 		log.Infof("Poll metadata saved for %s", evt.Info.ID)
 		// Auto-close deadline, when the poll was created with one.
 		if endTime := pollCreation.GetEndTime(); endTime > 0 {
-			log.Infof("Poll %s closes automatically at %s (endTime=%d, Unix seconds)",
-				evt.Info.ID, time.Unix(endTime, 0).Format(time.RFC3339), endTime)
+			log.Infof("Poll %s closes automatically at %s (endTime=%d, Unix milliseconds)",
+				evt.Info.ID, time.UnixMilli(endTime).Format(time.RFC3339), endTime)
 		}
 	}
 }

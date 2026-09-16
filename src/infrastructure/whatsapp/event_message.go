@@ -708,11 +708,11 @@ func buildOtherMessageTypes(msg *waE2E.Message, payload map[string]any) {
 			"EncKey":   msg.GetMessageContextInfo().GetMessageSecret(),
 		}
 		// Auto-close deadline, only present when the poll was created with one.
-		// WhatsApp sends it in Unix seconds; the milliseconds variant is included
+		// WhatsApp sends it in Unix milliseconds; the seconds variant is included
 		// for convenience. Polls without a deadline keep the exact same payload.
 		if endTime := pollCreation.GetEndTime(); endTime > 0 {
-			pollPayload["EndTime"] = endTime
-			pollPayload["EndTimeMillis"] = endTime * 1000
+			pollPayload["EndTimeMillis"] = endTime
+			pollPayload["EndTime"] = endTime / 1000
 		}
 		payload["Poll"] = pollPayload
 	}

@@ -639,10 +639,11 @@ Atalhos de duração, a partir de agora: 1 hora = `3600000`, 24 horas = `8640000
 > mensagem explicando que o valor deve estar em milissegundos, em vez de criar uma
 > enquete já encerrada.
 >
-> **Internamente** a API converte para segundos antes de enviar, porque é assim
-> que o WhatsApp trafega esse campo (`Unix ms / 1000`). Nas enquetes **recebidas**
-> que tiverem prazo, o webhook passa a incluir `Poll.EndTime` (segundos) e
-> `Poll.EndTimeMillis` (milissegundos).
+> **Internamente** o valor segue para o WhatsApp exatamente como enviado: o campo
+> `PollCreationMessage.endTime` do protocolo também é Unix ms (a conversão para
+> segundos que existia antes fazia a enquete chegar já encerrada). Nas enquetes
+> **recebidas** que tiverem prazo, o webhook inclui `Poll.EndTimeMillis`
+> (milissegundos, valor cru) e `Poll.EndTime` (segundos, derivado).
 
 ### `POST /send/presence`
 Define seu status global (`available` / `unavailable`).
