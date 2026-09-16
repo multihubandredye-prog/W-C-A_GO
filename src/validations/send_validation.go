@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
 	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
@@ -476,6 +477,43 @@ func ValidateSendAudio(ctx context.Context, request domainSend.AudioRequest) err
 	return nil
 }
 
+// validatePollEndTime validates the optional poll end time (auto-close) sent as
+// Unix milliseconds. A nil value means "no deadline" and is always accepted, so
+// existing clients that never send end_time keep the previous behaviour.
+func validatePollEndTime(endTime *int64) error {
+	if endTime == nil {
+		return nil
+	}
+
+	value := *endTime
+	if value <= 0 {
+		return pkgError.ValidationError("end_time must be a positive Unix timestamp in milliseconds")
+	}
+
+	// Anything below 1e11 ms is before 1973, so it cannot be a real deadline for a
+	// poll: it is almost always the same timestamp expressed in seconds (e.g.
+	// 1789938000 is 20/09/2026 in seconds, but January 1970 when read as ms).
+	const minPlausibleMilliseconds = int64(100_000_000_000)
+	if value < minPlausibleMilliseconds {
+		return pkgError.ValidationError(fmt.Sprintf(
+			"end_time looks like Unix seconds (%d); send it in milliseconds (%d)",
+			value, value*1000,
+		))
+	}
+
+	now := time.Now().UnixMilli()
+	if value <= now {
+		return pkgError.ValidationError("end_time must be in the future")
+	}
+
+	const maxWindow = 365 * 24 * time.Hour
+	if value > now+maxWindow.Milliseconds() {
+		return pkgError.ValidationError("end_time must be at most 1 year in the future")
+	}
+
+	return nil
+}
+
 func ValidateSendPoll(ctx context.Context, request domainSend.PollRequest) error {
 	// Validate options first to ensure it is not blank before validating MaxAnswer
 	if len(request.Options) == 0 {
@@ -513,6 +551,11 @@ func ValidateSendPoll(ctx context.Context, request domainSend.PollRequest) error
 			return pkgError.ValidationError("options should be unique")
 		}
 		uniqueOptions[option] = true
+	}
+
+	// validate optional poll end time (auto-close)
+	if err := validatePollEndTime(request.EndTime); err != nil {
+		return err
 	}
 
 	return nil

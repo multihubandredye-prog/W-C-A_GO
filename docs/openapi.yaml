@@ -1365,6 +1365,19 @@ paths:
                   type: integer
                   description: The maximum number of answers allowed for the poll.
                   example: 2
+                end_time:
+                  type: integer
+                  format: int64
+                  example: 1789938000000
+                  description: |
+                    Optional auto-close deadline for the poll, in Unix milliseconds
+                    (the value Date.now() returns in JavaScript), e.g.
+                    Date.now() + 86400000 for a poll that closes in 24 hours.
+                    Must be in the future and at most 1 year ahead.
+                    The API converts it to Unix seconds before sending, which is how
+                    WhatsApp transports PollCreationMessage.endTime.
+                    Omit it to keep the previous behaviour: the poll stays open
+                    until it is deleted.
                 duration:
                   type: integer
                   example: 3600

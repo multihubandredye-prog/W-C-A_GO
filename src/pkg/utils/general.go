@@ -673,3 +673,16 @@ func IsSQLiteCorruptError(err error) bool {
 		strings.Contains(msg, "database or disk is full") ||
 		strings.Contains(msg, "code = corrupt")
 }
+
+// PollEndTimeMillisecondsToSeconds converts the API's poll end time (Unix
+// milliseconds, the value clients get from Date.now()) into the Unix seconds
+// value that WhatsApp expects on the wire.
+//
+// WhatsApp's PollCreationMessage.endTime is a plain int64 with no "MS" suffix,
+// and that is the convention WhatsApp uses for its second-based time fields
+// (millisecond fields are explicitly suffixed, e.g. scheduledTimestampMS and
+// senderTimestampMS). WhatsApp Web builds the equivalent field for calendar
+// events with Math.floor(date.getTime()/1000), which confirms the division.
+func PollEndTimeMillisecondsToSeconds(endTimeMilliseconds int64) int64 {
+	return endTimeMilliseconds / 1000
+}

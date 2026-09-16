@@ -598,6 +598,52 @@ curl -X POST http://localhost:3000/send/poll \
   }'
 ```
 
+#### Encerramento automático (`end_time`)
+
+O campo opcional `end_time` fecha a enquete sozinha em um dia e horário
+específicos — a mesma opção *Definir horário de término* do aplicativo.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `end_time` | int64 | Data/hora do encerramento em **milissegundos** desde 1970 (Unix ms) |
+
+Sem esse campo a enquete fica aberta para sempre, exatamente como era antes —
+nada muda para quem já envia enquetes hoje.
+
+```bash
+# Encerra em 20/09/2026 às 18:00 (horário de Brasília = 21:00 UTC)
+curl -X POST http://localhost:3000/send/poll \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "question": "Qual o melhor horário para a reunião?",
+    "options": ["09h", "14h", "16h"],
+    "max_answer": 1,
+    "end_time": 1789938000000
+  }'
+```
+
+Para calcular o valor (é o mesmo número que `Date.now()` devolve):
+
+| Origem | Como obter |
+|---|---|
+| Tasker / JavaScript | `Date.now() + 86400000` → encerra em 24 horas |
+| Linux / Android (shell) | `echo $(( $(date +%s%3N) + 86400000 ))` |
+| Python | `int((datetime.now() + timedelta(hours=24)).timestamp() * 1000)` |
+
+Atalhos de duração, a partir de agora: 1 hora = `3600000`, 24 horas = `86400000`,
+7 dias = `604800000`, 30 dias = `2592000000`.
+
+> **Regras de validação** — `end_time` precisa estar no futuro e dentro de 1 ano.
+> Se você enviar o valor em segundos (ex.: `1789938000`), a API recusa com uma
+> mensagem explicando que o valor deve estar em milissegundos, em vez de criar uma
+> enquete já encerrada.
+>
+> **Internamente** a API converte para segundos antes de enviar, porque é assim
+> que o WhatsApp trafega esse campo (`Unix ms / 1000`). Nas enquetes **recebidas**
+> que tiverem prazo, o webhook passa a incluir `Poll.EndTime` (segundos) e
+> `Poll.EndTimeMillis` (milissegundos).
+
 ### `POST /send/presence`
 Define seu status global (`available` / `unavailable`).
 

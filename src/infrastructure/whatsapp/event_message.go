@@ -702,11 +702,19 @@ func buildOtherMessageTypes(msg *waE2E.Message, payload map[string]any) {
 		for _, option := range pollCreation.GetOptions() {
 			options = append(options, option.GetOptionName())
 		}
-		payload["Poll"] = map[string]any{
+		pollPayload := map[string]any{
 			"Question": pollCreation.GetName(),
 			"Options":  options,
 			"EncKey":   msg.GetMessageContextInfo().GetMessageSecret(),
 		}
+		// Auto-close deadline, only present when the poll was created with one.
+		// WhatsApp sends it in Unix seconds; the milliseconds variant is included
+		// for convenience. Polls without a deadline keep the exact same payload.
+		if endTime := pollCreation.GetEndTime(); endTime > 0 {
+			pollPayload["EndTime"] = endTime
+			pollPayload["EndTimeMillis"] = endTime * 1000
+		}
+		payload["Poll"] = pollPayload
 	}
 
 	buildInteractiveReplyFields(msg, payload)

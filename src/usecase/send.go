@@ -1456,6 +1456,8 @@ func (service serviceSend) SendPoll(ctx context.Context, request domainSend.Poll
 
 	msg := client.BuildPollCreation(request.Question, request.Options, request.MaxAnswer)
 
+	applyPollEndTime(msg, request.EndTime)
+
 	if request.BaseRequest.Duration != nil && *request.BaseRequest.Duration > 0 {
 		if msg.PollCreationMessage.ContextInfo == nil {
 			msg.PollCreationMessage.ContextInfo = &waE2E.ContextInfo{}
@@ -1542,6 +1544,28 @@ func (service serviceSend) SendChatPresence(ctx context.Context, request domainS
 	response.MessageID = messageID
 	response.Status = statusMessage
 	return response, nil
+}
+
+// applyPollEndTime sets the poll auto-close deadline on an already built poll
+// message. The API receives Unix milliseconds (Date.now() friendly) and WhatsApp
+// expects Unix seconds on the wire, so the value is converted here.
+//
+// A nil (or non positive) endTime leaves the message untouched, which keeps polls
+// created without end_time behaving exactly as before: open until deleted.
+func applyPollEndTime(msg *waE2E.Message, endTimeMilliseconds *int64) {
+	if msg == nil || endTimeMilliseconds == nil || *endTimeMilliseconds <= 0 {
+		return
+	}
+
+	if msg.PollCreationMessage == nil {
+		msg.PollCreationMessage = &waE2E.PollCreationMessage{}
+	}
+
+	wireSeconds := utils.PollEndTimeMillisecondsToSeconds(*endTimeMilliseconds)
+	msg.PollCreationMessage.EndTime = proto.Int64(wireSeconds)
+
+	logrus.Infof("Poll scheduled to close at %s (end_time=%d ms, WhatsApp wire=%d s)",
+		time.Unix(wireSeconds, 0).Format(time.RFC3339), *endTimeMilliseconds, wireSeconds)
 }
 
 func (service serviceSend) getMentionFromText(ctx context.Context, messages string) (result []string) {
