@@ -600,15 +600,45 @@ curl -X POST http://localhost:3000/send/poll \
 
 #### Encerramento automático (`end_time`)
 
-O campo opcional `end_time` fecha a enquete sozinha em um dia e horário
-específicos — a mesma opção *Definir horário de término* do aplicativo.
+A enquete pode ser configurada para fechar sozinha em um dia e horário
+específicos — a mesma opção *Definir horário de término* do aplicativo. Há
+dois formatos para informar o prazo; escolha o que for mais prático.
+
+##### Com data e horário (mais simples)
+
+Em vez de calcular milissegundos, informe a data e o horário direto — a API
+faz o cálculo sozinha:
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `end_date` | string | Dia do encerramento: `AAAA-MM-DD` ou `DD/MM/AAAA` |
+| `end_time` | string | Horário do encerramento: `HH:MM:SS` ou `HH:MM` (segundos ficam `00`) |
+
+```bash
+# Encerra em 20/09/2026 às 18:00 (horário de Brasília)
+curl -X POST http://localhost:3000/send/poll \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "question": "Qual o melhor horário para a reunião?",
+    "options": ["09h", "14h", "16h"],
+    "max_answer": 1,
+    "end_date": "2026-09-20",
+    "end_time": "18:00"
+  }'
+```
+
+O horário é interpretado no **fuso de Brasília** (`America/Sao_Paulo`,
+UTC−3), independente de onde o servidor estiver rodando.
+
+##### Em milissegundos (formato original)
+
+O mesmo campo `end_time` também aceita o valor numérico em milissegundos —
+o formato original do endpoint, que continua funcionando exatamente igual:
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `end_time` | int64 | Data/hora do encerramento em **milissegundos** desde 1970 (Unix ms) |
-
-Sem esse campo a enquete fica aberta para sempre, exatamente como era antes —
-nada muda para quem já envia enquetes hoje.
 
 ```bash
 # Encerra em 20/09/2026 às 18:00 (horário de Brasília = 21:00 UTC)
@@ -634,13 +664,13 @@ Para calcular o valor (é o mesmo número que `Date.now()` devolve):
 Atalhos de duração, a partir de agora: 1 hora = `3600000`, 24 horas = `86400000`,
 7 dias = `604800000`, 30 dias = `2592000000`.
 
-> **Regras de validação** — `end_time` precisa estar no futuro e dentro de 1 ano.
-> Se você enviar o valor em segundos (ex.: `1789938000`), a API recusa com uma
-> mensagem explicando que o valor deve estar em milissegundos, em vez de criar uma
-> enquete já encerrada.
->
-> Dica: para não calcular milissegundos, informe `end_date` + `end_time` em
-> formato de horário — veja a seção seguinte.
+> **Regras de validação** — os dois formatos compartilham as mesmas janelas:
+> o prazo precisa estar no futuro e no máximo 1 ano à frente. O par
+> `end_date` + `end_time` (horário) precisa vir completo — um sem o outro é
+> recusado — e não pode ser combinado com `end_time` em milissegundos. Se o
+> valor numérico vier em segundos (ex.: `1789938000`), a API recusa com uma
+> mensagem explicando que o valor deve estar em milissegundos, em vez de criar
+> uma enquete já encerrada.
 >
 > **Internamente** o valor segue para o WhatsApp exatamente como enviado: o campo
 > `PollCreationMessage.endTime` do protocolo também é Unix ms (a conversão para
@@ -648,38 +678,8 @@ Atalhos de duração, a partir de agora: 1 hora = `3600000`, 24 horas = `8640000
 > **recebidas** que tiverem prazo, o webhook inclui `Poll.EndTimeMillis`
 > (milissegundos, valor cru) e `Poll.EndTime` (segundos, derivado).
 
-#### Encerramento com data e hora (`end_date` + `end_time`)
-
-Calcular milissegundos na mão é trabalhoso. Dá para informar a data e o
-horário de encerramento direto, e a API faz o cálculo sozinha:
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `end_date` | string | Dia do encerramento: `AAAA-MM-DD` ou `DD/MM/AAAA` |
-| `end_time` | string | Horário do encerramento: `HH:MM:SS` ou `HH:MM` (segundos ficam `00`) |
-
-```bash
-# Encerra em 16/09/2026 às 20:35:45 (horário de Brasília)
-curl -X POST http://localhost:3000/send/poll \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "120363XXXXXXXXXX@g.us",
-    "question": "Qual o melhor horário para a reunião?",
-    "options": ["09h", "14h", "16h"],
-    "max_answer": 1,
-    "end_date": "2026-09-16",
-    "end_time": "20:35:45"
-  }'
-```
-
-O horário é interpretado no **fuso de Brasília** (`America/Sao_Paulo`, UTC−3),
-independente de onde o servidor estiver rodando — e `end_time` em
-milissegundos continua funcionando exatamente como antes, no mesmo campo.
-
-> **Regras** — `end_date` e `end_time` (horário) andam juntos: um sem o outro é
-> recusado; não podem ser combinados com `end_time` em milissegundos; e o prazo
-> resultante precisa estar no futuro e dentro de 1 ano, igual ao formato em
-> milissegundos.
+Sem nenhum desses campos a enquete fica aberta para sempre, exatamente como
+era antes — nada muda para quem já envia enquetes hoje.
 
 ### `POST /send/presence`
 Define seu status global (`available` / `unavailable`).
