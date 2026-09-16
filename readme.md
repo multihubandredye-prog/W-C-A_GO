@@ -639,11 +639,47 @@ Atalhos de duração, a partir de agora: 1 hora = `3600000`, 24 horas = `8640000
 > mensagem explicando que o valor deve estar em milissegundos, em vez de criar uma
 > enquete já encerrada.
 >
+> Dica: para não calcular milissegundos, informe `end_date` + `end_time` em
+> formato de horário — veja a seção seguinte.
+>
 > **Internamente** o valor segue para o WhatsApp exatamente como enviado: o campo
 > `PollCreationMessage.endTime` do protocolo também é Unix ms (a conversão para
 > segundos que existia antes fazia a enquete chegar já encerrada). Nas enquetes
 > **recebidas** que tiverem prazo, o webhook inclui `Poll.EndTimeMillis`
 > (milissegundos, valor cru) e `Poll.EndTime` (segundos, derivado).
+
+#### Encerramento com data e hora (`end_date` + `end_time`)
+
+Calcular milissegundos na mão é trabalhoso. Dá para informar a data e o
+horário de encerramento direto, e a API faz o cálculo sozinha:
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `end_date` | string | Dia do encerramento: `AAAA-MM-DD` ou `DD/MM/AAAA` |
+| `end_time` | string | Horário do encerramento: `HH:MM:SS` ou `HH:MM` (segundos ficam `00`) |
+
+```bash
+# Encerra em 16/09/2026 às 20:35:45 (horário de Brasília)
+curl -X POST http://localhost:3000/send/poll \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "question": "Qual o melhor horário para a reunião?",
+    "options": ["09h", "14h", "16h"],
+    "max_answer": 1,
+    "end_date": "2026-09-16",
+    "end_time": "20:35:45"
+  }'
+```
+
+O horário é interpretado no **fuso de Brasília** (`America/Sao_Paulo`, UTC−3),
+independente de onde o servidor estiver rodando — e `end_time` em
+milissegundos continua funcionando exatamente como antes, no mesmo campo.
+
+> **Regras** — `end_date` e `end_time` (horário) andam juntos: um sem o outro é
+> recusado; não podem ser combinados com `end_time` em milissegundos; e o prazo
+> resultante precisa estar no futuro e dentro de 1 ano, igual ao formato em
+> milissegundos.
 
 ### `POST /send/presence`
 Define seu status global (`available` / `unavailable`).

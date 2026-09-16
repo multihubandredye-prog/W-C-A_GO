@@ -1456,7 +1456,13 @@ func (service serviceSend) SendPoll(ctx context.Context, request domainSend.Poll
 
 	msg := client.BuildPollCreation(request.Question, request.Options, request.MaxAnswer)
 
-	applyPollEndTime(msg, request.EndTime)
+	// Prazo em Unix ms: end_time numérico (ms) ou end_date + end_time
+	// "HH:MM:SS" no fuso de Brasília, resolvidos em um único lugar.
+	endMillis, err := validations.ResolvePollEndMillis(request.EndTime, request.EndDate)
+	if err != nil {
+		return response, err
+	}
+	applyPollEndTime(msg, endMillis)
 
 	if request.BaseRequest.Duration != nil && *request.BaseRequest.Duration > 0 {
 		if msg.PollCreationMessage.ContextInfo == nil {

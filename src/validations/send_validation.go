@@ -4,8 +4,12 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+	// Embeds the IANA time zone database, so America/Sao_Paulo resolves even
+	// inside containers without tzdata installed.
+	_ "time/tzdata"
 
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
 	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
@@ -506,11 +510,134 @@ func validatePollEndTime(endTime *int64) error {
 		return pkgError.ValidationError("end_time must be in the future")
 	}
 
-	const maxWindow = 365 * 24 * time.Hour
-	if value > now+maxWindow.Milliseconds() {
+	if value > now+maxPollEndWindowMillis {
 		return pkgError.ValidationError("end_time must be at most 1 year in the future")
 	}
 
+	return nil
+}
+
+// maxPollEndWindowMillis limits how far ahead a poll deadline can be set,
+// expressed in Unix milliseconds (365 days). Shared by both deadline formats.
+const maxPollEndWindowMillis = int64(365 * 24 * time.Hour / time.Millisecond)
+
+// pollDeadlineLocation is the timezone that interprets the end_date +
+// end_time "HH:MM:SS" pair: Brasília time. Brazil has not observed DST since
+// 2019, but using the IANA zone keeps this correct if that ever changes.
+var pollDeadlineLocation = mustLoadPollDeadlineLocation()
+
+func mustLoadPollDeadlineLocation() *time.Location {
+	location, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		panic("validations: cannot load America/Sao_Paulo: " + err.Error())
+	}
+	return location
+}
+
+// parsePollEndDate accepts "2006-01-02" (ISO) and "02/01/2006" (Brazilian)
+// day formats for the poll deadline.
+func parsePollEndDate(value string) (time.Time, error) {
+	value = strings.TrimSpace(value)
+	for _, layout := range []string{"2006-01-02", "02/01/2006"} {
+		if parsed, err := time.ParseInLocation(layout, value, pollDeadlineLocation); err == nil {
+			return parsed, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf(`end_date must be "YYYY-MM-DD" or "DD/MM/YYYY"`)
+}
+
+// parsePollEndClock accepts "15:04:05" and "15:04" (seconds default to 00).
+func parsePollEndClock(value string) (hour, minute, second int, err error) {
+	value = strings.TrimSpace(value)
+	parts := strings.Split(value, ":")
+	if len(parts) != 2 && len(parts) != 3 {
+		return 0, 0, 0, fmt.Errorf(`end_time must be "HH:MM:SS" or "HH:MM"`)
+	}
+
+	numbers := make([]int, len(parts))
+	for i, part := range parts {
+		number, convErr := strconv.Atoi(strings.TrimSpace(part))
+		if convErr != nil || number < 0 {
+			return 0, 0, 0, fmt.Errorf(`end_time must be "HH:MM:SS" or "HH:MM"`)
+		}
+		numbers[i] = number
+	}
+
+	hour, minute, second = numbers[0], numbers[1], 0
+	if len(numbers) == 3 {
+		second = numbers[2]
+	}
+	if hour > 23 || minute > 59 || second > 59 {
+		return 0, 0, 0, fmt.Errorf("end_time %q is not a valid time of day", value)
+	}
+	return hour, minute, second, nil
+}
+
+// ResolvePollEndMillis is the single source of truth for turning the poll
+// deadline fields into the Unix milliseconds used downstream. It accepts both
+// formats of the auto-close deadline: a numeric end_time (milliseconds,
+// passthrough) and the human friendly end_date + end_time "HH:MM:SS" pair,
+// combined in Brasília time. It checks formats and conflicts only; deadline
+// sanity (future, at most 1 year ahead) stays in ValidateSendPoll.
+func ResolvePollEndMillis(endTime *domainSend.PollEndTime, endDate *string) (*int64, error) {
+	if endTime == nil && endDate == nil {
+		return nil, nil
+	}
+
+	if endTime != nil && endTime.Millis != nil {
+		if endDate != nil {
+			return nil, pkgError.ValidationError(`end_date cannot be combined with a numeric end_time (milliseconds); use end_time "HH:MM:SS" together with end_date, or end_time alone in milliseconds`)
+		}
+		return endTime.Millis, nil
+	}
+
+	if endTime != nil && endTime.Clock != nil {
+		if endDate == nil {
+			return nil, pkgError.ValidationError(`end_time "HH:MM:SS" requires end_date`)
+		}
+		day, err := parsePollEndDate(*endDate)
+		if err != nil {
+			return nil, pkgError.ValidationError(err.Error())
+		}
+		hour, minute, second, err := parsePollEndClock(*endTime.Clock)
+		if err != nil {
+			return nil, pkgError.ValidationError(err.Error())
+		}
+		deadline := time.Date(day.Year(), day.Month(), day.Day(), hour, minute, second, 0, pollDeadlineLocation)
+		millis := deadline.UnixMilli()
+		return &millis, nil
+	}
+
+	if endDate != nil {
+		return nil, pkgError.ValidationError(`end_date requires end_time "HH:MM:SS"`)
+	}
+
+	// endTime present but empty (JSON null or a blank form value): no deadline.
+	return nil, nil
+}
+
+// validatePollDeadline applies the same future / 1-year window to both
+// deadline formats. The end_date + end_time path gets its own message naming
+// the fields, because there the milliseconds value is computed by the API,
+// not sent by the client.
+func validatePollDeadline(resolved *int64, fromDateClock bool) error {
+	if resolved == nil {
+		return nil
+	}
+	if !fromDateClock {
+		return validatePollEndTime(resolved)
+	}
+
+	value := *resolved
+	now := time.Now().UnixMilli()
+	human := time.UnixMilli(value).In(pollDeadlineLocation).Format("02/01/2006 15:04:05")
+
+	if value <= now {
+		return pkgError.ValidationError(fmt.Sprintf("end_date + end_time (%s Brasília time) must be in the future", human))
+	}
+	if value > now+maxPollEndWindowMillis {
+		return pkgError.ValidationError(fmt.Sprintf("end_date + end_time (%s Brasília time) must be at most 1 year in the future", human))
+	}
 	return nil
 }
 
@@ -553,8 +680,14 @@ func ValidateSendPoll(ctx context.Context, request domainSend.PollRequest) error
 		uniqueOptions[option] = true
 	}
 
-	// validate optional poll end time (auto-close)
-	if err := validatePollEndTime(request.EndTime); err != nil {
+	// validate optional poll end time (auto-close): numeric milliseconds or
+	// end_date + end_time "HH:MM:SS" interpreted in Brasília time
+	resolvedEndMillis, err := ResolvePollEndMillis(request.EndTime, request.EndDate)
+	if err != nil {
+		return err
+	}
+	fromDateClock := request.EndTime != nil && request.EndTime.Clock != nil
+	if err := validatePollDeadline(resolvedEndMillis, fromDateClock); err != nil {
 		return err
 	}
 

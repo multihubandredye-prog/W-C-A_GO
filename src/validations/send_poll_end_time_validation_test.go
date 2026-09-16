@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestValidateSendPoll_EndTime covers the optional poll end time (auto-close),
-// which the API receives in Unix milliseconds and WhatsApp expects in seconds.
+// TestValidateSendPoll_EndTime covers the optional poll end time (auto-close)
+// sent as Unix milliseconds, which the API forwards to WhatsApp unchanged.
 func TestValidateSendPoll_EndTime(t *testing.T) {
 	const group = "120363000000000000@g.us"
 
@@ -24,55 +24,52 @@ func TestValidateSendPoll_EndTime(t *testing.T) {
 		}
 	}
 
-	type args struct {
-		endTime *int64
-	}
 	tests := []struct {
-		name string
-		args args
-		err  any
+		name    string
+		endTime *domainSend.PollEndTime
+		err     any
 	}{
 		{
-			name: "should success without end_time (poll stays open forever)",
-			args: args{endTime: nil},
-			err:  nil,
+			name:    "should success without end_time (poll stays open forever)",
+			endTime: nil,
+			err:     nil,
 		},
 		{
-			name: "should success with a valid deadline in the future",
-			args: args{endTime: int64Ptr(time.Now().Add(2 * time.Hour).UnixMilli())},
-			err:  nil,
+			name:    "should success with a valid deadline in the future",
+			endTime: pollEndTimeMillis(time.Now().Add(2 * time.Hour).UnixMilli()),
+			err:     nil,
 		},
 		{
-			name: "should error when end_time is zero",
-			args: args{endTime: int64Ptr(0)},
-			err:  pkgError.ValidationError("end_time must be a positive Unix timestamp in milliseconds"),
+			name:    "should error when end_time is zero",
+			endTime: pollEndTimeMillis(0),
+			err:     pkgError.ValidationError("end_time must be a positive Unix timestamp in milliseconds"),
 		},
 		{
-			name: "should error when end_time is negative",
-			args: args{endTime: int64Ptr(-1)},
-			err:  pkgError.ValidationError("end_time must be a positive Unix timestamp in milliseconds"),
+			name:    "should error when end_time is negative",
+			endTime: pollEndTimeMillis(-1),
+			err:     pkgError.ValidationError("end_time must be a positive Unix timestamp in milliseconds"),
 		},
 		{
-			name: "should error when end_time is already in the past",
-			args: args{endTime: int64Ptr(time.Now().Add(-1 * time.Minute).UnixMilli())},
-			err:  pkgError.ValidationError("end_time must be in the future"),
+			name:    "should error when end_time is already in the past",
+			endTime: pollEndTimeMillis(time.Now().Add(-1 * time.Minute).UnixMilli()),
+			err:     pkgError.ValidationError("end_time must be in the future"),
 		},
 		{
-			name: "should error when end_time is more than one year ahead",
-			args: args{endTime: int64Ptr(time.Now().Add(366 * 24 * time.Hour).UnixMilli())},
-			err:  pkgError.ValidationError("end_time must be at most 1 year in the future"),
+			name:    "should error when end_time is more than one year ahead",
+			endTime: pollEndTimeMillis(time.Now().Add(366 * 24 * time.Hour).UnixMilli()),
+			err:     pkgError.ValidationError("end_time must be at most 1 year in the future"),
 		},
 		{
-			name: "should error when end_time was sent in seconds instead of milliseconds",
-			args: args{endTime: int64Ptr(1789938000)},
-			err:  pkgError.ValidationError("end_time looks like Unix seconds (1789938000); send it in milliseconds (1789938000000)"),
+			name:    "should error when end_time was sent in seconds instead of milliseconds",
+			endTime: pollEndTimeMillis(1789938000),
+			err:     pkgError.ValidationError("end_time looks like Unix seconds (1789938000); send it in milliseconds (1789938000000)"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := baseRequest()
-			request.EndTime = tt.args.endTime
+			request.EndTime = tt.endTime
 
 			err := ValidateSendPoll(context.Background(), request)
 			assert.Equal(t, tt.err, err)
@@ -92,6 +89,7 @@ func TestValidateSendPoll_ExistingBehaviourUnchanged(t *testing.T) {
 
 	assert.NoError(t, ValidateSendPoll(context.Background(), poll))
 	assert.Nil(t, poll.EndTime, "end_time must stay optional and empty when not informed")
+	assert.Nil(t, poll.EndDate, "end_date must stay optional and empty when not informed")
 
 	// Disappearing-message duration keeps its own validation, untouched.
 	disappearing := poll
@@ -106,8 +104,8 @@ func TestValidateSendPoll_ExistingBehaviourUnchanged(t *testing.T) {
 	)
 }
 
-func int64Ptr(value int64) *int64 {
-	return &value
+func pollEndTimeMillis(value int64) *domainSend.PollEndTime {
+	return &domainSend.PollEndTime{Millis: &value}
 }
 
 func intPtr(value int) *int {
