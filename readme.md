@@ -76,7 +76,7 @@ docker compose up -d
 
 ### A partir do código-fonte
 
-Requer Go 1.25 ou superior.
+Requer Go 1.26 ou superior.
 
 ```bash
 cd src
@@ -368,6 +368,71 @@ curl -X POST http://localhost:3000/send/message \
     "reply_message_id": "3EB0C767D26B8CA1B7F2"
   }'
 ```
+
+#### Menções
+
+Existem duas formas de mencionar:
+
+**1. Menção normal — `@numero` visível no texto**
+
+Basta escrever `@numero` na mensagem. A API converte para o JID automaticamente:
+
+```bash
+curl -X POST http://localhost:3000/send/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "message": "Bom dia @5588999999999, tudo certo?"
+  }'
+```
+
+**2. Menções fantasmas (ghost mentions) — sem `@numero` no texto**
+
+Aqui o participante é notificado, mas **nada aparece no texto da mensagem**
+(nem `@`, nem número). Use o campo `mentions` com a lista de telefones ou JIDs:
+
+```bash
+curl -X POST http://localhost:3000/send/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "message": "Atenção equipe, reunião às 14h.",
+    "mentions": ["5588999999999", "5588988888888"]
+  }'
+```
+
+**3. Mencionar todos do grupo — `@everyone`**
+
+Dentro do campo `mentions`, use a palavra-chave especial `@everyone`: a API busca
+os participantes do grupo e menciona todos sem poluir o texto.
+
+```bash
+curl -X POST http://localhost:3000/send/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "message": "Aviso importante para todo o grupo!",
+    "mentions": ["@everyone"]
+  }'
+```
+
+Também é possível **misturar**:
+
+```bash
+curl -X POST http://localhost:3000/send/message \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "120363XXXXXXXXXX@g.us",
+    "message": "Favor confirmar presença.",
+    "mentions": ["@everyone", "5588977777777"]
+  }'
+```
+
+> **Observações**
+> - `@everyone` só funciona em **grupos** (`@g.us`); em conversa individual é ignorado.
+> - A menção normal por `@numero` no texto e o campo `mentions` podem ser usados juntos — a API remove duplicados.
+> - Telefones em `mentions` também são aceitos no formato `@everyone` apenas como palavra-chave; os demais devem estar em formato internacional (`5588999999999`), sem `0` na frente.
+> - O campo `mentions` também está disponível no servidor **MCP** (`send_message`).
 
 ### `POST /send/image`
 Envia imagem (upload de arquivo).

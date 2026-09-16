@@ -1,3 +1,8 @@
+[16/09/2026]
+➪ API atualizada para a versão mais recente da biblioteca whatsmeow, responsável pela conexão com o WhatsApp Web, trazendo mais estabilidade, correções de protocolo e maior compatibilidade com as mudanças recentes do WhatsApp.
+
+➪ Suporte a menções fantasmas no envio de mensagens: agora é possível mencionar um ou vários participantes do grupo, ou todos de uma vez usando "@everyone", sem que o @número apareça no texto da mensagem.
+
 [11/08/2026]
 ➪ Agora, a API respeita rigorosamente a variável WHATSAPP_PRESENCE_ON_CONNECT=unavailable, iniciando a sessão como offline/indisponível logo após a conexão.
 

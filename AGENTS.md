@@ -6,7 +6,7 @@ Branch: feat/daily-presence-pulse
 
 ## OVERVIEW
 
-Go WhatsApp Web Multi-Device is a Go 1.25.5 WhatsApp Web API server with REST and MCP SSE modes. It uses whatsmeow for multi-device WhatsApp sessions, Fiber for REST, plain Vue 3 modules for the embedded UI, and SQLite-backed chat/session storage by default.
+Go WhatsApp Web Multi-Device is a Go 1.26.0 WhatsApp Web API server with REST and MCP SSE modes. It uses whatsmeow for multi-device WhatsApp sessions, Fiber for REST, plain Vue 3 modules for the embedded UI, and SQLite-backed chat/session storage by default.
 
 ## STRUCTURE
 
@@ -113,7 +113,8 @@ docker compose up --build
 
 ## NOTES
 
-- Docker builds use `docker/golang.Dockerfile`, Go `1.25-alpine3.23`, CGO, and a final non-root `gowauser` process after the entrypoint fixes volume ownership.
+- Docker builds use `docker/golang.Dockerfile`, Go `1.26-alpine3.23`, CGO, and a final non-root `gowauser` process after the entrypoint fixes volume ownership.
+- The Go toolchain floor is `1.26.0` because `go.mau.fi/whatsmeow` bumped its minimum Go version; `.github/workflows/build-and-release.yml` and `docker/golang.Dockerfile` must stay in sync with it.
 - Docker publish is tag/manual driven. Arch-specific `-amd`, `-arm`, and `-armv7` images are merged into a versioned manifest; `latest` is promoted by a separate manual workflow.
 - `release.yml` declares `workflow_dispatch`, but jobs are guarded to tag pushes, so manual dispatch currently skips release jobs.
 - `AppVersion` is hard-coded in `src/config/settings.go`; release workflows do not inject it with ldflags.
