@@ -1082,9 +1082,12 @@ curl -X POST http://localhost:3000/send/call \
 
 **Comportamento com áudio** — quando `audio_url` ou `audio_path` é informado:
 
+- a conexão de mídia é aberta já na discagem (com silêncio), então a chamada sai do "Conectando..." assim que o destinatário atende;
 - o áudio só começa a tocar quando o destinatário **atende**, do **início do arquivo** (não mais a partir do meio);
 - a chamada é **encerrada automaticamente ao fim do áudio** — sem silêncio morto esperando o timer;
 - `duration` continua sendo o **tempo máximo**: se o áudio for mais longo que ele, a chamada cai no limite; se for mais curto, cai no fim do áudio (o que ocorrer primeiro). Se ninguém atender, a chamada toca e desliga sozinha após `duration + 45s`.
+
+Chamadas **sem áudio** também conectam normalmente (o destinatário atende e ouve silêncio) e são encerradas no limite de `duration`.
 
 ---
 

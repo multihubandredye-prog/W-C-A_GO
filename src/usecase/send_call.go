@@ -95,6 +95,14 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		return response, pkgError.InternalServerError(fmt.Sprintf("Failed to initiate call: %v", err))
 	}
 
+	// Outbound media must flow from the moment the call is placed: the relay
+	// only bridges the peer's media after seeing our stream, which is what
+	// takes an answered call out of "Conectando...". Play explicit silence
+	// right away (empirically required: without it answered calls stayed on
+	// "Conectando..."), then swap it for the real audio when the call becomes
+	// active so the peer hears the file from the very beginning.
+	warmupSilence := call.Play(meowcaller.PCMStream(endlessSilence{}))
+
 	// durationSec is the maximum wall time the call may last. When audio is
 	// provided the call also ends as soon as the audio finishes, whichever
 	// comes first.
@@ -107,14 +115,13 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		logrus.Infof("Peer accepted call %s; relay negotiation in progress...", call.ID())
 	})
 
-	// meowcaller keeps the relay bridged with automatic silence frames while no
-	// player is attached, so the audio only needs to start when the call is
-	// actually ready: the peer hears the file from the very beginning instead
-	// of joining mid-playback.
 	call.OnReady(func() {
 		logrus.Infof("Call %s is ready (media flowing); starting duration timer (%ds max)", call.ID(), durationSec)
 
 		if mp3Source != nil {
+			// Swap the warm-up silence for the real audio: the peer hears the
+			// file from the very beginning.
+			warmupSilence.Stop()
 			logrus.Infof("Call %s: playing audio for the peer", call.ID())
 			player := call.Play(mp3Source)
 			// Hang up as soon as the audio ends: no dead silence until the
@@ -133,6 +140,12 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 
 	call.OnEnd(func(reason string) {
 		logrus.Infof("Call %s ended with reason: %s", call.ID(), reason)
+		warmupSilence.Stop()
+		if mp3Source != nil {
+			// AudioSource.Close is safe to call more than once, so this also
+			// covers calls that ended before the audio was ever played.
+			_ = mp3Source.Close()
+		}
 	})
 
 	// Fallback timeout in case the call rings forever and is never answered or ready
@@ -145,3 +158,18 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 	response.Status = fmt.Sprintf("Call initiated successfully to %s (max duration %ds; audio starts when the peer answers)", request.Phone, durationSec)
 	return response, nil
 }
+
+// endlessSilence is an io.ReadCloser that yields an infinite stream of zero
+// bytes — raw s16le silence for meowcaller.PCMStream. It keeps outbound RTP
+// flowing from dial time until the real audio takes over, without ever
+// surfacing sound to the peer.
+type endlessSilence struct{}
+
+func (endlessSilence) Read(p []byte) (int, error) {
+	for i := range p {
+		p[i] = 0
+	}
+	return len(p), nil
+}
+
+func (endlessSilence) Close() error { return nil }
