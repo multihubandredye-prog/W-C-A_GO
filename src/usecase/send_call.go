@@ -89,9 +89,15 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 	caller := meowcaller.NewClient(client)
 	call, err := caller.Call(ctx, recipient.String())
 	if err != nil {
+		if mp3Source != nil {
+			_ = mp3Source.Close()
+		}
 		return response, pkgError.InternalServerError(fmt.Sprintf("Failed to initiate call: %v", err))
 	}
 
+	// durationSec is the maximum wall time the call may last. When audio is
+	// provided the call also ends as soon as the audio finishes, whichever
+	// comes first.
 	durationSec := 15
 	if request.Duration != nil && *request.Duration > 0 {
 		durationSec = *request.Duration
@@ -101,8 +107,24 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		logrus.Infof("Peer accepted call %s; relay negotiation in progress...", call.ID())
 	})
 
+	// meowcaller keeps the relay bridged with automatic silence frames while no
+	// player is attached, so the audio only needs to start when the call is
+	// actually ready: the peer hears the file from the very beginning instead
+	// of joining mid-playback.
 	call.OnReady(func() {
-		logrus.Infof("Call %s is ready (RTP/relay media flowing); starting duration timer (%ds)", call.ID(), durationSec)
+		logrus.Infof("Call %s is ready (media flowing); starting duration timer (%ds max)", call.ID(), durationSec)
+
+		if mp3Source != nil {
+			logrus.Infof("Call %s: playing audio for the peer", call.ID())
+			player := call.Play(mp3Source)
+			// Hang up as soon as the audio ends: no dead silence until the
+			// duration timer expires.
+			player.OnFinish(func() {
+				logrus.Infof("Call %s: audio finished; hanging up", call.ID())
+				_ = call.Hangup()
+			})
+		}
+
 		go func() {
 			time.Sleep(time.Duration(durationSec) * time.Second)
 			_ = call.Hangup()
@@ -113,13 +135,6 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		logrus.Infof("Call %s ended with reason: %s", call.ID(), reason)
 	})
 
-	// Play audio source immediately so meowcaller streams RTP packets to the relay.
-	// Sending outgoing RTP is required to complete NAT traversal and transition WhatsApp
-	// from "Connecting..." to connected audio playback.
-	if mp3Source != nil {
-		call.Play(mp3Source)
-	}
-
 	// Fallback timeout in case the call rings forever and is never answered or ready
 	go func() {
 		time.Sleep(time.Duration(durationSec+45) * time.Second)
@@ -127,6 +142,6 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 	}()
 
 	response.CallID = call.ID()
-	response.Status = fmt.Sprintf("Call initiated successfully to %s (duration %ds)", request.Phone, durationSec)
+	response.Status = fmt.Sprintf("Call initiated successfully to %s (max duration %ds; audio starts when the peer answers)", request.Phone, durationSec)
 	return response, nil
 }

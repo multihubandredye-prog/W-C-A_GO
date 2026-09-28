@@ -1076,9 +1076,15 @@ curl -X POST http://localhost:3000/send/call \
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `phone` | string | **Obrigatório.** Número do destinatário com DDI e DDD |
-| `duration` | int | *Opcional.* Duração da chamada em segundos antes de desligar (padrão 15s) |
+| `duration` | int | *Opcional.* Tempo **máximo** da chamada em segundos (padrão 15s) |
 | `audio_url` | string | *Opcional.* URL pública (http/https) do áudio MP3 para a API baixar e tocar na chamada |
 | `audio_path` | string | *Opcional.* Áudio em formato Base64 (`data:audio/...;base64,...` ou string bruta) OU caminho de arquivo MP3 local *dentro do servidor da API* |
+
+**Comportamento com áudio** — quando `audio_url` ou `audio_path` é informado:
+
+- o áudio só começa a tocar quando o destinatário **atende**, do **início do arquivo** (não mais a partir do meio);
+- a chamada é **encerrada automaticamente ao fim do áudio** — sem silêncio morto esperando o timer;
+- `duration` continua sendo o **tempo máximo**: se o áudio for mais longo que ele, a chamada cai no limite; se for mais curto, cai no fim do áudio (o que ocorrer primeiro). Se ninguém atender, a chamada toca e desliga sozinha após `duration + 45s`.
 
 ---
 

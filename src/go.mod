@@ -14,7 +14,7 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/mark3labs/mcp-go v0.54.0
 	github.com/mattn/go-sqlite3 v1.14.52
-	github.com/purpshell/meowcaller v0.0.0-20260726180203-6d9b7b2c1807
+	github.com/purpshell/meowcaller v0.0.0-20260811012811-27a3c6b18657
 	github.com/sirupsen/logrus v1.9.4
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.10.2

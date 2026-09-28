@@ -110,8 +110,8 @@ github.com/pion/sctp v1.9.4/go.mod h1:N20Dq6LY+JvJDAh9VVh1JELngb2rQ8dPgds5yBWiPg
 github.com/pion/transport/v4 v4.0.1 h1:sdROELU6BZ63Ab7FrOLn13M6YdJLY20wldXW2Cu2k8o=
 github.com/pion/transport/v4 v4.0.1/go.mod h1:nEuEA4AD5lPdcIegQDpVLgNoDGreqM/YqmEx3ovP4jM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/purpshell/meowcaller v0.0.0-20260726180203-6d9b7b2c1807 h1:SnLX76CnagumooXRm63BK9Rn2/e/Th6aWWJJKTqOk2k=
-github.com/purpshell/meowcaller v0.0.0-20260726180203-6d9b7b2c1807/go.mod h1:kSME01MaSkwul6tSmExmgBWUOmfkw3DNpfnozsn01eE=
+github.com/purpshell/meowcaller v0.0.0-20260811012811-27a3c6b18657 h1:RBP68e6jhDKkWIi0+TvKuLxlp3ntZi2qgh9HWaTYpxI=
+github.com/purpshell/meowcaller v0.0.0-20260811012811-27a3c6b18657/go.mod h1:kSME01MaSkwul6tSmExmgBWUOmfkw3DNpfnozsn01eE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
