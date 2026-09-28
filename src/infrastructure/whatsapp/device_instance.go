@@ -6,6 +6,7 @@ import (
 
 	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
 	domainDevice "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/device"
+	"github.com/purpshell/meowcaller"
 	"go.mau.fi/whatsmeow"
 )
 
@@ -21,6 +22,11 @@ type DeviceInstance struct {
 	jid             string
 	createdAt       time.Time
 	onLoggedOut     func(deviceID string) // Callback for remote logout cleanup
+
+	// caller is the meowcaller VoIP client bound to this device's whatsmeow
+	// client. It MUST be created before the whatsmeow client connects (see
+	// NewMeowCaller); it is what makes outbound calls leave "Conectando...".
+	caller *meowcaller.Client
 }
 
 func NewDeviceInstance(deviceID string, client *whatsmeow.Client, chatStorageRepo domainChatStorage.IChatStorageRepository) *DeviceInstance {
@@ -39,6 +45,7 @@ func NewDeviceInstance(deviceID string, client *whatsmeow.Client, chatStorageRep
 		displayName:     display,
 		jid:             jid,
 		createdAt:       time.Now(),
+		caller:          NewMeowCaller(client),
 	}
 }
 
@@ -50,6 +57,14 @@ func (d *DeviceInstance) GetClient() *whatsmeow.Client {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	return d.client
+}
+
+// GetCaller returns the meowcaller VoIP client bound to this device's
+// whatsmeow client, or nil when there is none (no client / legacy instance).
+func (d *DeviceInstance) GetCaller() *meowcaller.Client {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.caller
 }
 
 func (d *DeviceInstance) GetChatStorage() domainChatStorage.IChatStorageRepository {
@@ -97,6 +112,9 @@ func (d *DeviceInstance) SetClient(client *whatsmeow.Client) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.client = client
+	// Rebind the VoIP caller to the new client while it is still
+	// disconnected, so the call interception is in place before connecting.
+	d.caller = NewMeowCaller(client)
 	d.refreshIdentityLocked()
 	d.state = domainDevice.DeviceStateDisconnected
 }

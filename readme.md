@@ -1089,6 +1089,12 @@ curl -X POST http://localhost:3000/send/call \
 
 Chamadas **sem áudio** também conectam normalmente (o destinatário atende e ouve silêncio) e são encerradas no limite de `duration`.
 
+> **Após atualizar a API**, reinicie o processo por completo: a intercepção de
+> chamadas é instalada no momento em que a sessão do WhatsApp conecta, e sem o
+> reinício as chamadas atendidas podem continuar presas em "Conectando...". Os
+> eventos da chamada aparecem nos logs do servidor com o prefixo
+> `[meowcaller]`.
+
 ---
 
 ## 7. Gerenciar mensagens

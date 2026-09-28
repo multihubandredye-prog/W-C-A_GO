@@ -86,7 +86,21 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		}
 	}
 
-	caller := meowcaller.NewClient(client)
+	// The meowcaller client must be the one created before the whatsmeow
+	// client connected (it carries the low-level call interception that
+	// learns the relay endpoint when the peer answers). Creating it here,
+	// per request, silently breaks answered calls into an eternal
+	// "Conectando...". Reuse the device's caller; the fallback exists only
+	// for unexpected paths and logs loudly.
+	var caller *meowcaller.Client
+	if instance, ok := whatsapp.DeviceFromContext(ctx); ok && instance != nil {
+		caller = instance.GetCaller()
+	}
+	if caller == nil {
+		logrus.Warn("meowcaller client unavailable on device instance; creating it after connect (answered calls may stay on \"Conectando...\" until the API process restarts)")
+		caller = meowcaller.NewClient(client)
+	}
+
 	call, err := caller.Call(ctx, recipient.String())
 	if err != nil {
 		if mp3Source != nil {
