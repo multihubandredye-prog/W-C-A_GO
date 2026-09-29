@@ -56,9 +56,6 @@
         </div>
         <p>
             Using device: <b>[[ selectedDeviceId ]]</b>
-            <button class="ui mini icon button" type="button" title="Copy device ID" @click="copySelectedDeviceId">
-                <i class="copy icon"></i>
-            </button>
             <span v-if="selectedDevice && (selectedDevice.display_name || selectedDevice.phone_number)">
                 — <i class="user icon"></i> <b>[[ selectedDevice.display_name || selectedDevice.phone_number ]]</b>
             </span>.
@@ -359,11 +356,6 @@
                 const deviceQuery = encodeURIComponent(this.selectedDeviceId);
                 const pathPrefix = basePath || '';
                 return `${protocol}${location.host}${pathPrefix}/ws?device_id=${deviceQuery}`;
-            },
-            copySelectedDeviceId() {
-                if (this.selectedDeviceId) {
-                    window.copyToClipboard(this.selectedDeviceId);
-                }
             },
             handleReloadDevice() {
                 if (this.$refs.deviceManager) {

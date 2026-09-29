@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -44,7 +45,31 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 	}()
 
 	var mp3Source meowcaller.AudioSource
-	if request.AudioURL != "" {
+	if request.Audio != nil {
+		// Uploaded file (multipart): persist to a temp file so meowcaller's
+		// MP3 decoder can stream it, exactly like the URL/base64 paths.
+		uploaded, errOpen := request.Audio.Open()
+		if errOpen != nil {
+			return response, pkgError.ValidationError(fmt.Sprintf("failed to open the uploaded audio file: %v", errOpen))
+		}
+		audioBytes, errRead := io.ReadAll(uploaded)
+		_ = uploaded.Close()
+		if errRead != nil {
+			return response, pkgError.ValidationError(fmt.Sprintf("failed to read the uploaded audio file: %v", errRead))
+		}
+		tempAudioPath = fmt.Sprintf("%s/temp_call_%s.mp3", config.PathMedia, fiberUtils.UUIDv4())
+		if errWrite := os.WriteFile(tempAudioPath, audioBytes, 0644); errWrite != nil {
+			return response, pkgError.InternalServerError(fmt.Sprintf("failed to write temp audio file: %v", errWrite))
+		}
+		deleteTempFile = true
+		if mp3, errMP3 := meowcaller.MP3File(tempAudioPath); errMP3 == nil {
+			mp3Source = mp3
+		} else {
+			// Fail fast with a clear message: the upload is a user action,
+			// unlike the legacy paths which only warn and keep the call.
+			return response, pkgError.ValidationError("the uploaded audio file must be a valid MP3")
+		}
+	} else if request.AudioURL != "" {
 		audioBytes, _, errDownload := utils.DownloadAudioFromURL(request.AudioURL)
 		if errDownload != nil {
 			return response, pkgError.ValidationError(fmt.Sprintf("failed to download audio from URL: %v", errDownload))

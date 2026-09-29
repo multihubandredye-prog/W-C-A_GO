@@ -12,6 +12,7 @@ export default {
             type: window.TYPEUSER,
             loading: false,
             duration: 15,
+            audio_file: null,
             audio_url: '',
             audio_path: '',
         }
@@ -19,6 +20,9 @@ export default {
     computed: {
         phone_id() {
             return this.phone + this.type;
+        },
+        hasAudioSource() {
+            return !!(this.audio_file || this.audio_url.trim() || this.audio_path.trim());
         }
     },
     methods: {
@@ -28,6 +32,23 @@ export default {
                     return false;
                 }
             }).modal('show');
+        },
+        onFileChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (file) {
+                // The audio sources are mutually exclusive.
+                this.audio_url = '';
+                this.audio_path = '';
+                this.audio_file = file;
+            } else {
+                this.audio_file = null;
+            }
+        },
+        clearAudioFile() {
+            this.audio_file = null;
+            if (this.$refs.audioFileInput) {
+                this.$refs.audioFileInput.value = '';
+            }
         },
         isValidForm() {
             if (this.type !== window.TYPESTATUS && !this.phone.trim()) {
@@ -53,6 +74,18 @@ export default {
         async submitApi() {
             this.loading = true;
             try {
+                if (this.audio_file) {
+                    // Real file upload: multipart/form-data.
+                    const form = new FormData();
+                    form.append('phone', this.phone_id);
+                    form.append('duration', this.duration);
+                    form.append('audio', this.audio_file);
+
+                    const response = await window.http.post(`/send/call`, form)
+                    this.handleReset();
+                    return response.data.message;
+                }
+
                 const payload = {
                     phone: this.phone_id,
                     duration: this.duration
@@ -76,6 +109,7 @@ export default {
             this.phone = '';
             this.type = window.TYPEUSER;
             this.duration = 15;
+            this.clearAudioFile();
             this.audio_url = '';
             this.audio_path = '';
         }
@@ -109,19 +143,33 @@ export default {
                         Maximum call time. With audio, the call also ends when the file finishes.
                     </div>
                 </div>
+
                 <div class="field">
+                    <label>Audio File (MP3)</label>
+                    <div class="ui action input">
+                        <input ref="audioFileInput" type="file" accept="audio/mpeg,.mp3"
+                               @change="onFileChange" aria-label="call audio file">
+                        <button class="ui icon button" type="button" title="Clear file"
+                                v-if="audio_file" @click="clearAudioFile">
+                            <i class="trash icon"></i>
+                        </button>
+                    </div>
+                    <div class="ui pointing label">
+                        Upload the audio file to play when the recipient answers.
+                        Only one audio source: the file, a URL or Base64.
+                    </div>
+                </div>
+
+                <div class="field" :class="{'disabled': !!audio_file}">
                     <label>Audio URL (optional, MP3)</label>
                     <input v-model="audio_url" type="text" placeholder="https://meusite.com/audio/alerta.mp3"
-                           aria-label="call audio url">
+                           aria-label="call audio url" :disabled="!!audio_file">
                 </div>
-                <div class="field">
+                <div class="field" :class="{'disabled': !!audio_file}">
                     <label>Audio Base64 (optional, MP3)</label>
                     <textarea v-model="audio_path" rows="2"
                               placeholder="data:audio/mp3;base64,... or a raw base64 string"
-                              aria-label="call audio base64"></textarea>
-                    <div class="ui pointing label">
-                        The audio starts from the beginning when the recipient answers.
-                    </div>
+                              aria-label="call audio base64" :disabled="!!audio_file"></textarea>
                 </div>
             </form>
         </div>

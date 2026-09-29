@@ -880,5 +880,25 @@ func ValidateSendCall(ctx context.Context, request domainSend.CallRequest) error
 		return pkgError.ValidationError(err.Error())
 	}
 
-	return validatePhoneNumber(request.Phone)
+	if err := validatePhoneNumber(request.Phone); err != nil {
+		return err
+	}
+
+	// Audio sources are mutually exclusive: an uploaded file, a base64/path
+	// string or a URL — exactly one at a time.
+	audioSources := 0
+	if request.Audio != nil {
+		audioSources++
+	}
+	if request.AudioPath != "" {
+		audioSources++
+	}
+	if request.AudioURL != "" {
+		audioSources++
+	}
+	if audioSources > 1 {
+		return pkgError.ValidationError("only one audio source is allowed: either the uploaded file (audio), audio_path or audio_url")
+	}
+
+	return nil
 }

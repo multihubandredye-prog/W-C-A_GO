@@ -1073,12 +1073,21 @@ curl -X POST http://localhost:3000/send/call \
   }'
 ```
 
+```bash
+# Exemplo 4: Chamada com upload do arquivo de áudio (multipart/form-data)
+curl -X POST http://localhost:3000/send/call \
+  -F "phone=5588999999999" \
+  -F "duration=30" \
+  -F "audio=@alerta.mp3"
+```
+
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `phone` | string | **Obrigatório.** Número do destinatário com DDI e DDD |
 | `duration` | int | *Opcional.* Tempo **máximo** da chamada em segundos (padrão 15s) |
 | `audio_url` | string | *Opcional.* URL pública (http/https) do áudio MP3 para a API baixar e tocar na chamada |
 | `audio_path` | string | *Opcional.* Áudio em formato Base64 (`data:audio/...;base64,...` ou string bruta) OU caminho de arquivo MP3 local *dentro do servidor da API* |
+| `audio` | file | *Opcional.* Arquivo MP3 enviado via `multipart/form-data` (upload direto, usado pela página web). **Apenas uma** fonte de áudio por chamada: `audio`, `audio_path` ou `audio_url` |
 
 **Comportamento com áudio** — quando `audio_url` ou `audio_path` é informado:
 

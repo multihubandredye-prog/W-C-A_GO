@@ -1,4 +1,5 @@
 [28/09/2026]
+➪ Enviar chamadas de voz com arquivo de áudio direto do navegador: no card de chamada da página web agora é possível escolher um arquivo MP3 do armazenamento (upload), além das opções já existentes de URL e Base64; o endpoint /send/call aceita multipart/form-data (campo "audio"), e apenas uma fonte de áudio por chamada é permitida.
 ➪ Corrigido o problema que fazia as chamadas de voz ficarem presas em "Conectando..." quando o destinatário atendia: a intercepção de chamadas agora é registrada antes da sessão do WhatsApp conectar e a conexão de mídia é aberta já na discagem, então a chamada completa normalmente assim que o usuário atende. Importante: após atualizar, reinicie a API por completo para que a correção tenha efeito.
 
 ➪ Nas chamadas com áudio (audio_url ou audio_path), o arquivo agora começa a tocar do início exatamente quando o usuário atende — e não mais a partir do meio — e a chamada é encerrada automaticamente ao fim do áudio, sem silêncio morto esperando o timer. O campo duration segue como tempo máximo da chamada (o que ocorrer primeiro: fim do áudio ou limite).
