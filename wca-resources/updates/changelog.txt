@@ -1,3 +1,10 @@
+[28/09/2026]
+➪ Corrigido o problema que fazia as chamadas de voz ficarem presas em "Conectando..." quando o destinatário atendia: a intercepção de chamadas agora é registrada antes da sessão do WhatsApp conectar e a conexão de mídia é aberta já na discagem, então a chamada completa normalmente assim que o usuário atende. Importante: após atualizar, reinicie a API por completo para que a correção tenha efeito.
+
+➪ Nas chamadas com áudio (audio_url ou audio_path), o arquivo agora começa a tocar do início exatamente quando o usuário atende — e não mais a partir do meio — e a chamada é encerrada automaticamente ao fim do áudio, sem silêncio morto esperando o timer. O campo duration segue como tempo máximo da chamada (o que ocorrer primeiro: fim do áudio ou limite).
+
+➪ Chamadas sem áudio também conectam normalmente (o destinatário ouve silêncio até o limite de duration) e os eventos da chamada passam a aparecer nos logs do servidor com o prefixo [meowcaller], facilitando diagnósticos.
+
 [16/09/2026]
 ➪ Corrigido o problema que fazia algumas mensagens recebidas em grupos chegarem ao webhook com o tipo "Unknown": álbuns de fotos, convites de grupo, eventos, figurinhas animadas, imagens editadas e outras variantes agora são reportadas com o tipo correto (ex.: AlbumMessage, GroupInviteMessage, EventMessage), inclusive quando a mensagem vem encapsulada nos novos formatos do WhatsApp.
 
