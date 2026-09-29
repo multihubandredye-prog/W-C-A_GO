@@ -14,6 +14,8 @@ export default {
             question: '',
             options: ['', ''],
             max_answer: 1,
+            end_date: '',
+            end_time: '',
             duration: 0,
         }
     },
@@ -47,6 +49,13 @@ export default {
                 return false;
             }
 
+            // Auto-close deadline: both fields together or neither.
+            const hasEndDate = this.end_date.trim() !== '';
+            const hasEndTime = this.end_time.trim() !== '';
+            if (hasEndDate !== hasEndTime) {
+                return false;
+            }
+
             return true;
         },
         async handleSubmit() {
@@ -70,6 +79,9 @@ export default {
                     question: this.question,
                     options: this.options,
                     max_answer: this.max_answer,
+                    ...(this.end_date.trim() && this.end_time.trim()
+                        ? {end_date: this.end_date.trim(), end_time: this.end_time.trim()}
+                        : {}),
                     ...(this.duration && this.duration > 0 ? {duration: this.duration} : {})
                 }
                 const response = await window.http.post(`/send/poll`, payload)
@@ -90,6 +102,8 @@ export default {
             this.question = '';
             this.options = ['', ''];
             this.max_answer = 1;
+            this.end_date = '';
+            this.end_time = '';
             this.duration = 0;
         },
         addOption() {
@@ -149,6 +163,22 @@ export default {
                     <div class="ui pointing label">
                         How many options each user can select
                     </div>
+                </div>
+                <div class="two fields">
+                    <div class="field">
+                        <label>End Date (optional)</label>
+                        <input v-model="end_date" type="text" placeholder="2026-09-20 or 20/09/2026"
+                               aria-label="poll end date">
+                    </div>
+                    <div class="field">
+                        <label>End Time (optional)</label>
+                        <input v-model="end_time" type="text" placeholder="18:00 or 18:00:45"
+                               aria-label="poll end time">
+                    </div>
+                </div>
+                <div class="ui pointing label">
+                    Auto-close deadline (Bras&iacute;lia time): fill BOTH fields to close the poll
+                    automatically at that date and time. Leave both empty to keep the poll open forever.
                 </div>
                 <div class="field">
                     <label>Disappearing Duration (seconds)</label>

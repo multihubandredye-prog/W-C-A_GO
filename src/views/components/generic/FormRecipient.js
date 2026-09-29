@@ -53,6 +53,11 @@ export default {
         },
         updatePhone(event) {
             this.$emit('update:phone', event.target.value);
+        },
+        copyRecipientId() {
+            if (this.phone_id) {
+                window.copyToClipboard(this.phone_id);
+            }
         }
     },
     template: `
@@ -66,7 +71,12 @@ export default {
     <div v-if="showPhoneInput" class="field">
         <label>Phone / Group ID</label>
         <input :value="phone" aria-label="wa identifier" @input="updatePhone">
-        <input :value="phone_id" disabled aria-label="whatsapp_id">
+        <div class="ui action input" style="margin-top: 5px;">
+            <input :value="phone_id" disabled aria-label="whatsapp_id">
+            <button class="ui icon button" type="button" title="Copy ID" @click="copyRecipientId">
+                <i class="copy icon"></i>
+            </button>
+        </div>
     </div>
     `
 }

@@ -71,6 +71,11 @@ export default {
             }
             this.setDeviceContext(this.deviceIdInput);
         },
+        copyDeviceId(id) {
+            if (id) {
+                window.copyToClipboard(id);
+            }
+        },
         openDeleteModal(deviceId, jid) {
             const device = this.deviceList.find(d => (d.id || d.device) === deviceId);
             this.deviceToDelete = { id: deviceId, jid: jid || '', state: device?.state || '' };
@@ -173,8 +178,16 @@ export default {
                              :class="{'selected-device': selectedDeviceId === (dev.id || dev.device)}">
                             <i class="mobile alternate icon"></i>
                             <div class="content">
-                                <div class="header">{{ dev.id || dev.device }}</div>
+                                <div class="header" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    {{ dev.id || dev.device }}
+                                    <button class="ui mini icon button" type="button" title="Copy device ID"
+                                            style="padding: 4px 8px;" @click="copyDeviceId(dev.id || dev.device)">
+                                        <i class="copy icon" style="margin: 0;"></i>
+                                    </button>
+                                </div>
                                 <div class="description">
+                                    <span v-if="dev.display_name"><i class="user icon"></i> {{ dev.display_name }} · </span>
+                                    <span v-if="dev.phone_number">{{ dev.phone_number }} · </span>
                                     <span>State: {{ dev.state || 'unknown' }}</span>
                                     <span v-if="dev.jid"> · JID: {{ dev.jid }}</span>
                                 </div>

@@ -55,7 +55,13 @@
             Device context active
         </div>
         <p>
-            Using device: <b>[[ selectedDeviceId ]]</b>.
+            Using device: <b>[[ selectedDeviceId ]]</b>
+            <button class="ui mini icon button" type="button" title="Copy device ID" @click="copySelectedDeviceId">
+                <i class="copy icon"></i>
+            </button>
+            <span v-if="selectedDevice && (selectedDevice.display_name || selectedDevice.phone_number)">
+                — <i class="user icon"></i> <b>[[ selectedDevice.display_name || selectedDevice.phone_number ]]</b>
+            </span>.
             REST/WebSocket send <code>X-Device-Id</code> (or <code>?device_id=</code> for WS).
         </p>
     </div>
@@ -95,7 +101,11 @@
         <send-location></send-location>
         <send-audio></send-audio>
         <send-poll></send-poll>
-        
+
+        <send-buttons></send-buttons>
+        <send-list></send-list>
+        <send-call></send-call>
+
         <send-presence></send-presence>
         
         <send-chat-presence></send-chat-presence>
@@ -194,6 +204,25 @@
             classProgress: 'green'
         });
     }
+    window.copyToClipboard = async (text) => {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            window.showSuccessInfo('Copied: ' + text);
+        } catch (err) {
+            window.showErrorInfo('Could not copy: ' + (err.message || err));
+        }
+    }
 
 
     const baseHost = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
@@ -226,6 +255,9 @@
     import SendLocation from "{{ .AppBasePath }}/components/SendLocation.js";
     import SendAudio from "{{ .AppBasePath }}/components/SendAudio.js";
     import SendPoll from "{{ .AppBasePath }}/components/SendPoll.js";
+    import SendButtons from "{{ .AppBasePath }}/components/SendButtons.js";
+    import SendList from "{{ .AppBasePath }}/components/SendList.js";
+    import SendCall from "{{ .AppBasePath }}/components/SendCall.js";
     import SendPresence from "{{ .AppBasePath }}/components/SendPresence.js";
     import SendChatPresence from "{{ .AppBasePath }}/components/SendChatPresence.js";
     import MessageDelete from "{{ .AppBasePath }}/components/MessageDelete.js";
@@ -282,7 +314,7 @@
     Vue.createApp({
         components: {
             AppLogin, AppLoginWithCode, AppLogout, AppReconnect,
-            SendMessage, SendImage, SendFile, SendVideo, SendSticker, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendPresence, SendChatPresence,
+            SendMessage, SendImage, SendFile, SendVideo, SendSticker, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendButtons, SendList, SendCall, SendPresence, SendChatPresence,
             MessageDelete, MessageUpdate, MessageReact, MessageRevoke, MessageRead,
             GroupList, GroupCreate, GroupJoinWithLink, GroupInfoFromLink, GroupAddParticipants, GroupSetPhoto, GroupSetName, GroupSetLocked, GroupSetAnnounce, GroupSetTopic, GroupGetInviteLink, GroupInfo,
             NewsletterList,
@@ -327,6 +359,11 @@
                 const deviceQuery = encodeURIComponent(this.selectedDeviceId);
                 const pathPrefix = basePath || '';
                 return `${protocol}${location.host}${pathPrefix}/ws?device_id=${deviceQuery}`;
+            },
+            copySelectedDeviceId() {
+                if (this.selectedDeviceId) {
+                    window.copyToClipboard(this.selectedDeviceId);
+                }
             },
             handleReloadDevice() {
                 if (this.$refs.deviceManager) {

@@ -11,6 +11,9 @@ export default {
             phone: '',
             link: '',
             caption: '',
+            title: '',
+            description: '',
+            image_base64: '',
             reply_message_id: '',
             loading: false,
             is_forwarded: false,
@@ -68,6 +71,9 @@ export default {
                     is_forwarded: this.is_forwarded,
                     ...(this.duration && this.duration > 0 ? {duration: this.duration} : {})
                 };
+                if (this.title.trim()) payload.title = this.title.trim();
+                if (this.description.trim()) payload.description = this.description.trim();
+                if (this.image_base64.trim()) payload.image_base64 = this.image_base64.trim();
                 if (this.reply_message_id !== '') {
                     payload.reply_message_id = this.reply_message_id;
                 }
@@ -88,6 +94,9 @@ export default {
             this.phone = '';
             this.link = '';
             this.caption = '';
+            this.title = '';
+            this.description = '';
+            this.image_base64 = '';
             this.reply_message_id = '';
             this.is_forwarded = false;
             this.duration = 0;
@@ -128,6 +137,28 @@ export default {
                     <label>Caption</label>
                     <textarea v-model="caption" placeholder="Hello this is caption"
                               aria-label="caption"></textarea>
+                </div>
+                <div class="two fields">
+                    <div class="field">
+                        <label>Preview Title (optional)</label>
+                        <input v-model="title" type="text" placeholder="Custom title of the link preview"
+                               aria-label="link preview title">
+                    </div>
+                    <div class="field">
+                        <label>Preview Description (optional)</label>
+                        <input v-model="description" type="text" placeholder="Custom description of the link preview"
+                               aria-label="link preview description">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Preview Image Base64 (optional)</label>
+                    <textarea v-model="image_base64" rows="2"
+                              placeholder="data:image/jpeg;base64,... or a raw base64 string"
+                              aria-label="link preview image"></textarea>
+                    <div class="ui pointing label">
+                        Custom image for the link preview. A custom title also allows sending
+                        links whose metadata cannot be fetched.
+                    </div>
                 </div>
                 <div class="field" v-if="isShowReplyId()">
                     <label>Is Forwarded</label>
