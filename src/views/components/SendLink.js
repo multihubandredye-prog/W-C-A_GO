@@ -14,6 +14,7 @@ export default {
             title: '',
             description: '',
             image_base64: '',
+            selectedImageName: null,
             reply_message_id: '',
             loading: false,
             is_forwarded: false,
@@ -90,13 +91,31 @@ export default {
                 this.loading = false;
             }
         },
+        onImageChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                this.selectedImageName = null;
+                return;
+            }
+            this.selectedImageName = file.name;
+            const reader = new FileReader();
+            reader.onload = () => {
+                this.image_base64 = reader.result;
+            };
+            reader.readAsDataURL(file);
+        },
+        clearImageFile() {
+            this.selectedImageName = null;
+            this.image_base64 = '';
+            $("#file_link_image").val('');
+        },
         handleReset() {
             this.phone = '';
             this.link = '';
             this.caption = '';
             this.title = '';
             this.description = '';
-            this.image_base64 = '';
+            this.clearImageFile();
             this.reply_message_id = '';
             this.is_forwarded = false;
             this.duration = 0;
@@ -158,6 +177,26 @@ export default {
                     <div class="ui pointing label">
                         Custom image for the link preview. A custom title also allows sending
                         links whose metadata cannot be fetched.
+                    </div>
+                </div>
+                <div style="text-align: left; font-weight: bold; margin: 10px 0;">or you can upload the image from
+                    your device
+                </div>
+                <div class="field" style="padding-bottom: 30px">
+                    <label>Preview Image</label>
+                    <input type="file" style="display: none" accept="image/*" id="file_link_image"
+                           @change="onImageChange"/>
+                    <label for="file_link_image" class="ui positive medium green left floated button" style="color: white">
+                        <i class="ui upload icon"></i>
+                        Upload
+                    </label>
+                    <div v-if="selectedImageName" style="margin-top: 60px">
+                        <div class="ui message">
+                            <i class="file image icon"></i>
+                            Selected file: {{ selectedImageName }}
+                            <i class="trash icon" style="cursor: pointer; float: right;" title="Remove image"
+                               @click="clearImageFile"></i>
+                        </div>
                     </div>
                 </div>
                 <div class="field" v-if="isShowReplyId()">

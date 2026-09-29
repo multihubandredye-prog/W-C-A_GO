@@ -13,6 +13,7 @@ export default {
             loading: false,
             duration: 15,
             audio_file: null,
+            selectedFileName: null,
             audio_url: '',
             audio_path: '',
         }
@@ -20,9 +21,6 @@ export default {
     computed: {
         phone_id() {
             return this.phone + this.type;
-        },
-        hasAudioSource() {
-            return !!(this.audio_file || this.audio_url.trim() || this.audio_path.trim());
         }
     },
     methods: {
@@ -40,15 +38,16 @@ export default {
                 this.audio_url = '';
                 this.audio_path = '';
                 this.audio_file = file;
+                this.selectedFileName = file.name;
             } else {
                 this.audio_file = null;
+                this.selectedFileName = null;
             }
         },
         clearAudioFile() {
             this.audio_file = null;
-            if (this.$refs.audioFileInput) {
-                this.$refs.audioFileInput.value = '';
-            }
+            this.selectedFileName = null;
+            $("#file_call_audio").val('');
         },
         isValidForm() {
             if (this.type !== window.TYPESTATUS && !this.phone.trim()) {
@@ -144,22 +143,6 @@ export default {
                     </div>
                 </div>
 
-                <div class="field">
-                    <label>Audio File (MP3)</label>
-                    <div class="ui action input">
-                        <input ref="audioFileInput" type="file" accept="audio/mpeg,.mp3"
-                               @change="onFileChange" aria-label="call audio file">
-                        <button class="ui icon button" type="button" title="Clear file"
-                                v-if="audio_file" @click="clearAudioFile">
-                            <i class="trash icon"></i>
-                        </button>
-                    </div>
-                    <div class="ui pointing label">
-                        Upload the audio file to play when the recipient answers.
-                        Only one audio source: the file, a URL or Base64.
-                    </div>
-                </div>
-
                 <div class="field" :class="{'disabled': !!audio_file}">
                     <label>Audio URL (optional, MP3)</label>
                     <input v-model="audio_url" type="text" placeholder="https://meusite.com/audio/alerta.mp3"
@@ -170,6 +153,27 @@ export default {
                     <textarea v-model="audio_path" rows="2"
                               placeholder="data:audio/mp3;base64,... or a raw base64 string"
                               aria-label="call audio base64" :disabled="!!audio_file"></textarea>
+                </div>
+
+                <div style="text-align: left; font-weight: bold; margin: 10px 0;">or you can upload audio from your
+                    device
+                </div>
+                <div class="field" style="padding-bottom: 30px">
+                    <label>Audio (MP3)</label>
+                    <input type="file" style="display: none" accept="audio/mpeg,.mp3" id="file_call_audio"
+                           @change="onFileChange"/>
+                    <label for="file_call_audio" class="ui positive medium green left floated button" style="color: white">
+                        <i class="ui upload icon"></i>
+                        Upload
+                    </label>
+                    <div v-if="selectedFileName" style="margin-top: 60px">
+                        <div class="ui message">
+                            <i class="file icon"></i>
+                            Selected file: {{ selectedFileName }}
+                            <i class="trash icon" style="cursor: pointer; float: right;" title="Remove file"
+                               @click="clearAudioFile"></i>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
