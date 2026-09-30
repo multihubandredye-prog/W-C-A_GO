@@ -1,4 +1,5 @@
 [29/09/2026]
+➪ Corrigido o áudio que não reproduzia nas chamadas iniciadas pelo upload da página web: o arquivo de áudio enviado não estava chegando ao motor da chamada (o interpretador de formulários do framework ignora arquivos em requisições multipart), então a ligação era feita normalmente, mas em silêncio; agora o arquivo é capturado corretamente, da mesma forma que o envio de áudio e imagens, e o áudio toca quando a pessoa atende.
 ➪ Página web: o upload de áudio da chamada de voz agora segue o mesmo padrão visual do restante do site (botão verde "Upload" com ícone, igual ao envio de áudio, imagem e arquivo), e o envio de link com imagem personalizada de pré-visualização ganhou botão de upload para escolher a imagem direto do dispositivo (a imagem é convertida automaticamente e preenche o campo Base64).
 
 [28/09/2026]

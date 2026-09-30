@@ -449,6 +449,14 @@ func (controller *Send) SendCall(c *fiber.Ctx) error {
 	err := c.BodyParser(&request)
 	utils.PanicIfNeeded(err)
 
+	// Fiber's BodyParser only binds multipart form VALUES, never file parts,
+	// so the uploaded audio must be fetched via FormFile like every other
+	// send endpoint (see SendAudio). Without this the call is placed with no
+	// audio source at all.
+	if audioFile, errFile := c.FormFile("audio"); errFile == nil {
+		request.Audio = audioFile
+	}
+
 	utils.SanitizePhone(&request.Phone)
 
 	response, err := controller.Service.SendCall(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
