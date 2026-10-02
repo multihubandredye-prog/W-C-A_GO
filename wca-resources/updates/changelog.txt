@@ -1,3 +1,6 @@
+[02/10/2026]
+➪ Nova tarefa adicionada ao projeto no Tasker: 061-id-number-wca-MencaoFantasmaG — envio de mensagem com menção fantasma (@todos) para grupos: todos os participantes são mencionados de forma invisível, sem o destaque azul do "@" na mensagem (comportamento esperado da menção fantasma), garantindo a notificação de todos os membros, inclusive aqueles que estão com o grupo silenciado. O guia de instruções (projeto Help WCA) foi atualizado com a documentação da tarefa e da variável %message.
+
 [01/10/2026]
 ➪ Guia de instruções atualizado no projeto do Tasker (projeto Help WCA): documentadas as novas tarefas de envio 050 a 060 — realização de chamada de voz com reprodução de áudio MP3 (050), botões interativos simples (051/052), mistos com copiar e link (053/054), com imagem de cabeçalho (055/056), de pagamento com cópia de código (057/058) e lista interativa com paginação e até 30 opções (059/060), cada uma delas em versão para contato e grupo, com a descrição de todas as variáveis utilizadas. A seção de futuras implementações do guia também foi atualizada: não há novos recursos em desenvolvimento, pois todos os previstos já foram implementados e estão disponíveis na versão atual.
 
