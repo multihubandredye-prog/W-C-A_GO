@@ -1,3 +1,6 @@
+[03/10/2026]
+↪ Painel WCA: nova foto de perfil do usuário exibida no canto superior esquerdo da tela, exclusiva do modo Premium — sem Premium ativo nada é exibido e nenhuma requisição é feita. A foto mostrada segue a ordem: imagem personalizada (caminho enviado pelo Tasker na variável %photo_profile) e, sem imagem definida, o avatar do número principal buscado na API. A canetinha de edição abre o modal "Editar Foto de Perfil" com as opções Adicionar Foto (imagem personalizada) e Resetar, que elimina a imagem personalizada e retorna ao avatar do usuário principal, caso exista. O guia de instruções (projeto Help WCA) foi atualizado com a explicação de como funciona.
+
 [02/10/2026]
 ➪ Nova tarefa adicionada ao projeto no Tasker: 061-id-number-wca-MencaoFantasmaG — envio de mensagem com menção fantasma (@todos) para grupos: todos os participantes são mencionados de forma invisível, sem o destaque azul do "@" na mensagem (comportamento esperado da menção fantasma), garantindo a notificação de todos os membros, inclusive aqueles que estão com o grupo silenciado. O guia de instruções (projeto Help WCA) foi atualizado com a documentação da tarefa e da variável %message.
 
