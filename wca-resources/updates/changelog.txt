@@ -1,3 +1,6 @@
+[08/10/2026]
+↪ Painel WCA: adicionados os botões Reinstalar API e Reinstalar Tasker/Projeto no menu do painel, que forçam a reinstalação por cima da API ou do projeto do Tasker, sem depender de uma nova atualização.
+
 [03/10/2026]
 ↪ Painel WCA: nova foto de perfil do usuário exibida no canto superior esquerdo da tela, exclusiva do modo Premium — sem Premium ativo a foto não é exibida. Com imagem personalizada definida, ela é exibida; sem imagem personalizada, é exibida a foto de perfil do WhatsApp do número principal. Pela canetinha de edição é possível adicionar uma foto personalizada ou resetar, eliminando a imagem personalizada e retornando à foto de perfil do WhatsApp.
 
