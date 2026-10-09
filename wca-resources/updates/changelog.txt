@@ -1,3 +1,6 @@
+[09/10/2026]
+↪ Após a atualização, a limpeza de cache agora é feita na cena principal do sistema (001-CENTRAL_WHATS_CONNECT_API [wca]), garantindo que nenhum dado fique em cache no momento da atualização.
+
 [08/10/2026]
 ↪ Painel WCA: adicionados os botões Reinstalar API e Reinstalar Tasker/Projeto no menu do painel, que forçam a reinstalação por cima da API ou do projeto do Tasker, sem depender de uma nova atualização.
 
