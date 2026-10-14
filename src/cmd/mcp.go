@@ -5,9 +5,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/mcp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/rest/helpers"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/mcp"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/helpers"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/spf13/cobra"
 )

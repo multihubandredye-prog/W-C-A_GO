@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	domainDevice "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/device"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/websocket"
+	domainDevice "github.com/multihubandredye-prog/W-C-A_GO/domains/device"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/websocket"
 )
 
 type serviceDevice struct {

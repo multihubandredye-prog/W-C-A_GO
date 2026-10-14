@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	domainApp "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/app"
+	domainApp "github.com/multihubandredye-prog/W-C-A_GO/domains/app"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 )

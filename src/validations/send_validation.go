@@ -11,9 +11,9 @@ import (
 	// inside containers without tzdata installed.
 	_ "time/tzdata"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
-	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
 	"github.com/dustin/go-humanize"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"

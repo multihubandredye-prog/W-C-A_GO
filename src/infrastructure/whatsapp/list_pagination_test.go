@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/liststore"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/liststore"
 	"github.com/stretchr/testify/assert"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"

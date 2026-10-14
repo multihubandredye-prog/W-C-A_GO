@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
-	domainDevice "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/device"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
+	domainDevice "github.com/multihubandredye-prog/W-C-A_GO/domains/device"
 	fiberUtils "github.com/gofiber/fiber/v2/utils"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"

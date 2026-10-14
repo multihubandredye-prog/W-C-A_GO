@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"

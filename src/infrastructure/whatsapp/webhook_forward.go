@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/chatwoot"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/chatwoot"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow/types"
 )

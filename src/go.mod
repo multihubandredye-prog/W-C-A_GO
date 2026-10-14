@@ -1,4 +1,4 @@
-module github.com/aldinokemal/go-whatsapp-web-multidevice
+module github.com/multihubandredye-prog/W-C-A_GO
 
 go 1.26.0
 

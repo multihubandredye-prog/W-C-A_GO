@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 )
 
 func TestForwardPayloadToConfiguredWebhooks_NoWebhooksConfigured(t *testing.T) {

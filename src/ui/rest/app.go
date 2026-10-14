@@ -3,10 +3,10 @@ package rest
 import (
 	"fmt"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	domainApp "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/app"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	domainApp "github.com/multihubandredye-prog/W-C-A_GO/domains/app"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 

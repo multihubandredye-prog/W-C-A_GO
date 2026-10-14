@@ -3,7 +3,7 @@ package whatsapp
 import (
 	"testing"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mau.fi/whatsmeow/proto/waE2E"

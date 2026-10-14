@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/sqlite"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/sqlite"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )

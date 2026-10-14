@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"

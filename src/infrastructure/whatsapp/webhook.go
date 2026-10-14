@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/sirupsen/logrus"
 )
 

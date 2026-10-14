@@ -5,9 +5,9 @@ import (
 	"mime/multipart"
 	"testing"
 
-	domainMessage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/message"
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
-	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
+	domainMessage "github.com/multihubandredye-prog/W-C-A_GO/domains/message"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
 	"github.com/stretchr/testify/assert"
 )
 

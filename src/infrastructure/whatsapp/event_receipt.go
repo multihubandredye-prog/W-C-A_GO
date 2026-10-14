@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/pollstore"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/pollstore"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"

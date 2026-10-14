@@ -3,7 +3,7 @@ package whatsapp
 import (
 	"testing"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 )
 
 func TestChatwootMessageTypeFromPayload(t *testing.T) {

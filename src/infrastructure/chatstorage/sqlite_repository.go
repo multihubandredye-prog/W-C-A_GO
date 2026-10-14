@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"

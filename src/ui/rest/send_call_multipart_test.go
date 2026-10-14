@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

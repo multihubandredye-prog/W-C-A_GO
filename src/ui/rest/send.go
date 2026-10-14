@@ -2,10 +2,10 @@ package rest
 
 import (
 	"encoding/base64"
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/rest/helpers"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/helpers"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )

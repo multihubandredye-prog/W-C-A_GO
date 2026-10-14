@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
 	"go.mau.fi/whatsmeow"
 )
 

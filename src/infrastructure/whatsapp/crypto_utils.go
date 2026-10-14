@@ -2,7 +2,7 @@ package whatsapp
 
 import (
 	"fmt"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/gcmutil"

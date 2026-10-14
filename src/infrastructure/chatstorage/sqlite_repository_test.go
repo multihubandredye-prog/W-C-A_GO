@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/sqlite"
+	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/sqlite"
 )
 
 func newTestSQLiteRepository(t *testing.T) *SQLiteRepository {

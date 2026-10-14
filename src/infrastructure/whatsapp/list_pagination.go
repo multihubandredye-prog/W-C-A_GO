@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/liststore"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/liststore"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"

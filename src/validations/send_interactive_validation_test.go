@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/validations"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	"github.com/multihubandredye-prog/W-C-A_GO/validations"
 	"github.com/stretchr/testify/assert"
 )
 

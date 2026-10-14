@@ -3,7 +3,7 @@ description: Suggest a feature you would like to see supported in Application.
 title: "⚡️ "
 labels: ["enhancement"]
 assignees:
-  - aldinokemal
+  - multihubandredye-prog
 body:
   - type: markdown
     attributes:

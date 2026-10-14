@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	domainChat "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chat"
-	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
+	domainChat "github.com/multihubandredye-prog/W-C-A_GO/domains/chat"
+	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
 	"go.mau.fi/whatsmeow/types/events"
 )
 

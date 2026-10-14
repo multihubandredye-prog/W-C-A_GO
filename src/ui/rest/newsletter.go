@@ -1,9 +1,9 @@
 package rest
 
 import (
-	domainNewsletter "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/newsletter"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
+	domainNewsletter "github.com/multihubandredye-prog/W-C-A_GO/domains/newsletter"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"

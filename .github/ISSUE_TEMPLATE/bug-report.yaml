@@ -3,7 +3,7 @@ description: Report a bug found in Application.
 title: "🐞 "
 labels: ["bug"]
 assignees:
-  - aldinokemal
+  - multihubandredye-prog
 body:
   - type: markdown
     attributes:

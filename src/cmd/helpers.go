@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/rest/helpers"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/helpers"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"
 )

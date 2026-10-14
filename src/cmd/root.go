@@ -11,21 +11,21 @@ import (
 
 	"go.mau.fi/whatsmeow/store/sqlstore"
 
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/config"
-	domainApp "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/app"
-	domainChat "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chat"
-	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
-	domainDevice "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/device"
-	domainGroup "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/group"
-	domainMessage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/message"
-	domainNewsletter "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/newsletter"
-	domainSend "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/send"
-	domainUser "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/user"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/chatstorage"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/sqlite"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/utils"
-	"github.com/aldinokemal/go-whatsapp-web-multidevice/usecase"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	domainApp "github.com/multihubandredye-prog/W-C-A_GO/domains/app"
+	domainChat "github.com/multihubandredye-prog/W-C-A_GO/domains/chat"
+	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
+	domainDevice "github.com/multihubandredye-prog/W-C-A_GO/domains/device"
+	domainGroup "github.com/multihubandredye-prog/W-C-A_GO/domains/group"
+	domainMessage "github.com/multihubandredye-prog/W-C-A_GO/domains/message"
+	domainNewsletter "github.com/multihubandredye-prog/W-C-A_GO/domains/newsletter"
+	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	domainUser "github.com/multihubandredye-prog/W-C-A_GO/domains/user"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/chatstorage"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/sqlite"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
+	"github.com/multihubandredye-prog/W-C-A_GO/usecase"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -58,7 +58,7 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Short: "Send free whatsapp API",
-	Long: `This application is from clone https://github.com/aldinokemal/go-whatsapp-web-multidevice, 
+	Long: `This application is from clone https://github.com/multihubandredye-prog/W-C-A_GO, 
 you can send whatsapp over http api but your whatsapp account have to be multi device version`,
 }
 
