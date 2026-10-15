@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -44,27 +43,29 @@ func submitWebhook(ctx context.Context, payload map[string]any, url string) erro
 		return pkgError.WebhookError(fmt.Sprintf("Failed to marshal body: %v", err))
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
-	if err != nil {
-		return pkgError.WebhookError(fmt.Sprintf("error when create http object %v", err))
-	}
-
 	secretKey := []byte(config.WhatsappWebhookSecret)
 	signature, err := utils.GetMessageDigestOrSignature(postBody, secretKey)
 	if err != nil {
 		return pkgError.WebhookError(fmt.Sprintf("error when create signature %v", err))
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Hub-Signature-256", fmt.Sprintf("sha256=%s", signature))
-
 	var attempt int
 	var maxAttempts = 5
 	var sleepDuration = 1 * time.Second
 
 	for attempt = 0; attempt < maxAttempts; attempt++ {
-		// Create new request body for each attempt
-		req.Body = io.NopCloser(bytes.NewBuffer(postBody))
+		// A requisicao e recriada a cada tentativa ja com o body no construtor:
+		// assim o cliente HTTP envia Content-Length. Criar a request com body
+		// nil e trocar req.Body depois envia o corpo como chunked, formato que
+		// servidores simples (como o evento HTTP Request Received do Tasker)
+		// nao leem - por isso %http_request_body chegava vazia no Tasker quando
+		// a API postava direto para ele.
+		req, reqErr := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(postBody))
+		if reqErr != nil {
+			return pkgError.WebhookError(fmt.Sprintf("error when create http object %v", reqErr))
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Hub-Signature-256", fmt.Sprintf("sha256=%s", signature))
 		resp, err := client.Do(req)
 		if err == nil {
 			defer resp.Body.Close()
