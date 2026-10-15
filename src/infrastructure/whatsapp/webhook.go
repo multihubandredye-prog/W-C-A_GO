@@ -28,7 +28,18 @@ func submitWebhook(ctx context.Context, payload map[string]any, url string) erro
 		Transport: transport,
 	}
 
-	postBody, err := json.Marshal(payload)
+	// Wrap no mesmo formato produzido pelo proxy do Tasker
+	// (recebido_em/origem/metodo/url_original/headers/body), para o
+	// receiver do Tasker parsear o webhook diretamente, sem o proxy.
+	wrapped := map[string]any{
+		"recebido_em":  time.Now(),
+		"origem":       "tasker",
+		"metodo":       http.MethodPost,
+		"url_original": "/Tasker",
+		"headers":      http.Header{"Content-Type": []string{"application/json"}},
+		"body":         payload,
+	}
+	postBody, err := json.Marshal(wrapped)
 	if err != nil {
 		return pkgError.WebhookError(fmt.Sprintf("Failed to marshal body: %v", err))
 	}
