@@ -13,7 +13,7 @@ import (
 const (
 	WEBHOOK_PATH = "/Tasker"
 	HOSTNAME     = "127.0.0.1"
-	DELAY_MS     = 1500
+	DELAY_MS     = 500
 )
 
 type DadosProxy struct {
@@ -99,11 +99,6 @@ func main() {
 	fila1 := make(chan DadosProxy, 10000)
 	go processadorFila(fila1, "3129")
 	go iniciarServidor("8081", fila1)
-
-	// Rota 2: 8082 → 3130
-	fila2 := make(chan DadosProxy, 10000)
-	go processadorFila(fila2, "3130")
-	go iniciarServidor("8082", fila2)
 
 	// Manter o programa rodando indefinidamente
 	select {}
