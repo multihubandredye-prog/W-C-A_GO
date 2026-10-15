@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	AppVersion             = "1.3.30"
+	AppVersion             = "1.3.28"
 	AppPort                = "3000"
 	AppHost                = "0.0.0.0"
 	AppDebug               = false
-	AppOs                  = "GOWA"
+	AppOs                  = "WCA"
 	AppPlatform            = waCompanionReg.DeviceProps_PlatformType(1)
 	AppBasicAuthCredential []string
 	AppBasePath            = ""
