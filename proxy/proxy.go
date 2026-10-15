@@ -13,7 +13,7 @@ import (
 const (
 	WEBHOOK_PATH = "/Tasker"
 	HOSTNAME     = "127.0.0.1"
-	DELAY_MS     = 1500
+	DELAY_MS     = 500
 )
 
 type DadosProxy struct {
@@ -25,15 +25,41 @@ type DadosProxy struct {
 	Body        json.RawMessage `json:"body"`
 }
 
+// entregarTasker envia um item ao Tasker sem bloquear quem chama:
+// cada entrega roda em sua propria goroutine, com timeout proprio.
+func entregarTasker(dados DadosProxy, portaDestino string) {
+	payloadJSON, err := json.Marshal(dados)
+	if err != nil {
+		log.Printf("proxy: erro ao serializar payload: %v", err)
+		return
+	}
+	destinoURL := fmt.Sprintf("http://%s:%s%s", HOSTNAME, portaDestino, WEBHOOK_PATH)
+	proxyReq, err := http.NewRequest("POST", destinoURL, bytes.NewBuffer(payloadJSON))
+	if err != nil {
+		log.Printf("proxy: erro ao criar requisicao: %v", err)
+		return
+	}
+	proxyReq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(proxyReq)
+	if err != nil {
+		log.Printf("proxy: erro ao entregar ao Tasker (%s): %v", destinoURL, err)
+		return
+	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Printf("proxy: Tasker respondeu status %d em %s", resp.StatusCode, destinoURL)
+	}
+}
+
 func processadorFila(fila chan DadosProxy, portaDestino string) {
 	for dados := range fila {
 		time.Sleep(time.Duration(DELAY_MS) * time.Millisecond)
-		payloadJSON, _ := json.Marshal(dados)
-		destinoURL := fmt.Sprintf("http://%s:%s%s", HOSTNAME, portaDestino, WEBHOOK_PATH)
-		proxyReq, _ := http.NewRequest("POST", destinoURL, bytes.NewBuffer(payloadJSON))
-		proxyReq.Header.Set("Content-Type", "application/json")
-		client := &http.Client{Timeout: 5 * time.Second}
-		client.Do(proxyReq)
+		// Entrega em goroutine: o worker nao espera a resposta do Tasker,
+		// mantendo o espaçamento entre envios sem travar a fila quando a
+		// tarefa do Tasker demora para responder.
+		go entregarTasker(dados, portaDestino)
 	}
 }
 
