@@ -1,3 +1,6 @@
+[16/10/2026]
+↪ Corrigido o envio das mensagens ao Tasker: a API agora envia as mensagens recebidas direto no formato que o Tasker entende, com o conteúdo chegando completo.
+
 [09/10/2026]
 ↪ Após a atualização, a limpeza de cache agora é feita na cena principal do sistema (001-CENTRAL_WHATS_CONNECT_API [wca]), garantindo que nenhum dado fique em cache no momento da atualização.
 
