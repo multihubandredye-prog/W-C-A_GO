@@ -35,6 +35,9 @@ func TestForwardPayloadToConfiguredWebhooks_PartialFailure(t *testing.T) {
 
 	originalWebhooks := config.WhatsappWebhook
 	config.WhatsappWebhook = []string{"https://success", "https://fail", "https://success2"}
+	originalDelay := config.WhatsappWebhookDelayMS
+	config.WhatsappWebhookDelayMS = 0
+	defer func() { config.WhatsappWebhookDelayMS = originalDelay }()
 	defer func() { config.WhatsappWebhook = originalWebhooks }()
 
 	originalSubmit := submitWebhookFn
@@ -63,6 +66,9 @@ func TestForwardPayloadToConfiguredWebhooks_AllFail(t *testing.T) {
 
 	originalWebhooks := config.WhatsappWebhook
 	config.WhatsappWebhook = []string{"https://fail1", "https://fail2"}
+	originalDelay := config.WhatsappWebhookDelayMS
+	config.WhatsappWebhookDelayMS = 0
+	defer func() { config.WhatsappWebhookDelayMS = originalDelay }()
 	defer func() { config.WhatsappWebhook = originalWebhooks }()
 
 	originalSubmit := submitWebhookFn
@@ -113,6 +119,9 @@ func TestForwardPayloadToConfiguredWebhooks_EventWhitelist_Allowed(t *testing.T)
 	originalEvents := config.WhatsappWebhookEvents
 	config.WhatsappWebhook = []string{"https://test.com"}
 	config.WhatsappWebhookEvents = []string{"message", "message.ack"}
+	originalDelay := config.WhatsappWebhookDelayMS
+	config.WhatsappWebhookDelayMS = 0
+	defer func() { config.WhatsappWebhookDelayMS = originalDelay }()
 	defer func() {
 		config.WhatsappWebhook = originalWebhooks
 		config.WhatsappWebhookEvents = originalEvents
@@ -142,6 +151,9 @@ func TestForwardPayloadToConfiguredWebhooks_EmptyWhitelist_AllowsAll(t *testing.
 	originalEvents := config.WhatsappWebhookEvents
 	config.WhatsappWebhook = []string{"https://test.com"}
 	config.WhatsappWebhookEvents = []string{}
+	originalDelay := config.WhatsappWebhookDelayMS
+	config.WhatsappWebhookDelayMS = 0
+	defer func() { config.WhatsappWebhookDelayMS = originalDelay }()
 	defer func() {
 		config.WhatsappWebhook = originalWebhooks
 		config.WhatsappWebhookEvents = originalEvents
@@ -171,6 +183,9 @@ func TestForwardPayloadToConfiguredWebhooks_WhitelistCaseInsensitive(t *testing.
 	originalEvents := config.WhatsappWebhookEvents
 	config.WhatsappWebhook = []string{"https://test.com"}
 	config.WhatsappWebhookEvents = []string{"MESSAGE", "Message.Ack"}
+	originalDelay := config.WhatsappWebhookDelayMS
+	config.WhatsappWebhookDelayMS = 0
+	defer func() { config.WhatsappWebhookDelayMS = originalDelay }()
 	defer func() {
 		config.WhatsappWebhook = originalWebhooks
 		config.WhatsappWebhookEvents = originalEvents

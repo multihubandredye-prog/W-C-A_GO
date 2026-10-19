@@ -17,6 +17,39 @@ import (
 
 var submitWebhookFn = submitWebhook
 
+// webhookDelayLimiter serializes webhook deliveries for a single URL when a
+// send delay is configured, spacing the start of each delivery.
+type webhookDelayLimiter struct {
+	mu   sync.Mutex
+	next time.Time
+}
+
+// webhookDelayLimiters holds one delivery gate per configured webhook URL.
+var webhookDelayLimiters sync.Map // url -> *webhookDelayLimiter
+
+// throttleWebhookDelivery spaces webhook deliveries per URL by
+// config.WhatsappWebhookDelayMS milliseconds. With a delay configured, each
+// URL has a single delivery gate: a payload waits for its turn and the next
+// one can only start after the delay elapsed since the previous delivery
+// started. This keeps consumers that cannot handle concurrent payloads (like
+// a Tasker automation acting on shared state) receiving one request at a
+// time, in arrival order. When the delay is zero or negative it is a no-op
+// and deliveries remain parallel, exactly as before.
+func throttleWebhookDelivery(url string) {
+	if config.WhatsappWebhookDelayMS <= 0 {
+		return
+	}
+	limiterAny, _ := webhookDelayLimiters.LoadOrStore(url, &webhookDelayLimiter{})
+	limiter := limiterAny.(*webhookDelayLimiter)
+
+	limiter.mu.Lock()
+	defer limiter.mu.Unlock()
+	if wait := time.Until(limiter.next); wait > 0 {
+		time.Sleep(wait)
+	}
+	limiter.next = time.Now().Add(time.Duration(config.WhatsappWebhookDelayMS) * time.Millisecond)
+}
+
 // mutexShardCount is the number of mutex shards for contact synchronization.
 // Using a fixed array avoids memory growth from sync.Map while still providing
 // reasonable concurrency (64 shards means max 64 concurrent contact operations).
@@ -107,7 +140,17 @@ func forwardToWebhooks(ctx context.Context, payload map[string]any, eventName st
 		successes int
 	)
 	for _, url := range config.WhatsappWebhook {
-		if err := submitWebhookFn(ctx, payload, url); err != nil {
+		// Espaca as entregas por URL (no-op com delay 0). A espera na fila
+		// nao pode consumir o prazo do envio: com delay ativo, cada entrega
+		// ganha um contexto proprio de 30s a partir de sua vez na fila.
+		throttleWebhookDelivery(url)
+		submitCtx := ctx
+		if config.WhatsappWebhookDelayMS > 0 {
+			var cancel context.CancelFunc
+			submitCtx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+		}
+		if err := submitWebhookFn(submitCtx, payload, url); err != nil {
 			failed = append(failed, fmt.Sprintf("%s: %v", url, err))
 			logrus.Warnf("Failed forwarding %s to %s: %v", eventName, url, err)
 			continue

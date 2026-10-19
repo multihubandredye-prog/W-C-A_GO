@@ -121,6 +121,18 @@ do projeto.
 | `WHATSAPP_WEBHOOK_EVENTS` | *todos* | Filtra quais eventos são enviados |
 | `WHATSAPP_WEBHOOK_INCLUDE_OUTGOING` | `false` | Também notifica mensagens enviadas por você |
 | `WHATSAPP_WEBHOOK_INSECURE_SKIP_VERIFY` | `false` | Ignora validação de certificado TLS |
+| `WHATSAPP_WEBHOOK_DELAY_MS` | `1500` | Intervalo em ms entre os envios de webhook por URL — um evento por vez (0 = paralelo) |
+
+Com `WHATSAPP_WEBHOOK_DELAY_MS` a API enfileira os eventos de cada URL e faz um
+envio por vez, aguardando o intervalo configurado entre eles. Isso evita que
+consumidores que não lidam bem com requisições simultâneas (como automações no
+Tasker) recebam duas entregas ao mesmo tempo. Com `0`, o envio volta a ser
+paralelo, sem espera entre os eventos.
+
+```env
+# Um evento por vez por URL, com 1,5s entre cada envio
+WHATSAPP_WEBHOOK_DELAY_MS=1500
+```
 
 #### Comportamento do WhatsApp
 

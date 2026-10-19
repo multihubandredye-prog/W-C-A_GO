@@ -11,6 +11,7 @@ import (
 
 	"go.mau.fi/whatsmeow/store/sqlstore"
 
+	_ "github.com/lib/pq"
 	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	domainApp "github.com/multihubandredye-prog/W-C-A_GO/domains/app"
 	domainChat "github.com/multihubandredye-prog/W-C-A_GO/domains/chat"
@@ -26,7 +27,6 @@ import (
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/sqlite"
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/multihubandredye-prog/W-C-A_GO/usecase"
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -138,6 +138,9 @@ func initEnvConfig() {
 	}
 	if viper.IsSet("whatsapp_webhook_insecure_skip_verify") {
 		config.WhatsappWebhookInsecureSkipVerify = viper.GetBool("whatsapp_webhook_insecure_skip_verify")
+	}
+	if viper.IsSet("whatsapp_webhook_delay_ms") {
+		config.WhatsappWebhookDelayMS = viper.GetInt("whatsapp_webhook_delay_ms")
 	}
 	if envWebhookEvents := viper.GetString("whatsapp_webhook_events"); envWebhookEvents != "" {
 		events := strings.Split(envWebhookEvents, ",")
@@ -297,6 +300,12 @@ func initFlags() {
 		"webhook-insecure-skip-verify", "",
 		config.WhatsappWebhookInsecureSkipVerify,
 		`skip TLS certificate verification for webhooks (INSECURE - use only for development/self-signed certs) --webhook-insecure-skip-verify <true/false> | example: --webhook-insecure-skip-verify=true`,
+	)
+	rootCmd.PersistentFlags().IntVarP(
+		&config.WhatsappWebhookDelayMS,
+		"webhook-delay-ms", "",
+		config.WhatsappWebhookDelayMS,
+		`delay between webhook deliveries per URL in milliseconds (0 = parallel delivery) --webhook-delay-ms <int> | example: --webhook-delay-ms=1500`,
 	)
 	rootCmd.PersistentFlags().StringSliceVarP(
 		&config.WhatsappWebhookEvents,

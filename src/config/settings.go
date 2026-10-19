@@ -20,9 +20,9 @@ var (
 	McpPort = "8080"
 	McpHost = "localhost"
 
-	PathQrCode    = "statics/qrcode"
-	PathMedia     = "statics/media"
-	PathStorages  = "storages"
+	PathQrCode   = "statics/qrcode"
+	PathMedia    = "statics/media"
+	PathStorages = "storages"
 
 	DBURI     = "file:storages/whatsapp.db"
 	DBKeysURI = ""
@@ -36,6 +36,7 @@ var (
 	WhatsappWebhookSecret             = "secret"
 	WhatsappWebhookInsecureSkipVerify = false          // Skip TLS certificate verification for webhooks (insecure)
 	WhatsappWebhookEvents             []string         // Whitelist of events to forward to webhook (empty = all events)
+	WhatsappWebhookDelayMS                     = 1500  // Delay between webhook deliveries per URL in milliseconds (0 = parallel delivery)
 	WhatsappAutoRejectCall                     = false // Auto-reject incoming calls
 	WhatsappLogLevel                           = "ERROR"
 	WhatsappSettingMaxImageSize       int64    = 20000000  // 20MB
