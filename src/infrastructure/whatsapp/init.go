@@ -11,6 +11,7 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
+	"go.mau.fi/whatsmeow/types"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
@@ -32,30 +33,53 @@ var (
 	startupTime   = time.Now().Unix()
 )
 
+// syncKeysDevice mirrors every device from the primary store into the keys
+// store. The keys store doubles as the session cache for outgoing sends (see
+// applyKeyCacheStore) and its schema references whatsmeow_device(jid), so
+// writing a session for a device without a row there fails with "FOREIGN KEY
+// constraint failed". Mirroring all linked devices (not just the first one)
+// lets any connected number send messages. The previous implementation also
+// compared device IDs by pointer, which never matched across scans, so every
+// sync wiped the keys store and re-inserted a single device.
 func syncKeysDevice(ctx context.Context, db, keysDB *sqlstore.Container) {
 	if keysDB == nil {
 		return
 	}
 
-	dev, err := db.GetFirstDevice(ctx)
+	primaryDevices, err := db.GetAllDevices(ctx)
 	if err != nil {
 		log.Errorf("Failed to get all devices: %v", err)
-	} else {
-		found := false
-		if devs, err := keysDB.GetAllDevices(ctx); err != nil {
-			log.Errorf("Failed to get all devices: %v", err)
-		} else {
-			for _, d := range devs {
-				if d.ID == dev.ID {
-					found = true
-					break
-				} else {
-					keysDB.DeleteDevice(ctx, d)
-				}
-			}
+		return
+	}
+	primaryJIDs := make(map[types.JID]struct{}, len(primaryDevices))
+	for _, dev := range primaryDevices {
+		if dev.ID != nil {
+			primaryJIDs[*dev.ID] = struct{}{}
+		}
+	}
 
-			if !found {
-				keysDB.PutDevice(ctx, dev)
+	keysDevices, err := keysDB.GetAllDevices(ctx)
+	if err != nil {
+		log.Errorf("Failed to get all devices: %v", err)
+		return
+	}
+	for _, d := range keysDevices {
+		if d.ID != nil {
+			if _, ok := primaryJIDs[*d.ID]; !ok {
+				keysDB.DeleteDevice(ctx, d)
+			}
+		}
+	}
+
+	for _, dev := range primaryDevices {
+		if dev.ID == nil {
+			continue
+		}
+		if keysDev, err := keysDB.GetDevice(ctx, *dev.ID); err != nil {
+			log.Errorf("Failed to get device %s in keys store: %v", dev.ID, err)
+		} else if keysDev == nil {
+			if err := keysDB.PutDevice(ctx, dev); err != nil {
+				log.Errorf("Failed to mirror device %s into keys store: %v", dev.ID, err)
 			}
 		}
 	}
