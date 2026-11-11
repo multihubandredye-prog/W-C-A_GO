@@ -50,7 +50,15 @@ func submitWebhook(ctx context.Context, payload map[string]any, url string) erro
 	}
 
 	var attempt int
-	var maxAttempts = 5
+	// As tentativas sao configuraveis (WHATSAPP_WEBHOOK_MAX_ATTEMPTS /
+	// --webhook-max-attempts). O padrao e 1: um unico envio, sem reentrega,
+	// pois em consumidores locais (como o evento HTTP Request do Tasker) cada
+	// POST dispara uma tarefa e o reenvio duplica o evento. O comportamento
+	// antigo de ate 5 tentativas com backoff (1s, 2s, 4s, 8s) volta com 5.
+	maxAttempts := config.WhatsappWebhookMaxAttempts
+	if maxAttempts < 1 {
+		maxAttempts = 1
+	}
 	var sleepDuration = 1 * time.Second
 
 	for attempt = 0; attempt < maxAttempts; attempt++ {

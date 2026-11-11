@@ -122,6 +122,7 @@ do projeto.
 | `WHATSAPP_WEBHOOK_INCLUDE_OUTGOING` | `false` | Também notifica mensagens enviadas por você |
 | `WHATSAPP_WEBHOOK_INSECURE_SKIP_VERIFY` | `false` | Ignora validação de certificado TLS |
 | `WHATSAPP_WEBHOOK_DELAY_MS` | `1500` | Intervalo em ms entre os envios de webhook por URL — um evento por vez (0 = paralelo) |
+| `WHATSAPP_WEBHOOK_MAX_ATTEMPTS` | `1` | Máximo de tentativas de entrega por webhook — `1` envia uma única vez, sem reenvio |
 
 Com `WHATSAPP_WEBHOOK_DELAY_MS` a API enfileira os eventos de cada URL e faz um
 envio por vez, aguardando o intervalo configurado entre eles. Isso evita que
@@ -132,6 +133,19 @@ paralelo, sem espera entre os eventos.
 ```env
 # Um evento por vez por URL, com 1,5s entre cada envio
 WHATSAPP_WEBHOOK_DELAY_MS=1500
+```
+
+As tentativas de entrega são configuráveis com `WHATSAPP_WEBHOOK_MAX_ATTEMPTS`.
+O padrão é `1`: cada evento é enviado uma única vez e uma falha de entrega não
+gera reenvio — em consumidores locais como o Tasker, cada POST dispara uma
+tarefa e o reenvio duplicava o evento. Com valores maiores (ex.: `5`), a API
+tenta novamente em caso de falha, aguardando 1s, 2s, 4s e 8s entre as
+tentativas — útil para webhooks remotos. Disponível também na flag
+`--webhook-max-attempts`.
+
+```env
+# Sem reenvio: cada evento é entregue uma única vez (recomendado para o Tasker)
+WHATSAPP_WEBHOOK_MAX_ATTEMPTS=1
 ```
 
 #### Comportamento do WhatsApp

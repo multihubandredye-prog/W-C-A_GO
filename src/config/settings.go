@@ -37,6 +37,7 @@ var (
 	WhatsappWebhookInsecureSkipVerify = false          // Skip TLS certificate verification for webhooks (insecure)
 	WhatsappWebhookEvents             []string         // Whitelist of events to forward to webhook (empty = all events)
 	WhatsappWebhookDelayMS                     = 1500  // Delay between webhook deliveries per URL in milliseconds (0 = parallel delivery)
+	WhatsappWebhookMaxAttempts                 = 1     // Max webhook delivery attempts per URL (1 = no retry; legacy upstream behavior was 5)
 	WhatsappAutoRejectCall                     = false // Auto-reject incoming calls
 	WhatsappLogLevel                           = "ERROR"
 	WhatsappSettingMaxImageSize       int64    = 20000000  // 20MB

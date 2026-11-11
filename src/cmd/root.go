@@ -142,6 +142,12 @@ func initEnvConfig() {
 	if viper.IsSet("whatsapp_webhook_delay_ms") {
 		config.WhatsappWebhookDelayMS = viper.GetInt("whatsapp_webhook_delay_ms")
 	}
+	if viper.IsSet("whatsapp_webhook_max_attempts") {
+		config.WhatsappWebhookMaxAttempts = viper.GetInt("whatsapp_webhook_max_attempts")
+		if config.WhatsappWebhookMaxAttempts < 1 {
+			config.WhatsappWebhookMaxAttempts = 1
+		}
+	}
 	if envWebhookEvents := viper.GetString("whatsapp_webhook_events"); envWebhookEvents != "" {
 		events := strings.Split(envWebhookEvents, ",")
 		config.WhatsappWebhookEvents = events
@@ -306,6 +312,12 @@ func initFlags() {
 		"webhook-delay-ms", "",
 		config.WhatsappWebhookDelayMS,
 		`delay between webhook deliveries per URL in milliseconds (0 = parallel delivery) --webhook-delay-ms <int> | example: --webhook-delay-ms=1500`,
+	)
+	rootCmd.PersistentFlags().IntVarP(
+		&config.WhatsappWebhookMaxAttempts,
+		"webhook-max-attempts", "",
+		config.WhatsappWebhookMaxAttempts,
+		`max webhook delivery attempts per URL (1 = no retry) --webhook-max-attempts <int> | example: --webhook-max-attempts=1`,
 	)
 	rootCmd.PersistentFlags().StringSliceVarP(
 		&config.WhatsappWebhookEvents,
