@@ -3056,72 +3056,6 @@ input.first-install-attention {
     .profile-edit-btn { width: 1rem; height: 1rem; font-size: .4rem; }
 }
 
-
-.attention-notice {
-    position: fixed;
-    bottom: 2.4rem;
-    left: 0;
-    right: 0;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: calc(100% - 2.5rem);
-    max-width: 420px;
-    padding: 12px 14px;
-    border-radius: .9rem;
-    background: rgba(10,14,18,0.92);
-    border: 1px solid rgba(255,215,0,0.35);
-    box-shadow: 0 6px 22px rgba(0,0,0,0.45);
-    z-index: 950;
-    animation: attentionSlideIn .55s ease-out both;
-}
-.attention-notice::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: conic-gradient(from var(--spin),
-        transparent 0deg,
-        transparent 230deg,
-        rgba(255,215,0,.45) 300deg,
-        #FFD700 335deg,
-        transparent 360deg);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    animation: spinBorder 2.6s linear infinite;
-    pointer-events: none;
-}
-@keyframes attentionSlideIn {
-    from { transform: translateX(calc(-100vw - 100%)); }
-    to { transform: translateX(0); }
-}
-.attention-notice > i {
-    font-size: 1.25rem;
-    color: var(--gold);
-    flex-shrink: 0;
-}
-.attention-notice-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    text-align: left;
-}
-.attention-notice-text strong {
-    font-size: .8rem;
-    color: var(--gold);
-    letter-spacing: .3px;
-}
-.attention-notice-text span {
-    font-size: .72rem;
-    color: var(--text-dim);
-    line-height: 1.35;
-}
-
     </style>
 </head>
 <body>
@@ -3740,14 +3674,6 @@ input.first-install-attention {
         </div>
     </div>
 
-    <div class="attention-notice d-none" id="attentionNotice">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <div class="attention-notice-text">
-            <strong>ATENÇÃO</strong>
-            <span id="attentionNoticeText"></span>
-        </div>
-    </div>
-
     <footer class="main-footer">
         Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span>
     </footer>
@@ -3879,10 +3805,6 @@ document.addEventListener('DOMContentLoaded', () => {
         USER_PROFILE_PICTURE: "%photo_profile",
         // Controla se o bloco de boas-vindas/Premium é exibido no topo do painel
         SHOW_WELCOME_MESSAGE: %name_exist,
-        // Controla se o card de atenção é exibido na tela inicial (true = exibir)
-        SHOW_ATTENTION_NOTICE: %notification_caution,
-        // Mensagem exibida no card de atenção da tela inicial
-        ATTENTION_NOTICE_TEXT: "Atenção, usuário: devido às últimas modificações no projeto e na API, será necessário desinstalar o projeto e realizar a reinstalação novamente. Pedimos desculpas pelo transtorno.",
         // Define se a aba inicial ao carregar será a de instalação (true) ou conexões (false)
         OPEN_INSTALL_TAB_FIRST: %open_tab,
         // String com os dados de status Premium/licença exibidos no painel
@@ -3909,30 +3831,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Limite total de avaliações por usuário (null/Infinity = sem limite, 0 = bloqueia todos)
         MAX_REVIEWS_PER_USER: 5
     };
-
-    // Card de atenção: fixo acima do footer, alternando entre visível e
-    // oculto (10 segundos exibido, 3 segundos oculto, repetindo). Exibido
-    // apenas quando SHOW_ATTENTION_NOTICE é true.
-    (function setupAttentionNotice(){
-        const card = document.getElementById('attentionNotice');
-        const text = document.getElementById('attentionNoticeText');
-        if (!card || !text) return;
-        if (!CONFIG.SHOW_ATTENTION_NOTICE) {
-            card.classList.add('d-none');
-            return;
-        }
-        const SHOW_MS = 10000;
-        const HIDE_MS = 3000;
-        text.textContent = CONFIG.ATTENTION_NOTICE_TEXT || '';
-        const cycle = () => {
-            card.classList.remove('d-none');
-            setTimeout(() => {
-                card.classList.add('d-none');
-                setTimeout(cycle, HIDE_MS);
-            }, SHOW_MS);
-        };
-        cycle();
-    })();
 
     let qrTimers           = {};
     let checkTimers        = {};

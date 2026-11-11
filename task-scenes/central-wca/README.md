@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.0**
-Arquivo: `Central WCA 1.0.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.1**
+Arquivo: `Central WCA 1.1.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -42,7 +42,7 @@ As variáveis gravadas com `setVariable` são variáveis **da tela**: quando a c
 
 Resolvidas ao vivo pelo motor da V2 (com atualização sem recarregar a página):
 
-`%user_name`, `%name_exist`, `%photo_profile`, `%last_update`, `%mode_system`, `%notification_caution`, `%open_tab`
+`%user_name`, `%name_exist`, `%photo_profile`, `%last_update`, `%mode_system`, `%open_tab`
 
 ## Arquivos que a cena lê/escreve
 
@@ -81,3 +81,4 @@ Observação: o `listFiles` do bridge retorna objeto de variáveis de saída da 
 | Versão | Data | Mudanças |
 |---|---|---|
 | 1.0 | 11/11/2026 | Migração da cena V1 → V2; arquivo único HTML+CSS+JS; novo fluxo de cliques (006 + `par1` embutido); `tk.*` → `Tasker.*`; README criado |
+| 1.1 | 11/11/2026 | Remove o card de atenção (aviso de desinstalação/reinstalação) — mensagem e lógica de exibição obsoletas; `%notification_caution` deixa de ser consumida; pasta do projeto no repositório renomeada para `task-scenes/` |
