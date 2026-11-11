@@ -76,6 +76,10 @@ Observação: o `listFiles` do bridge retorna objeto de variáveis de saída da 
 3. Confirme que **Allow Phone Access** continua habilitado no elemento Web
 4. Teste os botões e acompanhe os Flash/log do `006-CONFIGURAR_SISTEMA`
 
+## Política de versões
+
+Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno a uma versão anterior sem perda.
+
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
