@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.29**
-Arquivo: `Central WCA 1.29.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.30**
+Arquivo: `Central WCA 1.30.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -58,7 +58,7 @@ comentada no `initialize`) — para religar, basta descomentar essa linha:
 
 `user_name`, `name_exist`, `photo_profile`, `mode_system`, `open_tab`
 
-**`open_tab` (ATIVA desde a 1.27; padrão imediato desde a 1.29):** define a aba inicial da cena. **A PRIMEIRA aba (Instalação) é o padrão IMEDIATO do arranque** — sem variável, vazia, não definida ou com valor desconhecido, a cena SEMPRE abre nela, sem depender do bridge. A variável só PROMOVE: `two` = aba **Conexões** quando o valor chegar (leitura inicial fire-and-forget ou listener `Tasker.onVariableChanged('open_tab')`, callback `nome, valor`, registrado antes de qualquer leitura); `one` não muda nada (a cena já está nela). Nunca sobrescreve a escolha do usuário (flag `__wcaUserTouchedTab`). **Lado Tasker:** a ação *Definir variável* cria a variável LOCAL da tarefa; para ser lida com segurança, defina como GLOBAL (desmarque "Local" na ação) ou repita a definição DEPOIS da ação Show Scene v2 (o listener captura — mesmo mecanismo do `return_modal` do botão voltar). **Verificação da versão no aparelho:** procure `1.29` no HTML da cena no editor (bloco "Aba inicial pela variável open_tab (1.29)")
+**`open_tab` (ATIVA desde a 1.27; padrão imediato + sondagem desde a 1.30):** define a aba inicial da cena. **A PRIMEIRA aba (Instalação) é o padrão IMEDIATO do arranque** — sem variável, vazia, não definida ou com valor desconhecido, a cena SEMPRE abre nela, sem depender do bridge. A variável só PROMOVE: `two` = aba **Conexões** quando o valor chegar. **Como o valor chega (padrão do projeto de instalação):** (1) **LISTENER** `Tasker.onVariableChanged('open_tab')` — captura o valor definido/trocado COM a cena aberta (recomendado: colocar a ação *Definir variável %open_tab* DEPOIS da ação *Cena v2 Mostrar* — igual ao `progress_install` da Instalação, publicado com a cena aberta; se redefinir com o MESMO valor, o evento pode não disparar — o `return_modal` usa `%TIMES` por isso); (2) **SONDAGEM inicial de 8s** (16 tentativas de 500ms com prazo individual) — cobre o valor definido ANTES de abrir, sem evento. `one` não muda nada (a cena já está nela). Nunca sobrescreve a escolha do usuário (flag `__wcaUserTouchedTab`). **Atenção ao escopo:** variáveis com nome todo minúsculo (como `open_tab`) são **LOCAIS da tarefa** no Tasker — invisíveis para a cena antes/depois se a leitura do bridge não as alcançar; a receita garantida é definir DEPOIS do Show Scene v2 (listener). **Verificação da versão no aparelho:** procure `1.30` no HTML da cena (bloco "Aba inicial pela variável open_tab (1.30)")
 
 ## Arquivos que a cena lê/escreve
 
@@ -107,13 +107,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.28** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.27 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.28** é o ponto de retorno documentado (a 1.29 difere dela pela aba inicial imediata, sem depender do bridge).
+A partir da **1.29** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.28 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.29** é o ponto de retorno documentado (a 1.30 difere dela pela sondagem inicial da `open_tab`).
 
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.30 | 12/11/2026 | **`open_tab`: sondagem inicial de 8s (mesma lógica do projeto de instalação)**: o listener só captura MUDANÇAS com a cena aberta — um valor definido ANTES da cena abrir não gera evento (e o `getVariable` único pode pendurar); agora a cena também SONDA a variável por 8s (16 tentativas de 500ms com prazo individual de 1,5s) e para na primeira leitura válida. Receita garantida no Tasker: colocar a ação *Definir variável %open_tab* DEPOIS do *Cena v2 Mostrar* (igual ao `progress_install` da Instalação) — com escopo em mente: nomes todo minúsculo são variáveis LOCAIS da tarefa |
 | 1.29 | 12/11/2026 | **Aba inicial: padrão IMEDIATO = Instalação, sem depender do bridge (corrige "sempre abre em Conexões")**: a causa era o `Tasker.getVariable('open_tab')` não resolver quando a variável não é visível (ex.: criada como LOCAL da tarefa) — na 1.28 o padrão "vazio → Instalação" dependia dessa resposta e nunca aplicava. Agora o arranque define a aba Instalação direto nos 2 pontos (initialize/returnToHome) e a `open_tab` apenas PROMOVE (`two` → Conexões; `one` → não faz nada, já está lá). Listener registrado PRIMEIRO (nunca mais pulado por early-return) e sem prazo/Promise.race no caminho da aba. `OPEN_INSTALL_TAB_FIRST` deixou de ser usado no arranque |
-| 1.28 | 12/11/2026 | **`open_tab`: padrão = primeira aba + listener corrigido**: (1) variável vazia/NÃO definida/outro valor agora abre na aba **Instalação** (pedido do usuário; antes caía no fallback antigo e ia para Conexões); (2) correção real do listener: o callback do `onVariableChanged` recebe `(nome, valor)` e a 1.27 passava a função direto — o valor chegava como o NOME da variável e `one`/`two` nunca eram reconhecidos pelo listener; (3) extração de valor mais robusta (qualquer string dentro do objeto do bridge). Tarefa do usuário: garantir a variável visível — GLOBAL (desmarcar "Local") ou redefinir após o Show Scene v2 |
 
-> O histórico detalhado das versões **1.0 a 1.27** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
+> O histórico detalhado das versões **1.0 a 1.28** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).

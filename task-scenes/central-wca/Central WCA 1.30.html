@@ -4223,11 +4223,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target && e.target.closest && e.target.closest('.tab-btn')) window.__wcaUserTouchedTab = true;
     }, true);
 
-    // ---- Aba inicial pela variável open_tab (1.28) ----
-    // one = aba Instalação (config-tab); two = aba Conexões (connections-tab);
-    // vazio/nao definida/outro valor = PRIMEIRA aba (Instalação) na leitura inicial
-    // (pedido do usuario). Nunca sobrescreve a escolha do usuario
-    // (flag __wcaUserTouchedTab).
+    // ---- Aba inicial pela variável open_tab (1.30) ----
+    // A PRIMEIRA aba (Instalação, config-tab) é o padrão IMEDIATO, definido no
+    // próprio arranque — sem variável, vazia, não definida ou com valor
+    // desconhecido a cena SEMPRE abre nela (nada depende do bridge). A
+    // variável open_tab só PROMOVE: two = aba Conexões (connections-tab) quando
+    // o valor chegar; one não muda nada (já está nela). Recebimento no padrão do
+    // projeto de instalação: LISTENER (valor definido/trocado com a cena aberta)
+    // + SONDAGEM inicial de 8s (valor definido antes de abrir, sem evento).
+    // Nunca sobrescreve a escolha do usuário (__wcaUserTouchedTab).
     function valorTextoVariavel(valorBruto) {
         if (typeof valorBruto === 'string') return valorBruto;
         if (valorBruto && typeof valorBruto === 'object') {
@@ -4237,31 +4241,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return '';
     }
-    function aplicarOpenTab(valorBruto, usarPadrao) {
-        if (window.__wcaUserTouchedTab) return;
-        let valor = String(valorTextoVariavel(valorBruto) || '').trim().toLowerCase();
-        if (valor !== 'one' && valor !== 'two') {
-            if (usarPadrao) openTab('config-tab');
-            return;
-        }
-        openTab(valor === 'one' ? 'config-tab' : 'connections-tab');
+    function aplicarOpenTab(valorBruto) {
+        if (window.__wcaUserTouchedTab) return false;
+        const valor = String(valorTextoVariavel(valorBruto) || '').trim().toLowerCase();
+        if (valor === 'one') { openTab('config-tab'); return true; }
+        if (valor === 'two') { openTab('connections-tab'); return true; }
+        return false;
     }
 
     (function iniciarOpenTab() {
+        // listener SEMPRE registrado, antes de qualquer leitura
         try {
-            if (typeof Tasker === 'undefined' || typeof Tasker.getVariable !== 'function') return;
-            let bruto = Tasker.getVariable('open_tab');
-            if (bruto && typeof bruto.then === 'function') {
-                Promise.race([bruto, bridgeTimeout(4000)])
-                    .then(function (v) { aplicarOpenTab(v, true); })
-                    .catch(function () { });
-            } else {
-                aplicarOpenTab(bruto, true);
+            Tasker.onVariableChanged('open_tab', function (nome, valor) { aplicarOpenTab(valor); });
+        } catch (e) { }
+        // SONDAGEM inicial: cobre o valor definido ANTES da cena abrir (sem
+        // evento de mudanca para o listener) e leituras que demoram a resolver.
+        // 16 tentativas de 500ms (8s); para na primeira leitura valida (one/two).
+        let sondasRestantes = 16;
+        const sondagem = setInterval(function () {
+            if (sondasRestantes <= 0 || window.__wcaUserTouchedTab) { clearInterval(sondagem); return; }
+            sondasRestantes -= 1;
+            let leitura = null;
+            try {
+                if (typeof Tasker === 'undefined' || typeof Tasker.getVariable !== 'function') return;
+                leitura = Tasker.getVariable('open_tab');
+            } catch (e) { return; }
+            if (!(leitura && typeof leitura.then === 'function')) {
+                if (aplicarOpenTab(leitura)) clearInterval(sondagem);
+                return;
             }
-        } catch (e) { }
-        try {
-            Tasker.onVariableChanged('open_tab', function (nome, valor) { aplicarOpenTab(valor, false); });
-        } catch (e) { }
+            Promise.race([
+                leitura,
+                new Promise(function (_, rejeitar) { setTimeout(function () { rejeitar(new Error('prazo da sonda')); }, 1500); })
+            ])
+                .then(function (v) { if (aplicarOpenTab(v)) clearInterval(sondagem); })
+                .catch(function () { });
+        }, 500);
     })();
 
     // ---- Vídeos do cabeçalho: fallback em cascata de caminhos ----
@@ -8102,7 +8117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('modal-open');
         stopAllTimers();
 
-        const initialTab = CONFIG.OPEN_INSTALL_TAB_FIRST ? 'config-tab' : 'connections-tab';
+        // 1.29: a primeira aba (Instalação) é o padrão IMEDIATO do arranque;
+        // open_tab=two troca para Conexões quando o valor chegar (leitura/listener)
+        const initialTab = 'config-tab';
         openTab(initialTab);
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -8141,7 +8158,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setDeactivateMenuAvailability(hasStoredConnections());
         resolveProfilePicture();
 
-        const initialTab = CONFIG.OPEN_INSTALL_TAB_FIRST ? 'config-tab' : 'connections-tab';
+        // 1.29: a primeira aba (Instalação) é o padrão IMEDIATO do arranque;
+        // open_tab=two troca para Conexões quando o valor chegar (leitura/listener)
+        const initialTab = 'config-tab';
         openTab(initialTab);
         updateModalHistoryFile();
 
