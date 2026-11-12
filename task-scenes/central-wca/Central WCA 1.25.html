@@ -3202,7 +3202,7 @@ input.first-install-attention {
             <p class="delete-review-text">O dispositivo será desconectado e removido da lista.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmModal">CANCELAR</button>
-                <button id="btnConfirmDelete" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> REMOVER</button>
+                <button id="btnConfirmDelete" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> SIM</button>
             </div>
         </div>
     </div>
@@ -3214,7 +3214,7 @@ input.first-install-attention {
             <p class="delete-review-text">Todos os dispositivos serão desconectados e removidos. Essa ação não pode ser desfeita.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmAllModal">CANCELAR</button>
-                <button id="btnConfirmDeleteAll" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> REMOVER TODOS</button>
+                <button id="btnConfirmDeleteAll" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> SIM</button>
             </div>
         </div>
     </div>
@@ -4627,14 +4627,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Dispara a instalação com o número/sessão informados
-    // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
-    // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
+    // Fluxo V2 (1.25): executa a 006 com par1=install-project e embute o
+    // JSON (number/session) em exit_data — mesmo padrão das demais saídas
     async function taskInstall(data) {
         try {
-            await Tasker.setVariable('task', '4');
-            await Tasker.setVariable('exit_data', String(data === null || data === undefined ? '' : data));
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'install-project', exit_data: String(data === null || data === undefined ? '' : data) }
+            });
         } catch (e) {
-            console.log('Erro ao gravar variáveis da cena (taskInstall): ' + e);
+            console.log('Erro ao executar 006 (install-project): ' + e);
         }
     }
 
