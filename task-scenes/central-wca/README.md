@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.2**
-Arquivo: `Central WCA 1.2.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.3**
+Arquivo: `Central WCA 1.3.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -40,9 +40,11 @@ As variáveis gravadas com `setVariable` são variáveis **da tela**: quando a c
 
 ## Variáveis do Tasker consumidas pela cena
 
-Resolvidas ao vivo pelo motor da V2 (com atualização sem recarregar a página):
+Lidas em **runtime** via `Tasker.getVariable` (com prazo de 4s) — a cena V2
+**não substitui variáveis dentro do JavaScript**, então nenhuma `%variável`
+fica embutida no código:
 
-`%user_name`, `%name_exist`, `%photo_profile`, `%mode_system`, `%open_tab`
+`user_name`, `name_exist`, `photo_profile`, `mode_system`, `open_tab`
 
 ## Arquivos que a cena lê/escreve
 
@@ -50,12 +52,13 @@ Resolvidas ao vivo pelo motor da V2 (com atualização sem recarregar a página)
 |---|---|
 | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/connections/devices.json` | Lido no início (cache em memória); escrito a cada alteração de dispositivos |
 | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version` | **Versão do painel** (sem extensão): lida no início e exibida nos badges de versão — não vem mais de variável do Tasker |
+| `icons/video-system.mp4` (vídeo do cabeçalho) | Fallback em cascata: `file:///…/icons/video-system.mp4` → `icons/video-system.mp4` → `icons/video-system.webm` (a WebView V2 pode bloquear `file://`) |
 | Histórico de modais (`MODAL_HISTORY_PATH`) | Escrito a cada modal aberto |
 | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/user-profile-picture/` | Reset de foto: lista (`listFiles`) e apaga todos os arquivos (`deleteFile`) |
 
 ## API do bridge V2 utilizada
 
-`Tasker.runTask` · `Tasker.setVariable` · `Tasker.readFile` · `Tasker.writeFile` · `Tasker.listFiles` · `Tasker.deleteFile`
+`Tasker.runTask` · `Tasker.setVariable` · `Tasker.getVariable` · `Tasker.readFile` · `Tasker.writeFile` · `Tasker.listFiles` · `Tasker.deleteFile`
 
 Referência oficial: tasker.joaoapps.com/userguide/en/scenes_v2/webview-actions.html (e seção *JavaScript Bridge* do manual Scenes V2).
 
@@ -88,3 +91,4 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 | 1.0 | 11/11/2026 | Migração da cena V1 → V2; arquivo único HTML+CSS+JS; novo fluxo de cliques (006 + `par1` embutido); `tk.*` → `Tasker.*`; README criado |
 | 1.1 | 11/11/2026 | Remove o card de atenção (aviso de desinstalação/reinstalação) — mensagem e lógica de exibição obsoletas; `%notification_caution` deixa de ser consumida; pasta do projeto no repositório renomeada para `task-scenes/` |
 | 1.2 | 11/11/2026 | Correção de travamento: leituras do bridge (devices.json e versão) rodam em paralelo com prazo de 4s — a cena nunca mais fica presa em "CARREGANDO..." se o bridge não responder; a versão passa a ser lida do arquivo `system/version` (sem extensão) em vez da variável `%last_update`; badge estático do menu atualizado |
+| 1.3 | 11/11/2026 | **Correção estrutural**: removidas TODAS as variáveis do Tasker embutidas no JavaScript (`%name_exist`/`%open_tab` "nus" quebravam a sintaxe do script inteiro na V2 e travavam a cena) — agora lidas em runtime via `Tasker.getVariable` e aplicadas no CONFIG/UI; vídeo do cabeçalho com fallback em cascata de caminhos; `task-scenes/README.md` criado no repositório |
