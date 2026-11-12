@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.24**
-Arquivo: `Central WCA 1.24.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.25**
+Arquivo: `Central WCA 1.25.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -37,12 +37,12 @@ Todos os botões de sistema despacham `006-CONFIGURAR_SISTEMA [wca]` com o coman
 | `taskReinstallApi` | `runTask` → 006 | `par1 = force-reinstall-api` |
 | `alertReinstallTask` | `runTask` → 006 | `par1 = force-reinstall-task` |
 | `taskEditProfilePicture` | `runTask` → 006 | `par1 = profile-picture` |
+| `taskInstall(data)` | `runTask` → 006 | `par1 = install-project` + `exit_data` (JSON number/session) |
 
 Exceções que **não** executam tarefa — apenas gravam variáveis na cena (`Tasker.setVariable`):
 
 | Função | Variáveis gravadas |
 |---|---|
-| `taskInstall(data)` | `task = 4` e `exit_data = <dados da instalação>` |
 | `taskPremiumNotFound()` | `task = 5` e `task_exit = status_premium` |
 
 As variáveis gravadas com `setVariable` são variáveis **da tela**: quando a cena for fechada (Dismiss Scene v2), elas são devolvidas à tarefa que a exibiu.
@@ -105,13 +105,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.23** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.22 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.23** é o ponto de retorno documentado (a 1.24 difere dela apenas pelos textos dos botões dos modais de remoção).
+A partir da **1.24** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.23 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.24** é o ponto de retorno documentado (a 1.25 difere dela apenas pelo mecanismo de disparo da instalação, que passou a executar a 006).
 
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.25 | 12/11/2026 | **Instalação passa a executar a 006 (padrão das demais saídas)**: em vez de gravar `task=4` + `exit_data` como variáveis da tela — que só eram entregues quando a tarefa de abertura consumia após o fechamento da cena — a cena executa `006-CONFIGURAR_SISTEMA [wca]` com `par1 = install-project` e o JSON (number/session) embutido em `exit_data` (chega como variável local da tarefa disparada). `taskPremiumNotFound` (task=5) permanece a única exceção que grava variáveis da tela |
 | 1.24 | 12/11/2026 | **Confirmações de remoção padronizadas (pedido do usuário)**: nos modais "Remover Dispositivo?" e "Remover TODOS os dispositivos?" o botão vermelho (que repetia REMOVER / REMOVER TODOS — redundante, pois a escolha já foi feita no gatilho) passou a ser **SIM**, ficando CANCELAR / SIM como nos demais modais de confirmação da cena. O gatilho na lista (ícone REMOVER TODOS) permanece intacto |
-| 1.23 | 12/11/2026 | **Foto personalizada não é mais sobrescrita pelo avatar da API**: corrida no arranque — a requisição do avatar (API) iniciada antes da pasta ser listada chegava DEPOIS e substituía a foto personalizada segundos depois. Agora a foto personalizada é prioridade máxima: `requestProfileAvatar` nem inicia (e descarta o resultado no meio do voo) se houver foto personalizada; o cache local (`usarCacheAvatarSeExistir`) revalida antes de exibir; o ícone de atualizar, com foto personalizada ativa, apenas confirma ("Sua foto já está atualizada") sem tocar na exibição |
 
-> O histórico detalhado das versões **1.0 a 1.22** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
+> O histórico detalhado das versões **1.0 a 1.23** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
