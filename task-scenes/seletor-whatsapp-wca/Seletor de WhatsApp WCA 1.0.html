@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsConnectApi | Seleção de WhatsApp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-body: #000;
+    --bg-card: #06222A;
+    --primary: #0F9DCB;
+    --accent: #B5FB2A;
+    --border: #0F507A;
+    --text-main: #C6E3DC;
+    --text-dim: #8494A4;
+    --gold: #FFD700;
+    --btn-messenger: #25D366;
+    --btn-messenger-hover: #1fb855;
+    --btn-business: #0088cc;
+    --btn-business-hover: #006fa8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #000 0%, #0a1929 100%);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(15, 157, 203, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(181, 251, 42, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 500px;
+    padding: 0 4vw;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    justify-content: center;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+.main-container {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 
+        0 12px 35px rgba(0,0,0,0.65),
+        0 0 0 1px rgba(15, 157, 203, 0.1) inset;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.panel-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, rgba(15, 157, 203, 0.1) 0%, rgba(0,0,0,0.4) 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.panel-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.3;
+}
+
+.header-video {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.panel-header h2 {
+    font-size: 19px;
+    flex: 1;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.accent-text {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.info-container {
+    padding: 32px 28px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(181, 251, 42, 0.1);
+    border: 1px solid rgba(181, 251, 42, 0.3);
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.status-badge i {
+    font-size: 14px;
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.info-text {
+    color: var(--text-main);
+    line-height: 1.75;
+    font-size: 15.5px;
+    text-align: center;
+    margin-bottom: 28px;
+    font-weight: 400;
+}
+
+.info-text .highlight {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.info-text .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #000;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 14px;
+    margin: 0 4px;
+    vertical-align: middle;
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.btn-whatsapp {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.btn-whatsapp::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+
+.btn-whatsapp:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-messenger {
+    background: linear-gradient(135deg, var(--btn-messenger) 0%, #1fb855 100%);
+    color: white;
+}
+
+.btn-messenger:hover {
+    background: linear-gradient(135deg, var(--btn-messenger-hover) 0%, #189f4a 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
+}
+
+.btn-business {
+    background: linear-gradient(135deg, var(--btn-business) 0%, #006fa8 100%);
+    color: white;
+}
+
+.btn-business:hover {
+    background: linear-gradient(135deg, var(--btn-business-hover) 0%, #005580 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 136, 204, 0.4);
+}
+
+.btn-whatsapp:active {
+    transform: translateY(-1px);
+}
+
+.btn-whatsapp i {
+    font-size: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-whatsapp span {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.btn-label-main {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.btn-label-sub {
+    font-size: 11.5px;
+    font-weight: 400;
+    opacity: 0.85;
+    margin-top: 2px;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border);
+}
+
+.divider span {
+    padding: 0 12px;
+}
+
+.main-footer {
+    padding: 20px 0 35px;
+    text-align: center;
+    font-size: 13px;
+    color: #aaa;
+    position: relative;
+    z-index: 1;
+}
+
+.dev-name {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+@media (max-width: 520px) {
+    .content-wrapper { 
+        max-width: 92vw; 
+    }
+    
+    .panel-header { 
+        padding: 14px 20px; 
+    }
+    
+    .header-video { 
+        width: 46px; 
+        height: 46px;
+    }
+    
+    .panel-header h2 { 
+        font-size: 17px; 
+    }
+    
+    .info-container { 
+        padding: 24px 22px; 
+    }
+    
+    .info-text { 
+        font-size: 14.5px; 
+    }
+    
+    .btn-whatsapp { 
+        font-size: 14px; 
+        padding: 11px 18px; 
+    }
+
+    .btn-label-main {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 380px) {
+    .btn-whatsapp { 
+        padding: 10px 16px; 
+    }
+    
+    .info-text {
+        font-size: 14px;
+    }
+
+    .status-badge {
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+}</style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="content-wrapper">
+
+        <div class="main-container">
+            <header class="panel-header">
+                <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+                <h2><span class="accent-text">WHATS CONNECT API</span></h2>
+                <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+            </header>
+
+            <div class="info-container">
+                <div style="text-align: center;">
+                    <div class="status-badge">
+                        <i class="fas fa-check-circle"></i>
+                        Sistema Detectado
+                    </div>
+                </div>
+
+                <div class="info-text">
+                    Foram identificados <span class="count">2</span> aplicativos <span class="highlight">WhatsApp</span> instalados em seu dispositivo.
+                    <br><br>
+                    Por favor, <strong>selecione qual deseja utilizar</strong> para realizar a configuração da instalação:
+                </div>
+
+                <div class="buttons-container">
+                    <button id="btnMessenger" class="btn-whatsapp btn-messenger">
+                        <i class="fab fa-whatsapp"></i>
+                        <div class="btn-label">
+                            <span class="btn-label-main">WhatsApp Messenger</span>
+                            <span class="btn-label-sub">Versão padrão para uso pessoal</span>
+                        </div>
+                    </button>
+
+                    <div class="divider">
+                        <span>OU</span>
+                    </div>
+                    
+                    <button id="btnBusiness" class="btn-whatsapp btn-business">
+                        <i class="fas fa-briefcase"></i>
+                        <div class="btn-label">
+                            <span class="btn-label-main">WhatsApp Business</span>
+                            <span class="btn-label-sub">Versão profissional para empresas</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span>
+        </footer>
+
+    </div>
+
+
+<script>
+// WHATS CONNECT API - Seletor de WhatsApp (cena V2, 1.0)
+// Conteudo estatico (badge, texto e contagem sao fixos, como no original).
+// Os botoes gravam a variavel de tela bottom (wa-message | wa-business) — que
+// volta para a tarefa que exibiu a cena quando ela e dismissada — e fecham a
+// cena pela mesma cascata validada dos outros projetos. Modo de exibicao
+// recomendado: With Result (a tarefa espera e recebe o bottom).
+
+const WCA_SCENE_SCREEN_ID = '1'; // MESMO "ID da Tela" configurado na acao Cena v2 Mostrar
+const AUTO_FECHAMENTO_DELAY_MS = 600; // pausa entre responder e fechar
+
+function getTaskerBridge(){
+    if (typeof Tasker !== 'undefined') return Tasker;
+    if (typeof window !== 'undefined' && window.Tasker) return window.Tasker;
+    return null;
+}
+
+function fecharPropriaCena() {
+    const tentativas = [
+        function () { return Tasker.dismissSceneV2(WCA_SCENE_SCREEN_ID); },
+        function () { return Tasker.dismissLayout(WCA_SCENE_SCREEN_ID); },
+        function () { return Tasker.cancelScreen(''); },
+        function () { return Tasker.runTask({ name: '004-FECHAR_WHATSAPP_SELETOR [wca]', variables: { par1: 'fechar-cena' } }).catch(function () { }); }
+    ];
+    for (let i = 0; i < tentativas.length; i++) {
+        try { tentativas[i](); return true; } catch (eTentativa) { }
+    }
+    return false;
+}
+function agendarFechamentoProprio() {
+    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
+}
+
+// ---- AMBIENTE DO TASKER ----
+// Unica saida: o botao escolhido grava a variavel de tela bottom e fecha a
+// cena; resposta dupla e ignorada (guarda interna)
+let _respondido = false;
+async function taskSelecionar(valor){
+    if (_respondido) return;
+    _respondido = true;
+    try {
+        const api = getTaskerBridge();
+        if (api && typeof api.setVariable === 'function') {
+            await api.setVariable('bottom', valor);
+        }
+    } catch (eSet) {
+    }
+    agendarFechamentoProprio();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // fade-in de entrada (mesmo do projeto original)
+    document.body.style.opacity = '0';
+    setTimeout(function () {
+        document.body.style.transition = 'opacity 0.1s ease';
+        document.body.style.opacity = '1';
+    }, 100);
+
+    const btnMessenger = document.getElementById('btnMessenger');
+    const btnBusiness = document.getElementById('btnBusiness');
+    if (btnMessenger) btnMessenger.addEventListener('click', function () { taskSelecionar('wa-message'); });
+    if (btnBusiness) btnBusiness.addEventListener('click', function () { taskSelecionar('wa-business'); });
+});
+</script>
+</body>
+</html>
