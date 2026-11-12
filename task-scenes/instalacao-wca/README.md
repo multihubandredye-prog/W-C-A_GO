@@ -1,8 +1,8 @@
 # Instalação WCA — Cena V2 (WebView)
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
-Versão atual: **1.1**
-Arquivo: `Instalação WCA 1.1.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
+Versão atual: **1.2**
+Arquivo: `Instalação WCA 1.2.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
 
 Cena de progresso da instalação: anel de progresso com percentual e cores variáveis, mensagem de status, tempo decorrido e card informativo por arquivo (temas por etapa).
 
@@ -48,5 +48,6 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.2 | 12/11/2026 | **Remoção de TODAS as mensagens de console (pedido do usuário)**: as 2 ocorrências de `console.warn` (falha do listener `onVariableChanged` e da leitura inicial `getVariable`) foram eliminadas — os `catch` seguem capturando os erros silenciosamente, sem mudança de lógica |
 | 1.1 | 12/11/2026 | **A cena permanece aberta ao concluir (pedido do usuário)**: reforço do comportamento sem `destroyScene` — ao atingir 100% a UI conclui, a mensagem de status passa a **"Instalação concluída."** e a cena permanece aberta até ser fechada pelo lado Tasker (fechamento opcional, no momento que o usuário escolher). Adicionado método público `window.WCA_INSTALL_SCENE` (`isCompleted()` / `percent()`) para consulta de estado via injeção de teste/lado Tasker |
 | 1.0 | 12/11/2026 | Conversão da cena V1 → V2: arquivo único HTML+CSS+JS; progresso via `Tasker.onVariableChanged('progress_install')` (sem injeção javascript:); modo via `Tasker.getVariable` + listener `type_project` (sem `%type_project` embutido); `tk.destroyScene` removido — fechamento da cena passou a ser responsabilidade do Tasker; `PROGRESS_CONTROL` mantido para compatibilidade |

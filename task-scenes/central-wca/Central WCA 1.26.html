@@ -3843,7 +3843,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if(panelVersionBadge) panelVersionBadge.textContent = APP_VERSION;
             window.__panelVersionSet = true;
         } catch(e){
-            console.warn('Erro ao ler o arquivo de versão:', e);
         }
     }
 
@@ -3950,7 +3949,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (alternativa.missing) return '';
             return alternativa.contents;
         } catch (e2) {
-            console.warn('Leitura falhou por readFile e runShell:', path, e2);
             return '';
         }
     }
@@ -3975,7 +3973,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // servidor ja concluiu offline, reaplica a mensagem correta
             try { if (serverStatusChecked && !serverOnline) markServerOffline(); } catch (e) {}
         } catch (e) {
-            console.warn('Erro ao ler .mode-system.log:', e);
         }
     }
 
@@ -4001,7 +3998,6 @@ document.addEventListener('DOMContentLoaded', () => {
             CONFIG.USER_PROFILE_PICTURE = USER_PROFILE_PICTURE_DIR + nomes[0];
             try { resolveProfilePicture(); } catch (e) {}
         } catch (e) {
-            console.warn('Erro ao localizar foto de perfil local:', e);
         }
     }
 
@@ -4017,7 +4013,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const verificacao = await taskerCall('runShell', { cmd: "if [ -s " + shellQuote(destino) + " ]; then printf '__WCA_OK__'; fi", root: false, timeout: 10 });
             return shellActionOk(verificacao) && String((verificacao && verificacao.stdout) || '').trim() === '__WCA_OK__';
         } catch (e) {
-            console.warn('Erro ao baixar imagem do avatar:', e);
             return false;
         }
     }
@@ -4054,7 +4049,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!ok) return;
             await taskerCall('writeFile', { path: AVATAR_CACHE_URL_PATH, text: url, append: false });
         } catch (e) {
-            console.warn('Erro ao cachear avatar:', e);
         }
     }
 
@@ -4124,7 +4118,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (img) { img.style.display = 'block'; img.src = 'file://' + AVATAR_CACHE_PATH; }
             showToast({title: 'Foto de perfil', message: 'Foto atualizada.', type: 'success'});
         } catch (e) {
-            console.warn('Erro ao atualizar foto:', e);
         }
     }
 
@@ -4208,7 +4201,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (eVar) { /* variável ausente: mantém default */ }
             }
         } catch (e) {
-            console.warn('Erro ao ler variáveis do Tasker:', e);
         }
         applyTaskerVars();
     }
@@ -4283,7 +4275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     avancar();
                 }, 2000);
             }
-        } catch (e) { console.warn('Erro ao preparar vídeos do cabeçalho:', e); }
+        } catch (e) { }
     }
 
     // ---- Camada HTTP via bridge (padrao do app de exemplo, comprovado no aparelho) ----
@@ -4360,7 +4352,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!Number.isFinite(status) && !corpo) throw new Error('Resposta vazia do bridge HTTP');
                 return respostaViaBridge(Number.isFinite(status) ? status : 200, corpo);
             } catch (eBridge) {
-                console.warn('Requisição via bridge falhou, tentando fetch nativo:', eBridge);
             }
         }
         return nativeFetch(url, options);
@@ -4513,7 +4504,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'open-faq' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (open-faq): ' + e);
         }
     }
 
@@ -4526,7 +4516,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'talk-developer' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (talk-developer): ' + e);
         }
     }
 
@@ -4539,7 +4528,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'buy-vip' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (buy-vip): ' + e);
         }
     }
 
@@ -4552,7 +4540,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'uninstall-wca' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (uninstall-wca): ' + e);
         }
     }
 
@@ -4565,7 +4552,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'stop-wca' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (stop-wca): ' + e);
         }
     }
 
@@ -4585,7 +4571,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'restart-wca' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (restart-wca): ' + e);
         }
     }
 
@@ -4598,7 +4583,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 variables: { par1: 'check_updates' }
             });
         } catch (e) {
-            console.log('Erro ao executar 006 (check_updates): ' + e);
         }
     }
 
@@ -4607,7 +4591,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ///alert('API reinstalada');
 
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-api' } }).catch(function (e) { console.log('Erro ao executar 006 (force-reinstall-api): ' + e); });
+        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-api' } }).catch(function (e) { });
     }
 
     // Reinstala o projeto do Tasker
@@ -4615,7 +4599,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ///alert('Tasker/Projeto reinstalado');
 
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } }).catch(function (e) { console.log('Erro ao executar 006 (force-reinstall-task): ' + e); });
+        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } }).catch(function (e) { });
     }
 
     // Botão de personalização de imagem (canetinha na foto de perfil)
@@ -4623,18 +4607,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ///alert('Botão de personalização de imagem clicada');
 
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'profile-picture' } }).catch(function (e) { console.log('Erro ao executar 006 (profile-picture): ' + e); });
+        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'profile-picture' } }).catch(function (e) { });
     }
 
     // Dispara a instalação com o número/sessão informados
-    // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
-    // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
+    // Fluxo V2 (1.25): executa a 006 com par1=install-project e embute o
+    // JSON (number/session) em exit_data — mesmo padrão das demais saídas
     async function taskInstall(data) {
         try {
-            await Tasker.setVariable('task', '4');
-            await Tasker.setVariable('exit_data', String(data === null || data === undefined ? '' : data));
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'install-project', exit_data: String(data === null || data === undefined ? '' : data) }
+            });
         } catch (e) {
-            console.log('Erro ao gravar variáveis da cena (taskInstall): ' + e);
         }
     }
 
@@ -4646,7 +4631,6 @@ document.addEventListener('DOMContentLoaded', () => {
             await Tasker.setVariable('task', '5');
             await Tasker.setVariable('task_exit', 'status_premium');
         } catch (e) {
-            console.log('Erro ao gravar variáveis da cena (taskPremiumNotFound): ' + e);
         }
     }
 
@@ -4752,7 +4736,6 @@ document.addEventListener('DOMContentLoaded', () => {
             await garantirArquivoUrlCache(true);
             }
         } catch (eList) {
-            console.log('Erro ao listar arquivos de user-profile-picture: ' + eList);
         }
         closeModal('profilePictureModal');
         showToast({title: 'Foto de perfil', message: 'Imagem personalizada eliminada', type: 'success'});
@@ -4910,8 +4893,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function writeModalHistory(name){
         taskerCall('writeFile', { path: MODAL_HISTORY_PATH, text: String(name || ''), append: false })
-            .then(function (r) { if (actionFailed(r)) console.log('Tasker.writeFile sinalizou falha no modal-history'); })
-            .catch(function (e) { console.log('Erro ao escrever modal-history: ' + e); });
+            .catch(function (e) { });
     }
 
     function updateModalHistoryFile() {
@@ -5246,7 +5228,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         } catch(e) {
-            console.warn('Erro ao verificar dispositivos conectados:', e);
             // Se falhar a verificação, prossegue com a instalação normalmente
         }
 
@@ -5750,7 +5731,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showEl(dom.pairCodeValue);
             }
         } catch(e){
-            console.error("Erro ao buscar código de pareamento:", e);
             hideEl(dom.pairLoadingMsg);
             dom.pairCodeValue.textContent = 'Falha na geração';
             showEl(dom.pairCodeValue);
@@ -5799,7 +5779,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(dev && dev.jid){
                 await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}});
             }
-        }catch(e){ console.warn('reset logout falhou:', e); }
+        }catch(e){ }
         deviceListSignature = null;
         fetchDevices();
     }
@@ -5847,7 +5827,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 setTimeout(() => startStatusCheck(id), 1100);
             }
-        } catch(e){ console.error("Erro ao obter QR Code:", e); }
+        } catch(e){ }
     }
 
     function startQrTimer(id, seconds){
@@ -6053,7 +6033,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleServerError(msg) {
-        console.warn('[handleServerError]', msg);
         showServerAlert('Não foi possível conectar à API. Verifique se ela está ativa.');
     }
 
@@ -6339,7 +6318,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } catch(e) {
-            console.warn('refreshAndVerifyNames error:', e);
         }
     }
 
@@ -6524,10 +6502,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }catch(e){ /* segue mesmo sem jid */ }
         try{
             await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}});
-        }catch(e){ console.warn('logout falhou:', e); }
+        }catch(e){ }
         try{
             await fetch(`${CONFIG.API_URL}/devices/${id}`, {method: 'DELETE', headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}});
-        }catch(e){ console.warn('delete falhou:', e); }
+        }catch(e){ }
         if(jid) removeDeviceFromFile(jid);
         closeModal('confirmModal');
         deleteDeviceTargetId = null;
@@ -6553,14 +6531,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionDeletedDevices.delete(id);
                 reconnectCheckedDevices.delete(id);
                 reconnectExpandedDevices.delete(id);
-                try{ await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ console.warn('logout falhou:', e); }
-                try{ await fetch(`${CONFIG.API_URL}/devices/${id}`, {method: 'DELETE', headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ console.warn('delete falhou:', e); }
+                try{ await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ }
+                try{ await fetch(`${CONFIG.API_URL}/devices/${id}`, {method: 'DELETE', headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ }
             }
             deviceListSignature = null;
             clearDevicesFile();
             showToast({title: 'Dispositivos removidos', message: 'Todos os dispositivos foram removidos.', type: 'success'});
         }catch(e){
-            console.error('doDeleteAllDevices:', e);
             showToast({title: 'Erro', message: 'Falha ao remover os dispositivos.', type: 'error'});
         }finally{
             if (btn) btn.disabled = false;
@@ -6587,11 +6564,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok || res.status === 201) {
                 showToast({title: 'Dispositivo criado', message: 'Adicionado como OFFLINE.', type: 'success'});
             } else {
-                console.warn('Create returned', res.status);
                 showToast({title: 'Aviso', message: 'Atualizando lista...', type: 'warning'});
             }
         } catch (e) {
-            console.error('createDevice:', e);
 
         } finally {
             if (btn) btn.disabled = false;
@@ -6635,7 +6610,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const list = JSON.parse(contents);
             if(Array.isArray(list)) devicesCache = list;
         } catch(e){
-            console.warn('Erro ao ler devices.json:', e);
         }
     }
 
@@ -6661,7 +6635,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (actionFailed(escrita)) throw new Error('Tasker.writeFile sinalizou falha ao gravar devices.json');
             return true;
         } catch(e){
-            console.warn('Erro ao gravar devices.json:', e);
             return false;
         }
     }
@@ -7480,7 +7453,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(j.message || 'Erro ao carregar');
             }
         } catch(e){
-            console.error('Reviews GET error', e);
             reviews = [];
             renderReviewsError(e.message);
         } finally {
