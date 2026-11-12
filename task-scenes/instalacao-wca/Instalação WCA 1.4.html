@@ -365,17 +365,19 @@ window.WCA_INSTALL_SCENE = {
     percent: function () { return APP_STATE.lastPercent; }
 };
 
-// V2 (1.3): autofechamento ao concluir (comportamento da V1). O bridge V2 nao
-// documenta um metodo oficial de fechamento; tenta na ordem: dismissLayout
+// V2 (1.4): autofechamento ao concluir (comportamento da V1). O bridge V2 nao
+// documenta um metodo oficial de fechamento; tenta na ordem: dismissSceneV2
+// (API de tarefa, exposta pelo bridge em algumas versoes), dismissLayout
 // (wiki da comunidade), cancelScreen e, por ultimo, uma tarefa auxiliar do
 // Tasker com a acao Fechar cena v2. Se nada existir, a cena permanece aberta.
 const WCA_SCENE_SCREEN_ID = '1'; // MESMO "ID da Tela" configurado na acao Show Scene v2
 const AUTO_FECHAMENTO_DELAY_MS = 600; // pausa para ver o 100%; 0 = imediato (estilo V1)
 function fecharPropriaCena() {
     const tentativas = [
+        function () { return Tasker.dismissSceneV2(WCA_SCENE_SCREEN_ID); },
         function () { return Tasker.dismissLayout(WCA_SCENE_SCREEN_ID); },
         function () { return Tasker.cancelScreen(''); },
-        function () { return Tasker.runTask({ name: '003-FECHAR_INSTALACAO [wca]', variables: { par1: 'fechar-cena' } }); }
+        function () { return Tasker.runTask({ name: '003-FECHAR_INSTALACAO [wca]', variables: { par1: 'fechar-cena' } }).catch(function () { }); }
     ];
     for (let i = 0; i < tentativas.length; i++) {
         try { tentativas[i](); return true; } catch (eTentativa) { }
