@@ -3971,6 +3971,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // carga (variavel), na V2 ele chega AQUI, depois do initialize -
             // sem reaplicar, o bloco da foto fica oculto e a API nunca e chamada
             try { resolveProfilePicture(); } catch (e) {}
+            // 1.21: o estado de expiracao chega junto do log; se o check de
+            // servidor ja concluiu offline, reaplica a mensagem correta
+            try { if (serverStatusChecked && !serverOnline) markServerOffline(); } catch (e) {}
         } catch (e) {
             console.warn('Erro ao ler .mode-system.log:', e);
         }
@@ -3983,6 +3986,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // permanece como no original.
     async function loadUserProfilePicture(){
         try {
+            // 1.22: garante a existencia de avatar-cache.url (recria vazio se um fluxo externo o removeu)
+            await garantirArquivoUrlCache(false);
             if (String(CONFIG.USER_PROFILE_PICTURE || '').trim()) return;
             const listagem = await Promise.race([
                 taskerCall('runShell', { cmd: 'ls -1 -- ' + shellQuote(USER_PROFILE_PICTURE_DIR) + ' 2>/dev/null', root: false, timeout: 10 }),
@@ -4074,8 +4079,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Arquivo de cache apagado/corrompido: limpa o cache e busca pela API
             img.onerror = function () {
                 taskerCall('deleteFile', { path: AVATAR_CACHE_PATH, shred: 0, root: false }).catch(function () {});
-                // Mantem o arquivo da URL e limpa o conteudo (regra do usuario)
-                taskerCall('writeFile', { path: AVATAR_CACHE_URL_PATH, text: '', append: false }).catch(function () {});
+                // Mantem o arquivo da URL e limpa o conteudo (regra do usuario):
+                // cria-ou-trunca via shell, jamais remove (1.22)
+                garantirArquivoUrlCache(true);
                 requestProfileAvatar(3);
             };
             showImage('file://' + AVATAR_CACHE_PATH);
@@ -4397,6 +4403,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let expandedReplyThreads = new Set();
     let currentUserPhone = '';
     let serverOnline = false;
+    // 1.21: true apos a primeira avaliacao concluida do check de servidor
+    let serverStatusChecked = false;
     let wcaPausedByStoredConnection = false;
     let duplicateModalMode = 'connections';
     let firstInstallPulseTimer = null;
@@ -4714,6 +4722,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reseta a imagem personalizada: elimina todos os arquivos da pasta
     // user-profile-picture e exibe a confirmação no toast.
     // Fluxo V2: listFiles/deleteFile do bridge são assíncronos (Promise)
+    // 1.22: o arquivo avatar-cache.url NUNCA e eliminado (regra do usuario):
+    // printf '' > arquivo cria (se ausente) ou trunca (se existe), sem remocao
+    async function garantirArquivoUrlCache(esvaziar){
+        const alvo = shellQuote(AVATAR_CACHE_URL_PATH);
+        const cmd = esvaziar ? "printf '' > " + alvo : "[ -e " + alvo + " ] || printf '' > " + alvo;
+        try { await taskerCall('runShell', { cmd: cmd, root: false, timeout: 10 }); } catch (e) {}
+    }
+
     async function resetProfilePicture(){
         const dir = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/user-profile-picture/';
         try {
@@ -4725,8 +4741,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (nome === 'avatar-cache.url') continue;
                 try { await taskerCall('deleteFile', { path: dir + nome, shred: 0, root: false }); } catch (eDel) {}
             }
-            // Mantem o arquivo da URL e limpa o conteudo (regra do usuario)
-            await taskerCall('writeFile', { path: AVATAR_CACHE_URL_PATH, text: '', append: false }).catch(function () {});
+            // Mantem o arquivo da URL e limpa o conteudo (regra do usuario):
+            // cria-ou-trunca via shell, jamais remove (1.22)
+            await garantirArquivoUrlCache(true);
             }
         } catch (eList) {
             console.log('Erro ao listar arquivos de user-profile-picture: ' + eList);
@@ -5953,6 +5970,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function markServerOnline(){
         serverOnline = true;
+        serverStatusChecked = true;
         stopFirstInstallInputPulse();
         setReactivateUiState(false);
         dom.createDeviceBtn.disabled = false;
@@ -5962,6 +5980,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function markServerOffline(){
         serverOnline = false;
+        serverStatusChecked = true;
         const hasConnections = hasStoredConnections();
         setReactivateUiState(hasConnections);
         dom.createDeviceBtn.disabled = true;
@@ -6615,6 +6634,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUserPhone = getPrincipalPhone();
         updateReviewMenuAvailability();
         updatePremiumMenuAvailability();
+        // 1.21: se o check de servidor ja concluiu OFFLINE e as conexoes
+        // chegaram depois, reaplica o estado (alerta correto + botao
+        // HABILITAR WCA) sem esperar uma troca de aba
+        if (serverStatusChecked && !serverOnline) markServerOffline();
     }
 
     function readDevicesFile(){
@@ -7974,17 +7997,22 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal('profilePictureModal');
         taskEditProfilePicture();
     });
-    document.getElementById('btnResetProfilePhoto')?.addEventListener('click', () => openModal('confirmResetPhotoModal'));
+    document.getElementById('btnResetProfilePhoto')?.addEventListener('click', () => {
+        closeModal('profilePictureModal');
+        openModal('confirmResetPhotoModal');
+    });
     document.getElementById('btnConfirmResetPhoto')?.addEventListener('click', () => {
         closeModal('confirmResetPhotoModal');
         resetProfilePicture();
     });
-    document.getElementById('btnUpdateProfilePhoto')?.addEventListener('click', () => openModal('confirmUpdatePhotoModal'));
+    document.getElementById('btnUpdateProfilePhoto')?.addEventListener('click', () => {
+        closeModal('profilePictureModal');
+        openModal('confirmUpdatePhotoModal');
+    });
     document.getElementById('btnConfirmUpdatePhoto')?.addEventListener('click', () => {
         closeModal('confirmUpdatePhotoModal');
         atualizarFotoAvatar();
     });
-    document.getElementById('btnUpdateProfilePhoto')?.addEventListener('click', atualizarFotoAvatar);
     document.getElementById('menuUninstallBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
         openModal('confirmUninstallModal');
