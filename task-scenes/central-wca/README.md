@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.6**
-Arquivo: `Central WCA 1.6.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.7**
+Arquivo: `Central WCA 1.7.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -105,6 +105,7 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 | 1.1 | 11/11/2026 | Remove o card de atenção (aviso de desinstalação/reinstalação) — mensagem e lógica de exibição obsoletas; `%notification_caution` deixa de ser consumida; pasta do projeto no repositório renomeada para `task-scenes/` |
 | 1.2 | 11/11/2026 | Correção de travamento: leituras do bridge (devices.json e versão) rodam em paralelo com prazo de 4s — a cena nunca mais fica presa em "CARREGANDO..." se o bridge não responder; a versão passa a ser lida do arquivo `system/version` (sem extensão) em vez da variável `%last_update`; badge estático do menu atualizado |
 | 1.3 | 11/11/2026 | **Correção estrutural**: removidas TODAS as variáveis do Tasker embutidas no JavaScript (`%name_exist`/`%open_tab` "nus" quebravam a sintaxe do script inteiro na V2 e travavam a cena) — agora lidas em runtime via `Tasker.getVariable` e aplicadas no CONFIG/UI; vídeo do cabeçalho com fallback em cascata de caminhos; `task-scenes/README.md` criado no repositório |
+| 1.7 | 11/11/2026 | **Leitura de arquivos corrigida**: o `readFile` do bridge devolve a string pura do arquivo (o extrator antigo fatiava caractere por caractere — versão `1.3.34` virava `1`, devices e licença morriam no parse); `extractBridgeText` e `extrairRespostaBridge` agora aceitam string pura, chave `contents` e objetos de variáveis de saída |
 | 1.6 | 11/11/2026 | **Camada HTTP via bridge**: a WebView V2 bloqueia HTTP puro (`http://localhost:3000`) — o `fetch` é redirecionado para `Tasker.httpRequest` (patch transparente; endpoints/headers/corpo idênticos, chamadas intactas), destravando status do servidor, devices e avatar; Premium/licença volta a ser REAL lendo `/storage/emulated/0/.system_cache/.mode-system.log`; `Premium_LOG_DATA` fictício removido |
 | 1.5 | 11/11/2026 | Vídeo do cabeçalho: cascata reiniciada após a anexação dos listeners (o erro do src original disparava antes do script e a cascata nunca avançava) + vigia por polling que avança a cascata se nada carregar em 2s; auditoria confirmou as 31 chamadas fetch da V1 preservadas (devices, avatar, login/logout/reconnect, premium, reviews) |
 | 1.4 | 11/11/2026 | Variáveis do Tasker passam a usar **valores fictícios** fixos no CONFIG (por enquanto): `USER_NAME="Usuário WCA"`, `SHOW_WELCOME_MESSAGE=true`, `Premium_LOG_DATA` com PREMIUM ativo expirando 31/12/2026; leitura real via `Tasker.getVariable` permanece pronta porém desligada (comentada no `initialize`) |
