@@ -3833,36 +3833,38 @@ document.addEventListener('DOMContentLoaded', () => {
     let APP_VERSION = 'v —';
 
     // ---- Versão do painel via repositório (1.31) ----
-// Busca a última release/tag do repositório do projeto na API do GitHub
-// (usada APENAS quando o arquivo de versão existe porém está vazio/inválido).
-// Normaliza a tag (remove o "v" inicial) e valida com o mesmo formato do arquivo.
+// Busca a última release REAL do repositório: o rótulo do tipo de publicação
+// vem ENTRE COLCHETES no título ([UI], [CORE] ou [FULL], com ou sem espaços
+// e emoji) — releases sem esse rótulo no título (ex.: testes) são IGNORADAS.
+// A lista chega da mais recente para a mais antiga; a primeira com rótulo
+// válido define a versão. Normaliza a tag (remove o "v" inicial) e valida
+// com o mesmo formato do arquivo.
 async function obterUltimaVersaoRelease(){
-        const candidatos = [
-            'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases/latest',
-            'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/tags'
-        ];
-        for (let i = 0; i < candidatos.length; i++) {
-            try {
-                const resposta = await fetch(candidatos[i], { headers: { "User-Agent": "WCA-Panel", "Accept": "application/vnd.github+json" } });
-                if (!resposta || !resposta.ok) continue;
-                const dados = await resposta.json();
-                const bruto = (i === 0) ? (dados && dados.tag_name) : (Array.isArray(dados) && dados[0] && dados[0].name);
-                const versao = String(bruto || '').trim().replace(/^[vV]/, '').trim();
+        const padraoTitulo = /\[\s*(ui|core|full)\s*\]/i;
+        try {
+            const resposta = await fetch('https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30', { headers: { "User-Agent": "WCA-Panel", "Accept": "application/vnd.github+json" } });
+            if (!resposta || !resposta.ok) return '';
+            const lista = await resposta.json();
+            if (!Array.isArray(lista)) return '';
+            for (let i = 0; i < lista.length; i++) {
+                const titulo = String((lista[i] && lista[i].name) || '');
+                if (!padraoTitulo.test(titulo)) continue;
+                const versao = String((lista[i] && lista[i].tag_name) || '').trim().replace(/^[vV]/, '').trim();
                 if (/^\d[\d.]*$/.test(versao)) return versao;
-            } catch (eBusca) { }
-        }
+            }
+        } catch (eBusca) { }
         return '';
     }
 
-
-    async function loadVersionFile(){
+async function loadVersionFile(){
         try{
             const texto = await Promise.race([ lerArquivo(VERSION_FILE_PATH, /^\d[\d.]*$/), bridgeTimeout(15000) ]);
             let versao = String(texto || '').trim();
             if(!versao){
-                // Arquivo existe porém vazio/inválido (1.31): busca a última release/tag
-                // no repositório, exibe e GRAVA a versão no arquivo (a requisição só
-                // acontece neste caso); se nada for obtido, mantém o padrão
+                // Arquivo existe porém vazio/inválido (1.31): busca no repositório a
+                // última release com título real (UI/CORE/FULL entre colchetes; testes
+                // sem o rótulo são ignorados), exibe e GRAVA a versão no arquivo (a
+                // requisição só acontece neste caso); se nada for obtido, mantém o padrão
                 versao = await obterUltimaVersaoRelease();
                 if(!versao) return;
                 taskerCall('writeFile', { path: VERSION_FILE_PATH, text: versao, append: false }).catch(function () { });
