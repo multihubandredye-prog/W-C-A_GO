@@ -1,17 +1,16 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.7**
-Arquivo: `Contatos Pro WCA 1.7.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.8**
+Arquivo: `Contatos Pro WCA 1.8.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado e lista as **conversas reais** do WhatsApp em abas **Contatos** e **Grupos**, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
 ## Funcionamento
 
 - **Tela de dispositivos**: busca `GET /devices` na API local e lista os com `state = logged_in` (nome, número e selo "Online"); botão **Atualizar Dispositivos** refaz a busca;
-- **Tela de contatos (conversas reais + nomes da agenda)**: a aba vem de `GET /chats?limit=100&offset=…&archived=false` com `X-Device-Id` do dispositivo — o banco de conversas da API, atualizado em tempo real a cada mensagem; paginada de 100 em 100 (limite do endpoint); conversas com número (`@s.whatsapp.net`/`@c.us`) ficam na aba de contatos (status, canais e listas ficam de fora) e os arquivados não entram; quando a conversa não traz o nome salvo, a cena consulta em paralelo a **agenda sincronizada** (`GET /user/my/contacts?filter=chatted`) e preenche o nome de quem está salvo no aparelho — quem não está fica pelo número;
-- **Tela de grupos (todos, com nome real)**: volta a usar `GET /user/my/groups` — a lista completa de grupos que você participa, cada um com o nome verdadeiro (não depender do banco de conversas); se essa consulta falhar, entram os grupos presentes nas conversas (`GET /chats`), descartando a etiqueta interna "Group + número" que a API grava para grupo sem nome (mostra o número);
-- **Ordenação**: contatos pela última mensagem (mais recentes no topo, desempate alfabético); grupos em ordem alfabética, com nome primeiro;
+- **Tela de contatos/grupos**: busca `GET /user/my/contacts?filter=chatted` (agenda sincronizada no WhatsApp) e `GET /user/my/groups` (todos os grupos que você participa) com `X-Device-Id` do dispositivo escolhido. Contatos válidos descartam JIDs inválidos (`0@…`, `status@…`); grupos ficam só os `@g.us`;
+- **Ordenação (com nome primeiro)**: quem tem nome salvo fica no início em ordem alfabética; quem só tem número (sem nome na agenda) vai para o fim, também em ordem — vale para contatos e grupos;
 - **Abas**: Contatos/Grupos com contadores e indicador deslizante; **arrastar para o lado** na lista (esquerda ou direita) alterna entre as abas — rolagem vertical e modo de seleção não trocam;
 - **Busca**: filtra por nome (sem acentos/pontuação) ou número/JID em tempo real, atualizando os contadores;
 - **Seleção múltipla**: toque longo (0,5s, com vibração) entra no modo de seleção; toques alternam itens; **Todos** seleciona/desfaz a lista atual; **Limpar** zera; barra inferior com o total e cópias em lote (**Nome** / **Número ou JID** / **Tudo**) e pré-visualização em modal (primeiros 60 itens);
