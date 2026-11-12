@@ -1,8 +1,10 @@
 # Painel de Atividade WCA — Cena V2 (WebView)
 
 Projeto: `003-PAINEL_ATIVIDADE [wca]`
-Versão atual: **1.0**
-Arquivo: `Painel de Atividade WCA 1.0.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.1**
+Arquivo: `Painel de Atividade WCA 1.1.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+Fundo da cena: **preto sólido em toda a área** (`--bg-body: #000`) — um valor de cor inválido no CSS deixava o body transparente e o fundo do componente WebView aparecia atrás do conteúdo.
 
 Painel de atividade/informações: exibe uma mensagem enviada pelo Tasker, com cor do texto e posição vertical configuráveis e botões opcionais **Não/Sim**. Toda a informação exibida vem de variáveis do Tasker lidas em runtime — nenhuma variável fica embutida no código (a cena V2 não substitui variáveis dentro do `<script>`).
 
