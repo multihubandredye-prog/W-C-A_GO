@@ -1,8 +1,8 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.4**
-Arquivo: `Contatos Pro WCA 1.4.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.5**
+Arquivo: `Contatos Pro WCA 1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado, lista **Contatos** e **Grupos** em abas com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
@@ -10,13 +10,15 @@ Central de contatos e grupos: escolhe um dispositivo logado, lista **Contatos** 
 
 - **Tela de dispositivos**: busca `GET /devices` na API local e lista os com `state = logged_in` (nome, número e selo "Online"); botão **Atualizar Dispositivos** refaz a busca;
 - **Tela de contatos/grupos**: busca `GET /user/my/contacts?filter=chatted` e `GET /user/my/groups` com `X-Device-Id` do dispositivo escolhido. Contatos válidos descartam JIDs inválidos (`0@…`, `status@…`); grupos ficam só os `@g.us`; ambos ordenados por nome (nomes estilizados em Unicode são normalizados para busca e exibição);
-- **Abas**: Contatos/Grupos com contadores e indicador deslizante;
+- **Ordenação (com nome primeiro)**: quem tem nome salvo fica no início em ordem alfabética; quem só tem número (sem nome na agenda) vai para o fim, também em ordem — vale para contatos e grupos;
+- **Abas**: Contatos/Grupos com contadores e indicador deslizante; **arrastar para o lado** na lista (esquerda ou direita) alterna entre as abas — rolagem vertical e modo de seleção não trocam;
 - **Busca**: filtra por nome (sem acentos/pontuação) ou número/JID em tempo real, atualizando os contadores;
 - **Seleção múltipla**: toque longo (0,5s, com vibração) entra no modo de seleção; toques alternam itens; **Todos** seleciona/desfaz a lista atual; **Limpar** zera; barra inferior com o total e cópias em lote (**Nome** / **Número ou JID** / **Tudo**) e pré-visualização em modal (primeiros 60 itens);
 - **Modais**: contato (copiar nome, número, nome + número e **LID** — copia só o número do LID, sem o sufixo) e grupo (copiar nome, JID ou ambos); fecham pelo X, tocando fora ou tecla Esc; a linha do LID busca `GET /user/info?phone=<número>` (campo `resolved_lid`) em segundo plano, com cache por JID e indicação "Buscando LID… / LID não sincronizado / LID indisponível";
 - **Acesso à API**: mesmo caminho do projeto original (fetch direto em `http://127.0.0.1:3000` com `Authorization: Basic` + `X-Device-Id`); se o acesso direto falhar, cada busca tenta **uma vez pelo bridge** (`Tasker.httpRequest`, prazo de 15s) antes de indicar falha de conexão;
 - **Avatares (fotos de perfil)**: a cena busca a foto real de cada **dispositivo conectado** na tela inicial e, ao abrir o modal, do **contato** ou **grupo**; a consulta é `GET /user/avatar?phone=<jid>&is_preview=false&is_community=false` (a mesma usada pela Central), com `X-Device-Id` do próprio dispositivo; a URL devolvida aponta para os servidores do WhatsApp e é aplicada direto na imagem, que substitui o ícone do WhatsApp quando carrega; cache em memória por JID evita repetir a consulta (o botão **Atualizar Dispositivos** limpa o cache e refaz as fotos); se a busca falhar, demorar ou o item não tiver foto, o ícone do WhatsApp permanece;
 - **Layout centralizado**: o container (card + rodapé do desenvolvedor) fica centralizado verticalmente na tela quando há espaço sobrando (como na tela inicial de dispositivos); com conteúdo mais alto que a tela (lista de contatos/grupos grande), volta ao alinhamento do topo com rolagem normal, sem cortar nada;
+- **Listas longas**: a animação de entrada tem teto nos primeiros itens (evita itens que "sumiam" ao rolar, quando o atraso somado passava de segundos) e a busca só re-renderiza após uma pequena pausa (150 ms), com montagem da lista em fragmento — um único lote no DOM;
 - **Toasts** de confirmação para cópias e ações de seleção.
 
 ## Variáveis do Tasker consumidas pela cena
