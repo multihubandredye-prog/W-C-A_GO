@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WHATS CONNECT API</title>
+    <style>
+:root {
+  --bg-body: #000000;
+  --bg-card: #06222A;
+  --primary: #0F9DCB;
+  --accent: #B5FB2A;
+  --border: #0F507A;
+  --text-main: #C6E3DC;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.main-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  padding: 1rem;
+  gap: 1.5rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 0.0625rem solid var(--border);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  max-width: 40rem;
+  box-shadow: 0 0.75rem 2.25rem rgba(0, 0, 0, 0.6);
+}
+
+@media (min-width: 30rem) {
+  .panel-header {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+.header-video {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50vw;
+  object-fit: cover;
+  background-color: var(--bg-card);
+  border: 0.125rem solid var(--border);
+  flex-shrink: 0;
+}
+
+h2 {
+  margin: 0;
+  padding: 0 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.accent-text {
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 0.75rem rgba(181, 251, 42, 0.25);
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+@media (min-width: 30rem) {
+  .accent-text {
+    font-size: 1.5rem;
+  }
+}
+
+.update-card, .no-update-card {
+  background-color: var(--bg-card);
+  border: 0.0625rem solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 0.75rem 2.25rem rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 40rem;
+  display: none;
+}
+
+.no-update-card {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.update-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0.25rem;
+  height: 100%;
+  background-color: var(--accent);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes badge-glow {
+  0% { box-shadow: 0 0 0 0 rgba(181, 251, 42, 0.5); transform: scale(1); }
+  50% { box-shadow: 0 0 1rem 0.25rem rgba(181, 251, 42, 0.25); transform: scale(1.02); }
+  100% { box-shadow: 0 0 0 0 rgba(181, 251, 42, 0); transform: scale(1); }
+}
+
+.badge {
+  display: inline-block;
+  background: rgba(181, 251, 42, 0.15);
+  color: var(--accent);
+  border: 0.0625rem solid var(--accent);
+  padding: 0.5rem 1rem;
+  border-radius: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  animation: badge-glow 2s infinite ease-in-out;
+}
+
+.action-row {
+  display: flex;
+  justify-content: flex-end;
+  border-t: 0.0625rem solid var(--border);
+  padding-top: 1.25rem;
+}
+
+.btn-now {
+  background-color: var(--accent);
+  color: #000000;
+  font-weight: 800;
+  padding: 0.875rem 2rem;
+  border-radius: 0.625rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+@media (min-width: 30rem) {
+  .btn-now {
+    width: auto;
+  }
+}
+
+.btn-now:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 1.125rem rgba(181, 251, 42, 0.4);
+}
+
+.changelog-section {
+  background: rgba(0, 0, 0, 0.4);
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background-color 0.2s ease;
+}
+
+.changelog-section:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.changelog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.changelog-title {
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.chevron-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--primary);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevron-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.changelog-content {
+  color: var(--text-main);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  max-height: 5.25rem;
+  opacity: 1;
+  overflow: hidden;
+  padding: 0 1rem 1rem 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+}
+
+.changelog-content.expanded {
+  max-height: 20rem;
+  overflow-y: auto;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.changelog-content::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+.changelog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.changelog-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 0.25rem;
+}
+</style>
+  </head>
+  <body>
+    <div class="main-wrapper">
+      <header class="panel-header">
+        <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+        <h2><span class="accent-text">WHATS CONNECT API</span></h2>
+        <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+      </header>
+
+      <div class="update-card" id="updateCard">
+        <div class="card-header-row">
+          <span class="badge" id="versionBadge">ATUALIZAÇÃO DISPONÍVEL</span>
+        </div>
+
+        <div class="changelog-section" id="changelogSection">
+          <div class="changelog-header" id="expandChangelogButton">
+            <h4 class="changelog-title">Últimas Novidades</h4>
+            <div class="chevron-icon" id="chevronIcon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="changelog-content" id="changelogContent">Carregando novidades...</div>
+        </div>
+
+        <div class="action-row">
+          <button type="button" id="updateNowButton" class="btn-now">Atualizar Agora</button>
+        </div>
+      </div>
+
+      <div class="no-update-card" id="noUpdateCard">
+        Sem atualizações no momento...
+      </div>
+    </div>
+    <script>
+// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.0)
+// A versao local NAO vem mais de variavel do Tasker: é lida do ARQUIVO
+// /storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version
+// (o mesmo arquivo usado pela Central). A release considerada é a mais recente
+// com título real no repositorio — rotulo entre colchetes no titulo ([UI],
+// [CORE] ou [FULL], com ou sem espacos/emoji); releases sem o rotulo (ex.:
+// testes) sao IGNORADAS. O botao NAO abre nada por conta propria e NAO grava
+// variaveis: executa a 006-CONFIGURAR_SISTEMA [wca] com par1 installation-update
+// + type_update (ui | core | full) e quem conduz o resto (download, navegacao
+// e fechamento desta cena) é o lado Tasker.
+
+const VERSION_FILE_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version';
+const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
+const CHANGELOG_RAW_URL = 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt';
+const UPDATE_TASK_NAME = '006-CONFIGURAR_SISTEMA [wca]';
+const PADRAO_TITULO_RELEASE = /\[\s*(ui|core|full)\s*\]/i;
+
+let versaoLocal = '';
+let currentUpdateType = '';
+let currentUpdateVersion = '';
+
+function getTaskerBridge(){
+    if (typeof Tasker !== 'undefined') return Tasker;
+    if (typeof window !== 'undefined' && window.Tasker) return window.Tasker;
+    return null;
+}
+
+async function taskerCall(name, options){
+    const api = getTaskerBridge();
+    if (!api || typeof api[name] !== 'function') {
+        throw new Error('Tasker.' + name + ' indisponivel. Verifique Allow Phone Access.');
+    }
+    return await api[name](options);
+}
+
+function bridgeTimeout(ms){
+    return new Promise(function(resolve){ setTimeout(resolve, ms); });
+}
+
+function unpackFile(result, depth = 0, seen = new Set()){
+    if (typeof result === 'string') return result;
+    if (!result || typeof result !== 'object' || depth > 6 || seen.has(result)) return null;
+    seen.add(result);
+    const preferidas = ['contents', 'text', 'content', 'file', 'stdout', 'output', 'data', 'result', 'variables', 'payload', 'returnValue', 'value'];
+    for (const chave of preferidas) {
+        if (typeof result[chave] === 'string') return result[chave];
+    }
+    for (const chave of preferidas) {
+        if (result[chave] && typeof result[chave] === 'object') {
+            const interno = unpackFile(result[chave], depth + 1, seen);
+            if (interno !== null) return interno;
+        }
+    }
+    return null;
+}
+
+function shellQuote(value){
+    return "'" + String(value).replace(/'/g, "'\\''") + "'";
+}
+
+function isMissingFileError(error){
+    const detalhes = [error && error.message, error && error.code, error && error.name, error && error.cause && error.cause.message]
+        .filter(Boolean).join(' ').toLowerCase();
+    return /enoent|no such file|file not found|does not exist|not found|cannot find|could not find|arquivo.{0,40}(não existe|nao existe|não encontrado|nao encontrado)/i.test(detalhes);
+}
+
+async function readTextWithShell(path){
+    const quotedPath = shellQuote(path);
+    const directory = path.slice(0, path.lastIndexOf('/')) || '/';
+    const quotedDirectory = shellQuote(directory);
+    const marker = '__WCA_FILE__\n';
+    const missing = '__WCA_MISSING__';
+    const command = "if [ -f " + quotedPath + " ]; then printf '__WCA_FILE__\\n'; cat -- " + quotedPath + " || exit 13; elif [ -e " + quotedPath + " ]; then exit 14; elif [ -d " + quotedDirectory + " ] && [ -r " + quotedDirectory + " ] && [ -x " + quotedDirectory + " ]; then printf '__WCA_MISSING__'; else exit 15; fi";
+    const result = await taskerCall('runShell', { cmd: command, root: false, timeout: 10 });
+    if (!result || typeof result.stdout !== 'string' || (result.result !== undefined && result.result !== '' && Number(result.result) !== 0)) {
+        throw new Error('Tasker.runShell nao conseguiu ler o arquivo.');
+    }
+    if (result.stdout.trim() === missing) return { missing: true, contents: '' };
+    if (!result.stdout.startsWith(marker)) throw new Error('A leitura alternativa nao confirmou o conteudo do arquivo.');
+    return { missing: false, contents: result.stdout.slice(marker.length) };
+}
+
+async function lerArquivo(path, regexValidacao){
+    let result = null;
+    try {
+        result = await taskerCall('readFile', { path });
+        const texto = unpackFile(result);
+        if (texto !== null && (!regexValidacao || regexValidacao.test(texto))) return texto;
+    } catch (e) {
+        if (isMissingFileError(e)) return '';
+    }
+    try {
+        const alternativa = await readTextWithShell(path);
+        if (alternativa.missing) return '';
+        return alternativa.contents;
+    } catch (e2) {
+        return '';
+    }
+}
+
+// Versao local: leitura do ARQUIVO (fire-and-forget com prazo de 15s, igual a
+// Central). Vazia/ausente = base de comparacao vazia (comportamento da V1
+// quando a variavel antiga chegava vazia)
+async function lerVersaoLocal(){
+    try {
+        const texto = await Promise.race([ lerArquivo(VERSION_FILE_PATH, /^\d[\d.]*$/), bridgeTimeout(15000) ]);
+        versaoLocal = String(texto || '').trim();
+    } catch (e) {
+        versaoLocal = '';
+    }
+    return versaoLocal;
+}
+
+function isNewVersionAvailable(remoteTag, localTag){
+    const cleanRemote = remoteTag.replace(/^v/i, '').trim();
+    const cleanLocal = localTag.replace(/^v/i, '').trim();
+    if (!cleanRemote || cleanRemote === cleanLocal) {
+        return false;
+    }
+    const remoteParts = cleanRemote.split('.').map(function (num) {
+        return parseInt(num, 10) || 0;
+    });
+    const localParts = cleanLocal.split('.').map(function (num) {
+        return parseInt(num, 10) || 0;
+    });
+    const maxLen = Math.max(remoteParts.length, localParts.length);
+    for (let i = 0; i < maxLen; i++) {
+        const r = remoteParts[i] || 0;
+        const l = localParts[i] || 0;
+        if (r > l) {
+            return true;
+        }
+        if (r < l) {
+            return false;
+        }
+    }
+    return false;
+}
+
+// Ultima release REAL do repositorio: primeira da lista (mais recente) cujo
+// titulo tem o rotulo entre colchetes; o tipo (ui | core | full) sai do
+// proprio rotulo, ja em minusculas
+async function obterUltimaReleaseReal(){
+    try {
+        const resposta = await fetch(RELEASES_API_URL, { headers: { 'User-Agent': 'WCA-Panel', 'Accept': 'application/vnd.github+json' } });
+        if (!resposta || !resposta.ok) return null;
+        const lista = await resposta.json();
+        if (!Array.isArray(lista)) return null;
+        for (let i = 0; i < lista.length; i++) {
+            const titulo = String((lista[i] && lista[i].name) || '');
+            const correspondencia = titulo.match(PADRAO_TITULO_RELEASE);
+            if (!correspondencia) continue;
+            const tag = String((lista[i] && lista[i].tag_name) || '').trim().replace(/^[vV]/, '').trim();
+            if (/^\d[\d.]*$/.test(tag)) return { tag: tag, tipo: correspondencia[1].toLowerCase() };
+        }
+    } catch (e) {
+    }
+    return null;
+}
+
+function fetchChangelogData(){
+    const contentElement = document.getElementById('changelogContent');
+    if (!contentElement) return;
+    fetch(CHANGELOG_RAW_URL)
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (text) {
+            contentElement.textContent = text;
+        })
+        .catch(function () {
+            contentElement.textContent = 'Não foi possível carregar as novidades.';
+        });
+}
+
+function textoBadgeParaTipo(tipo, tag){
+    if (tipo === 'core') return 'ATUALIZAÇÃO DA API • ' + tag;
+    if (tipo === 'ui') return 'ATUALIZAÇÃO DO TASKER • ' + tag;
+    return 'ATUALIZAÇÃO COMPLETA • ' + tag;
+}
+
+async function checkReleaseUpdate(versionBadge, updateCard, noUpdateCard){
+    const release = await obterUltimaReleaseReal();
+    const temNova = !!(release && release.tag && isNewVersionAvailable(release.tag, versaoLocal));
+    if (temNova) {
+        currentUpdateType = release.tipo;
+        currentUpdateVersion = release.tag;
+        if (versionBadge) versionBadge.textContent = textoBadgeParaTipo(currentUpdateType, currentUpdateVersion);
+        fetchChangelogData();
+        if (updateCard) updateCard.style.display = 'block';
+        if (noUpdateCard) noUpdateCard.style.display = 'none';
+    } else {
+        currentUpdateType = '';
+        currentUpdateVersion = '';
+        if (updateCard) updateCard.style.display = 'none';
+        if (noUpdateCard) noUpdateCard.style.display = 'block';
+    }
+}
+
+// ---- AMBIENTE DO TASKER (saidas da cena) ----
+// Unica saida: executa a 006-CONFIGURAR_SISTEMA [wca] levando o comando em
+// par1 (installation-update, SEMPRE o mesmo para qualquer tipo) e o TIPO da
+// atualizacao em type_update (ui | core | full), conforme o rotulo da release
+function taskRunUpdate(tipo){
+    return taskerCall('runTask', { name: UPDATE_TASK_NAME, variables: { par1: 'installation-update', type_update: tipo } });
+}
+
+function initApp(){
+    const updateNowButton = document.getElementById('updateNowButton');
+    const versionBadge = document.getElementById('versionBadge');
+    const updateCard = document.getElementById('updateCard');
+    const noUpdateCard = document.getElementById('noUpdateCard');
+    const expandChangelogButton = document.getElementById('expandChangelogButton');
+    const changelogContent = document.getElementById('changelogContent');
+    const chevronIcon = document.getElementById('chevronIcon');
+
+    // 1) versao local do arquivo; 2) checagem da release com ela já definida
+    // (deterministico, sem piscar o card com avaliação provisória)
+    lerVersaoLocal()
+        .then(function () {
+            return checkReleaseUpdate(versionBadge, updateCard, noUpdateCard);
+        })
+        .catch(function () {
+            checkReleaseUpdate(versionBadge, updateCard, noUpdateCard).catch(function () { });
+        });
+
+    if (updateNowButton) {
+        updateNowButton.addEventListener('click', function () {
+            if (currentUpdateType) {
+                taskRunUpdate(currentUpdateType).catch(function () { });
+            }
+        });
+    }
+
+    // 1.1: alternacao do changelog robusta para o WebView V2 — trata o TOQUE
+    // direto (touchend com deteccao de tap pela distancia percorrida e
+    // preventDefault para nao gerar clique duplicado) e o clique normal, com
+    // guarda de 400ms para nunca alternar duas vezes na mesma interacao; a
+    // expansao aplica tambem o maxHeight inline (garantia visual mesmo se a
+    // classe sozinha nao aplicar o limite)
+    if (expandChangelogButton && changelogContent && chevronIcon) {
+        let _ultimoToggleChangelog = 0;
+        let _toqueChangelog = null;
+        function alternarChangelog(){
+            const agora = Date.now();
+            if (agora - _ultimoToggleChangelog < 400) return;
+            _ultimoToggleChangelog = agora;
+            const vaiExpandir = !changelogContent.classList.contains('expanded');
+            if (vaiExpandir) {
+                changelogContent.classList.add('expanded');
+                changelogContent.style.maxHeight = '20rem';
+            } else {
+                changelogContent.classList.remove('expanded');
+                changelogContent.style.maxHeight = '';
+            }
+            chevronIcon.classList.toggle('rotated', vaiExpandir);
+        }
+        function posicaoToque(eToque){
+            const t = (eToque && eToque.changedTouches && eToque.changedTouches[0]) || null;
+            return t ? { x: t.clientX, y: t.clientY } : null;
+        }
+        expandChangelogButton.addEventListener('touchstart', function (eInicio) {
+            _toqueChangelog = posicaoToque(eInicio);
+        });
+        expandChangelogButton.addEventListener('touchend', function (eFim) {
+            const inicio = _toqueChangelog;
+            _toqueChangelog = null;
+            const fim = posicaoToque(eFim);
+            if (!inicio || !fim) return;
+            const dx = fim.x - inicio.x;
+            const dy = fim.y - inicio.y;
+            if (dx * dx + dy * dy > 144) return;
+            if (eFim.cancelable) eFim.preventDefault();
+            alternarChangelog();
+        });
+        expandChangelogButton.addEventListener('click', function () {
+            alternarChangelog();
+        });
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+</script>
+  </body>
+</html>

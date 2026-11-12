@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.0**
-Arquivo: `Atualizações WCA 1.0.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
+Versão atual: **1.1**
+Arquivo: `Atualizações WCA 1.1.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
 
 Painel de atualizações: mostra quando há nova release **real** no repositório (badge com o tipo e a versão), as novidades (changelog do repo, seção expansível) e o botão **Atualizar Agora** — que executa a `006-CONFIGURAR_SISTEMA [wca]` com o comando e o tipo da atualização.
 
@@ -62,4 +62,5 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.1 | 16/09/2026 | **Correção: "Últimas Novidades" não expandia no aparelho**. A conversão 1.0 estava fiel à V1 (CSS com 0 diferenças e mesmo código de toggle — auditado), mas o WebView V2 não gerava o evento `click` de forma confiável no toque sobre aquele DIV (na V1 o script era `type="module"` no WebView antigo; nos projetos V2 validados os alvos de clique são `<button>`). A expansão agora trata o **toque direto** (`touchstart`/`touchend` no header: tap detectado pela distância percorrida — rolagem não dispara; `preventDefault` no touchend evita gerar clique duplicado) **além** do `click` normal, com guarda de 400ms para nunca alternar duas vezes na mesma interação; ao expandir aplica também `maxHeight` inline (`20rem`) como garantia visual, além da classe `expanded`; seta do changelog gira via `classList.toggle('rotated')` |
 | 1.0 | 16/09/2026 | Conversão da cena V1 → V2 (arquivo único HTML+CSS+JS): versão local lida do **arquivo** `.../system/version` (não mais da variável antiga); release real filtrada pelo rótulo `[UI]`/`[CORE]`/`[FULL]` no título (testes ignorados); botão **Atualizar Agora** executa a `006-CONFIGURAR_SISTEMA [wca]` com `par1 = installation-update` + `type_update = ui \| core \| full` (valores em minúsculas, escolhido pelo usuário) — removidos `setLocal`, `window.open` e `destroyScene` da V1; novo badge `ATUALIZAÇÃO COMPLETA` para o tipo `full`; changelog e expansão idênticos à V1 |
