@@ -3202,7 +3202,7 @@ input.first-install-attention {
             <p class="delete-review-text">O dispositivo será desconectado e removido da lista.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmModal">CANCELAR</button>
-                <button id="btnConfirmDelete" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> REMOVER</button>
+                <button id="btnConfirmDelete" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> SIM</button>
             </div>
         </div>
     </div>
@@ -3214,7 +3214,7 @@ input.first-install-attention {
             <p class="delete-review-text">Todos os dispositivos serão desconectados e removidos. Essa ação não pode ser desfeita.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmAllModal">CANCELAR</button>
-                <button id="btnConfirmDeleteAll" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> REMOVER TODOS</button>
+                <button id="btnConfirmDeleteAll" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> SIM</button>
             </div>
         </div>
     </div>
@@ -4075,6 +4075,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         try {
             const tem = await taskerCall('runShell', { cmd: "if [ -s " + shellQuote(AVATAR_CACHE_PATH) + " ]; then printf '__WCA_OK__'; fi", root: false, timeout: 10 });
+            if (String(CONFIG.USER_PROFILE_PICTURE || '').trim()) return;
             if (String((tem && tem.stdout) || '').trim() !== '__WCA_OK__') { requestProfileAvatar(3); return; }
             // Arquivo de cache apagado/corrompido: limpa o cache e busca pela API
             img.onerror = function () {
@@ -4092,6 +4093,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botao ATUALIZAR FOTO: reconsulta a API; se a URL mudou, baixa e aplica
     async function atualizarFotoAvatar(){
+        // 1.23: com foto personalizada em uso, nada a atualizar - nao toca na exibicao
+        if (String(CONFIG.USER_PROFILE_PICTURE || '').trim()) {
+            showToast({title: 'Foto de perfil', message: 'Sua foto já está atualizada.', type: 'success'});
+            return;
+        }
         try {
             closeModal('profilePictureModal');
             showToast({title: 'Foto de perfil', message: 'Atualizando sua foto...', type: 'info'});
@@ -4815,6 +4821,9 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = src;
         };
 
+        // 1.23: foto personalizada tem prioridade maxima - nao busca nem sobrescreve
+        const temPersonalizada = () => !!String(CONFIG.USER_PROFILE_PICTURE || '').trim();
+        if (temPersonalizada()) return;
         for (let attempt = 1; attempt <= attempts; attempt++) {
             try {
                 const res = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
@@ -4831,6 +4840,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const avData = await avRes.json();
                 const avatarUrl = avData && avData.results && avData.results.url;
                 if (!avatarUrl) throw new Error('url');
+                if (temPersonalizada()) return;
                 showImage(avatarUrl);
                 // Cache local: guarda a imagem na pasta; as proximas aberturas
                 // usam o arquivo local sem repetir a requisicao

@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.23**
-Arquivo: `Central WCA 1.23.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.24**
+Arquivo: `Central WCA 1.24.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -105,13 +105,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.22** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.21 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.22** é o ponto de retorno documentado (a 1.23 difere dela pela proteção da foto personalizada contra sobrescrita pelo avatar da API).
+A partir da **1.23** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.22 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.23** é o ponto de retorno documentado (a 1.24 difere dela apenas pelos textos dos botões dos modais de remoção).
 
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.24 | 12/11/2026 | **Confirmações de remoção padronizadas (pedido do usuário)**: nos modais "Remover Dispositivo?" e "Remover TODOS os dispositivos?" o botão vermelho (que repetia REMOVER / REMOVER TODOS — redundante, pois a escolha já foi feita no gatilho) passou a ser **SIM**, ficando CANCELAR / SIM como nos demais modais de confirmação da cena. O gatilho na lista (ícone REMOVER TODOS) permanece intacto |
 | 1.23 | 12/11/2026 | **Foto personalizada não é mais sobrescrita pelo avatar da API**: corrida no arranque — a requisição do avatar (API) iniciada antes da pasta ser listada chegava DEPOIS e substituía a foto personalizada segundos depois. Agora a foto personalizada é prioridade máxima: `requestProfileAvatar` nem inicia (e descarta o resultado no meio do voo) se houver foto personalizada; o cache local (`usarCacheAvatarSeExistir`) revalida antes de exibir; o ícone de atualizar, com foto personalizada ativa, apenas confirma ("Sua foto já está atualizada") sem tocar na exibição |
-| 1.22 | 12/11/2026 | **Modal de foto: confirmação de verdade + `avatar-cache.url` blindado**: o ícone de atualizar NÃO dispara mais a atualização ao ser clicado (restava um listener antigo da 1.13 no mesmo elemento — removido); o processo só começa no SIM da confirmação. Clicar em **RESETAR** ou no ícone agora **fecha o modal EDITAR FOTO** antes de abrir a confirmação (não ficam empilhados). **`avatar-cache.url` nunca mais eliminado**: a limpeza usa shell (`printf` cria-ou-trunca, nunca remove — era o `writeFile` vazio do bridge que apagava o arquivo no aparelho) e, ao carregar a foto, a cena recria o arquivo vazio caso algum fluxo externo o tenha removido |
 
-> O histórico detalhado das versões **1.0 a 1.21** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
+> O histórico detalhado das versões **1.0 a 1.22** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
