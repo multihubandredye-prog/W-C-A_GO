@@ -1,0 +1,596 @@
+<!DOCTYPE html>  
+<html lang="pt-br">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Instalando WCA</title>  
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">  
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>  
+    <style>
+:root {  
+    --bg-body:   #000;  
+    --bg-card:   #06222A;  
+    --primary:   #0F9DCB;  
+    --accent:    #B5FB2A;  
+    --border:    #0F507A;  
+    --text-main: #C6E3DC;  
+    --text-dim:  #8494A4;  
+    --color-0:   #ff4d4d;  
+    --color-10:  #ff794d;  
+    --color-20:  #ffa64d;  
+    --color-30:  #ffd24d;  
+    --color-40:  #ffff4d;  
+    --color-50:  #d2ff4d;  
+    --color-60:  #a6ff4d;  
+    --color-70:  #79ff4d;  
+    --color-80:  #4dff4d;  
+    --color-90:  #4dff79;  
+    --color-100: #4dffa6;  
+}  
+  
+*, *::before, *::after {  
+    box-sizing: border-box;  
+    margin: 0;  
+    padding: 0;  
+    font-family: 'Exo 2', sans-serif;  
+}  
+  
+html, body {  
+    height: 100%;  
+    width: 100%;  
+    overflow: hidden;  
+}  
+  
+body {  
+    background-color: var(--bg-body);  
+    color: var(--text-main);  
+    display: flex;  
+    flex-direction: column;  
+    align-items: center;  
+    justify-content: center;  
+    padding: 1rem;  
+    background-image:  
+        radial-gradient(ellipse at 20% 20%, rgba(15,157,203,0.06) 0%, transparent 50%),  
+        radial-gradient(ellipse at 80% 80%, rgba(181,251,42,0.04) 0%, transparent 50%);  
+}  
+  
+.main-container {  
+    width: 100%;  
+    max-width: 25rem;  
+    background: var(--bg-card);  
+    border-radius: 1.25rem;  
+    border: 0.0625rem solid #0F9DCB55;  
+    box-shadow: 0 1.5rem 3rem rgba(0,0,0,0.7), 0 0 1.5rem rgba(15,157,203,0.14);  
+    display: flex;  
+    flex-direction: column;  
+    position: relative;  
+    overflow: hidden;  
+    margin-bottom: 1.5rem;  
+}  
+  
+.main-container::before {  
+    content: '';  
+    position: absolute;  
+    top: 0; left: 0; right: 0;  
+    height: 0.125rem;  
+    background: linear-gradient(90deg, transparent, #0F9DCB, transparent);  
+    z-index: 2;  
+}  
+  
+.panel-header {  
+    padding: 1rem;  
+    background: rgba(0,0,0,0.3);  
+    border-bottom: 0.0625rem solid var(--border);  
+    display: flex;  
+    justify-content: space-between;  
+    align-items: center;  
+}  
+  
+.header-video {  
+    width: 3.2rem;  
+    height: 3.2rem;  
+    border-radius: 50%;  
+    object-fit: cover;  
+}  
+  
+.panel-header h2 {  
+    font-size: 0.8rem;  
+    flex: 1;  
+    text-align: center;  
+    font-weight: 600;  
+    letter-spacing: 0.1rem;  
+    font-family: 'Orbitron', sans-serif;  
+}  
+  
+.accent-text { color: var(--accent); }  
+  
+.content-area {  
+    padding: 2rem 1rem;  
+    display: flex;  
+    flex-direction: column;  
+    align-items: center;  
+    gap: 1.5rem;  
+}  
+  
+.progress-container {  
+    position: relative;  
+    width: 10rem;  
+    height: 10rem;  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+}  
+  
+.progress-ring {  
+    width: 100%;  
+    height: 100%;  
+    transform: rotate(-90deg);  
+    filter: drop-shadow(0 0 0.4rem rgba(15,157,203,0.4));  
+}  
+  
+.progress-ring__background {  
+    stroke: rgba(0,0,0,0.3);  
+    stroke-width: 12;  
+    fill: transparent;  
+}  
+  
+.progress-ring__circle {  
+    stroke: var(--color-0);  
+    stroke-width: 12;  
+    fill: transparent;  
+    stroke-linecap: round;  
+    transition: stroke-dashoffset 0.5s ease, stroke 0.5s ease;  
+}  
+  
+.progress-text {  
+    position: absolute;  
+    top: 50%; left: 50%;  
+    transform: translate(-50%, -50%);  
+    font-size: 2.2rem;  
+    font-weight: 900;  
+    color: var(--text-main);  
+    font-family: 'Orbitron', sans-serif;  
+}  
+  
+.status-info { text-align: center; width: 100%; }  
+  
+#status-message {  
+    font-size: 0.75rem;  
+    color: var(--text-dim);  
+    margin-bottom: 0.5rem;  
+    min-height: 1.2em;  
+    letter-spacing: 0.025rem;  
+}  
+  
+.timer {  
+    font-size: 0.7rem;  
+    color: var(--primary);  
+    font-weight: 600;  
+    font-family: 'Orbitron', sans-serif;  
+    letter-spacing: 0.05rem;  
+}  
+  
+.info-section {  
+    width: 100%;  
+    max-width: 25rem;  
+    display: flex;  
+    flex-direction: column;  
+    align-items: center;  
+}  
+  
+.info-card {  
+    width: 100%;  
+    background: var(--bg-card);  
+    border: 0.0625rem solid var(--border);  
+    border-radius: 0.875rem;  
+    padding: 1rem;  
+    text-align: center;  
+    position: relative;  
+    overflow: hidden;  
+    opacity: 0;  
+    transform: translateY(0.75rem);  
+    transition: opacity 0.5s ease, transform 0.5s ease;  
+    display: none;  
+}  
+  
+.info-card.visible { display: block; }  
+.info-card.show { opacity: 1; transform: translateY(0); }  
+  
+.info-card::before {  
+    content: '';  
+    position: absolute;  
+    top: 0; left: 0; right: 0;  
+    height: 0.125rem;  
+    background: linear-gradient(90deg, transparent, var(--card-accent, var(--primary)), transparent);  
+}  
+  
+.info-label {  
+    display: inline-block;  
+    font-size: 0.55rem;  
+    font-weight: 800;  
+    letter-spacing: 0.1rem;  
+    text-transform: uppercase;  
+    padding: 0.1rem 0.5rem;  
+    border-radius: 1rem;  
+    margin-bottom: 0.5rem;  
+    background: rgba(255,255,255,0.06);  
+    color: var(--card-accent, var(--primary));  
+    border: 0.0625rem solid var(--card-accent, var(--primary));  
+    font-family: 'Orbitron', sans-serif;  
+}  
+  
+.info-card .info-icon {  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    margin: 0.2rem auto 0.5rem;  
+    color: var(--card-accent, var(--primary));  
+}  
+  
+.info-card .info-icon svg {  
+    width: 1.5rem; height: 1.5rem;  
+    stroke: currentColor; stroke-width: 1.6; fill: none;  
+}  
+  
+.info-card .info-text {  
+    font-size: 0.7rem;  
+    font-weight: 600;  
+    letter-spacing: 0.035rem;  
+    text-transform: uppercase;  
+    color: var(--card-text, var(--text-main));  
+    line-height: 1.4;  
+}  
+  
+.info-progress-bar {  
+    margin-top: 0.75rem;  
+    height: 0.125rem;  
+    width: 100%;  
+    background: rgba(255,255,255,0.05);  
+    border-radius: 0.125rem;  
+    overflow: hidden;  
+}  
+  
+.info-progress-fill {  
+    height: 100%; width: 0%;  
+    background: linear-gradient(90deg, var(--card-bar-a, var(--primary)), var(--card-bar-b, var(--accent)));  
+}  
+  
+  
+.theme-cyan   { --card-accent:#0F9DCB; --card-text:#C6E3DC; --card-bar-a:#0F9DCB; --card-bar-b:#B5FB2A; }  
+.theme-green  { --card-accent:#4dff79; --card-text:#c6ffda; --card-bar-a:#4dff79; --card-bar-b:#B5FB2A; }  
+.theme-purple { --card-accent:#b06aff; --card-text:#e8d6ff; --card-bar-a:#b06aff; --card-bar-b:#ff6af5; }  
+.theme-orange { --card-accent:#ff9f4a; --card-text:#ffe8cc; --card-bar-a:#ff9f4a; --card-bar-b:#ffd24d; }  
+.theme-pink   { --card-accent:#ff5fa0; --card-text:#ffd6e8; --card-bar-a:#ff5fa0; --card-bar-b:#ff9f4a; }  
+.theme-teal   { --card-accent:#00e5c8; --card-text:#ccfff8; --card-bar-a:#00e5c8; --card-bar-b:#0F9DCB; }  
+.theme-red    { --card-accent:#ff4d6a; --card-text:#ffd6dc; --card-bar-a:#ff4d6a; --card-bar-b:#ff9f4a; }  
+.theme-ice    { --card-accent:#7de8ff; --card-text:#e0f8ff; --card-bar-a:#7de8ff; --card-bar-b:#4dffef; }  
+.theme-warn   {  
+    --card-accent:#ffd24d; --card-text:#fff3cc; --card-bar-a:#ffd24d; --card-bar-b:#ff9f4a;  
+    animation: warnPulse 2s ease-in-out infinite;  
+}  
+  
+@keyframes warnPulse {  
+    0%,100% { box-shadow: 0 0 1rem rgba(255,210,77,0.10); }  
+    50%     { box-shadow: 0 0 1.75rem rgba(255,210,77,0.25); }  
+}  
+  
+.main-footer {  
+    position: fixed;  
+    bottom: 0.75rem;  
+    width: 100%;  
+    text-align: center;  
+    font-size: 0.65rem;  
+    color: var(--text-dim);  
+}  
+  
+.dev-name { color: var(--accent); font-weight: 600; }
+</style>  
+</head>  
+<body>  
+  
+    <div class="main-container">  
+        <header class="panel-header">  
+            <video src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4" class="header-video" autoplay loop muted playsinline></video>  
+            <h2><span class="accent-text">INSTALANDO</span></h2>  
+            <video src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4" class="header-video" autoplay loop muted playsinline></video>  
+        </header>  
+        <div class="content-area">  
+            <div class="progress-container">  
+                <svg class="progress-ring" viewBox="0 0 200 200">  
+                    <circle class="progress-ring__background" r="90" cx="100" cy="100"/>  
+                    <circle class="progress-ring__circle"     r="90" cx="100" cy="100"/>  
+                </svg>  
+                <span id="progress-text" class="progress-text">0%</span>  
+            </div>  
+            <div class="status-info">  
+                <div id="status-message">Aguardando início...</div>  
+                <div class="timer">  
+                    <span>Tempo decorrido: </span>  
+                    <span id="timer-display">00:00</span>  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+  
+    <div class="info-section">  
+        <div class="info-card" id="info-card">  
+            <span class="info-label" id="info-label">RECURSO</span>  
+            <div class="info-icon"   id="info-icon"></div>  
+            <div class="info-text"   id="info-text">AGUARDE...</div>  
+            <div class="info-progress-bar">  
+                <div class="info-progress-fill" id="info-progress-fill"></div>  
+            </div>  
+        </div>  
+    </div>  
+  
+    <footer class="main-footer">  
+        Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span>  
+    </footer>  
+  
+    <script>
+// V2: o modo NAO vem mais embutido no codigo (variavel do Tasker no JS quebraria
+// o script inteiro) — padrao project-api; o valor real chega pela variavel type_project
+window.INSTALL_MODE = "project-api";  
+  
+let _percent = 0;  
+let _message = "Baixando Arquivos...";  
+  
+// Getter/Setter reativo para disparar a conclusão instantaneamente quando atingir 100% via Tasker  
+window.PROGRESS_CONTROL = {  
+    get percent() {  
+        return _percent;  
+    },  
+    set percent(val) {  
+        const num = Number(val);  
+        _percent = isNaN(num) ? 0 : num;  
+        if (window._updateUIInstance) {  
+            window._updateUIInstance(_percent, _message);  
+        }  
+    },  
+    get message() {  
+        return _message;  
+    },  
+    set message(val) {  
+        _message = val || "";  
+        if (window._updateUIInstance) {  
+            window._updateUIInstance(_percent, _message);  
+        }  
+    }  
+};  
+  
+// V2: metodo publico para o lado Tasker (ou injeção de teste) consultar o estado —
+// a cena NUNCA se fecha sozinha, nem ao atingir 100%
+window.WCA_INSTALL_SCENE = {
+    isCompleted: function () { return !!APP_STATE.completed; },
+    percent: function () { return APP_STATE.lastPercent; }
+};
+
+// V2 (1.3): autofechamento ao concluir (comportamento da V1). O bridge V2 nao
+// documenta um metodo oficial de fechamento; tenta na ordem: dismissLayout
+// (wiki da comunidade), cancelScreen e, por ultimo, uma tarefa auxiliar do
+// Tasker com a acao Fechar cena v2. Se nada existir, a cena permanece aberta.
+const WCA_SCENE_SCREEN_ID = '1'; // MESMO "ID da Tela" configurado na acao Show Scene v2
+const AUTO_FECHAMENTO_DELAY_MS = 600; // pausa para ver o 100%; 0 = imediato (estilo V1)
+function fecharPropriaCena() {
+    const tentativas = [
+        function () { return Tasker.dismissLayout(WCA_SCENE_SCREEN_ID); },
+        function () { return Tasker.cancelScreen(''); },
+        function () { return Tasker.runTask({ name: '003-FECHAR_INSTALACAO [wca]', variables: { par1: 'fechar-cena' } }); }
+    ];
+    for (let i = 0; i < tentativas.length; i++) {
+        try { tentativas[i](); return true; } catch (eTentativa) { }
+    }
+    return false;
+}
+function agendarFechamentoProprio() {
+    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
+}
+
+const FILE_CARDS = {  
+    "project-task": [  
+        { min: 0, max: 100, label: "PROJETO", theme: "theme-orange", icon: "xml", text: "BAIXANDO WCA API.PRJ.XML" }  
+    ],  
+    "project-api": [  
+        { min: 0,  max: 50,  label: "ARQUIVO 1", theme: "theme-purple", icon: "file",  text: "BAIXANDO WHATSAPP WCA" },  
+        { min: 51, max: 100, label: "ARQUIVO 2", theme: "theme-teal",   icon: "music", text: "BAIXANDO FFMPEG WCA" }  
+    ]  
+};  
+  
+const APP_STATE = {  
+    startTime: Date.now(),  
+    lastPercent: -1,  
+    lastMessage: "",  
+    completed: false  
+};  
+  
+const ICONS = {  
+    'download': '<polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/>',  
+    'file':     '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',  
+    'music':    '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',  
+    'xml':      '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/>'  
+};  
+  
+document.addEventListener('DOMContentLoaded', () => {  
+    const progressRing  = document.querySelector('.progress-ring__circle');  
+    const progressText  = document.getElementById('progress-text');  
+    const statusMessage = document.getElementById('status-message');  
+    const timerDisplay  = document.getElementById('timer-display');  
+  
+    const radius        = 90;  
+    const circumference = 2 * Math.PI * radius;  
+    if (progressRing) progressRing.style.strokeDasharray = `${circumference} ${circumference}`;  
+  
+    let currentCards = FILE_CARDS[window.INSTALL_MODE] || FILE_CARDS["project-api"];  
+  
+    function getColor(p) {  
+        if (p < 10)  return 'var(--color-0)';  
+        if (p < 20)  return 'var(--color-10)';  
+        if (p < 30)  return 'var(--color-20)';  
+        if (p < 40)  return 'var(--color-30)';  
+        if (p < 50)  return 'var(--color-40)';  
+        if (p < 60)  return 'var(--color-50)';  
+        if (p < 70)  return 'var(--color-60)';  
+        if (p < 80)  return 'var(--color-70)';  
+        if (p < 90)  return 'var(--color-80)';  
+        if (p < 100) return 'var(--color-90)';  
+        return 'var(--color-100)';  
+    }  
+  
+    function updateUI(percent, message) {  
+        const p = Math.max(0, Math.min(100, Number(percent) || 0));  
+        const offset = circumference - (p / 100) * circumference;  
+  
+        if (progressRing) {  
+            progressRing.style.strokeDashoffset = offset;  
+            progressRing.style.stroke = getColor(p);  
+        }  
+        if (progressText) progressText.textContent = Math.round(p) + '%';  
+        if (message && statusMessage) statusMessage.textContent = message;  
+  
+        // V2 (1.3): ao atingir 100% a cena FECHA A SI MESMA (pedido do usuario,
+        // replicando a V1); se nenhum metodo existir nesta versao do Tasker,
+        // permanece aberta e o fechamento fica para o lado Tasker
+        if (p >= 100 && !APP_STATE.completed) {
+            APP_STATE.completed = true;
+            const statusConcluido = document.getElementById('status-message');
+            if (statusConcluido) statusConcluido.textContent = 'Instalação concluída.';
+            agendarFechamentoProprio();
+        }  
+    }  
+  
+    window._updateUIInstance = updateUI;  
+  
+    setInterval(() => {  
+        const elapsed = Math.floor((Date.now() - APP_STATE.startTime) / 1000);  
+        const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');  
+        const secs = (elapsed % 60).toString().padStart(2, '0');  
+        if (timerDisplay) timerDisplay.textContent = mins + ':' + secs;  
+    }, 1000);  
+  
+    function monitor() {  
+        const p = window.PROGRESS_CONTROL.percent;  
+        const m = window.PROGRESS_CONTROL.message;  
+        if (p !== APP_STATE.lastPercent || m !== APP_STATE.lastMessage) {  
+            APP_STATE.lastPercent = p;  
+            APP_STATE.lastMessage = m;  
+            updateUI(p, m);  
+        }  
+        requestAnimationFrame(monitor);  
+    }  
+    monitor();  
+  
+    const infoCard    = document.getElementById('info-card');  
+    const infoLabelEl = document.getElementById('info-label');  
+    const infoIconEl  = document.getElementById('info-icon');  
+    const infoTextEl  = document.getElementById('info-text');  
+    const infoFillEl  = document.getElementById('info-progress-fill');  
+  
+    let currentCardIndex = -1;  
+  
+    function getCardIndexForPercent(p) {  
+        for (let i = 0; i < currentCards.length; i++) {  
+            if (p >= currentCards[i].min && p <= currentCards[i].max) return i;  
+        }  
+        return currentCards.length - 1;  
+    }  
+  
+    function getCardBarPercent(p, card) {  
+        const range = card.max - card.min;  
+        const pos   = Math.max(0, Math.min(range, p - card.min));  
+        return range > 0 ? Math.round((pos / range) * 100) : 100;  
+    }  
+  
+    function showCard(index) {  
+        if (!infoCard || !infoLabelEl || !infoTextEl || !infoFillEl) return;  
+        if (index < 0 || index >= currentCards.length) return;  
+        const msg  = currentCards[index];  
+        const barW = getCardBarPercent(window.PROGRESS_CONTROL.percent, msg) + '%';  
+  
+        if (index !== currentCardIndex) {  
+            currentCardIndex = index;  
+            infoCard.classList.remove('show');  
+  
+            setTimeout(() => {  
+                infoLabelEl.textContent = msg.label;  
+                infoTextEl.textContent  = msg.text;  
+                infoCard.className = 'info-card visible ' + msg.theme;  
+  
+                const iconKey = msg.icon || 'file';  
+                if (infoIconEl) {  
+                    infoIconEl.innerHTML =  
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +  
+                        (ICONS[iconKey] || ICONS['file']) + '</svg>';  
+                }  
+  
+                infoFillEl.style.transition = 'none';  
+                infoFillEl.style.width = barW;  
+                void infoCard.offsetWidth;  
+                infoCard.classList.add('show');  
+            }, 300);  
+        } else {  
+            infoFillEl.style.transition = 'width 0.5s ease';  
+            infoFillEl.style.width = barW;  
+        }  
+    }  
+  
+    function monitorCard() {  
+        showCard(getCardIndexForPercent(window.PROGRESS_CONTROL.percent));  
+        requestAnimationFrame(monitorCard);  
+    }  
+    monitorCard();  
+
+    // PONTE V2: o progresso NAO usa mais injeção javascript: — a cena escuta
+    // progress_install nativamente (e type_project para escolher os cards)
+    function textoVariavel(v) {
+        if (v === null || v === undefined) return '';
+        if (typeof v === 'string') return v;
+        if (typeof v === 'object') {
+            const chaves = ['value', 'contents', 'text', 'result', 'stdout'];
+            for (let i = 0; i < chaves.length; i++) {
+                if (typeof v[chaves[i]] === 'string') return v[chaves[i]];
+                if (v[chaves[i]] !== null && v[chaves[i]] !== undefined) return String(v[chaves[i]]);
+            }
+        }
+        return String(v);
+    }
+
+    function aplicarVariavel(nome, valor) {
+        const texto = textoVariavel(valor).trim();
+        if (nome === 'progress_install') {
+            if (texto !== '') window.PROGRESS_CONTROL.percent = texto;
+        } else if (nome === 'type_project') {
+            if (FILE_CARDS[texto]) {
+                window.INSTALL_MODE = texto;
+                currentCards = FILE_CARDS[texto];
+                currentCardIndex = -1;
+            }
+        }
+    }
+
+    // Registro do listener (nomes em array; callback recebe nome e valor)
+    try {
+        Tasker.onVariableChanged(['progress_install', 'type_project'], aplicarVariavel);
+    } catch (e) {
+    }
+
+    // Valores iniciais (caso a cena abra com o download ja em andamento)
+    // Fire-and-forget com prazo: nada aqui pode travar a inicializacao
+    function lerInicial(nome) {
+        try {
+            Promise.race([
+                Tasker.getVariable(nome),
+                new Promise(function (_, rejeitar) {
+                    setTimeout(function () { rejeitar(new Error('prazo da leitura excedido')); }, 4000);
+                })
+            ])
+                .then(function (v) { aplicarVariavel(nome, v); })
+                .catch(function () {});
+        } catch (e) {
+        }
+    }
+    lerInicial('progress_install');
+    lerInicial('type_project');
+});
+</script>  
+</body>  
+</html>
