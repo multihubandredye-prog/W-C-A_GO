@@ -1,8 +1,8 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.0**
-Arquivo: `Contatos Pro WCA 1.0.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.1**
+Arquivo: `Contatos Pro WCA 1.1.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado, lista **Contatos** e **Grupos** em abas com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
@@ -20,6 +20,24 @@ Central de contatos e grupos: escolhe um dispositivo logado, lista **Contatos** 
 ## Variáveis do Tasker consumidas pela cena
 
 **Nenhuma.** Toda a informação vem da API local; a autenticação e o host ficam no próprio código.
+
+## Botão voltar do Android (Back Pressed)
+
+A cena publica em `cache_modal` qual "tela" está no topo e escuta `return_modal` (mesmo padrão das outras cenas do projeto; nomes nas constantes `WCA_MODAL_STATE_VAR` e `WCA_RETURN_MODAL_VAR`, bloco "Botao voltar do Android" do HTML):
+
+| Estado publicado em `cache_modal` | Quando |
+|---|---|
+| `bulk-modal` | Modal de cópia em lote aberto (topo máximo) |
+| `contact-modal` | Modal de detalhes do contato aberto |
+| `group-modal` | Modal de detalhes do grupo aberto |
+| `contacts-panel` | Painel de contatos/grupos visível |
+| *(vazio)* | Painel de dispositivos (raiz) |
+
+Ao receber `return_modal`, a cena fecha o topo: modais fecham; no painel de contatos, cancela o modo seleção (com toast) e, num novo voltar, retorna ao painel de dispositivos; na raiz ela não interfere (o voltar segue o padrão e a cena é fechada pelo lado Tasker).
+
+**Montagem validada no evento Back Pressed da tela (igual às outras cenas):**
+1. **Cancelar Evento: Dinâmico** com a expressão **`"%cache_modal" != ""`** (COM as aspas);
+2. **Definir Variável**: `return_modal` = `%TIMES`.
 
 ## Saída da cena
 
