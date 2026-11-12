@@ -2,11 +2,12 @@
 
 Pasta central de todos os projetos de cena HTML (Scenes V2) do WCA.
 
-Cada projeto fica em uma **subpasta própria**, contendo **todas as versões do HTML desde a 1.0** (nenhuma é removida a cada mudança) e o README do projeto.
+Cada projeto fica em uma **subpasta própria**, contendo as **versões do HTML em uso** (a política de retenção de cada projeto está no README da pasta) e o README do projeto.
 
 | Projeto | Cena do Tasker | Pasta |
 |---|---|---|
 | Central WCA | `001-CENTRAL_WHATS_CONNECT_API [wca]` | `central-wca/` |
+| Instalação WCA | `002-INSTALACAO_PROJETO [wca]` | `instalacao-wca/` |
 
 ## Convenções
 
