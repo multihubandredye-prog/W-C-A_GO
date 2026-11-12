@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.19**
-Arquivo: `Central WCA 1.19.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.20**
+Arquivo: `Central WCA 1.20.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -27,23 +27,23 @@ Todos os botões de sistema despacham `006-CONFIGURAR_SISTEMA [wca]` com o coman
 
 | Função da cena | Ação V2 | Valor |
 |---|---|---|
-| `alertOpenFaq` | `runTask` → 006 | `par1 = open-faq` |
-| `alertTalkToDeveloper` | `runTask` → 006 | `par1 = talk-developer` |
-| `alertSendPurchaseWhatsApp` | `runTask` → 006 | `par1 = buy-vip` |
-| `alertUninstallWca` | `runTask` → 006 | `par1 = uninstall-wca` |
-| `alertDeactivateWca` | `runTask` → 006 | `par1 = stop-wca` |
-| `alertRestartWca` (também usado por `alertReactivateWca`) | `runTask` → 006 | `par1 = restart-wca` |
-| `alertCheckUpdates` | `runTask` → 006 | `par1 = check_updates` |
-| `alertReinstallApi` | `runTask` → 006 | `par1 = force-reinstall-api` |
+| `taskOpenFaq` | `runTask` → 006 | `par1 = open-faq` |
+| `taskTalkToDeveloper` | `runTask` → 006 | `par1 = talk-developer` |
+| `taskSendPurchaseWhatsApp` | `runTask` → 006 | `par1 = buy-vip` |
+| `taskUninstallWca` | `runTask` → 006 | `par1 = uninstall-wca` |
+| `taskDeactivateWca` | `runTask` → 006 | `par1 = stop-wca` |
+| `taskRestartWca` (também usado por `taskReactivateWca`) | `runTask` → 006 | `par1 = restart-wca` |
+| `taskCheckUpdates` | `runTask` → 006 | `par1 = check_updates` |
+| `taskReinstallApi` | `runTask` → 006 | `par1 = force-reinstall-api` |
 | `alertReinstallTask` | `runTask` → 006 | `par1 = force-reinstall-task` |
-| `alertCustomProfilePicture` | `runTask` → 006 | `par1 = profile-picture` |
+| `taskEditProfilePicture` | `runTask` → 006 | `par1 = profile-picture` |
 
 Exceções que **não** executam tarefa — apenas gravam variáveis na cena (`Tasker.setVariable`):
 
 | Função | Variáveis gravadas |
 |---|---|
-| `alertInstall(data)` | `task = 4` e `exit_data = <dados da instalação>` |
-| `alertPremiumNotFound()` | `task = 5` e `task_exit = status_premium` |
+| `taskInstall(data)` | `task = 4` e `exit_data = <dados da instalação>` |
+| `taskPremiumNotFound()` | `task = 5` e `task_exit = status_premium` |
 
 As variáveis gravadas com `setVariable` são variáveis **da tela**: quando a cena for fechada (Dismiss Scene v2), elas são devolvidas à tarefa que a exibiu.
 
@@ -105,13 +105,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.18** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.17 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.18** é o ponto de retorno documentado (contém TUDO o que as anteriores construíram — camada de arquivos/HTTP do app de exemplo, foto com cache e botão voltar completos; a 1.19 difere dela apenas pela renomeação da variável de estado para `cache_modal`).
+A partir da **1.19** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.18 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.19** é o ponto de retorno documentado (a 1.20 difere dela pelas melhorias do modal de foto e pela organização das funções de saída — sem mudanças de lógica).
 
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.20 | 12/11/2026 | **Modal de foto + organização do ambiente do Tasker**: botão ATUALIZAR FOTO virou **ícone no canto superior direito** do modal (a cor verde clara foi embora junto); ADICIONAR FOTO → **ALTERAR FOTO**; **RESETAR** e o ícone de atualizar agora pedem **confirmação** em modais próprios (com a explicação do que acontece ao atualizar); `avatar-cache.url` confirmado NUNCA eliminado (só esvaziado — regra da 1.14, protegido no reset e no onerror); **13 funções de saída renomeadas** `alert*` → `task*` e **agrupadas em um único bloco "AMBIENTE DO TASKER"**, uma abaixo da outra (a `alertSendPurchase`, que é HTTP da Vercel e não saída do Tasker, ficou fora do bloco) — nenhuma lógica alterada, só nomes e organização |
 | 1.19 | 12/11/2026 | **Renomeação padronizada (pedido do usuário)**: `wca_modal_aberto` → **`cache_modal`** (armazena o estado temporário do modal do topo; nome neutro para reutilizar em qualquer cena/projeto). `return_modal` permanece. Sem nenhuma outra mudança de lógica |
-| 1.18 | 12/11/2026 | **Versão final do botão voltar**: flashes de diagnóstico removidos (conteúdo idêntico à 1.16). Expressão validada no aparelho pelo usuário: Cancelar Evento **Dinâmico** com **`"%cache_modal" != ""`** — as aspas são obrigatórias porque a expressão é avaliada como JavaScript e o `%var` é substituído pelo valor texto (sem aspas, valor preenchido vira identificador inválido e a cena fecha junto; com aspas, vira comparação de string válida nos dois casos). Seção "Botão voltar do Android" adicionada ao README com a montagem completa e a localização/renomeação das variáveis |
 
-> O histórico detalhado das versões **1.0 a 1.17** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
+> O histórico detalhado das versões **1.0 a 1.18** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
