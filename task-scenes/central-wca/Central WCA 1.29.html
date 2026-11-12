@@ -4223,38 +4223,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target && e.target.closest && e.target.closest('.tab-btn')) window.__wcaUserTouchedTab = true;
     }, true);
 
-    // ---- Aba inicial pela variável open_tab (1.27) ----
-    // one = aba Instalação (config-tab); two = aba Conexões (connections-tab);
-    // vazio/outro valor = comportamento padrão (OPEN_INSTALL_TAB_FIRST).
-    // Nunca sobrescreve a escolha do usuário (flag __wcaUserTouchedTab).
-    function aplicarOpenTab(valorBruto) {
-        let valor = typeof valorBruto === 'string' ? valorBruto : '';
-        if (valor && typeof valor === 'object') {
-            const chaves = ['value', 'contents', 'text', 'result', 'stdout'];
-            for (let i = 0; i < chaves.length; i++) {
-                if (typeof valor[chaves[i]] === 'string') { valor = valor[chaves[i]]; break; }
-            }
+    // ---- Aba inicial pela variável open_tab (1.29) ----
+    // A PRIMEIRA aba (Instalação, config-tab) é o padrão IMEDIATO, definido no
+    // próprio arranque — sem variável, vazia, não definida ou com valor
+    // desconhecido a cena SEMPRE abre nela (nada depende do bridge). A
+    // variável open_tab só PROMOVE: two = aba Conexões (connections-tab) quando
+    // o valor chegar (leitura inicial ou listener); one não muda nada (já está
+    // nela). Nunca sobrescreve a escolha do usuário (__wcaUserTouchedTab).
+    function valorTextoVariavel(valorBruto) {
+        if (typeof valorBruto === 'string') return valorBruto;
+        if (valorBruto && typeof valorBruto === 'object') {
+            const valores = Object.values(valorBruto);
+            for (let i = 0; i < valores.length; i++) { if (typeof valores[i] === 'string') return valores[i]; }
+            return '';
         }
-        valor = String(valor || '').trim().toLowerCase();
-        if (valor !== 'one' && valor !== 'two') return;
+        return '';
+    }
+    function aplicarOpenTab(valorBruto) {
         if (window.__wcaUserTouchedTab) return;
-        openTab(valor === 'one' ? 'config-tab' : 'connections-tab');
+        const valor = String(valorTextoVariavel(valorBruto) || '').trim().toLowerCase();
+        if (valor === 'one') openTab('config-tab');
+        else if (valor === 'two') openTab('connections-tab');
     }
 
     (function iniciarOpenTab() {
+        // listener SEMPRE registrado, antes de qualquer leitura
+        try {
+            Tasker.onVariableChanged('open_tab', function (nome, valor) { aplicarOpenTab(valor); });
+        } catch (e) { }
         try {
             if (typeof Tasker === 'undefined' || typeof Tasker.getVariable !== 'function') return;
-            let bruto = Tasker.getVariable('open_tab');
+            const bruto = Tasker.getVariable('open_tab');
             if (bruto && typeof bruto.then === 'function') {
-                Promise.race([bruto, bridgeTimeout(4000)])
-                    .then(function (v) { aplicarOpenTab(v); })
-                    .catch(function () { });
+                bruto.then(function (v) { aplicarOpenTab(v); }).catch(function () { });
             } else {
                 aplicarOpenTab(bruto);
             }
-        } catch (e) { }
-        try {
-            Tasker.onVariableChanged('open_tab', aplicarOpenTab);
         } catch (e) { }
     })();
 
@@ -8096,7 +8100,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.remove('modal-open');
         stopAllTimers();
 
-        const initialTab = CONFIG.OPEN_INSTALL_TAB_FIRST ? 'config-tab' : 'connections-tab';
+        // 1.29: a primeira aba (Instalação) é o padrão IMEDIATO do arranque;
+        // open_tab=two troca para Conexões quando o valor chegar (leitura/listener)
+        const initialTab = 'config-tab';
         openTab(initialTab);
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -8135,7 +8141,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setDeactivateMenuAvailability(hasStoredConnections());
         resolveProfilePicture();
 
-        const initialTab = CONFIG.OPEN_INSTALL_TAB_FIRST ? 'config-tab' : 'connections-tab';
+        // 1.29: a primeira aba (Instalação) é o padrão IMEDIATO do arranque;
+        // open_tab=two troca para Conexões quando o valor chegar (leitura/listener)
+        const initialTab = 'config-tab';
         openTab(initialTab);
         updateModalHistoryFile();
 
