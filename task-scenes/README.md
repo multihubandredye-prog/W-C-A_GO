@@ -9,6 +9,7 @@ Cada projeto fica em uma **subpasta própria**, contendo as **versões do HTML e
 | Central WCA | `001-CENTRAL_WHATS_CONNECT_API [wca]` | `central-wca/` |
 | Instalação WCA | `002-INSTALACAO_PROJETO [wca]` | `instalacao-wca/` |
 | Atualizações WCA | `006-ATUALIZACOES [wca]` | `atualizacoes-wca/` |
+| Painel de Atividade WCA | `003-PAINEL_ATIVIDADE [wca]` | `painel-atividade-wca/` |
 
 ## Convenções
 
