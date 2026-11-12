@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.1**
-Arquivo: `Atualizações WCA 1.1.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
+Versão atual: **1.2**
+Arquivo: `Atualizações WCA 1.2.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
 
 Painel de atualizações: mostra quando há nova release **real** no repositório (badge com o tipo e a versão), as novidades (changelog do repo, seção expansível) e o botão **Atualizar Agora** — que executa a `006-CONFIGURAR_SISTEMA [wca]` com o comando e o tipo da atualização.
 
@@ -38,7 +38,7 @@ Referência para o lado Tasker: no disparo da 006 com `par1 = installation-updat
 ## Recursos externos
 
 - `https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30` (checagem da release, sem token);
-- `https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt` (novidades do card expansível);
+- Novidades do card expansível (`CHANGELOG_FONTES`, desde a 1.2): **1ª fonte** = API do GitHub (`contents/wca-resources/updates/changelog.txt` com `Accept: application/vnd.github.raw` — mesmo domínio das releases, que já responde no aparelho); **fallback** = caminho original da V1 no `raw.githubusercontent.com` (que falhou no aparelho mesmo com o arquivo existindo no repo); se todas falharem, exibe "Não foi possível carregar as novidades.";
 - Vídeo do cabeçalho: `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4` (exige **Allow Phone Access** no elemento Web).
 
 ## Requisitos da cena V2
@@ -62,5 +62,6 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 
 | Versão | Data | Mudanças |
 |---|---|---|
-| 1.1 | 16/09/2026 | **Correção: "Últimas Novidades" não expandia no aparelho**. A conversão 1.0 estava fiel à V1 (CSS com 0 diferenças e mesmo código de toggle — auditado), mas o WebView V2 não gerava o evento `click` de forma confiável no toque sobre aquele DIV (na V1 o script era `type="module"` no WebView antigo; nos projetos V2 validados os alvos de clique são `<button>`). A expansão agora trata o **toque direto** (`touchstart`/`touchend` no header: tap detectado pela distância percorrida — rolagem não dispara; `preventDefault` no touchend evita gerar clique duplicado) **além** do `click` normal, com guarda de 400ms para nunca alternar duas vezes na mesma interação; ao expandir aplica também `maxHeight` inline (`20rem`) como garantia visual, além da classe `expanded`; seta do changelog gira via `classList.toggle('rotated')` |
+| 1.2 | 16/09/2026 | **Correção: "Não foi possível carregar as novidades." no aparelho** (validado pelo print do usuário após a 1.1: a EXPANSÃO passou a funcionar — seta girou — mas o fetch do changelog falhou). O arquivo existe no repo (`wca-resources/updates/changelog.txt`, 9232 bytes na `main`) e os dois domínios servem CORS `*` — a falha é do `raw.githubusercontent.com` no WebView do aparelho (a API `api.github.com` funcionou segundos antes para o badge). O `fetchChangelogData` virou cadeia de fontes (`CHANGELOG_FONTES`): **1ª** a API do GitHub (`contents/...` com `Accept: application/vnd.github.raw`, domínio que já responde no aparelho), **2ª** o caminho raw original da V1 como fallback; cada fonte valida `response.ok` e texto não vazio antes de aplicar; se todas falharem, mantém a mensagem de erro. Simulado em Node nos 3 cenários (API ok / só raw / nada) |
+| 1.1 | 16/09/2026 | **Correção: "Últimas Novidades" não expandia no aparelho**. A conversão 1.0 estava fiel à V1 (CSS com 0 diferenças e mesmo código de toggle — auditado), mas o WebView V2 não gerava o evento `click` de forma confiável no toque sobre aquele DIV (na V1 o script era `type="module"` no WebView antigo; nos projetos V2 validados os alvos de clique são `<button>`). A expansão agora trata o **toque direto** (`touchstart`/`touchend` no header: tap detectado pela distância percorrida — rolagem não dispara; `preventDefault` no touchend evita gerar clique duplicado) **além** do `click` normal, com guarda de 400ms para nunca alternar duas vezes na mesma interação; ao expandir aplica também `maxHeight` inline (`20rem`) como garantia visual, além da classe `expanded`; seta do changelog gira via `classList.toggle('rotated')`. **VALIDADO NO APARELHO (print do usuário): a expansão passou a funcionar** |
 | 1.0 | 16/09/2026 | Conversão da cena V1 → V2 (arquivo único HTML+CSS+JS): versão local lida do **arquivo** `.../system/version` (não mais da variável antiga); release real filtrada pelo rótulo `[UI]`/`[CORE]`/`[FULL]` no título (testes ignorados); botão **Atualizar Agora** executa a `006-CONFIGURAR_SISTEMA [wca]` com `par1 = installation-update` + `type_update = ui \| core \| full` (valores em minúsculas, escolhido pelo usuário) — removidos `setLocal`, `window.open` e `destroyScene` da V1; novo badge `ATUALIZAÇÃO COMPLETA` para o tipo `full`; changelog e expansão idênticos à V1 |
