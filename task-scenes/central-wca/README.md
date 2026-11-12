@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.20**
-Arquivo: `Central WCA 1.20.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.21**
+Arquivo: `Central WCA 1.21.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -105,13 +105,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.19** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.18 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.19** é o ponto de retorno documentado (a 1.20 difere dela pelas melhorias do modal de foto e pela organização das funções de saída — sem mudanças de lógica).
+A partir da **1.20** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.19 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.20** é o ponto de retorno documentado (a 1.21 difere dela apenas pelo ajuste de timing do alerta de servidor offline).
 
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.21 | 12/11/2026 | **Correção de timing no alerta de servidor offline (bug do botão HABILITAR WCA)**: no arranque, o check de servidor e a leitura das conexões rodam em paralelo; se o status falhava ANTES das conexões chegarem, o alerta avaliava o cache vazio e mostrava "realize a primeira instalação" SEM o botão — ele só aparecia ao alternar abas (que re-executa o check). Agora, quando as conexões ou o log chegam depois de um check concluído offline, a UI é reaplicada na hora (mensagem correta + botão), sem depender de troca de aba. Mesmo grupo do bug da foto corrigido na 1.11 |
 | 1.20 | 12/11/2026 | **Modal de foto + organização do ambiente do Tasker**: botão ATUALIZAR FOTO virou **ícone no canto superior direito** do modal (a cor verde clara foi embora junto); ADICIONAR FOTO → **ALTERAR FOTO**; **RESETAR** e o ícone de atualizar agora pedem **confirmação** em modais próprios (com a explicação do que acontece ao atualizar); `avatar-cache.url` confirmado NUNCA eliminado (só esvaziado — regra da 1.14, protegido no reset e no onerror); **13 funções de saída renomeadas** `alert*` → `task*` e **agrupadas em um único bloco "AMBIENTE DO TASKER"**, uma abaixo da outra (a `alertSendPurchase`, que é HTTP da Vercel e não saída do Tasker, ficou fora do bloco) — nenhuma lógica alterada, só nomes e organização |
-| 1.19 | 12/11/2026 | **Renomeação padronizada (pedido do usuário)**: `wca_modal_aberto` → **`cache_modal`** (armazena o estado temporário do modal do topo; nome neutro para reutilizar em qualquer cena/projeto). `return_modal` permanece. Sem nenhuma outra mudança de lógica |
 
-> O histórico detalhado das versões **1.0 a 1.18** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
+> O histórico detalhado das versões **1.0 a 1.19** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).

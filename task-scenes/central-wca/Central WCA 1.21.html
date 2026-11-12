@@ -1425,6 +1425,20 @@ body.modal-open { overflow: hidden; }
     align-items: center;
     margin-bottom: 6px;
 }
+.photo-update-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: .2s;
+}
+.photo-update-btn:hover { color: var(--secondary); border-color: rgba(48,139,100,0.4); }
 .modal-close-x {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
@@ -3304,16 +3318,36 @@ input.first-install-attention {
         </div>
     </div>
 
-    <div id="profilePictureModal" class="modal-overlay" aria-hidden="true">
+    <div id="confirmUpdatePhotoModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-content">
-            <h3 class="modal-title accent-title">EDITAR FOTO DE PERFIL</h3>
-            <p class="delete-review-text">Adicione uma imagem personalizada, atualize a foto atual ou resete para o padrão do sistema.</p>
+            <div class="deactivate-icon-wrap"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <h3 class="modal-title default-title">Atualizar foto?</h3>
+            <p class="delete-review-text">Se a sua foto do WhatsApp tiver mudado, a nova imagem será carregada. Caso continue a mesma, nada será alterado.</p>
             <div class="confirm-actions">
-                <button id="btnAddProfilePhoto" class="btn-action btn-flex btn-accent" type="button"><i class="fa-solid fa-camera"></i> ADICIONAR FOTO</button>
-                <button id="btnResetProfilePhoto" class="btn-action btn-flex btn-danger" type="button"><i class="fa-solid fa-rotate-left"></i> RESETAR</button>
+                <button class="btn-action btn-flex btn-border" data-close="confirmUpdatePhotoModal">NÃO</button>
+                <button id="btnConfirmUpdatePhoto" class="btn-action btn-flex btn-border"><i class="fa-solid fa-arrows-rotate"></i> SIM</button>
             </div>
+        </div>
+</div>
+<div id="confirmResetPhotoModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="deactivate-icon-wrap"><i class="fa-solid fa-rotate-left"></i></div>
+            <h3 class="modal-title default-title">Resetar foto?</h3>
+            <p class="delete-review-text">A foto exibida será removida e o avatar do seu WhatsApp será buscado novamente.</p>
             <div class="confirm-actions">
-                <button id="btnUpdateProfilePhoto" class="btn-action btn-full btn-accent" type="button"><i class="fa-solid fa-arrows-rotate"></i> ATUALIZAR FOTO</button>
+                <button class="btn-action btn-flex btn-border" data-close="confirmResetPhotoModal">NÃO</button>
+                <button id="btnConfirmResetPhoto" class="btn-action btn-flex btn-border"><i class="fa-solid fa-rotate-left"></i> SIM</button>
+            </div>
+        </div>
+</div>
+<div id="profilePictureModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <button id="btnUpdateProfilePhoto" class="photo-update-btn" type="button" aria-label="Atualizar foto"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <h3 class="modal-title accent-title">EDITAR FOTO DE PERFIL</h3>
+            <p class="delete-review-text">Altere a imagem personalizada, atualize a foto atual ou resete para o padrão do sistema.</p>
+            <div class="confirm-actions">
+                <button id="btnAddProfilePhoto" class="btn-action btn-flex btn-accent" type="button"><i class="fa-solid fa-camera"></i> ALTERAR FOTO</button>
+                <button id="btnResetProfilePhoto" class="btn-action btn-flex btn-danger" type="button"><i class="fa-solid fa-rotate-left"></i> RESETAR</button>
             </div>
         </div>
     </div>
@@ -3937,6 +3971,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // carga (variavel), na V2 ele chega AQUI, depois do initialize -
             // sem reaplicar, o bloco da foto fica oculto e a API nunca e chamada
             try { resolveProfilePicture(); } catch (e) {}
+            // 1.21: o estado de expiracao chega junto do log; se o check de
+            // servidor ja concluiu offline, reaplica a mensagem correta
+            try { if (serverStatusChecked && !serverOnline) markServerOffline(); } catch (e) {}
         } catch (e) {
             console.warn('Erro ao ler .mode-system.log:', e);
         }
@@ -4363,6 +4400,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let expandedReplyThreads = new Set();
     let currentUserPhone = '';
     let serverOnline = false;
+    // 1.21: true apos a primeira avaliacao concluida do check de servidor
+    let serverStatusChecked = false;
     let wcaPausedByStoredConnection = false;
     let duplicateModalMode = 'connections';
     let firstInstallPulseTimer = null;
@@ -4452,11 +4491,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════════════
-       AMBIENTE DE SAÍDA PARA O TASKER 
+       AMBIENTE DO TASKER - SAIDAS DA CENA
+       Todas as funcoes que executam acoes no Tasker ficam agrupadas
+       abaixo, uma apos a outra, para facilitar a edicao manual.
     ═══════════════════════════════════════════════ */
     // Sinaliza a abertura do manual/FAQ de instalação
     // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertOpenFaq() {
+    async function taskOpenFaq() {
         try {
             await Tasker.runTask({
                 name: '006-CONFIGURAR_SISTEMA [wca]',
@@ -4469,7 +4510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicia o contato com o suporte técnico/desenvolvedor
     // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertTalkToDeveloper() {
+    async function taskTalkToDeveloper() {
         try {
             await Tasker.runTask({
                 name: '006-CONFIGURAR_SISTEMA [wca]',
@@ -4480,13 +4521,128 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function keepPremiumRequestScreenOpen(data = null){
-        closeModal('buyConfirmModal');
-        setPremiumPhoneVisibility(false);
-        openModal('buyModal');
-        if(data) setPremiumPendingUi(data);
+    // Envia a solicitação/aceleração da compra Premium para o lado Tasker
+    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    async function taskSendPurchaseWhatsApp(details) {
+        try {
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'buy-vip' }
+            });
+        } catch (e) {
+            console.log('Erro ao executar 006 (buy-vip): ' + e);
+        }
     }
 
+    // Desinstala o WCA, removendo a conexão do WhatsApp
+    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    async function taskUninstallWca() {
+        try {
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'uninstall-wca' }
+            });
+        } catch (e) {
+            console.log('Erro ao executar 006 (uninstall-wca): ' + e);
+        }
+    }
+
+    // Desativa o WCA, pausando o serviço temporariamente
+    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    async function taskDeactivateWca() {
+        try {
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'stop-wca' }
+            });
+        } catch (e) {
+            console.log('Erro ao executar 006 (stop-wca): ' + e);
+        }
+    }
+
+    // Habilita o WCA quando a API está desabilitada, mas ainda existem conexões salvas.
+    // Usa a mesma saída/ação já existente do botão antigo "Reiniciar WCA".
+    function taskReactivateWca() {
+        // alert('WCA habilitado');
+        taskRestartWca();
+    }
+
+    // Reinicia o serviço do WCA
+    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    async function taskRestartWca() {
+        try {
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'restart-wca' }
+            });
+        } catch (e) {
+            console.log('Erro ao executar 006 (restart-wca): ' + e);
+        }
+    }
+
+    // Verifica se há atualizações disponíveis
+    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    async function taskCheckUpdates() {
+        try {
+            await Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'check_updates' }
+            });
+        } catch (e) {
+            console.log('Erro ao executar 006 (check_updates): ' + e);
+        }
+    }
+
+    // Reinstala a API do WCA
+    function taskReinstallApi() {
+
+        ///alert('API reinstalada');
+
+        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-api' } }).catch(function (e) { console.log('Erro ao executar 006 (force-reinstall-api): ' + e); });
+    }
+
+    // Reinstala o projeto do Tasker
+    function taskReinstallProject() {
+
+        ///alert('Tasker/Projeto reinstalado');
+
+        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } }).catch(function (e) { console.log('Erro ao executar 006 (force-reinstall-task): ' + e); });
+    }
+
+    // Botão de personalização de imagem (canetinha na foto de perfil)
+    function taskEditProfilePicture() {
+
+        ///alert('Botão de personalização de imagem clicada');
+
+        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'profile-picture' } }).catch(function (e) { console.log('Erro ao executar 006 (profile-picture): ' + e); });
+    }
+
+    // Dispara a instalação com o número/sessão informados
+    // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
+    // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
+    async function taskInstall(data) {
+        try {
+            await Tasker.setVariable('task', '4');
+            await Tasker.setVariable('exit_data', String(data === null || data === undefined ? '' : data));
+        } catch (e) {
+            console.log('Erro ao gravar variáveis da cena (taskInstall): ' + e);
+        }
+    }
+
+    // Informa que nenhum acesso Premium ativo foi encontrado na verificação
+    // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
+    // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
+    async function taskPremiumNotFound() {
+        try {
+            await Tasker.setVariable('task', '5');
+            await Tasker.setVariable('task_exit', 'status_premium');
+        } catch (e) {
+            console.log('Erro ao gravar variáveis da cena (taskPremiumNotFound): ' + e);
+        }
+    }
+
+
+    // Solicitacao Premium via HTTP (nao e saida do Tasker)
     // Envia os dados da solicitação de compra do plano Premium para a API.
     // A API registra como pending_activation. A ativação real continua sendo feita pelo administrador após confirmar o pagamento.
     async function alertSendPurchase(details) {
@@ -4535,112 +4691,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Dispara a instalação com o número/sessão informados
-    // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
-    // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
-    async function alertInstall(data) {
-        try {
-            await Tasker.setVariable('task', '4');
-            await Tasker.setVariable('exit_data', String(data === null || data === undefined ? '' : data));
-        } catch (e) {
-            console.log('Erro ao gravar variáveis da cena (alertInstall): ' + e);
-        }
+
+
+    function keepPremiumRequestScreenOpen(data = null){
+        closeModal('buyConfirmModal');
+        setPremiumPhoneVisibility(false);
+        openModal('buyModal');
+        if(data) setPremiumPendingUi(data);
     }
 
-    // Informa que nenhum acesso Premium ativo foi encontrado na verificação
-    // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
-    // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
-    async function alertPremiumNotFound() {
-        try {
-            await Tasker.setVariable('task', '5');
-            await Tasker.setVariable('task_exit', 'status_premium');
-        } catch (e) {
-            console.log('Erro ao gravar variáveis da cena (alertPremiumNotFound): ' + e);
-        }
-    }
 
-    // Desinstala o WCA, removendo a conexão do WhatsApp
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertUninstallWca() {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'uninstall-wca' }
-            });
-        } catch (e) {
-            console.log('Erro ao executar 006 (uninstall-wca): ' + e);
-        }
-    }
 
-    // Desativa o WCA, pausando o serviço temporariamente
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertDeactivateWca() {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'stop-wca' }
-            });
-        } catch (e) {
-            console.log('Erro ao executar 006 (stop-wca): ' + e);
-        }
-    }
 
-    // Reinicia o serviço do WCA
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertRestartWca() {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'restart-wca' }
-            });
-        } catch (e) {
-            console.log('Erro ao executar 006 (restart-wca): ' + e);
-        }
-    }
 
-    // Verifica se há atualizações disponíveis
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertCheckUpdates() {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'check_updates' }
-            });
-        } catch (e) {
-            console.log('Erro ao executar 006 (check_updates): ' + e);
-        }
-    }
 
-    // Habilita o WCA quando a API está desabilitada, mas ainda existem conexões salvas.
-    // Usa a mesma saída/ação já existente do botão antigo "Reiniciar WCA".
-    function alertReactivateWca() {
-        // alert('WCA habilitado');
-        alertRestartWca();
-    }
 
-    // Reinstala a API do WCA
-    function alertReinstallApi() {
 
-        ///alert('API reinstalada');
 
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-api' } }).catch(function (e) { console.log('Erro ao executar 006 (force-reinstall-api): ' + e); });
-    }
 
-    // Reinstala o projeto do Tasker
-    function alertReinstallProject() {
 
-        ///alert('Tasker/Projeto reinstalado');
-
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } }).catch(function (e) { console.log('Erro ao executar 006 (force-reinstall-task): ' + e); });
-    }
-
-    // Botão de personalização de imagem (canetinha na foto de perfil)
-    function alertEditProfilePicture() {
-
-        ///alert('Botão de personalização de imagem clicada');
-
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'profile-picture' } }).catch(function (e) { console.log('Erro ao executar 006 (profile-picture): ' + e); });
-    }
 
     // Abre o modal de edição da foto de perfil (canetinha)
     function openEditProfilePictureModal(){
@@ -5163,7 +5232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sessionInput = document.getElementById('sessionInput');
         const session = (sessionInput?.value.trim()) || 'WhatsConnectApi - Tasker';
         const installData = JSON.stringify({number: dom.telInput.value, session}, null, 2);
-        alertInstall(installData);
+        taskInstall(installData);
     }
 
     function showDuplicateModal(device){
@@ -5218,7 +5287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(duplicateModalMode === 'reactivate'){
             duplicateModalMode = 'connections';
             if(isExpiredLogData()) openBuyModal();
-            else alertReactivateWca();
+            else taskReactivateWca();
             return;
         }
         openTab('connections-tab');
@@ -5415,18 +5484,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return `Nome: ${name}\nPlano: ${plan}\nTelefone: ${phone}\nValor: ${amount}\nSolicitação enviada em: ${when}`;
     }
 
-    // Envia a solicitação/aceleração da compra Premium para o lado Tasker
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function alertSendPurchaseWhatsApp(details) {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'buy-vip' }
-            });
-        } catch (e) {
-            console.log('Erro ao executar 006 (buy-vip): ' + e);
-        }
-    }
 
     function setPremiumPhoneVisibility(visible){
         const phoneBox = dom.buyTelInput?.closest('.buy-input');
@@ -5592,7 +5649,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             processLicense();
-            alertPremiumNotFound();
+            taskPremiumNotFound();
         }
     }
 
@@ -5901,6 +5958,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function markServerOnline(){
         serverOnline = true;
+        serverStatusChecked = true;
         stopFirstInstallInputPulse();
         setReactivateUiState(false);
         dom.createDeviceBtn.disabled = false;
@@ -5910,6 +5968,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function markServerOffline(){
         serverOnline = false;
+        serverStatusChecked = true;
         const hasConnections = hasStoredConnections();
         setReactivateUiState(hasConnections);
         dom.createDeviceBtn.disabled = true;
@@ -6563,6 +6622,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUserPhone = getPrincipalPhone();
         updateReviewMenuAvailability();
         updatePremiumMenuAvailability();
+        // 1.21: se o check de servidor ja concluiu OFFLINE e as conexoes
+        // chegaram depois, reaplica o estado (alerta correto + botao
+        // HABILITAR WCA) sem esperar uma troca de aba
+        if (serverStatusChecked && !serverOnline) markServerOffline();
     }
 
     function readDevicesFile(){
@@ -7898,8 +7961,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnConfirmDeleteAll')?.addEventListener('click', doDeleteAllDevices);
     dom.premiumButton?.addEventListener('click', openPremiumCheck);
     document.getElementById('btnConfirmPremiumCheck')?.addEventListener('click', confirmPremiumCheck);
-    document.getElementById('menuSupportBtn')?.addEventListener('click', alertTalkToDeveloper);
-    document.getElementById('menuFaqBtn')?.addEventListener('click', alertOpenFaq);
+    document.getElementById('menuSupportBtn')?.addEventListener('click', taskTalkToDeveloper);
+    document.getElementById('menuFaqBtn')?.addEventListener('click', taskOpenFaq);
     document.getElementById('menuPremiumBtn')?.addEventListener('click', () => { closeModal('helpModal'); openBuyModal(); });
     document.getElementById('menuReinstallApiBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
@@ -7911,18 +7974,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btnConfirmReinstallApi')?.addEventListener('click', () => {
         closeModal('confirmReinstallApiModal');
-        alertReinstallApi();
+        taskReinstallApi();
     });
     document.getElementById('btnConfirmReinstallTask')?.addEventListener('click', () => {
         closeModal('confirmReinstallTaskModal');
-        alertReinstallProject();
+        taskReinstallProject();
     });
     document.getElementById('profileEditBtn')?.addEventListener('click', openEditProfilePictureModal);
     document.getElementById('btnAddProfilePhoto')?.addEventListener('click', () => {
         closeModal('profilePictureModal');
-        alertEditProfilePicture();
+        taskEditProfilePicture();
     });
-    document.getElementById('btnResetProfilePhoto')?.addEventListener('click', resetProfilePicture);
+    document.getElementById('btnResetProfilePhoto')?.addEventListener('click', () => openModal('confirmResetPhotoModal'));
+    document.getElementById('btnConfirmResetPhoto')?.addEventListener('click', () => {
+        closeModal('confirmResetPhotoModal');
+        resetProfilePicture();
+    });
+    document.getElementById('btnUpdateProfilePhoto')?.addEventListener('click', () => openModal('confirmUpdatePhotoModal'));
+    document.getElementById('btnConfirmUpdatePhoto')?.addEventListener('click', () => {
+        closeModal('confirmUpdatePhotoModal');
+        atualizarFotoAvatar();
+    });
     document.getElementById('btnUpdateProfilePhoto')?.addEventListener('click', atualizarFotoAvatar);
     document.getElementById('menuUninstallBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
@@ -7930,21 +8002,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btnConfirmUninstallWca')?.addEventListener('click', () => {
         closeModal('confirmUninstallModal');
-        alertUninstallWca();
+        taskUninstallWca();
     });
     document.getElementById('menuDeactivateBtn')?.addEventListener('click', () => {
         if(isExpiredLogData()) return;
         closeModal('helpModal');
         if(wcaPausedByStoredConnection){
-            alertReactivateWca();
+            taskReactivateWca();
             return;
         }
         openModal('confirmDeactivateModal');
     });
-    dom.reactivateWcaMainBtn?.addEventListener('click', () => { if(!isExpiredLogData()) alertReactivateWca(); });
+    dom.reactivateWcaMainBtn?.addEventListener('click', () => { if(!isExpiredLogData()) taskReactivateWca(); });
     document.getElementById('btnConfirmDeactivateWca')?.addEventListener('click', () => {
         closeModal('confirmDeactivateModal');
-        alertDeactivateWca();
+        taskDeactivateWca();
     });
     document.getElementById('menuRestartBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
@@ -7952,16 +8024,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btnConfirmRestartWca')?.addEventListener('click', () => {
         closeModal('confirmRestartModal');
-        alertRestartWca();
+        taskRestartWca();
     });
     document.getElementById('menuCheckUpdatesBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
-        alertCheckUpdates();
+        taskCheckUpdates();
     });
     document.getElementById('btnOpenPremiumCta')?.addEventListener('click', openBuyModal);
     document.getElementById('btnSessionHelp')?.addEventListener('click', () => openModal('sessionHelpModal'));
     document.getElementById('btnSendBuy')?.addEventListener('click', sendPurchase);
-    dom.acceleratePremiumBtn?.addEventListener('click', () => alertSendPurchaseWhatsApp(buildPremiumRequestDetailsFromPending()));
+    dom.acceleratePremiumBtn?.addEventListener('click', () => taskSendPurchaseWhatsApp(buildPremiumRequestDetailsFromPending()));
     dom.editPremiumRequestBtn?.addEventListener('click', editPremiumPendingRequest);
     dom.cancelPremiumRequestBtn?.addEventListener('click', askCancelPremiumPendingRequest);
     dom.confirmCancelPremiumRequestBtn?.addEventListener('click', doCancelPremiumPendingRequest);
@@ -8048,7 +8120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             askDeleteAllDevices, doDeleteAllDevices, closeConfirmAll: () => closeModal('confirmAllModal'),
             createDevice, closeZoom, closePairCode,
             openPremiumCheck, closePremiumCheck, confirmPremiumCheck,
-            alertUninstallWca, alertDeactivateWca, alertRestartWca, alertCheckUpdates, alertReactivateWca,
+            taskUninstallWca, taskDeactivateWca, taskRestartWca, taskCheckUpdates, taskReactivateWca,
             showDuplicateModal, closeDuplicateAndGoToConnections
         });
 
