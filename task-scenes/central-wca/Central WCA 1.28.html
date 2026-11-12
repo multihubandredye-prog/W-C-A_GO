@@ -4223,6 +4223,47 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target && e.target.closest && e.target.closest('.tab-btn')) window.__wcaUserTouchedTab = true;
     }, true);
 
+    // ---- Aba inicial pela variável open_tab (1.28) ----
+    // one = aba Instalação (config-tab); two = aba Conexões (connections-tab);
+    // vazio/nao definida/outro valor = PRIMEIRA aba (Instalação) na leitura inicial
+    // (pedido do usuario). Nunca sobrescreve a escolha do usuario
+    // (flag __wcaUserTouchedTab).
+    function valorTextoVariavel(valorBruto) {
+        if (typeof valorBruto === 'string') return valorBruto;
+        if (valorBruto && typeof valorBruto === 'object') {
+            const valores = Object.values(valorBruto);
+            for (let i = 0; i < valores.length; i++) { if (typeof valores[i] === 'string') return valores[i]; }
+            return '';
+        }
+        return '';
+    }
+    function aplicarOpenTab(valorBruto, usarPadrao) {
+        if (window.__wcaUserTouchedTab) return;
+        let valor = String(valorTextoVariavel(valorBruto) || '').trim().toLowerCase();
+        if (valor !== 'one' && valor !== 'two') {
+            if (usarPadrao) openTab('config-tab');
+            return;
+        }
+        openTab(valor === 'one' ? 'config-tab' : 'connections-tab');
+    }
+
+    (function iniciarOpenTab() {
+        try {
+            if (typeof Tasker === 'undefined' || typeof Tasker.getVariable !== 'function') return;
+            let bruto = Tasker.getVariable('open_tab');
+            if (bruto && typeof bruto.then === 'function') {
+                Promise.race([bruto, bridgeTimeout(4000)])
+                    .then(function (v) { aplicarOpenTab(v, true); })
+                    .catch(function () { });
+            } else {
+                aplicarOpenTab(bruto, true);
+            }
+        } catch (e) { }
+        try {
+            Tasker.onVariableChanged('open_tab', function (nome, valor) { aplicarOpenTab(valor, false); });
+        } catch (e) { }
+    })();
+
     // ---- Vídeos do cabeçalho: fallback em cascata de caminhos ----
     // A WebView da cena V2 pode bloquear file://; se o caminho absoluto
     // falhar, tenta o caminho relativo à base da cena e por último o .webm.
