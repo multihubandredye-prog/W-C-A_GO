@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.17 (diagnóstico)**
-Arquivo: `Central WCA 1.17.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.18**
+Arquivo: `Central WCA 1.18.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -86,6 +86,16 @@ Observação: o `listFiles` do bridge retorna objeto de variáveis de saída da 
 - **devices.json via cache em memória** — a V2 lê arquivos de forma assíncrona; o `initialize` aguarda o cache antes de renderizar, e todas as leituras sincronas passam a usar o cache (escritas atualizam cache + arquivo)
 - Compatibilidade de comportamento mantida: mesmos nomes de funções, mesmos modais, card de atenção e demais fluxos de UI
 
+## Botão voltar do Android (Back Pressed)
+
+Mecanismo: a cena publica em `wca_modal_aberto` o id do modal aberto no topo (vazio = nenhum) e escuta `return_modal`; ao receber, fecha APENAS o modal do topo (e reabre o modal de origem quando o fechado foi aberto a partir dele — Menu → confirmações, Premium, Avaliações etc.).
+
+**Montagem validada no aparelho (evento Back Pressed da tela):**
+1. **Cancelar Evento: Dinâmico** com a expressão **`"%wca_modal_aberto" != ""`** (COM as aspas — sem elas a avaliação falha com valor preenchido e a cena fecha junto);
+2. Ação **Definir Variável**: `return_modal` = `%TIMES` (valor diferente a cada press garante o disparo).
+
+**Os nomes das variáveis ficam no JavaScript da cena** (constantes `WCA_MODAL_STATE_VAR` = `wca_modal_aberto` e `WCA_RETURN_MODAL_VAR` = `return_modal`, no bloco "Botao voltar do Android"). Podem ser renomeados para qualquer nome (letras/números/_, sem `%`), desde que o MESMO nome seja usado nos dois lados: na constante do HTML e na expressão/ação do handler do Tasker. Fechamento da cena continua sendo SEMPRE pelo Tasker (o JS nunca faz dismiss).
+
 ## Como atualizar no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` (V2) no editor
@@ -105,6 +115,7 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 | 1.1 | 11/11/2026 | Remove o card de atenção (aviso de desinstalação/reinstalação) — mensagem e lógica de exibição obsoletas; `%notification_caution` deixa de ser consumida; pasta do projeto no repositório renomeada para `task-scenes/` |
 | 1.2 | 11/11/2026 | Correção de travamento: leituras do bridge (devices.json e versão) rodam em paralelo com prazo de 4s — a cena nunca mais fica presa em "CARREGANDO..." se o bridge não responder; a versão passa a ser lida do arquivo `system/version` (sem extensão) em vez da variável `%last_update`; badge estático do menu atualizado |
 | 1.3 | 11/11/2026 | **Correção estrutural**: removidas TODAS as variáveis do Tasker embutidas no JavaScript (`%name_exist`/`%open_tab` "nus" quebravam a sintaxe do script inteiro na V2 e travavam a cena) — agora lidas em runtime via `Tasker.getVariable` e aplicadas no CONFIG/UI; vídeo do cabeçalho com fallback em cascata de caminhos; `task-scenes/README.md` criado no repositório |
+| 1.18 | 12/11/2026 | **Versão final do botão voltar**: flashes de diagnóstico removidos (conteúdo idêntico à 1.16). Expressão validada no aparelho pelo usuário: Cancelar Evento **Dinâmico** com **`"%wca_modal_aberto" != ""`** — as aspas são obrigatórias porque a expressão é avaliada como JavaScript e o `%var` é substituído pelo valor texto (sem aspas, valor preenchido vira identificador inválido e a cena fecha junto; com aspas, vira comparação de string válida nos dois casos). Seção "Botão voltar do Android" adicionada ao README com a montagem completa e a localização/renomeação das variáveis |
 | 1.17 | 12/11/2026 | **DIAGNÓSTICO TEMPORÁRIO (será removido)**: 3 flashes nativos do Tasker para descobrir por que o Cancelar Evento Dinâmico avalia a variável como vazia — (1) "Central WCA 1.17 ativa" no carregamento da cena, (2) "WCA modal: \<id\>" a cada publicação de `wca_modal_aberto`, (3) "WCA voltar: fechando \<id\>" quando o `return_modal` chega. Lógica idêntica à 1.16 |
 | 1.16 | 12/11/2026 | **Voltar volta para onde o usuário estava**: mapa de origem dos modais extraído dos listeners reais (Menu → confirmações de Desativar/Desinstalar/Reiniciar/Reinstalar API/Reinstalar Projeto, Menu → Premium/buyModal/Verificar Premium/Avaliar o projeto, Premium → confirmação de compra, Avaliações → excluir avaliação, Histórico → cancelar solicitação). Ao fechar o modal do topo pelo BOTÃO VOLTAR, se o modal de origem não estiver mais aberto, ele é reaberto (ex.: confirmação de Desativar WCA → volta ao Menu). Fechamentos por botão (X/FECHAR/CONFIRMAR) não reabrem nada. Inclui `onde-colocar-variavel-back.svg` (guia visual da montagem no Tasker) |
 | 1.15 | 11/11/2026 | **Botão voltar do Android fecha o modal do topo (voltar para o modal anterior)**: a cena publica em `wca_modal_aberto` o id do modal aberto no topo (vazio = nenhum) e escuta `return_modal` via `Tasker.onVariableChanged`. Montagem no Tasker (lado do usuário): evento **Back Pressed** da tela com **Cancel Event** = `wca_modal_aberto` e ação **SetVariable** `return_modal` = `%TIMES`. Com modal aberto: back consome e a cena fecha só o topo (Menu → confirmação → confirmação…, um por vez); sem modal: back fecha a cena normalmente. Pilha centralizada em `openModal`/`closeModal` (todas as 23 telas passam por elas — inclusive o Menu, que é o `helpModal`) + MutationObserver de segurança |
