@@ -105,7 +105,7 @@ Mecanismo: a cena publica em `wca_modal_aberto` o id do modal aberto no topo (va
 
 ## Política de versões
 
-Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno a uma versão anterior sem perda.
+A partir da **1.11** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.10 foram removidas** (autorização do usuário em 12/11/2026): o registro completo delas permanece nesta seção de histórico, e a versão 1.11 é o ponto de retorno documentado (1.0–1.10 continham os motores de arquivo/HTTP substituídos pela camada do app de exemplo implementada na 1.9 e corrigida na 1.11 — nada funcional das antigas é perdido ao voltar apenas até a 1.11).
 
 ## Histórico de versões
 
