@@ -6,6 +6,14 @@ Arquivo: `Central WCA 1.5.html` — **único arquivo**, com HTML + CSS + JS inli
 
 ---
 
+## Regras permanentes
+
+1. **Versão do painel**: SEMPRE lida do arquivo `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version` (sem extensão) — nunca de variável do Tasker e nunca fictícia (`loadVersionFile`, ativa no `initialize`);
+2. **Conexões/dispositivos**: SEMPRE no arquivo `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/connections/devices.json` (leitura com cache em memória, escrita com cache + arquivo);
+3. **Lógica e requisições**: a lógica da V1 permanece intacta — a migração troca SOMENTE os métodos de cena (V1 → V2); as 31 chamadas à API são as mesmas.
+
+Valores fictícios existem **apenas** nas variáveis de exibição (`USER_NAME`, `SHOW_WELCOME_MESSAGE`, `Premium_LOG_DATA`) enquanto durar o combinado — a leitura real via `Tasker.getVariable` está pronta e desligada.
+
 ## Requisitos da cena V2
 
 - Tasker 6.7 ou superior (Scenes V2 / "Modern (V2)")
