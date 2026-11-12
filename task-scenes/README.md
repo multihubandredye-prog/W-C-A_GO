@@ -12,6 +12,7 @@ Cada projeto fica em uma **subpasta própria**, contendo as **versões do HTML e
 | Painel de Atividade WCA | `003-PAINEL_ATIVIDADE [wca]` | `painel-atividade-wca/` |
 | Seletor de WhatsApp WCA | `004-WHATSAPP_SELETOR [wca]` | `seletor-whatsapp-wca/` |
 | Gerar Tarefa de Envio WCA | `005-GERAR_TAREFA_ENVIO [wca]` | `gerar-tarefa-envio-wca/` |
+| Contatos Pro WCA | Contatos Pro | `contatos-pro-wca/` |
 
 ## Convenções
 
