@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.4**
-Arquivo: `Central WCA 1.4.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.5**
+Arquivo: `Central WCA 1.5.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -55,7 +55,7 @@ comentada no `initialize`) — para religar, basta descomentar essa linha:
 |---|---|
 | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/connections/devices.json` | Lido no início (cache em memória); escrito a cada alteração de dispositivos |
 | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version` | **Versão do painel** (sem extensão): lida no início e exibida nos badges de versão — não vem mais de variável do Tasker |
-| `icons/video-system.mp4` (vídeo do cabeçalho) | Fallback em cascata: `file:///…/icons/video-system.mp4` → `icons/video-system.mp4` → `icons/video-system.webm` (a WebView V2 pode bloquear `file://`) |
+| `icons/video-system.mp4` (vídeo do cabeçalho) | Cascata com reinício controlado e vigia por polling: `file:///storage/…/icons/video-system.mp4` → `icons/video-system.mp4` → `icons/video-system.webm` (o erro do primeiro src pode disparar antes do script; por isso o load é reiniciado com os listeners já anexados) |
 | Histórico de modais (`MODAL_HISTORY_PATH`) | Escrito a cada modal aberto |
 | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/user-profile-picture/` | Reset de foto: lista (`listFiles`) e apaga todos os arquivos (`deleteFile`) |
 
@@ -95,4 +95,5 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 | 1.1 | 11/11/2026 | Remove o card de atenção (aviso de desinstalação/reinstalação) — mensagem e lógica de exibição obsoletas; `%notification_caution` deixa de ser consumida; pasta do projeto no repositório renomeada para `task-scenes/` |
 | 1.2 | 11/11/2026 | Correção de travamento: leituras do bridge (devices.json e versão) rodam em paralelo com prazo de 4s — a cena nunca mais fica presa em "CARREGANDO..." se o bridge não responder; a versão passa a ser lida do arquivo `system/version` (sem extensão) em vez da variável `%last_update`; badge estático do menu atualizado |
 | 1.3 | 11/11/2026 | **Correção estrutural**: removidas TODAS as variáveis do Tasker embutidas no JavaScript (`%name_exist`/`%open_tab` "nus" quebravam a sintaxe do script inteiro na V2 e travavam a cena) — agora lidas em runtime via `Tasker.getVariable` e aplicadas no CONFIG/UI; vídeo do cabeçalho com fallback em cascata de caminhos; `task-scenes/README.md` criado no repositório |
+| 1.5 | 11/11/2026 | Vídeo do cabeçalho: cascata reiniciada após a anexação dos listeners (o erro do src original disparava antes do script e a cascata nunca avançava) + vigia por polling que avança a cascata se nada carregar em 2s; auditoria confirmou as 31 chamadas fetch da V1 preservadas (devices, avatar, login/logout/reconnect, premium, reviews) |
 | 1.4 | 11/11/2026 | Variáveis do Tasker passam a usar **valores fictícios** fixos no CONFIG (por enquanto): `USER_NAME="Usuário WCA"`, `SHOW_WELCOME_MESSAGE=true`, `Premium_LOG_DATA` com PREMIUM ativo expirando 31/12/2026; leitura real via `Tasker.getVariable` permanece pronta porém desligada (comentada no `initialize`) |
