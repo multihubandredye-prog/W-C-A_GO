@@ -105,7 +105,7 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.11** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.10 foram removidas** (autorização do usuário em 12/11/2026): o registro completo delas permanece nesta seção de histórico, e a versão 1.11 é o ponto de retorno documentado (1.0–1.10 continham os motores de arquivo/HTTP substituídos pela camada do app de exemplo implementada na 1.9 e corrigida na 1.11 — nada funcional das antigas é perdido ao voltar apenas até a 1.11).
+A partir da **1.18** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.17 foram removidas** (autorizações do usuário em 12/11/2026): o registro completo delas permanece nesta seção de histórico, e a versão **1.18** é o ponto de retorno documentado (contém TUDO o que as anteriores construíram — camada de arquivos/HTTP do app de exemplo, foto com cache e botão voltar completos; a 1.19 difere dela apenas pela renomeação da variável de estado para `cache_modal`).
 
 ## Histórico de versões
 
