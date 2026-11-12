@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.26**
-Arquivo: `Central WCA 1.26.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.27**
+Arquivo: `Central WCA 1.27.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -58,6 +58,8 @@ comentada no `initialize`) — para religar, basta descomentar essa linha:
 
 `user_name`, `name_exist`, `photo_profile`, `mode_system`, `open_tab`
 
+**`open_tab` (ATIVA desde a 1.27 — leitura independente + listener):** define a aba inicial da cena — `one` = aba **Instalação**; `two` = aba **Conexões**; vazio/outro valor = padrão (`OPEN_INSTALL_TAB_FIRST`, que segue como fallback). Lida via `Tasker.getVariable` (fire-and-forget, prazo de 4s) e também via `Tasker.onVariableChanged('open_tab')` — trocar a variável com a cena aberta muda a aba na hora. Nunca sobrescreve a escolha do usuário (flag `__wcaUserTouchedTab`)
+
 ## Arquivos que a cena lê/escreve
 
 | Arquivo | Uso |
@@ -105,13 +107,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Política de versões
 
-A partir da **1.25** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.24 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.25** é o ponto de retorno documentado (a 1.26 difere dela apenas pela remoção das mensagens de console).
+A partir da **1.26** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.25 foram removidas** (autorizações do usuário em 12/11/2026): o detalhamento de cada versão removida está nos commits do repositório, e a versão **1.26** é o ponto de retorno documentado (a 1.27 difere dela apenas pela variável `open_tab` ativa).
 
 ## Histórico de versões
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.27 | 12/11/2026 | **Variável `open_tab` ATIVA (pedido do usuário — novo formato `one`/`two`)**: `one` inicia na aba Instalação, `two` na aba Conexões, vazio/outro valor mantém o padrão (`OPEN_INSTALL_TAB_FIRST`, fallback preservado). A leitura agora é INDEPENDENTE da `loadTaskerVars` (que continua desligada pelos valores fictícios): `Tasker.getVariable` com prazo de 4s no arranque + `Tasker.onVariableChanged` para troca em tempo real com a cena aberta. Em ambos os caminhos, se o usuário já tiver tocado numa aba (`__wcaUserTouchedTab`), a escolha dele é respeitada |
 | 1.26 | 12/11/2026 | **Remoção de TODAS as mensagens de console (pedido do usuário)**: as 41 ocorrências de `console.log`/`console.warn`/`console.error` foram eliminadas para economizar código — nos `catch` das saídas do Tasker, nas leituras de arquivo, nas requisições e nos fluxos de devices/QR/reviews. Nenhuma lógica mudou: os `catch` seguem capturando os erros (silenciosamente) e os fluxos prosseguem exatamente como antes |
-| 1.25 | 12/11/2026 | **Instalação passa a executar a 006 (padrão das demais saídas)**: em vez de gravar `task=4` + `exit_data` como variáveis da tela — que só eram entregues quando a tarefa de abertura consumia após o fechamento da cena — a cena executa `006-CONFIGURAR_SISTEMA [wca]` com `par1 = install-project` e o JSON (number/session) embutido em `exit_data` (chega como variável local da tarefa disparada). `taskPremiumNotFound` (task=5) permanece a única exceção que grava variáveis da tela |
 
-> O histórico detalhado das versões **1.0 a 1.24** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
+> O histórico detalhado das versões **1.0 a 1.25** (removidas com autorização do usuário em 12/11/2026) está nos **commits do repositório** (`git log task-scenes/central-wca`).
