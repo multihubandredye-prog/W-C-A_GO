@@ -1,8 +1,8 @@
 # Instalação WCA — Cena V2 (WebView)
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
-Versão atual: **1.4**
-Arquivo: `Instalação WCA 1.4.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
+Versão atual: **1.5**
+Arquivo: `Instalação WCA 1.5.html` — **único arquivo**, com HTML + CSS + JS inline (sem `%project_path`, sem `index.css`/`index.js` externos).
 
 Cena de progresso da instalação: anel de progresso com percentual e cores variáveis, mensagem de status, tempo decorrido e card informativo por arquivo (temas por etapa).
 
@@ -20,7 +20,7 @@ A lógica, o visual e os comportamentos são os mesmos da V1. As diferenças:
 | Variável | Uso |
 |---|---|
 | `progress_install` | Percentual do download (0–99 publicado pelo Java; 100 conclui a UI). Recebida via `onVariableChanged` + leitura inicial |
-| `type_project` | Modo dos cards: `project-task` = 1 card (PROJETO — baixando o `.prj.xml`); `project-api` = 2 cards (ARQUIVO 1 — whatsapp-wca, ARQUIVO 2 — ffmpeg-wca; **padrão** quando ausente) |
+| `type_project` | Modo dos cards: `project-task` = 1 card (PROJETO — baixando o `.prj.xml`); `project-api` = 2 cards (ARQUIVO 1 — whatsapp-wca, ARQUIVO 2 — ffmpeg-wca; **padrão** quando ausente); desde a **1.5**, `project-full` = 3 cards (ARQUIVO 1 — whatsapp-wca, ARQUIVO 2 — ffmpeg-wca, ARQUIVO 3 — `.prj.xml`) na ordem de download do Java. O valor `full` também é aceito como alias (é o valor testado no Java de download) |
 
 ## Recursos externos (mantidos da V1)
 
@@ -48,6 +48,7 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 
 | Versão | Data | Mudanças |
 |---|---|---|
+| 1.5 | 16/09/2026 | **Novo modo `project-full` (projeto completo — baixa TUDO)**: adicionado ao mapa `FILE_CARDS` com 3 cards — ARQUIVO 1 whatsapp-wca (roxo, 0–33), ARQUIVO 2 ffmpeg-wca (teal, 34–66) e ARQUIVO 3 o projeto `.prj.xml` (laranja, 67–100) — na MESMA ordem de download do Java (whatsapp → ffmpeg → xml). O valor `full` também é aceito (`FILE_CARDS["full"] = FILE_CARDS["project-full"]`), pois é o valor testado no Java de download (`typeProject.equals("full")`) — a cena responde a qualquer um dos dois. Sem mudança nos modos existentes (`project-task`/`project-api`) nem no padrão (`project-api` quando a variável não chega) |
 | 1.4 | 12/11/2026 | **`Tasker.dismissSceneV2` incluído na cascata de autofechamento (sugestão do usuário após a 1.3 não fechar)**: passa a ser a PRIMEIRA tentativa (antes de dismissLayout/cancelScreen) — se o bridge da versão do usuário expuser o método, a cena fecha direto; se não existir, o try/catch segue para as próximas. O `runTask` da tarefa auxiliar ganhou `.catch` para não gerar rejeição silenciosa quando a 003 não existir. Lembrete: criar a tarefa `003-FECHAR_INSTALACAO [wca]` (ação Fechar cena v2, ID da Tela 1) garante o fechamento em qualquer versão |
 | 1.3 | 12/11/2026 | **A cena fecha a SI MESMA ao concluir (pedido do usuário — comportamento da V1)**: ao atingir 100%, exibe "Instalação concluída." e, após 600ms (ajustável em `AUTO_FECHAMENTO_DELAY_MS`), tenta o autofechamento em cascata silenciosa: `dismissLayout` (ID da Tela da constante `WCA_SCENE_SCREEN_ID`) → `cancelScreen` → `runTask` para a tarefa auxiliar `003-FECHAR_INSTALACAO [wca]` (criar com a ação Fechar cena v2, ID da Tela 1). Se nenhuma via existir nesta versão do Tasker, a cena permanece aberta (fechamento no lado Tasker como antes). Exceção autorizada à regra "nunca se fechar no JS", válida para esta cena |
 | 1.2b | 12/11/2026 | **README: receita definitiva do fechamento no 100%** — o `tasker.dismissSceneV2` é API de TAREFA (Java Code) e recebe o **ID da Tela** (não o nome da cena): `tasker.dismissSceneV2("1")` após publicar `progress_install = 100`. O bridge da cena não possui dismiss (verificado no `tasker.d.ts` oficial) — por isso a cena nunca se fecha sozinha |
