@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.16**
-Arquivo: `Central WCA 1.16.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
+Versão atual: **1.17 (diagnóstico)**
+Arquivo: `Central WCA 1.17.html` — **único arquivo**, com HTML + CSS + JS inline (a partir desta versão o projeto não usa mais `index.css`/`index.js` separados nem `%project_path`).
 
 ---
 
@@ -105,6 +105,7 @@ Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteraç�
 | 1.1 | 11/11/2026 | Remove o card de atenção (aviso de desinstalação/reinstalação) — mensagem e lógica de exibição obsoletas; `%notification_caution` deixa de ser consumida; pasta do projeto no repositório renomeada para `task-scenes/` |
 | 1.2 | 11/11/2026 | Correção de travamento: leituras do bridge (devices.json e versão) rodam em paralelo com prazo de 4s — a cena nunca mais fica presa em "CARREGANDO..." se o bridge não responder; a versão passa a ser lida do arquivo `system/version` (sem extensão) em vez da variável `%last_update`; badge estático do menu atualizado |
 | 1.3 | 11/11/2026 | **Correção estrutural**: removidas TODAS as variáveis do Tasker embutidas no JavaScript (`%name_exist`/`%open_tab` "nus" quebravam a sintaxe do script inteiro na V2 e travavam a cena) — agora lidas em runtime via `Tasker.getVariable` e aplicadas no CONFIG/UI; vídeo do cabeçalho com fallback em cascata de caminhos; `task-scenes/README.md` criado no repositório |
+| 1.17 | 12/11/2026 | **DIAGNÓSTICO TEMPORÁRIO (será removido)**: 3 flashes nativos do Tasker para descobrir por que o Cancelar Evento Dinâmico avalia a variável como vazia — (1) "Central WCA 1.17 ativa" no carregamento da cena, (2) "WCA modal: \<id\>" a cada publicação de `wca_modal_aberto`, (3) "WCA voltar: fechando \<id\>" quando o `return_modal` chega. Lógica idêntica à 1.16 |
 | 1.16 | 12/11/2026 | **Voltar volta para onde o usuário estava**: mapa de origem dos modais extraído dos listeners reais (Menu → confirmações de Desativar/Desinstalar/Reiniciar/Reinstalar API/Reinstalar Projeto, Menu → Premium/buyModal/Verificar Premium/Avaliar o projeto, Premium → confirmação de compra, Avaliações → excluir avaliação, Histórico → cancelar solicitação). Ao fechar o modal do topo pelo BOTÃO VOLTAR, se o modal de origem não estiver mais aberto, ele é reaberto (ex.: confirmação de Desativar WCA → volta ao Menu). Fechamentos por botão (X/FECHAR/CONFIRMAR) não reabrem nada. Inclui `onde-colocar-variavel-back.svg` (guia visual da montagem no Tasker) |
 | 1.15 | 11/11/2026 | **Botão voltar do Android fecha o modal do topo (voltar para o modal anterior)**: a cena publica em `wca_modal_aberto` o id do modal aberto no topo (vazio = nenhum) e escuta `return_modal` via `Tasker.onVariableChanged`. Montagem no Tasker (lado do usuário): evento **Back Pressed** da tela com **Cancel Event** = `wca_modal_aberto` e ação **SetVariable** `return_modal` = `%TIMES`. Com modal aberto: back consome e a cena fecha só o topo (Menu → confirmação → confirmação…, um por vez); sem modal: back fecha a cena normalmente. Pilha centralizada em `openModal`/`closeModal` (todas as 23 telas passam por elas — inclusive o Menu, que é o `helpModal`) + MutationObserver de segurança |
 | 1.14 | 11/11/2026 | **`avatar-cache.url` nunca é eliminado (regra do usuário)**: no RESETAR e na limpeza de cache inválido, a IMAGEM (`avatar-cache.jpg`) continua sendo apagada como já era, mas o arquivo `avatar-cache.url` permanece na pasta com o conteúdo esvaziado (`writeFile` vazio no lugar de `deleteFile`) |
