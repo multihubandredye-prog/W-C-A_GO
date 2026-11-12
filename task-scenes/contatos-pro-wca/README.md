@@ -1,8 +1,8 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.2**
-Arquivo: `Contatos Pro WCA 1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.3**
+Arquivo: `Contatos Pro WCA 1.3.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado, lista **Contatos** e **Grupos** em abas com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
@@ -15,6 +15,7 @@ Central de contatos e grupos: escolhe um dispositivo logado, lista **Contatos** 
 - **Seleção múltipla**: toque longo (0,5s, com vibração) entra no modo de seleção; toques alternam itens; **Todos** seleciona/desfaz a lista atual; **Limpar** zera; barra inferior com o total e cópias em lote (**Nome** / **Número ou JID** / **Tudo**) e pré-visualização em modal (primeiros 60 itens);
 - **Modais**: contato (copiar nome, número, nome + número e **LID** — copia só o número do LID, sem o sufixo) e grupo (copiar nome, JID ou ambos); fecham pelo X, tocando fora ou tecla Esc; a linha do LID busca `GET /user/info?phone=<número>` (campo `resolved_lid`) em segundo plano, com cache por JID e indicação "Buscando LID… / LID não sincronizado / LID indisponível";
 - **Acesso à API**: mesmo caminho do projeto original (fetch direto em `http://127.0.0.1:3000` com `Authorization: Basic` + `X-Device-Id`); se o acesso direto falhar, cada busca tenta **uma vez pelo bridge** (`Tasker.httpRequest`, prazo de 15s) antes de indicar falha de conexão;
+- **Layout centralizado**: o container (card + rodapé do desenvolvedor) fica centralizado verticalmente na tela quando há espaço sobrando (como na tela inicial de dispositivos); com conteúdo mais alto que a tela (lista de contatos/grupos grande), volta ao alinhamento do topo com rolagem normal, sem cortar nada;
 - **Toasts** de confirmação para cópias e ações de seleção.
 
 ## Variáveis do Tasker consumidas pela cena
