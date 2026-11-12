@@ -26,19 +26,21 @@
   <rect x="48" y="252" width="624" height="66" rx="14" fill="#161f2a" stroke="#24303d"/>
   <text x="70" y="292" fill="#aeb9c4" font-family="sans-serif" font-size="18">Cancelar Evento</text>
   <rect x="300" y="266" width="180" height="38" rx="8" fill="#1d4ed8"/>
-  <text x="390" y="291" fill="#ffffff" font-family="sans-serif" font-size="17" font-weight="bold" text-anchor="middle">Ligado ▾</text>
-  <text x="650" y="291" fill="#f87171" font-family="sans-serif" font-size="15" font-weight="bold" text-anchor="end">mude de “Desligado”</text>
+  <text x="390" y="291" fill="#ffffff" font-family="sans-serif" font-size="17" font-weight="bold" text-anchor="middle">Dinâmico ▾</text>
+  <text x="650" y="291" fill="#f87171" font-family="sans-serif" font-size="15" font-weight="bold" text-anchor="end">Dinâmico, NÃO Ligado!</text>
 
   <!-- Campo da expressao (DESTAQUE) -->
   <rect x="48" y="330" width="624" height="86" rx="14" fill="#1a2410" stroke="url(#destaque)" stroke-width="3"/>
-  <text x="70" y="362" fill="#c9b458" font-family="sans-serif" font-size="15" font-weight="bold">EXPRESSÃO DO CANCELAR EVENTO — COLE AQUI ↓</text>
+  <text x="70" y="362" fill="#c9b458" font-family="sans-serif" font-size="15" font-weight="bold">EXPRESSÃO DO DINÂMICO — COLE AQUI ↓</text>
   <text x="88" y="398" fill="#ffe08a" font-family="monospace" font-size="24" font-weight="bold">%wca_modal_aberto</text>
 
   <!-- seta chamando o campo -->
   <path d="M 620 432 L 660 470 L 700 432 Z" fill="#ffd34d"/>
   <text x="660" y="496" fill="#ffd34d" font-family="sans-serif" font-size="15" font-weight="bold" text-anchor="middle">AQUI!</text>
 
-  <text x="48" y="540" fill="#8b98a5" font-family="sans-serif" font-size="15">Essa variável NÃO precisa ser criada: a cena 1.16 publica</text>
+  <text x="48" y="540" fill="#f87171" font-family="sans-serif" font-size="15" font-weight="bold">Ligado cancela o back SEMPRE (a cena nunca fecha). Dinâmico decide</text>
+  <text x="48" y="560" fill="#f87171" font-family="sans-serif" font-size="15" font-weight="bold">pela variável: com modal = cancela · na tela principal = deixa fechar.</text>
+  <text x="48" y="588" fill="#8b98a5" font-family="sans-serif" font-size="15">A variável NÃO precisa ser criada: a cena 1.16 publica
   <text x="48" y="563" fill="#8b98a5" font-family="sans-serif" font-size="15">sozinha o id do modal aberto (vazio = nenhum modal).</text>
 
   <!-- ===== PASSO 2 ===== -->
