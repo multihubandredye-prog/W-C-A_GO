@@ -521,7 +521,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.15)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.16)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML E MEDIAS, gerado
 // automaticamente pelo GitHub Actions em cada release) e salva/descompacta
 // na pasta do WebView do dispositivo. As MEDIAS (pasta icons/ do zip) sao
@@ -535,7 +535,7 @@ body::before {
 // e criada via bridge e, ao
 // final, a cena VERIFICA fisicamente o arquivo gravado (existente, nao vazio
 // e com o tamanho exato esperado da release) antes de declarar sucesso,
-// exibir apenas "Download concluido." e se AUTO-FECHAR (nome
+// exibir "Download concluido." com CONTAGEM REGRESSIVA (Reiniciando em 5 a 1) e AUTO-FECHAR (nome
 // 010-DOWNLOAD_VIEW [wca]V2, ID 1 e reservas em cascata).
 // Apos baixar, o proprio zip e DESCOMPACTADO dentro da cena: leitura em
 // base64 pelo shell, parser do diretorio central do zip em JavaScript e
@@ -547,7 +547,7 @@ body::before {
 
 const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]V2';
 const SCENE_SCREEN_ID = '1';
-const AUTO_FECHAMENTO_DELAY_MS = 2600;
+const CONTAGEM_REGRESSIVA_SEG = 5;
 const TEMPO_MINIMO_BAIXANDO_MS = 1800;
 const TEMPO_MINIMO_VERIFICANDO_MS = 1200;
 
@@ -790,8 +790,13 @@ function fecharPropriaCena(){
     }
     return disparosOk > 0;
 }
-function agendarFechamentoProprio(){
-    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
+// Contagem regressiva visivel antes de encerrar a cena (1 segundo por numero)
+async function contagemRegressivaFechar(){
+    for (let restante = CONTAGEM_REGRESSIVA_SEG; restante >= 1; restante--) {
+        definirProgresso('Download conclu\u00eddo. Reiniciando em ' + restante + '...', 'ok');
+        await dormir(1000);
+    }
+    fecharPropriaCena();
 }
 
 // ---- Fluxo de download (todo dentro da cena, sem tarefas) ----
@@ -1133,10 +1138,9 @@ async function iniciarDownload(){
         if (spinner) spinner.style.display = 'none';
         finalizado = true;
         baixando = false;
-        definirProgresso('Download conclu\u00eddo.', 'ok');
         const botaoOk = document.getElementById('btnBaixar');
         if (botaoOk) botaoOk.disabled = false;
-        agendarFechamentoProprio();
+        contagemRegressivaFechar();
         return;
     } catch (eDownload) {
         falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');
