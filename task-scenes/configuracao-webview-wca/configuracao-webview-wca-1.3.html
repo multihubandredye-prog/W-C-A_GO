@@ -540,14 +540,16 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.2)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.3)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
 // Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
 // salva o arquivo zipado na pasta do WebView do dispositivo.
-// TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker:
-// a acao de bridge Tasker.httpRequest com fileToSave executa o GET fora do
-// WebView (cliente HTTP nativo do Tasker, sem limitacao de CORS) e grava os
-// bytes direto no arquivo de destino. A pasta e criada via runShell e, ao
+// TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker, em
+// uma CADEIA de tentativas: 1) bridge Tasker.httpRequest com fileToSave
+// (GET no cliente HTTP nativo, sem limitacao de CORS; header como UMA
+// STRING) e 2) o mesmo pedido no minimo de opcoes; se ambos falharem,
+// 3) fetch no WebView com conversao para base64 gravado no disco. A pasta
+// e criada via bridge e, ao
 // final, a cena VERIFICA fisicamente o arquivo gravado (existente, nao vazio
 // e com o tamanho exato esperado da release) antes de declarar sucesso,
 // exibir apenas "Download concluido." e se AUTO-FECHAR (nome
@@ -831,6 +833,64 @@ function falhaDownload(titulo, texto){
     showToast({ type: 'error', title: titulo, message: texto });
 }
 
+// Tentativa 1 e 2: acao de bridge httpRequest com fileToSave (GET no
+// cliente HTTP nativo do Tasker, fora do WebView). Na primeira o header
+// vai como UMA STRING (formato que o Tasker espera); na segunda, o minimo
+// de opcoes. Entre uma e outra o Tasker sobrescreve o arquivo anterior.
+async function baixarPorHttpRequest(){
+    const opcoesBase = {
+        method: 'GET',
+        url: pacoteAtual.url,
+        fileToSave: caminhoArquivo(),
+        timeout: HTTP_TIMEOUT_SEG,
+        autoRedirect: true
+    };
+    try {
+        await Promise.race([ taskerCall('httpRequest', Object.assign({}, opcoesBase, { headers: 'User-Agent: Tasker' })), bridgeTimeout(DOWNLOAD_PRAZO_MS) ]);
+        return { ok: true };
+    } catch (e1) { }
+    try {
+        await Promise.race([ taskerCall('httpRequest', opcoesBase), bridgeTimeout(DOWNLOAD_PRAZO_MS) ]);
+        return { ok: true };
+    } catch (e2) {
+        return { ok: false, motivo: String((e2 && e2.message) || e2 || '') };
+    }
+}
+
+// Tentativa 3 (reserva): fetch dentro do WebView convertendo os bytes em
+// base64 gravado via writeFile e decodificado no shell. Usada quando a acao
+// de bridge nao esta disponivel ou recusa as opcoes de arquivo.
+async function baixarPorFetchEBinario(){
+    const resposta = await fetch(pacoteAtual.url, { cache: 'no-store' });
+    if (!resposta || !resposta.ok) throw new Error('HTTP ' + (resposta ? resposta.status : '?'));
+    const buffer = await resposta.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    if (!bytes.length) throw new Error('resposta vazia');
+    let binario = '';
+    const bloco = 8192;
+    for (let i = 0; i < bytes.length; i += bloco) {
+        binario += String.fromCharCode.apply(null, bytes.subarray(i, i + bloco));
+    }
+    const base64 = btoa(binario);
+    const parcial = caminhoArquivo() + '.b64';
+    await Promise.race([ taskerCall('writeFile', { path: parcial, text: base64, append: false }), bridgeTimeout(60000) ]);
+    await Promise.race([ taskerCall('runShell', { cmd: 'base64 -d ' + shellQuote(parcial) + ' > ' + shellQuote(caminhoArquivo()) + ' && rm -f ' + shellQuote(parcial), root: false, timeout: 30 }), bridgeTimeout(45000) ]);
+}
+
+// Cadeia completa: httpRequest (2 formatos) e, se ambos falharem, o caminho
+// reservado via fetch. Motivo do ultimo erro volta para o painel.
+async function baixarPacote(){
+    const r1 = await baixarPorHttpRequest();
+    if (r1.ok) return { ok: true, via: 'httpRequest' };
+    try {
+        await baixarPorFetchEBinario();
+        return { ok: true, via: 'fetch' };
+    } catch (eFetch) {
+        try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() + '.b64' }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
+        return { ok: false, motivo: r1.motivo || String((eFetch && eFetch.message) || eFetch || '') };
+    }
+}
+
 async function iniciarDownload(){
     if (baixando || !pacoteAtual) return;
     baixando = true;
@@ -841,19 +901,18 @@ async function iniciarDownload(){
     if (spinner) spinner.style.display = '';
     definirProgresso('Preparando a pasta de destino...', '');
     try {
-        await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_DESTINO), root: false, timeout: 15 }), bridgeTimeout(20000) ]);
-        definirProgresso('Baixando o pacote... (pode demorar alguns segundos)', '');
-        await Promise.race([
-            taskerCall('httpRequest', {
-                method: 'GET',
-                url: pacoteAtual.url,
-                fileToSave: caminhoArquivo(),
-                headers: { 'User-Agent': 'Tasker' },
-                timeout: HTTP_TIMEOUT_SEG,
-                autoRedirect: true
-            }),
-            bridgeTimeout(DOWNLOAD_PRAZO_MS)
-        ]);
+        await Promise.race([ taskerCall('createDirectory', { dir: PASTA_DESTINO, createParents: true }), bridgeTimeout(20000) ]);
+    } catch (ePasta) {
+        try { await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_DESTINO), root: false, timeout: 15 }), bridgeTimeout(20000) ]); } catch (eMkdir) { }
+    }
+    definirProgresso('Baixando o pacote... (pode demorar alguns segundos)', '');
+    try {
+        const resultado = await baixarPacote();
+        if (!resultado.ok) {
+            falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');
+            definirProgresso('Não foi possível baixar o pacote. Tente novamente.', 'erro');
+            return;
+        }
         definirProgresso('Verificando os arquivos salvos...', '');
         const verificacao = await verificarArquivoBaixado();
         if (spinner) spinner.style.display = 'none';

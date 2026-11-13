@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.2**
-Arquivo: `configuracao-webview-wca-1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.3**
+Arquivo: `configuracao-webview-wca-1.3.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -16,7 +16,10 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Ta
 - **Pacote padrão**: se a API não responder (sem internet/limite de requisições), a cena usa o pacote embutido **1.3.36** e o badge muda para "Pacote padrão";
 - **Vídeo do cabeçalho**: mesmo caminho das demais cenas (`icons/video-system.mp4`);
 - **Container centralizado na tela** (vertical e horizontal);
-- **Download feito INTEIRO pela cena, sem nenhuma tarefa do Tasker**: usa a ação de bridge `Tasker.httpRequest` com **`fileToSave`** — o GET roda no cliente HTTP nativo do Tasker (fora do WebView, sem limitação de CORS, com redirecionamento) e os bytes são gravados direto no arquivo de destino;
+- **Download feito INTEIRO pela cena, sem nenhuma tarefa do Tasker**, em cadeia de tentativas:
+  1. `Tasker.httpRequest` com `fileToSave` e **header como UMA STRING** (`User-Agent: Tasker` — formato que o Tasker espera);
+  2. o mesmo GET no **mínimo de opções** (sem header);
+  3. reserva: `fetch` dentro do WebView convertendo os bytes em **base64** gravado via `writeFile` e decodificado no shell (`base64 -d`) — se falhar, o `.b64` parcial é apagado;
 
 ## Fluxo da tela
 
@@ -30,7 +33,7 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Ta
 
 ## Download (tudo dentro da cena — sem tarefas)
 
-1. `runShell` com `mkdir -p` garante a pasta de destino (o caminho **não é exibido na tela**);
+1. `createDirectory` (bridge) garante a pasta de destino — com `runShell mkdir -p` como reserva (o caminho **não é exibido na tela**);
 2. `Tasker.httpRequest` com `method: GET`, `url` (browser_download_url do asset), **`fileToSave`** (pasta + nome do arquivo), `User-Agent: Tasker`, `timeout: 90` (segundos) e `autoRedirect: true` — segue o redirecionamento do GitHub e grava os bytes no disco (prazo total de 120s);
 3. **Verificação física** via `runShell` (`wc -c`): o arquivo precisa existir, não estar vazio e ter **exatamente o tamanho** informado pela API da release (quando disponível);
 4. Verificado → **"Download concluído."** e auto-fechamento; divergente → erro + o arquivo parcial é **apagado** (`deleteFile`) e o botão volta a ficar habilitado;
