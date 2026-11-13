@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.32**
-Arquivo: `Central WCA 1.32.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.33**
+Arquivo: `Central WCA 1.33.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
@@ -94,6 +94,19 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 - **Sair da tela do QR por QUALQUER caminho (X, CANCELAR, tocar fora, Esc ou o botão voltar) desbloqueia o dispositivo**: o card deixa de mostrar "AGUARDANDO" e os botões **QR Code** e **Com código** voltam imediatamente, permitindo gerar um novo QR — antes, sair pelo voltar travava o card em "Aguardando conexão" sem os botões;
 - Se o QR for pedido de novo enquanto a sessão de pareamento anterior ainda está viva na API (janela de alguns minutos), a API pode não gerar na hora — o modal mostra a mensagem "Não foi possível gerar o QR Code. Aguarde alguns segundos e toque em QR Code de novo." em vez de ficar carregando para sempre; passada a janela, o novo QR sai de primeira;
 - Fechar o modal do QR **sem** ter conectado também cancela o pareamento do lado da cena (o dispositivo criado volta ao estado normal; se ele já estava conectado, segue conectado — nada é deslogado nessa situação).
+
+## Configurações de desenvolvedor (arquivo .env da API)
+
+O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o painel que edita o arquivo `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` — as configurações da API no dispositivo:
+
+- **Só o que pode mudar aparece no painel**: Mensagens (resposta automática, marcar como lida, recusar chamadas), Mídia (download automático, segundos antes de apagar), Webhook (ignorar certificado, atraso, tentativas de entrega, **ECO** de mensagens enviadas, eventos), Conta e presença (validação, presença ao conectar, pulso de presença e intervalos);
+- Cada opção **ATIVADO/DESATIVADO** funciona como seleção (uma das duas); os **eventos do webhook** são caixas de seleção com **todas as 18 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos);
+- **Ícone "?" em cada item** abre um comentário curto explicando o que aquela configuração faz;
+- **Primeira instalação**: o arquivo não precisa existir — o painel abre com os valores padrão e o arquivo só é **criado quando você salva** (sempre completo, no formato padrão do sistema);
+- **Cada salvamento regenera o arquivo inteiro**: as chaves fixas (porta, host, credenciais de acesso, banco de dados, endereço e segredo do webhook, armazenamento de conversas) ficam sempre no padrão do sistema e não aparecem no painel;
+- **Aplicar**: as mudanças valem **depois de reiniciar a API** — use **SALVAR E REINICIAR** (dispara o mesmo reinício do menu) ou **SALVAR** e reinicie depois;
+- Validações impedem salvar valores inválidos (ex.: tentativas menores que 1, duração de pulso sem unidade **s/m/h** — o formato que a API aceita);
+- O modal participa do botão voltar como os demais (fecha pelo voltar, X, tocar fora ou Esc).
 
 ## Como atualizar no Tasker
 
