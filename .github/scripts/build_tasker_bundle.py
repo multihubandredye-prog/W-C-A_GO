@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Monta o pacote WCA-Tasker-Projetos com a ULTIMA versao (.html) de cada
-# projeto de cena em task-scenes/*/ e as MEDIAS de wca-resources/media
-# (achatadas na pasta icons/ do zip) — os projetos .prj.xml de task-project/
-# NAO entram no zip.
+# projeto de cena em task-scenes/*/ — o pacote da release leva SOMENTE as
+# cenas; os projetos .prj.xml de task-project/ NAO entram no zip e as MEDIAS
+# de wca-resources/media NAO sao embutidas (a cena 010-DOWNLOAD_VIEW baixa
+# as midias direto do repositorio, via raw.githubusercontent.com).
 # Roda no GitHub Actions antes da criacao da release; o zip sai na raiz do repo.
 # A deteccao e dinamica: novas pastas/projetos entram no pacote automaticamente.
 import os
@@ -55,15 +56,6 @@ def main():
         print('ERRO: nenhuma cena encontrada em task-scenes/*/')
         sys.exit(1)
 
-    # Midias (video, imagens, audio): embutidas no zip achatadas em icons/
-    # (sem subpastas e sem arquivos ocultos como .gitkeep); a cena
-    # 010-DOWNLOAD_VIEW extrai essa pasta para <projeto>/icons no aparelho
-    midias_raiz = raiz / 'wca-resources' / 'media'
-    midias = sorted(
-        f for f in midias_raiz.rglob('*')
-        if f.is_file() and not f.name.startswith('.')
-    ) if midias_raiz.is_dir() else []
-
     tag = os.environ.get('RELEASE_TAG', '').strip().replace('/', '-')
     nome_zip = f'WCA-Tasker-Projetos-{tag}.zip' if tag else 'WCA-Tasker-Projetos.zip'
 
@@ -71,10 +63,6 @@ def main():
     for pasta in sorted(escolhidas):
         f, _ = escolhidas[pasta]
         print(f'  task-scenes/{pasta}/{f.name}')
-    if midias:
-        print('Midias incluidas (wca-resources/media -> icons/):')
-        for f in midias:
-            print(f'  icons/{f.name}')
 
     # ZIP sem compressao interna (ZIP_STORED): cada entrada e um recorte
     # direto dos bytes, o que permite a cena 010-DOWNLOAD_VIEW descompactar
@@ -84,11 +72,8 @@ def main():
         for pasta in sorted(escolhidas):
             f, _ = escolhidas[pasta]
             z.write(f, f'task-scenes/{pasta}/{f.name}')
-        for f in midias:
-            z.write(f, f'icons/{f.name}')
 
-    print(f'OK: {nome_zip} criado com {len(escolhidas)} cena(s) e '
-          f'{len(midias)} midia(s).')
+    print(f'OK: {nome_zip} criado com {len(escolhidas)} cena(s).')
 
 
 if __name__ == '__main__':

@@ -1,18 +1,18 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.7**
-Arquivo: `configuracao-webview-wca-1.7.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.8**
+Arquivo: `configuracao-webview-wca-1.8.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
-Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e as mídias (ícones, áudio e vídeo), gerado automaticamente pelo GitHub Actions em cada release) e salva o arquivo **zipado** na pasta do WebView do dispositivo:
+Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML, gerado automaticamente pelo GitHub Actions em cada release; as mídias são baixadas à parte, direto do repositório) e salva o arquivo **zipado** na pasta do WebView do dispositivo:
 
 ```
 /storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view
 ```
 
-- **Release consultada na hora**: a cena pergunta à API do GitHub qual é a release mais recente que **já tem o pacote anexado** (procura o asset `WCA-Tasker-Projetos-<tag>.zip`, percorrendo da mais recente para a mais antiga) e mostra tag, nome do arquivo, tamanho em MB, data de publicação (a URL não é exibida);
+- **Release consultada na hora**: a cena pergunta à API do GitHub qual é a release mais recente que **já tem o pacote anexado** (procura o asset `WCA-Tasker-Projetos-<tag>.zip`, percorrendo da mais recente para a mais antiga) e mostra tag, nome do arquivo, data de publicação, a linha **Mídias** (quantidade e soma dos arquivos encontrados) e o **TAMANHO TOTAL** (zip + todas as mídias) — a URL não é exibida;
 - **Pacote padrão**: se a API não responder (sem internet/limite de requisições), a cena usa o pacote embutido **1.3.36** e o badge muda para "Pacote padrão";
 - **Vídeo do cabeçalho**: mesmo caminho das demais cenas (`icons/video-system.mp4`);
 - **Container centralizado na tela** (vertical e horizontal);
@@ -20,8 +20,9 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e as mídias (ícon
   1. `Tasker.httpRequest` com `fileToSave` e **header como UMA STRING** (`User-Agent: Tasker` — formato que o Tasker espera);
   2. o mesmo GET no **mínimo de opções** (sem header);
   3. reserva: `fetch` dentro do WebView convertendo os bytes em **base64** gravado via `writeFile` e decodificado no shell (`base64 -d`) — se falhar, o `.b64` parcial é apagado;
-  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado via base64 + shell, seguindo **rotas por pasta raiz do zip** — `task-scenes/` → pasta do WebView (mantendo a estrutura) e `icons/` → `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons` (as **mídias**, FORA do web-view; pasta raiz desconhecida é rejeitada); o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e **contagem `find | wc -l` por destino**;
-  5. o pacote do build é publicado **sem compressão interna** (ZIP_STORED), então cada entrada é um recorte direto dos bytes — sem depender de descompressão do WebView (entrada comprimida é inflada via `DecompressionStream`, se existir).
+  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado via base64 + shell, seguindo **rotas por pasta raiz do zip** — `task-scenes/` → pasta do WebView (mantendo a estrutura) e `icons/` → `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons` (rota de reserva; pasta raiz desconhecida é rejeitada). **O zip da release leva só as cenas**; o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e **contagem `find | wc -l` por destino**;
+  5. o pacote do build é publicado **sem compressão interna** (ZIP_STORED), então cada entrada é um recorte direto dos bytes — sem depender de descompressão do WebView (entrada comprimida é inflada via `DecompressionStream`, se existir);
+6. **mídias baixadas DIRETO DO REPOSITÓRIO** (não vêm no zip da release): a cena lista a árvore do branch `main` (Git Trees API) e baixa **todos os arquivos** de `wca-resources/media` — áudio, vídeo, imagens, quantos existirem, detecção dinâmica, sem ocultos — via `raw.githubusercontent.com`, gravando **tudo junto** na pasta `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons` (fora do web-view). O tamanho de **cada mídia** é conferido byte a byte (`wc -c`); divergência apaga o arquivo e é reportada no final.
 
 ## Fluxo da tela
 
@@ -55,6 +56,6 @@ Cena **`010-DOWNLOAD_VIEW [wca]`** (V2), **ID da Tela `1`** (nome e ID equivalen
 - Consulta de release com prazo de 20s (`Promise.race`) e fallback embutido;
 - **Etapas com tempo mínimo de exibição** (Baixando ≥ 1,8s; Descompactando ≥ 1,2s; tela final ≥ 2,6s antes de fechar) para o usuário acompanhar as fases — o fechamento automático continua acontecendo;
 - **A URL do download não é exibida** na tela (fica só internamente);
-- **Mídias no mesmo download**: o build embute `wca-resources/media/` no zip (achatado em `icons/`), então vídeo, ícones e imagens usados pelas cenas chegam junto, num download único;
+- **Progresso anunciando cada arquivo**: "Baixando o pacote zip (x MB)...", "Descompactando (n de total): nome...", "Baixando mídia (n de total): nome (tamanho)..." — o usuário vê exatamente o que está sendo baixado a cada momento;
 - Toasts de sucesso/falha no mesmo estilo da Central;
 - Sem variável do Tasker embutida no JavaScript (tudo lido em runtime), sem `console`.

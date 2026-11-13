@@ -477,6 +477,10 @@ body::before {
                         <span class="row-value" id="pacoteArquivo"></span>
                     </div>
                     <div class="row">
+                        <span class="row-label">Mídias</span>
+                        <span class="row-value" id="pacoteMidias">—</span>
+                    </div>
+                    <div class="row">
                         <span class="row-label">Tamanho</span>
                         <span class="row-value" id="pacoteTamanho"></span>
                     </div>
@@ -488,7 +492,7 @@ body::before {
 
 
                 <div class="info-texto">
-                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi.
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> da release mais recente e as <strong>mídias (ícones, áudio e vídeo)</strong> direto do repositório do WhatsConnectApi.
                 </div>
 
                 <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
@@ -530,12 +534,12 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.7)
-// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML e midias,
-// gerado automaticamente pelo GitHub Actions em cada release) e
-// salva o arquivo zipado na pasta do WebView do dispositivo. As MEDIAS
-// (pasta icons/ do zip) sao extraidas para a pasta icons do projeto,
-// FORA do web-view.
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.8)
+// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML, gerado
+// automaticamente pelo GitHub Actions em cada release) e as MEDIAS do
+// projeto direto do repositorio (wca-resources/media no branch main, via
+// Git Trees API + raw.githubusercontent.com): cenas extraidas para o
+// web-view e midias gravadas na pasta icons do projeto, FORA do web-view.
 // TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker, em
 // uma CADEIA de tentativas: 1) bridge Tasker.httpRequest com fileToSave
 // (GET no cliente HTTP nativo, sem limitacao de CORS; header como UMA
@@ -563,6 +567,11 @@ const TEMPO_MINIMO_VERIFICANDO_MS = 1200;
 const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
 const PASTA_DESTINO = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
 const PASTA_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
+const URL_ARVORE_MIDIAS = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/git/trees/main?recursive=1';
+const URL_RAW_MIDIAS = 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/';
+const PREFIXO_MIDIAS = 'wca-resources/media/';
+const TEMPO_MINIMO_MIDIAS_MS = 1500;
+let midias = [];
 const PACOTE_PADRAO = {
     tag: '1.3.36',
     arquivo: 'WCA-Tasker-Projetos-1.3.36.zip',
@@ -675,7 +684,7 @@ function renderizarPacote(){
     }
     document.getElementById('pacoteTag').textContent = pacoteAtual.tag;
     document.getElementById('pacoteArquivo').textContent = pacoteAtual.arquivo;
-    document.getElementById('pacoteTamanho').textContent = formatarTamanho(pacoteAtual.tamanho);
+    atualizarCardMidias();
     document.getElementById('pacoteData').textContent = formatarData(pacoteAtual.publicado);
     card.style.display = 'block';
     const botao = document.getElementById('btnBaixar');
@@ -839,11 +848,11 @@ function falhaDownload(titulo, texto){
 // cliente HTTP nativo do Tasker, fora do WebView). Na primeira o header
 // vai como UMA STRING (formato que o Tasker espera); na segunda, o minimo
 // de opcoes. Entre uma e outra o Tasker sobrescreve o arquivo anterior.
-async function baixarPorHttpRequest(){
+async function tentarDownload(url, destino){
     const opcoesBase = {
         method: 'GET',
-        url: pacoteAtual.url,
-        fileToSave: caminhoArquivo(),
+        url: url,
+        fileToSave: destino,
         timeout: HTTP_TIMEOUT_SEG,
         autoRedirect: true
     };
@@ -882,7 +891,7 @@ async function baixarPorFetchEBinario(){
 // Cadeia completa: httpRequest (2 formatos) e, se ambos falharem, o caminho
 // reservado via fetch. Motivo do ultimo erro volta para o painel.
 async function baixarPacote(){
-    const r1 = await baixarPorHttpRequest();
+    const r1 = await tentarDownload(pacoteAtual.url, caminhoArquivo());
     if (r1.ok) return { ok: true, via: 'httpRequest' };
     try {
         await baixarPorFetchEBinario();
@@ -990,7 +999,7 @@ const ROTAS_EXTRACAO = [
 
 // Extrai TODOS os arquivos do zip mantendo a estrutura interna de cada
 // rota (nada solto na raiz). Cada arquivo sai por base64 + shell.
-async function extrairPacote(){
+async function extrairPacote(anunciar){
     let bytes = null;
     const b64 = await lerZipComoBase64();
     if (b64 && b64.length > 100) {
@@ -1031,6 +1040,7 @@ async function extrairPacote(){
     }
     for (let i = 0; i < alvos.length; i++) {
         const alvo = alvos[i];
+        if (anunciar) anunciar(i, alvos.length, alvo.nome);
         let conteudo = alvo.dados;
         if (alvo.metodo === 8) {
             conteudo = await inflarDeflate(alvo.dados);
@@ -1063,6 +1073,71 @@ async function garantirPasta(pasta){
     }
 }
 
+// Tamanho curto para rotulos de arquivo (KB/MB)
+function formatarTamanhoCurto(bytes){
+    const n = Number(bytes) || 0;
+    if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB';
+    if (n >= 1024) return Math.max(1, Math.round(n / 1024)) + ' KB';
+    return n + ' B';
+}
+
+// Lista as midias do projeto direto do repositorio (Git Trees API do
+// branch main): qualquer arquivo dentro de wca-resources/media (audio,
+// imagem, video...), quantos existirem, sem arquivos ocultos. Falha nao
+// bloqueia o download do pacote.
+async function carregarMidias(){
+    try {
+        const resposta = await Promise.race([ fetch(URL_ARVORE_MIDIAS, { cache: 'no-store' }), bridgeTimeout(15000) ]);
+        if (!resposta || !resposta.ok) throw new Error('arvore');
+        const dados = await Promise.race([ resposta.json(), bridgeTimeout(10000) ]);
+        const itens = (dados && dados.tree) || [];
+        const achadas = [];
+        for (let i = 0; i < itens.length; i++) {
+            const it = itens[i];
+            if (!it || it.type !== 'blob') continue;
+            if (String(it.path || '').indexOf(PREFIXO_MIDIAS) !== 0) continue;
+            const nome = String(it.path).slice(PREFIXO_MIDIAS.length).split('/').pop();
+            if (!nome || nome.charAt(0) === '.') continue;
+            achadas.push({ nome: nome, tamanho: Number(it.size) || 0, url: URL_RAW_MIDIAS + String(it.path) });
+        }
+        achadas.sort(function (a, b) { return a.nome < b.nome ? -1 : 1; });
+        midias = achadas;
+    } catch (eArvore) {
+        midias = [];
+    }
+    atualizarCardMidias();
+}
+
+function somaMidias(){
+    let total = 0;
+    for (let i = 0; i < midias.length; i++) total += midias[i].tamanho;
+    return total;
+}
+
+// Linha Midias do card e TAMANHO TOTAL (zip + todas as midias encontradas)
+function atualizarCardMidias(){
+    const linha = document.getElementById('pacoteMidias');
+    if (linha) linha.textContent = midias.length ? midias.length + ' arquivo' + (midias.length > 1 ? 's' : '') + ' (' + formatarTamanhoCurto(somaMidias()) + ')' : '\u2014';
+    const tamanho = document.getElementById('pacoteTamanho');
+    if (tamanho && pacoteAtual) tamanho.textContent = formatarTamanho(pacoteAtual.tamanho + somaMidias());
+}
+
+// Baixa UMA midia para a pasta icons e confere o tamanho byte a byte
+async function baixarMidia(midia){
+    const destino = PASTA_ICONS + '/' + midia.nome;
+    const resultado = await tentarDownload(midia.url, destino);
+    if (!resultado.ok) return { ok: false, nome: midia.nome };
+    const comando = "if [ -f " + shellQuote(destino) + " ] && [ -s " + shellQuote(destino) + " ]; then wc -c < " + shellQuote(destino) + "; else printf '__WCA_FAIL__'; fi";
+    const verificacao = await Promise.race([ taskerCall('runShell', { cmd: comando, root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+    const saida = String(verificacao && verificacao.stdout || '').trim();
+    const tamanho = parseInt(saida, 10);
+    if (!saida || saida === '__WCA_FAIL__' || isNaN(tamanho) || tamanho <= 0 || (midia.tamanho > 0 && tamanho !== midia.tamanho)) {
+        try { await Promise.race([ taskerCall('deleteFile', { path: destino }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
+        return { ok: false, nome: midia.nome };
+    }
+    return { ok: true };
+}
+
 async function iniciarDownload(){
     if (baixando || !pacoteAtual) return;
     baixando = true;
@@ -1074,7 +1149,7 @@ async function iniciarDownload(){
     definirProgresso('Preparando as pastas de destino...', '');
     await garantirPasta(PASTA_DESTINO);
     await garantirPasta(PASTA_ICONS);
-    definirProgresso('Baixando o pacote... (pode demorar alguns segundos)', '');
+    definirProgresso('Baixando o pacote zip (' + formatarTamanhoCurto(pacoteAtual.tamanho) + ')...', '');
     const inicioBaixando = Date.now();
     try {
         const resultado = await baixarPacote();
@@ -1084,7 +1159,7 @@ async function iniciarDownload(){
             definirProgresso('Não foi possível baixar o pacote. Tente novamente.', 'erro');
             return;
         }
-        definirProgresso('Verificando os arquivos salvos...', '');
+        definirProgresso('Verificando o pacote baixado...', '');
         const verificacao = await verificarArquivoBaixado();
         if (!verificacao.ok) {
             falhaDownload('VERIFICA\u00c7\u00c3O', 'O arquivo n\u00e3o foi gravado corretamente na pasta. Tente novamente.');
@@ -1096,13 +1171,15 @@ async function iniciarDownload(){
         const inicioExtracao = Date.now();
         let extracao = { ok: false };
         try {
-            extracao = await extrairPacote();
+            extracao = await extrairPacote(function (i, total, nome) {
+                definirProgresso('Descompactando (' + (i + 1) + ' de ' + total + '): ' + nome + '...', '');
+            });
         } catch (eExtracao) {
             extracao = { ok: false };
         }
         await garantirTempoVisivel(inicioExtracao, TEMPO_MINIMO_VERIFICANDO_MS);
-        if (spinner) spinner.style.display = 'none';
         if (!extracao.ok) {
+            if (spinner) spinner.style.display = 'none';
             baixando = false;
             definirProgresso('O pacote foi baixado, mas não foi possível descompactá-lo. O zip foi mantido na pasta.', 'erro');
             showToast({ type: 'error', title: 'EXTRA\u00c7\u00c3O', message: 'O zip continua na pasta do WebView.' });
@@ -1111,6 +1188,27 @@ async function iniciarDownload(){
             return;
         }
         try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eZip) { }
+        let falhasMidias = 0;
+        if (midias.length) {
+            definirProgresso('Baixando as mídias (' + midias.length + ' arquivo' + (midias.length > 1 ? 's' : '') + ')...', '');
+            const inicioMidias = Date.now();
+            for (let i = 0; i < midias.length; i++) {
+                definirProgresso('Baixando mídia (' + (i + 1) + ' de ' + midias.length + '): ' + midias[i].nome + ' (' + formatarTamanhoCurto(midias[i].tamanho) + ')...', '');
+                let estado = { ok: false };
+                try { estado = await baixarMidia(midias[i]); } catch (eMidia) { estado = { ok: false }; }
+                if (!estado.ok) falhasMidias += 1;
+            }
+            await garantirTempoVisivel(inicioMidias, TEMPO_MINIMO_MIDIAS_MS);
+        }
+        if (spinner) spinner.style.display = 'none';
+        if (falhasMidias > 0) {
+            baixando = false;
+            definirProgresso('O pacote foi instalado, mas ' + falhasMidias + ' mídia' + (falhasMidias > 1 ? 's não foram' : ' não foi') + ' baixada' + (falhasMidias > 1 ? 's' : '') + '. Tente novamente.', 'erro');
+            showToast({ type: 'error', title: 'M\u00cdDIAS', message: falhasMidias + ' de ' + midias.length + ' mídias falharam.' });
+            const botaoMid = document.getElementById('btnBaixar');
+            if (botaoMid) botaoMid.disabled = false;
+            return;
+        }
         finalizado = true;
         baixando = false;
         definirProgresso('Download conclu\u00eddo.', 'ok');
@@ -1163,6 +1261,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     carregarPacote();
+    carregarMidias();
 });
 </script>
 </body>
