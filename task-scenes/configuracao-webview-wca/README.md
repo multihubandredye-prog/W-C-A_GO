@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.13**
-Arquivo: `configuracao-webview-wca-1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.14**
+Arquivo: `configuracao-webview-wca-1.14.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -58,7 +58,7 @@ Cena **`010-DOWNLOAD_VIEW [wca]`** (V2), **ID da Tela `1`** (nome e ID equivalen
 - **Etapas com tempo mínimo de exibição** (Baixando ≥ 1,8s; Descompactando ≥ 1,2s; tela final ≥ 2,6s antes de fechar) para o usuário acompanhar as fases — o fechamento automático continua acontecendo;
 - **A URL do download não é exibida** na tela (fica só internamente);
 - **Progresso anunciando cada arquivo**: "Baixando o pacote zip (x MB)..." e "Descompactando (n de total): nome..." — incluindo cada mídia extraída; o usuário vê exatamente o que está sendo processado a cada momento;
-- **Auto-encerramento com o identificador REAL da cena**: `010-DOWNLOAD_VIEW [wca]V2` (com o sufixo V2, como está no Tasker) — antes usava `010-DOWNLOAD_VIEW [wca]` sem o sufixo e o encerramento pelo nome não encontrava a cena; mantidos os fallbacks (ID 1 → dismissLayout → cancelScreen);
+- **Auto-encerramento com o identificador REAL da cena**: `010-DOWNLOAD_VIEW [wca]V2` (com o sufixo V2, como está no Tasker) — antes usava `010-DOWNLOAD_VIEW [wca]` sem o sufixo e o encerramento pelo nome não encontrava a cena; mantidos os fallbacks — e a cascata agora dispara **todos os métodos** (não para no primeiro que não lança erro, pois o Tasker pode aceitar em silêncio um identificador que não corresponde à tela: nome com V2, ID 1, dismissLayout e cancelScreen vão todos);
 - **Textos centralizados**: o texto de progresso ("Baixando...", "Download concluído.", avisos) ocupa a linha inteira da caixa (flex:1) para o centrado valer de verdade — antes o span encolhia à esquerda da caixa flex mesmo com text-align: center; o parágrafo explicativo do card também ficou centrado;
 - Toasts de sucesso/falha no mesmo estilo da Central;
 - Sem variável do Tasker embutida no JavaScript (tudo lido em runtime), sem `console`.
