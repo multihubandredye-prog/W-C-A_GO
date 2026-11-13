@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.1**
-Arquivo: `configuracao-webview-wca-1.1.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.2**
+Arquivo: `configuracao-webview-wca-1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -15,7 +15,8 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Ta
 - **Release consultada na hora**: a cena pergunta à API do GitHub qual é a release mais recente que **já tem o pacote anexado** (procura o asset `WCA-Tasker-Projetos-<tag>.zip`, percorrendo da mais recente para a mais antiga) e mostra tag, nome do arquivo, tamanho em MB, data de publicação e a URL completa;
 - **Pacote padrão**: se a API não responder (sem internet/limite de requisições), a cena usa o pacote embutido **1.3.36** e o badge muda para "Pacote padrão";
 - **Vídeo do cabeçalho**: mesmo caminho das demais cenas (`icons/video-system.mp4`);
-- **Container centralizado na tela** (vertical e horizontal).
+- **Container centralizado na tela** (vertical e horizontal);
+- **Download feito INTEIRO pela cena, sem nenhuma tarefa do Tasker**: usa a ação de bridge `Tasker.httpRequest` com **`fileToSave`** — o GET roda no cliente HTTP nativo do Tasker (fora do WebView, sem limitação de CORS, com redirecionamento) e os bytes são gravados direto no arquivo de destino;
 
 ## Fluxo da tela
 
@@ -27,26 +28,13 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Ta
    - com arquivos confirmados: exibe apenas **"Download concluído."** e **se auto-fecha** sozinha (1,4s depois, via `dismissSceneV2` com o nome `010-DOWNLOAD_VIEW [wca]` ou o ID `1` — equivalentes; cascata completa como fallback);
    - sem arquivos: erro na linha de progresso + toast ("Nada foi gravado na pasta do WebView") e o botão volta a ficar habilitado para tentar de novo.
 
-## Contrato com a tarefa `008-BAIXAR_PACOTE_WEBVIEW [wca]`
+## Download (tudo dentro da cena — sem tarefas)
 
-A cena dispara `runTask` com:
-
-| Variável | Conteúdo |
-|---|---|
-| `par1` | URL completa do zip (browser_download_url do asset) |
-| `par2` | Pasta de destino (`/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view`) — **não é exibida na tela** |
-| `par3` | Nome do arquivo (ex.: `WCA-Tasker-Projetos-1.3.36.zip`) |
-
-A tarefa de download deve reportar o andamento gravando:
-
-| Variável | Valores |
-|---|---|
-| `webview_status` | `iniciado` · `baixando` · `concluido` · `falhou` |
-| `webview_progresso` | número de `0` a `100` (opcional; aparece como "n de 100") |
-
-A cena recebe pelos dois caminhos (listener + sondagem de 1s com linha de base). Estados finais (`concluido`/`falhou`) não são sobrescritos por leituras atrasadas; a sondagem ignora o valor residual de uma sessão anterior (só o que mudar é aplicado).
-
-**Verificação de salvamento**: após `concluido`, a cena executa um `runShell` que confirma pasta existente e não vazia antes de declarar o sucesso e fechar a cena.
+1. `runShell` com `mkdir -p` garante a pasta de destino (o caminho **não é exibido na tela**);
+2. `Tasker.httpRequest` com `method: GET`, `url` (browser_download_url do asset), **`fileToSave`** (pasta + nome do arquivo), `User-Agent: Tasker`, `timeout: 90` (segundos) e `autoRedirect: true` — segue o redirecionamento do GitHub e grava os bytes no disco (prazo total de 120s);
+3. **Verificação física** via `runShell` (`wc -c`): o arquivo precisa existir, não estar vazio e ter **exatamente o tamanho** informado pela API da release (quando disponível);
+4. Verificado → **"Download concluído."** e auto-fechamento; divergente → erro + o arquivo parcial é **apagado** (`deleteFile`) e o botão volta a ficar habilitado;
+5. Erro de rede/HTTP → mensagem "Não foi possível baixar o pacote. Tente novamente." com o botão de volta.
 
 ## Botão voltar (Back Pressed)
 
@@ -58,7 +46,7 @@ Cena **`010-DOWNLOAD_VIEW [wca]`** (V2), **ID da Tela `1`** (nome e ID equivalen
 
 ## Detalhes
 
-- `Tasker.setVariable`/`getVariable`/`runTask` com prazo e tolerância a falha (Allow Phone Access obrigatório);
+- Ações de bridge usadas: `httpRequest` (download com `fileToSave`), `runShell` (pasta + verificação), `deleteFile` (limpeza de parcial), `setVariable`/`onVariableChanged` (botão voltar) — todas com prazo e tolerância a falha (Allow Phone Access obrigatório);
 - Consulta de release com prazo de 20s (`Promise.race`) e fallback embutido;
 - Toasts de sucesso/falha no mesmo estilo da Central;
 - Sem variável do Tasker embutida no JavaScript (tudo lido em runtime), sem `console`.

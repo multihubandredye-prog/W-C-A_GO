@@ -457,7 +457,6 @@ body::before {
     .section-title { font-size: 1.05rem; }
 }
 </style>
-</head>
 <body>
 
     <div class="content-wrapper">
@@ -541,20 +540,18 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.1)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.2)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
 // Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
 // salva o arquivo zipado na pasta do WebView do dispositivo.
-// A release e consultada na API do GitHub e vale a mais recente que JA TEM
-// o pacote anexado; sem resposta da API, usa o pacote padrao embutido.
-// O download em si e executado pelo lado Tasker: a cena dispara a
-// 008-BAIXAR_PACOTE_WEBVIEW [wca] com par1 = url do zip, par2 = pasta de
-// destino e par3 = nome do arquivo, e acompanha o andamento pelas variaveis
-// webview_status (iniciado | baixando | concluido | falhou) e
-// webview_progresso (numero de 0 a 100, opcional).
-// Ao receber concluido, a cena VERIFICA que os arquivos foram salvos na
-// pasta (leitura da pasta via shell), exibe apenas "Download concluido."
-// e se AUTO-FECHA (nome 010-DOWNLOAD_VIEW [wca] ou ID 1 — equivalentes).
+// TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker:
+// a acao de bridge Tasker.httpRequest com fileToSave executa o GET fora do
+// WebView (cliente HTTP nativo do Tasker, sem limitacao de CORS) e grava os
+// bytes direto no arquivo de destino. A pasta e criada via runShell e, ao
+// final, a cena VERIFICA fisicamente o arquivo gravado (existente, nao vazio
+// e com o tamanho exato esperado da release) antes de declarar sucesso,
+// exibir apenas "Download concluido." e se AUTO-FECHAR (nome
+// 010-DOWNLOAD_VIEW [wca] ou ID 1 - equivalentes).
 
 const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]';
 const SCENE_SCREEN_ID = '1';
@@ -569,17 +566,8 @@ const PACOTE_PADRAO = {
     publicado: ''
 };
 const PREFIXO_PACOTE = 'WCA-Tasker-Projetos-';
-const TASK_DOWNLOAD = '008-BAIXAR_PACOTE_WEBVIEW [wca]';
-const VAR_STATUS = 'webview_status';
-const VAR_PROGRESSO = 'webview_progresso';
-const MAPA_STATUS = {
-    iniciado: 'Download iniciado...',
-    baixando: 'Baixando o pacote...',
-    concluido: 'Pacote salvo na pasta do WebView.',
-    falhou: 'Não foi possível baixar o pacote. Tente novamente.'
-};
-const SONDA_INTERVALO_MS = 1000;
-const SONDA_MAXIMO = 900;
+const HTTP_TIMEOUT_SEG = 90;
+const DOWNLOAD_PRAZO_MS = 120000;
 
 const WCA_MODAL_STATE_VAR = 'cache_modal';
 const WCA_RETURN_MODAL_VAR = 'return_modal';
@@ -589,10 +577,6 @@ let pacoteAtual = null;
 let usandoPadrao = false;
 let baixando = false;
 let finalizado = false;
-let ultimaStatus = '';
-let sondaAtiva = null;
-let sondaRestantes = 0;
-let sondaBase = null;
 
 function getTaskerBridge(){
     if (typeof Tasker !== 'undefined') return Tasker;
@@ -616,68 +600,15 @@ function shellQuote(value){
     return "'" + String(value).replace(/'/g, "'\\''") + "'";
 }
 
-// Confirmacao fisica: a pasta de destino precisa existir e ter pelo menos
-// um arquivo dentro (a leitura e feita via shell, sem depender do bridge de
-// listas). Retorna true somente com arquivos realmente gravados.
-async function verificarArquivosNaPasta(){
-    const pasta = shellQuote(PASTA_DESTINO);
-    const comando = "if [ -d " + pasta + " ] && ls -1 " + pasta + " | grep -q .; then printf '__WCA_OK__'; else printf '__WCA_FAIL__'; fi";
-    const resultado = await taskerCall('runShell', { cmd: comando, root: false, timeout: 10 });
-    const saida = String(resultado && resultado.stdout || '');
-    return saida.indexOf('__WCA_OK__') >= 0;
-}
-
-// Estado final: confere a pasta, exibe apenas "Download concluido." e fecha
-// a cena sozinha apos uma pausa curta para o usuario ler
-async function confirmarSalvamento(){
-    let salvo = false;
-    try {
-        salvo = await Promise.race([ verificarArquivosNaPasta(), bridgeTimeout(15000) ]);
-    } catch (eVerificacao) { salvo = false; }
-    const spinner = document.getElementById('progressoSpinner');
-    if (spinner) spinner.style.display = 'none';
-    if (salvo) {
-        definirProgresso('Download concluído.', 'ok');
-        const botaoOk = document.getElementById('btnBaixar');
-        if (botaoOk) botaoOk.disabled = false;
-        agendarFechamentoProprio();
-        return;
-    }
-    finalizado = false;
-    baixando = false;
-    definirProgresso('O download terminou, mas os arquivos não foram encontrados na pasta.', 'erro');
-    showToast({ type: 'error', title: 'VERIFICAÇÃO', message: 'Nada foi gravado na pasta do WebView. Tente novamente.' });
-    const botao = document.getElementById('btnBaixar');
-    if (botao) botao.disabled = false;
-}
-
-// Auto-fechamento (mesma cascata validada das outras cenas): nome ou ID
-// da cena sao equivalentes para o dismiss
-function fecharPropriaCena(){
-    const tentativas = [
-        function () { return Tasker.dismissSceneV2(SCENE_NAME); },
-        function () { return Tasker.dismissSceneV2(SCENE_SCREEN_ID); },
-        function () { return Tasker.dismissLayout(SCENE_SCREEN_ID); },
-        function () { return Tasker.cancelScreen(''); }
-    ];
-    for (let i = 0; i < tentativas.length; i++) {
-        try { tentativas[i](); return true; } catch (eTentativa) { }
-    }
-    return false;
-}
-function agendarFechamentoProprio(){
-    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
-}
-
 function formatarTamanho(bytes){
     const n = Number(bytes);
-    if (!n || n <= 0) return '—';
+    if (!n || n <= 0) return '\u2014';
     return (n / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 function formatarData(iso){
     const texto = String(iso || '').trim();
-    if (!/^\d{4}-\d{2}-\d{2}/.test(texto)) return '—';
+    if (!/^\d{4}-\d{2}-\d{2}/.test(texto)) return '\u2014';
     return texto.slice(8, 10) + '/' + texto.slice(5, 7) + '/' + texto.slice(0, 4);
 }
 
@@ -733,9 +664,9 @@ function renderizarPacote(){
     if (spinner) spinner.classList.add('d-none');
     if (usandoPadrao) {
         badge.classList.add('padrao');
-        if (texto) texto.textContent = 'Pacote padrão • ' + pacoteAtual.tag;
+        if (texto) texto.textContent = 'Pacote padr\u00e3o \u2022 ' + pacoteAtual.tag;
     } else {
-        if (texto) texto.textContent = 'Pacote encontrado • release ' + pacoteAtual.tag;
+        if (texto) texto.textContent = 'Pacote encontrado \u2022 release ' + pacoteAtual.tag;
     }
     document.getElementById('pacoteTag').textContent = pacoteAtual.tag;
     document.getElementById('pacoteArquivo').textContent = pacoteAtual.arquivo;
@@ -845,7 +776,25 @@ closeModal = function (id){
     return resultado;
 };
 
-// ---- Fluxo de download ----
+// ---- Auto-fechamento da cena ----
+// Cascata validada nas outras cenas: nome e ID sao equivalentes para o dismiss
+function fecharPropriaCena(){
+    const tentativas = [
+        function () { return Tasker.dismissSceneV2(SCENE_NAME); },
+        function () { return Tasker.dismissSceneV2(SCENE_SCREEN_ID); },
+        function () { return Tasker.dismissLayout(SCENE_SCREEN_ID); },
+        function () { return Tasker.cancelScreen(''); }
+    ];
+    for (let i = 0; i < tentativas.length; i++) {
+        try { tentativas[i](); return true; } catch (eTentativa) { }
+    }
+    return false;
+}
+function agendarFechamentoProprio(){
+    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
+}
+
+// ---- Fluxo de download (todo dentro da cena, sem tarefas) ----
 function definirProgresso(texto, classe){
     const secao = document.getElementById('progressoSecao');
     const linha = document.getElementById('progressoTexto');
@@ -855,86 +804,76 @@ function definirProgresso(texto, classe){
     linha.textContent = texto;
 }
 
-function pararSonda(){
-    if (sondaAtiva) { clearInterval(sondaAtiva); sondaAtiva = null; }
+function caminhoArquivo(){
+    return PASTA_DESTINO + '/' + pacoteAtual.arquivo;
 }
 
-function iniciarSonda(){
-    pararSonda();
-    sondaRestantes = SONDA_MAXIMO;
-    // Primeira leitura vira LINHA DE BASE: so e aplicado o que MUDAR a
-    // partir dela (cobre resto de sessao anterior sem mascarar eventos)
-    sondaBase = null;
-    sondaAtiva = setInterval(async function () {
-        if (finalizado || sondaRestantes <= 0) { pararSonda(); return; }
-        sondaRestantes -= 1;
-        try {
-            const api = getTaskerBridge();
-            if (!api || typeof api.getVariable !== 'function') { pararSonda(); return; }
-            const leitura = await Promise.race([ api.getVariable(VAR_STATUS), bridgeTimeout(3000) ]);
-            const valor = String(leitura && leitura.value !== undefined ? leitura.value : leitura || '').trim();
-            if (!valor) return;
-            if (sondaBase === null) { sondaBase = valor; return; }
-            if (valor !== sondaBase) { sondaBase = valor; aplicarStatus(valor); }
-        } catch (eSonda) { }
-    }, SONDA_INTERVALO_MS);
+// Verificacao fisica do arquivo gravado: existe, nao vazio e, quando a
+// release informou o tamanho, EXATAMENTE aquele tamanho em bytes
+async function verificarArquivoBaixado(){
+    const comando = "if [ -d " + shellQuote(PASTA_DESTINO) + " ] && [ -f " + shellQuote(caminhoArquivo()) + " ] && [ -s " + shellQuote(caminhoArquivo()) + " ]; then wc -c < " + shellQuote(caminhoArquivo()) + "; else printf '__WCA_FAIL__'; fi";
+    const resultado = await Promise.race([ taskerCall('runShell', { cmd: comando, root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+    const saida = String(resultado && resultado.stdout || '').trim();
+    if (!saida || saida === '__WCA_FAIL__') return { ok: false, tamanho: 0 };
+    const tamanho = parseInt(saida, 10);
+    if (isNaN(tamanho) || tamanho <= 0) return { ok: false, tamanho: 0 };
+    if (pacoteAtual.tamanho > 0 && tamanho !== pacoteAtual.tamanho) return { ok: false, tamanho: tamanho };
+    return { ok: true, tamanho: tamanho };
 }
 
-function aplicarStatus(valor){
-    const texto = String(valor || '').trim();
-    // Estados finais (concluido/falhou) nao sao sobrescritos por leituras atrasadas
-    if (!texto || texto === ultimaStatus || finalizado) return;
-    ultimaStatus = texto;
-    if (texto === 'concluido') {
-        finalizado = true;
-        baixando = false;
-        pararSonda();
-        confirmarSalvamento();
-        return;
-    }
-    if (texto === 'falhou') {
-        finalizado = true;
-        baixando = false;
-        pararSonda();
-        definirProgresso(MAPA_STATUS.falhou, 'erro');
-        const spinner = document.getElementById('progressoSpinner');
-        if (spinner) spinner.style.display = 'none';
-        showToast({ type: 'error', title: 'FALHA NO DOWNLOAD', message: 'Verifique a internet e tente novamente.' });
-        const botao = document.getElementById('btnBaixar');
-        if (botao) botao.disabled = false;
-        return;
-    }
-    if (MAPA_STATUS[texto]) definirProgresso(MAPA_STATUS[texto], '');
-}
-
-function aplicarProgresso(valor){
-    const n = parseInt(String(valor).replace(/[^0-9]/g, ''), 10);
-    if (isNaN(n) || n < 0 || n > 100) return;
-    if (finalizado) return;
-    definirProgresso('Baixando o pacote... ' + n + ' de 100', '');
+function falhaDownload(titulo, texto){
+    baixando = false;
+    finalizado = false;
+    const spinner = document.getElementById('progressoSpinner');
+    if (spinner) spinner.style.display = 'none';
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = false;
+    showToast({ type: 'error', title: titulo, message: texto });
 }
 
 async function iniciarDownload(){
     if (baixando || !pacoteAtual) return;
     baixando = true;
     finalizado = false;
-    ultimaStatus = '';
     const botao = document.getElementById('btnBaixar');
     if (botao) botao.disabled = true;
     const spinner = document.getElementById('progressoSpinner');
     if (spinner) spinner.style.display = '';
-    definirProgresso('Enviando o pedido de download...', '');
+    definirProgresso('Preparando a pasta de destino...', '');
     try {
-        await taskerCall('runTask', {
-            name: TASK_DOWNLOAD,
-            variables: { par1: pacoteAtual.url, par2: PASTA_DESTINO, par3: pacoteAtual.arquivo }
-        });
-        iniciarSonda();
-    } catch (eTask) {
-        baixando = false;
-        definirProgresso('Não foi possível chamar a tarefa de download. Tente novamente.', 'erro');
-        showToast({ type: 'error', title: 'FALHA AO INICIAR', message: 'Confira se a Allow Phone Access está ativa.' });
-        if (botao) botao.disabled = false;
+        await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_DESTINO), root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+        definirProgresso('Baixando o pacote... (pode demorar alguns segundos)', '');
+        await Promise.race([
+            taskerCall('httpRequest', {
+                method: 'GET',
+                url: pacoteAtual.url,
+                fileToSave: caminhoArquivo(),
+                headers: { 'User-Agent': 'Tasker' },
+                timeout: HTTP_TIMEOUT_SEG,
+                autoRedirect: true
+            }),
+            bridgeTimeout(DOWNLOAD_PRAZO_MS)
+        ]);
+        definirProgresso('Verificando os arquivos salvos...', '');
+        const verificacao = await verificarArquivoBaixado();
+        if (spinner) spinner.style.display = 'none';
+        if (verificacao.ok) {
+            finalizado = true;
+            baixando = false;
+            definirProgresso('Download conclu\u00eddo.', 'ok');
+            const botaoOk = document.getElementById('btnBaixar');
+            if (botaoOk) botaoOk.disabled = false;
+            agendarFechamentoProprio();
+            return;
+        }
+        falhaDownload('VERIFICA\u00c7\u00c3O', 'O arquivo n\u00e3o foi gravado corretamente na pasta. Tente novamente.');
+        definirProgresso('O download terminou, mas o arquivo n\u00e3o foi encontrado na pasta.', 'erro');
+        try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
+        return;
+    } catch (eDownload) {
+        falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');
+        definirProgresso('N\u00e3o foi poss\u00edvel baixar o pacote. Tente novamente.', 'erro');
+        return;
     }
 }
 
@@ -945,18 +884,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.opacity = '1';
     }, 100);
 
-
-    // Recebimento de variavel: listener SEMPRE com wrapper (nome, valor);
-    // passar a funcao direto e bug (o primeiro argumento e o NOME)
-    try {
-        const api = getTaskerBridge();
-        if (api && typeof api.onVariableChanged === 'function') {
-            api.onVariableChanged(VAR_STATUS, function (nome, valor) { aplicarStatus(valor); });
-            api.onVariableChanged(VAR_PROGRESSO, function (nome, valor) { aplicarProgresso(valor); });
-        }
-    } catch (eListener) { }
-
-    // Comando do botao voltar do Android (Back Pressed no Tasker)
+    // Comando do botao voltar do Android (Back Pressed no Tasker);
+    // listener SEMPRE com wrapper (nome, valor) - funcao direta e bug
     try {
         const api = getTaskerBridge();
         if (api && typeof api.onVariableChanged === 'function') {
@@ -975,7 +904,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnBaixar = document.getElementById('btnBaixar');
     if (btnBaixar) btnBaixar.addEventListener('click', function () {
         if (baixando || !pacoteAtual) return;
-        document.getElementById('confirmBaixarTexto').textContent = 'O arquivo ' + pacoteAtual.arquivo + ' (release ' + pacoteAtual.tag + ') será baixado e salvo na pasta do WebView. Continuar?';
+        document.getElementById('confirmBaixarTexto').textContent = 'O arquivo ' + pacoteAtual.arquivo + ' (release ' + pacoteAtual.tag + ') ser\u00e1 baixado e salvo na pasta do WebView. Continuar?';
         openModal('confirmBaixarModal');
     });
 
