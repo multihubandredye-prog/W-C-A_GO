@@ -1,10 +1,18 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.41**
-Arquivo: `central-wca-1.41.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.42**
+Arquivo: `central-wca-1.42.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Verificação Premium direta (desde a 1.42 — sem tarefa do Tasker)
+
+- O botão **Verificar Premium** (menu → "Verificar Premium — Sincronizar assinatura") **não dispara mais tarefa nenhuma** (o antigo `task`=`5`/`task_exit`=`status_premium` foi extinto) — a verificação acontece **dentro da cena**, direto no link da Vercel;
+- Fluxo replicado do código Java original: telefone do dispositivo **is_principal** do devices.json → **aquecimento** (5s) + pausa (2s) + **consulta real** (15s) em `https://wca-api-three-alpha.vercel.app?phone=...` → interpreta `nome`/`expiracao`/`status`;
+- `status` **premium**/**expired** → PREMIUM com a expiração da resposta; qualquer outro (teste, `pending_activation`, cancelled) → **MODO TESTE** com a expiração guardada no `.sys_config.txt` ou +7 dias; **sem telefone/sem resposta** → repete o último estado guardado (nome ≠ "Teste" → PREMIUM);
+- Grava **`.mode-system.log`** (linha no formato original: `[HH:mm:ss] TIPO | Usuário: NOME | Data de Expiração: dd/MM/yyyy | N dias restantes` / `VENCE HOJE` / `ASSINATURA EXPIRADA`) e **`.sys_config.txt`** (`{"nome","expiration","dias","lastCheck"}`) e **recarrega o log pelo pipeline oficial** (selo, nome, boas-vindas, foto);
+- Feedback com toasts ("Sincronizando..." no início; PREMIUM ATIVO / MODO TESTE ATIVO / ASSINATURA EXPIRADA no fim). Nenhuma variável do Tasker é gravada.
 
 ## Desinstalação (desde a 1.41 — tudo dentro da cena)
 
