@@ -521,7 +521,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.14)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.15)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML E MEDIAS, gerado
 // automaticamente pelo GitHub Actions em cada release) e salva/descompacta
 // na pasta do WebView do dispositivo. As MEDIAS (pasta icons/ do zip) sao
@@ -808,6 +808,17 @@ function caminhoArquivo(){
     return PASTA_DESTINO + '/' + pacoteAtual.arquivo;
 }
 
+// Limpeza SEGURA: so chama deleteFile quando o arquivo existe (o
+// deleteFile do Tasker mostra um toast nativo de erro quando o arquivo
+// nao existe, o que confundia o usuario em falhas de download onde o
+// parcial nunca chegou a ser gravado)
+async function apagarSeExistir(caminho){
+    const r = await Promise.race([ taskerCall('runShell', { cmd: "if [ -f " + shellQuote(caminho) + " ]; then printf 'SIM'; fi", root: false, timeout: 10 }), bridgeTimeout(15000) ]);
+    if (String(r && r.stdout || '').indexOf('SIM') < 0) return false;
+    try { await Promise.race([ taskerCall('deleteFile', { path: caminho }), bridgeTimeout(10000) ]); } catch (eApagar) { }
+    return true;
+}
+
 // Verificacao fisica do arquivo gravado: existe, nao vazio e, quando a
 // release informou o tamanho, EXATAMENTE aquele tamanho em bytes
 async function verificarArquivoBaixado(){
@@ -884,7 +895,7 @@ async function baixarPacote(){
         await baixarPorFetchEBinario();
         return { ok: true, via: 'fetch' };
     } catch (eFetch) {
-        try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() + '.b64' }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
+        await apagarSeExistir(caminhoArquivo() + '.b64');
         return { ok: false, motivo: r1.motivo || String((eFetch && eFetch.message) || eFetch || '') };
     }
 }
@@ -1095,7 +1106,7 @@ async function iniciarDownload(){
         if (!verificacao.ok) {
             falhaDownload('VERIFICA\u00c7\u00c3O', 'O arquivo n\u00e3o foi gravado corretamente na pasta. Tente novamente.');
             definirProgresso('O download terminou, mas o arquivo n\u00e3o foi encontrado na pasta.', 'erro');
-            try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
+            await apagarSeExistir(caminhoArquivo());
             return;
         }
         definirProgresso('Descompactando o pacote...', '');
@@ -1118,7 +1129,7 @@ async function iniciarDownload(){
             if (botaoExtr) botaoExtr.disabled = false;
             return;
         }
-        try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eZip) { }
+        await apagarSeExistir(caminhoArquivo());
         if (spinner) spinner.style.display = 'none';
         finalizado = true;
         baixando = false;
