@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.16**
-Arquivo: `configuracao-webview-wca-1.16.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.17**
+Arquivo: `configuracao-webview-wca-1.17.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -58,7 +58,7 @@ Cena **`010-DOWNLOAD_VIEW [wca]`** (V2), **ID da Tela `1`** (nome e ID equivalen
 - **Etapas com tempo mínimo de exibição** (Baixando ≥ 1,8s; Descompactando ≥ 1,2s; tela final ≥ 2,6s antes de fechar) para o usuário acompanhar as fases — o fechamento automático continua acontecendo;
 - **A URL do download não é exibida** na tela (fica só internamente);
 - **Progresso anunciando cada arquivo**: "Baixando o pacote zip (x MB)..." e "Descompactando (n de total): nome..." — incluindo cada mídia extraída; o usuário vê exatamente o que está sendo processado a cada momento;
-- **Contagem regressiva antes de encerrar**: após extrair e apagar o zip, exibe **"Download concluído. Reiniciando em 5..."** e conta 5 → 4 → 3 → 2 → 1 (1 segundo por número) e aí se auto-encerra (substitui o delay fixo de 2,6s);
+- **Contagem regressiva antes de encerrar**: após extrair e apagar o zip, exibe **"Download concluído. Reiniciando em 5..."** e conta 5 → 4 → 3 → 2 → 1 (1 segundo por número) e aí **executa a tarefa `001-CENTRAL_WHATS_CONNECT_API [wca]`** (reinicializa/reabre a Central com as cenas atualizadas) e **em seguida** se auto-encerra (substituiu o delay fixo de 2,6s);
 - **Limpeza segura**: qualquer arquivo de limpeza (parcial `.b64` ou zip) só é apagado **depois de confirmar que existe** (shell `if [ -f ]`) — o `deleteFile` do Tasker mostra um toast nativo de erro quando o arquivo não existe, o que aparecia em falha de download sem internet;
 - **Auto-encerramento com o identificador REAL da cena**: `010-DOWNLOAD_VIEW [wca]V2` (com o sufixo V2, como está no Tasker) — antes usava `010-DOWNLOAD_VIEW [wca]` sem o sufixo e o encerramento pelo nome não encontrava a cena; mantidos os fallbacks — e a cascata agora dispara **todos os métodos** (não para no primeiro que não lança erro, pois o Tasker pode aceitar em silêncio um identificador que não corresponde à tela: nome com V2, ID 1, dismissLayout e cancelScreen vão todos);
 - **Textos centralizados**: o texto de progresso ("Baixando...", "Download concluído.", avisos) ocupa a linha inteira da caixa (flex:1) para o centrado valer de verdade — antes o span encolhia à esquerda da caixa flex mesmo com text-align: center; o parágrafo explicativo do card também ficou centrado;

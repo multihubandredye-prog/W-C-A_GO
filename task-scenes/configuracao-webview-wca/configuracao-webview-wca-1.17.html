@@ -521,7 +521,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.16)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.17)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML E MEDIAS, gerado
 // automaticamente pelo GitHub Actions em cada release) e salva/descompacta
 // na pasta do WebView do dispositivo. As MEDIAS (pasta icons/ do zip) sao
@@ -535,7 +535,9 @@ body::before {
 // e criada via bridge e, ao
 // final, a cena VERIFICA fisicamente o arquivo gravado (existente, nao vazio
 // e com o tamanho exato esperado da release) antes de declarar sucesso,
-// exibir "Download concluido." com CONTAGEM REGRESSIVA (Reiniciando em 5 a 1) e AUTO-FECHAR (nome
+// exibir "Download concluido." com CONTAGEM REGRESSIVA (Reiniciando em 5 a 1),
+// EXECUTAR a tarefa 001-CENTRAL_WHATS_CONNECT_API [wca] (reinicia/reabre a Central
+// com as cenas atualizadas) e AUTO-FECHAR (nome
 // 010-DOWNLOAD_VIEW [wca]V2, ID 1 e reservas em cascata).
 // Apos baixar, o proprio zip e DESCOMPACTADO dentro da cena: leitura em
 // base64 pelo shell, parser do diretorio central do zip em JavaScript e
@@ -796,6 +798,9 @@ async function contagemRegressivaFechar(){
         definirProgresso('Download conclu\u00eddo. Reiniciando em ' + restante + '...', 'ok');
         await dormir(1000);
     }
+    // Ao terminar a contagem: executa a tarefa que reinicializa a Central e,
+    // em seguida, encerra esta cena (runTask resolve no despacho da tarefa)
+    try { await Promise.race([ taskerCall('runTask', { name: '001-CENTRAL_WHATS_CONNECT_API [wca]' }), bridgeTimeout(15000) ]); } catch (eTarefa) { }
     fecharPropriaCena();
 }
 
