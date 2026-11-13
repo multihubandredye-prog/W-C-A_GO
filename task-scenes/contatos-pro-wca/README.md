@@ -1,8 +1,8 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.12**
-Arquivo: `Contatos Pro WCA 1.12.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.13**
+Arquivo: `Contatos Pro WCA 1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**, **Grupos** e **Minha Agenda** em abas, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
@@ -21,7 +21,7 @@ Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**
 - **Layout centralizado**: o container (card + rodapé do desenvolvedor) fica centralizado verticalmente na tela quando há espaço sobrando (como na tela inicial de dispositivos); com conteúdo mais alto que a tela (lista de contatos/grupos grande), volta ao alinhamento do topo com rolagem normal, sem cortar nada;
 - **Listas longas**: a animação de entrada tem teto nos primeiros itens (evita itens que "sumiam" ao rolar, quando o atraso somado passava de segundos) e a busca só re-renderiza após uma pequena pausa (150 ms), com montagem da lista em fragmento — um único lote no DOM;
 - **Visual da Central (borda e avatar animados)**: o card principal tem a **borda giratória** da Central (anel cônico azul/verde em rotação contínua) e o avatar dos modais de contato e grupo tem o **anel giratório** ao redor da foto (mesmas cores e animação do projeto central-wca);
-- **Foto ampliada**: tocar no avatar do modal de contato ou grupo abre a foto **grande e arredondada** (com o mesmo anel giratório), com fundo escurecido; fecha com um toque em qualquer lugar, tecla Esc ou o botão voltar (o voltar fecha a foto ampliada primeiro e o modal permanece); **os avatares dos dispositivos conectados não têm esse recurso**;
+- **Foto ampliada**: tocar no avatar do modal de contato ou grupo abre a foto **grande e arredondada** (com o mesmo anel giratório), com fundo escurecido **por cima de tudo** (a sobreposição fica fora do card, no fim da página, acima dos modais e dos toasts); fecha com um toque em qualquer lugar, tecla Esc ou o botão voltar (o voltar fecha a foto ampliada primeiro e o modal permanece); **os avatares dos dispositivos conectados não têm esse recurso**;
 - **Números com fonte normal**: os números/JIDs exibidos nas linhas (contatos, grupos e agenda) e nos modais usam a fonte padrão do app (DM Sans), sem a fonte de títulos;
 - **Container na largura da tela**: o card ocupa a largura disponível da tela (com a margem de respiro do app);
 - **Toasts** de confirmação para cópias e ações de seleção.
