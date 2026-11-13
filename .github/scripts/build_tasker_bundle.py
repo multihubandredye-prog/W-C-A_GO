@@ -105,7 +105,16 @@ def validar_minificado(original, minificado):
     return problemas
 
 
+def fmt_kb(n):
+    # Tamanho legivel (KB/MB) para o resumo da release
+    n = max(0, n)
+    if n >= 1048576:
+        return f'{n / 1048576:.1f} MB'
+    return f'{n / 1024:.1f} KB'
+
+
 def main():
+
     raiz = Path.cwd()
     cenas_raiz = raiz / 'task-scenes'
     if not cenas_raiz.is_dir():
@@ -154,25 +163,32 @@ def main():
     # o pacote por conta propria, sem depender de recursos de descompressao
     # do WebView do aparelho
     minificadas = 0
+    linhas_resumo = []  # (nome, original, final, estado)
     with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_STORED) as z:
         for pasta in sorted(escolhidas):
             f, _ = escolhidas[pasta]
             destino = f'task-scenes/{pasta}/{f.name}'
             conteudo = f.read_text(encoding='utf-8')
+            tamanho_original = len(conteudo.encode('utf-8'))
             if ativa:
                 try:
                     reduzido = minificar_html(conteudo)
                     problemas = validar_minificado(conteudo, reduzido)
                     if problemas:
                         print(f'  AVISO: {destino} entra ORIGINAL no zip ({ "; ".join(problemas) })')
-                    else:
-                        z.writestr(destino, reduzido)
-                        minificadas += 1
-                        print(f'  minificada: {destino} ({len(conteudo.encode())} -> {len(reduzido.encode())} bytes)')
+                        z.write(f, destino)
+                        linhas_resumo.append((f.name, tamanho_original, tamanho_original, 'original (' + '; '.join(problemas) + ')'))
                         continue
+                    z.writestr(destino, reduzido)
+                    tamanho_final = len(reduzido.encode('utf-8'))
+                    minificadas += 1
+                    linhas_resumo.append((f.name, tamanho_original, tamanho_final, 'minificada'))
+                    print(f'  minificada: {destino} ({tamanho_original} -> {tamanho_final} bytes)')
+                    continue
                 except Exception as e:
                     print(f'  AVISO: {destino} entra ORIGINAL no zip (erro: {e})')
             z.write(f, destino)
+            linhas_resumo.append((f.name, tamanho_original, tamanho_original, 'original'))
         for f in midias:
             z.write(f, f'icons/{f.name}')
 
@@ -180,6 +196,53 @@ def main():
     resumo_min = f', {minificadas} minificada(s)' if ativa else ''
     print(f'OK: {nome_zip} criado com {total_cenas} cena(s){resumo_min} e '
           f'{len(midias)} midia(s).')
+
+    # ---- Resumo apresentavel para a tela Summary do run (GITHUB_STEP_SUMMARY) ----
+    destino_resumo = os.environ.get('GITHUB_STEP_SUMMARY', '')
+    if destino_resumo:
+        total_zip = os.path.getsize(nome_zip) if os.path.exists(nome_zip) else 0
+        total_ori = sum(l[1] for l in linhas_resumo)
+        total_fin = sum(l[2] for l in linhas_resumo)
+        pct = 100.0 * (total_ori - total_fin) / total_ori if total_ori else 0.0
+        repo = os.environ.get('GITHUB_REPOSITORY', '').strip()
+        tag_limpa = tag.removeprefix('v')
+        link = f'https://github.com/{repo}/releases/tag/{tag_limpa}' if repo and tag else ''
+        R = []
+        R.append(f'## 🚀 Pacote {nome_zip}')
+        R.append('')
+        R.append(f'**📦 Zip:** {fmt_kb(total_zip)} · ZIP_STORED (sem compressão interna, pronto para a cena 010-DOWNLOAD_VIEW)')
+        if ativa:
+            R.append(f'**✂️ Minificação:** ativada — {minificadas} minificada(s), {len(linhas_resumo) - minificadas} original(is)')
+        else:
+            R.append('**✂️ Minificação:** desativada nesta release (MINIFICAR=no)')
+        total_midias = sum(f.stat().st_size for f in midias)
+        R.append(f'**🎬 Mídias:** {len(midias)} arquivo(s) ({fmt_kb(total_midias)}) — ícones, áudio e vídeo em icons/')
+        R.append('')
+        R.append('| Cena | Original | No zip | Economia | Estado |')
+        R.append('|---|---:|---:|---:|---|')
+        for nome_cena, ori, fin, estado in linhas_resumo:
+            icon = '✅' if estado == 'minificada' else '⚠️'
+            if estado == 'minificada':
+                econom = f'-{100.0 * (ori - fin) / ori:.1f}%'
+            else:
+                econom = '—'
+            R.append(f'| {nome_cena} | {fmt_kb(ori)} | {fmt_kb(fin)} | {econom} | {icon} {estado} |')
+        R.append(f'| **TOTAL** | **{fmt_kb(total_ori)}** | **{fmt_kb(total_fin)}** | **-{pct:.1f}%** | {len(linhas_resumo)} cenas |')
+        if midias:
+            R.append('')
+            R.append('<details><summary>📁 Mídias incluídas (wca-resources/media → icons/)</summary>')
+            R.append('')
+            for f in midias:
+                R.append(f'- {f.name} — {fmt_kb(f.stat().st_size)}')
+            R.append('')
+            R.append('</details>')
+        if link:
+            R.append('')
+            R.append(f'🔗 [Ver release {tag_limpa}]({link})')
+        with open(destino_resumo, 'a', encoding='utf-8') as fh:
+            fh.write(chr(10).join(R) + chr(10))
+        print(f'Resumo da release gerado em {destino_resumo}')
+
 
 
 if __name__ == '__main__':

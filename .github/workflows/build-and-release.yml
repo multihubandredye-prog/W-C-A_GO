@@ -197,7 +197,7 @@ jobs:
           # Mover binário gerado para a raiz do repositório principal
           mv ffmpeg-wca-aarch64.bin ../
 
-      - name: Empacotar cenas e projetos do Tasker (zip)
+      - name: 📦 Empacotar cenas e projetos do Tasker (zip)
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
           MINIFICAR: ${{ inputs.minificar || 'yes' }}
