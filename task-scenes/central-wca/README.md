@@ -1,10 +1,19 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.40**
-Arquivo: `central-wca-1.40.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.41**
+Arquivo: `central-wca-1.41.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Desinstalação (desde a 1.41 — tudo dentro da cena)
+
+- **Menu → Desinstalar WCA** abre a confirmação e, ao confirmar, roda um **assistente dentro da cena** (overlay dedicado, acima de tudo) com **barra de progresso e passo a passo**:
+  1. **Etapa 1/3 — Desconectar os usuários**: consulta `GET /devices` da API (prazo de 3s); se a API **não estiver em execução**, a etapa é **pulada** com aviso; para cada dispositivo, o mesmo fluxo da lixeira (`/app/logout` + `DELETE /devices/{id}`) e limpeza do devices.json;
+  2. **Etapa 2/3 — Eliminar os arquivos**: enumera os arquivos de `/data/data/net.dinglisch.android.taskerm/files/WCA` e `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api` via `find`, exibe **nome por nome** ("Eliminando (n de total): arquivo...") e apaga um a um com **100ms** de alternância; no fim, `rm -rf` nas duas pastas;
+  3. **Etapa 3/3 — Concluído**: "Desinstalação concluída" e as **cenas se encerram em cascata** (`001-CENTRAL_WHATS_CONNECT_API [wca]V2` → `[wca]` → ID 1 → dismissLayout → cancelScreen);
+- **Não usa mais a tarefa 006** (`uninstall-wca`) — a cena V2 executa tudo por conta própria (shell + API);
+- **Configurações do desenvolvedor**: o botão saiu de junto ao menu e agora é um **item do próprio menu** ("Configurações do desenvolvedor — Parâmetros avançados (.env)") que abre o mesmo painel;
 
 ## Regras permanentes
 
