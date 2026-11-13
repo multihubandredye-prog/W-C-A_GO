@@ -19,5 +19,5 @@ Cada projeto fica em uma **subpasta própria**, contendo o **HTML da última ver
 - **Arquivo único por versão**: HTML + CSS + JS inline (sem arquivos externos, sem `%project_path`)
 - **Bridge V2**: `Tasker.runTask`, `Tasker.setVariable`, `Tasker.getVariable`, `Tasker.readFile`, `Tasker.writeFile`, `Tasker.listFiles`, `Tasker.deleteFile` — com prazo de 4s e nunca no caminho da inicialização
 - **Nenhuma variável do Tasker embutida no JavaScript** — a cena V2 não substitui variáveis dentro de `<script>`; tudo é lido em runtime via `Tasker.getVariable`
-- **Versões**: a cada alteração, um novo arquivo `Nome 1.x.html` é criado; no repositório permanece apenas a versão mais recente de cada projeto
+- **Versões**: a cada alteração, um novo arquivo é criado no padrão `nome-do-projeto-1.x.html` (minúsculas com hífen); no repositório permanece apenas a versão mais recente de cada projeto
 - **README por projeto**: descrição do funcionamento atual (mapa de cliques, variáveis, arquivos) — atualizado a cada alteração

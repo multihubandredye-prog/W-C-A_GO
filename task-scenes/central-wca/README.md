@@ -2,7 +2,7 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 Versão atual: **1.40**
-Arquivo: `Central WCA 1.40.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `central-wca-1.40.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 

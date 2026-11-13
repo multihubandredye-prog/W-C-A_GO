@@ -2,7 +2,7 @@
 
 Projeto: `006-ATUALIZACOES [wca]`
 Versão atual: **1.3**
-Arquivo: `Atualizações WCA 1.3.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `atualizacoes-wca-1.3.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Painel de atualizações: mostra quando há nova release **real** no repositório — a mais recente cujo TÍTULO traz o rótulo do tipo entre colchetes (`[UI]`, `[CORE]` ou `[FULL]`, com ou sem espaços/emoji; releases sem o rótulo no título, como testes, são **ignoradas**) — compara com a versão instalada (lida do arquivo `.../system/version`) e exibe o badge com o tipo e a tag: `core` = `ATUALIZAÇÃO DA API • tag` · `ui` = `ATUALIZAÇÃO DO TASKER • tag` · `full` = `ATUALIZAÇÃO COMPLETA • tag`. Exibe também as novidades (changelog do repositório, seção expansível — toque/clique FORA da seção recolhe a caixa) e o botão **Atualizar Agora** (sem ação quando não há atualização), que executa a `006-CONFIGURAR_SISTEMA [wca]` com o comando e o tipo da atualização.
 

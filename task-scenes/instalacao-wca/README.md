@@ -2,7 +2,7 @@
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
 Versão atual: **1.5**
-Arquivo: `Instalação WCA 1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `instalacao-wca-1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Cena de progresso da instalação: anel de progresso com percentual e cores variáveis, mensagem de status, tempo decorrido e card informativo por arquivo (temas por etapa).
 

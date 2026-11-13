@@ -2,7 +2,7 @@
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
 Versão atual: **1.13**
-Arquivo: `Contatos Pro WCA 1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `contatos-pro-wca-1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**, **Grupos** e **Minha Agenda** em abas, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 

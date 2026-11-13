@@ -2,7 +2,7 @@
 
 Projeto: `003-PAINEL_ATIVIDADE [wca]`
 Versão atual: **1.2**
-Arquivo: `Painel de Atividade WCA 1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `painel-de-atividade-wca-1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Fundo da cena: **transparente** (`--bg-body: transparent`) — a cena não pinta o fundo; o que aparece atrás é a superfície da própria cena (janela/dialogo) e o fundo configurado **no componente WebView** no editor da cena (para tirar o cinza, o fundo do componente WebView deve estar transparente lá).
 

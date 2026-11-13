@@ -2,7 +2,7 @@
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
 Versão atual: **1.0**
-Arquivo: `Gerar Tarefa de Envio WCA 1.0.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `gerar-tarefa-de-envio-wca-1.0.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seletor de dispositivo para gerar as tarefas de envio: consulta a API local, lista os dispositivos **logados** (nome + número completo) e, ao escolher um número, entrega à tarefa os dados no formato que o fluxo de criação espera. Estado inicial "Sincronizando...", com mensagens de resultado conforme a resposta da API.
 

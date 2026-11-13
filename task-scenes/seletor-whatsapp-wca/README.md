@@ -2,7 +2,7 @@
 
 Projeto: `004-WHATSAPP_SELETOR [wca]`
 Versão atual: **1.0**
-Arquivo: `Seletor de WhatsApp WCA 1.0.html` — **único arquivo**, com HTML + CSS + JS inline.
+Arquivo: `seletor-de-whatsapp-wca-1.0.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Painel de seleção do WhatsApp: quando mais de um aplicativo WhatsApp é detectado no dispositivo, exibe o badge "Sistema Detectado", o texto informativo e os dois botões de escolha — **WhatsApp Messenger** (verde) e **WhatsApp Business** (azul), separados pelo divisor "OU". Conteúdo estático (badge, texto e contagem são fixos, como no original).
 
