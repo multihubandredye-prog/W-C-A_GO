@@ -1,18 +1,18 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.5**
-Arquivo: `configuracao-webview-wca-1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.6**
+Arquivo: `configuracao-webview-wca-1.6.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
-Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Tasker, gerado automaticamente pelo GitHub Actions em cada release) e salva o arquivo **zipado** na pasta do WebView do dispositivo:
+Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML, gerado automaticamente pelo GitHub Actions em cada release) e salva o arquivo **zipado** na pasta do WebView do dispositivo:
 
 ```
 /storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view
 ```
 
-- **Release consultada na hora**: a cena pergunta à API do GitHub qual é a release mais recente que **já tem o pacote anexado** (procura o asset `WCA-Tasker-Projetos-<tag>.zip`, percorrendo da mais recente para a mais antiga) e mostra tag, nome do arquivo, tamanho em MB, data de publicação e a URL completa;
+- **Release consultada na hora**: a cena pergunta à API do GitHub qual é a release mais recente que **já tem o pacote anexado** (procura o asset `WCA-Tasker-Projetos-<tag>.zip`, percorrendo da mais recente para a mais antiga) e mostra tag, nome do arquivo, tamanho em MB, data de publicação (a URL não é exibida);
 - **Pacote padrão**: se a API não responder (sem internet/limite de requisições), a cena usa o pacote embutido **1.3.36** e o badge muda para "Pacote padrão";
 - **Vídeo do cabeçalho**: mesmo caminho das demais cenas (`icons/video-system.mp4`);
 - **Container centralizado na tela** (vertical e horizontal);
@@ -20,7 +20,7 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Ta
   1. `Tasker.httpRequest` com `fileToSave` e **header como UMA STRING** (`User-Agent: Tasker` — formato que o Tasker espera);
   2. o mesmo GET no **mínimo de opções** (sem header);
   3. reserva: `fetch` dentro do WebView convertendo os bytes em **base64** gravado via `writeFile` e decodificado no shell (`base64 -d`) — se falhar, o `.b64` parcial é apagado;
-  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado na pasta via base64 + shell; **a estrutura de pastas do pacote é mantida** (`task-scenes/` e `task-project/`) — **nada fica solto na raiz**; o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e contagem final `find | wc -l`;
+  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado na pasta via base64 + shell; **a estrutura de pastas do pacote é mantida** (`task-scenes/`) — **nada fica solto na raiz** (desde a 1.6 o pacote da release leva só as cenas; os projetos `.prj.xml` continuam como assets separados da release); o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e contagem final `find | wc -l`;
   5. o pacote do build é publicado **sem compressão interna** (ZIP_STORED), então cada entrada é um recorte direto dos bytes — sem depender de descompressão do WebView (entrada comprimida é inflada via `DecompressionStream`, se existir).
 
 ## Fluxo da tela

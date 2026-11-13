@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Monta o pacote WCA-Tasker-Projetos com:
-#   - task-scenes/*/ -> a ULTIMA versao (.html) de cada projeto de cena
-#   - task-project/  -> a ULTIMA versao de cada projeto do Tasker
+# Monta o pacote WCA-Tasker-Projetos com a ULTIMA versao (.html) de cada
+# projeto de cena em task-scenes/*/ — o pacote da release leva SOMENTE as
+# cenas; os projetos .prj.xml de task-project/ NAO entram no zip.
 # Roda no GitHub Actions antes da criacao da release; o zip sai na raiz do repo.
-# A deteccao e dinamica: novos projetos/pastas entram no pacote automaticamente.
+# A deteccao e dinamica: novas pastas/projetos entram no pacote automaticamente.
 import os
 import re
 import sys
@@ -17,12 +17,6 @@ def versao_de(stem):
     if not m:
         return None
     return tuple(int(p) for p in m.group(1).split('.'))
-
-
-def chave_sem_versao(nome_arquivo):
-    # Remove a versao do fim do nome mantendo a extensao completa
-    # (ex.: "W_C_A_API 1.2.prj.xml" -> "W_C_A_API.prj.xml").
-    return re.sub(r'\s*\d+(?:\.\d+)*\s*(?=\.)', '', nome_arquivo)
 
 
 def escolher(atual, cand):
@@ -39,42 +33,34 @@ def escolher(atual, cand):
     return cand if vc > va else atual
 
 
-def ultimas(arquivos, por_pasta):
+def ultimas(arquivos):
+    # Agrupa por pasta de projeto e mantem a versao mais alta de cada uma.
     grupos = {}
     for f in arquivos:
-        chave = f.parent.name if por_pasta else chave_sem_versao(f.name)
-        grupos[chave] = escolher(grupos.get(chave), (f, versao_de(f.stem)))
+        grupos[f.parent.name] = escolher(grupos.get(f.parent.name), (f, versao_de(f.stem)))
     return grupos
 
 
 def main():
     raiz = Path.cwd()
     cenas_raiz = raiz / 'task-scenes'
-    projetos_raiz = raiz / 'task-project'
     if not cenas_raiz.is_dir():
         print('ERRO: pasta task-scenes nao encontrada')
         sys.exit(1)
 
     cenas = sorted(cenas_raiz.glob('*/*.html'))
-    escolhidas = ultimas(cenas, por_pasta=True)
+    escolhidas = ultimas(cenas)
     if not escolhidas:
         print('ERRO: nenhuma cena encontrada em task-scenes/*/')
         sys.exit(1)
-
-    projetos = sorted(p for p in projetos_raiz.glob('*') if p.is_file()) if projetos_raiz.is_dir() else []
-    escolhidos = ultimas(projetos, por_pasta=False)
 
     tag = os.environ.get('RELEASE_TAG', '').strip().replace('/', '-')
     nome_zip = f'WCA-Tasker-Projetos-{tag}.zip' if tag else 'WCA-Tasker-Projetos.zip'
 
     print('Cenas incluidas (ultima versao por projeto):')
     for pasta in sorted(escolhidas):
-        f, v = escolhidas[pasta]
+        f, _ = escolhidas[pasta]
         print(f'  task-scenes/{pasta}/{f.name}')
-    print('Projetos do Tasker incluidos:')
-    for chave in sorted(escolhidos):
-        f, v = escolhidos[chave]
-        print(f'  task-project/{f.name}')
 
     # ZIP sem compressao interna (ZIP_STORED): cada entrada e um recorte
     # direto dos bytes, o que permite a cena 010-DOWNLOAD_VIEW descompactar
@@ -84,13 +70,8 @@ def main():
         for pasta in sorted(escolhidas):
             f, _ = escolhidas[pasta]
             z.write(f, f'task-scenes/{pasta}/{f.name}')
-        for chave in sorted(escolhidos):
-            f, _ = escolhidos[chave]
-            z.write(f, f'task-project/{f.name}')
 
-    total = len(escolhidas) + len(escolhidos)
-    print(f'OK: {nome_zip} criado com {total} arquivo(s) '
-          f'({len(escolhidas)} cena(s) + {len(escolhidos)} projeto(s)).')
+    print(f'OK: {nome_zip} criado com {len(escolhidas)} cena(s).')
 
 
 if __name__ == '__main__':

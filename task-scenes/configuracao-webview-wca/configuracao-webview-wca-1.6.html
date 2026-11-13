@@ -462,7 +462,7 @@ body::before {
             <div class="panel-body">
                 <div>
                     <div class="section-title">Configuração do WebView</div>
-                    <div class="section-sub">Pacote de cenas e projetos do Tasker</div>
+                    <div class="section-sub">Pacote de cenas do Tasker</div>
                 </div>
 
                 <div class="status-badge" id="statusBadge"><span class="mini-spinner" id="statusSpinner"></span><span id="statusTexto">Verificando a última release...</span></div>
@@ -488,7 +488,7 @@ body::before {
 
 
                 <div class="info-texto">
-                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e os <strong>projetos do Tasker</strong> da release mais recente do WhatsConnectApi.
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> da release mais recente do WhatsConnectApi.
                 </div>
 
                 <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
@@ -530,9 +530,9 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.5)
-// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
-// Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.6)
+// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML, gerado
+// automaticamente pelo GitHub Actions em cada release) e
 // salva o arquivo zipado na pasta do WebView do dispositivo.
 // TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker, em
 // uma CADEIA de tentativas: 1) bridge Tasker.httpRequest com fileToSave
