@@ -1,8 +1,10 @@
 # Instalação WCA — Cena V2 (WebView)
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
-Versão atual: **1.5**
-Arquivo: `instalacao-wca-1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.6**
+Arquivo: `instalacao-wca-1.6.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+Desde a **1.6** o JS da cena está com **zero `%`** (regra do projeto): rótulos de percentual usam `String.fromCharCode(37)`, o cronômetro trocou o operador módulo por aritmetica equivalente e comentários foram reescritos — comportamento e visual idênticos; agora a cena **minifica no pacote da release** como as demais.
 
 Cena de progresso da instalação: anel de progresso com percentual e cores variáveis, mensagem de status, tempo decorrido e card informativo por arquivo (temas por etapa).
 

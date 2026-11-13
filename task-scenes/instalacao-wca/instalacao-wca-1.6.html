@@ -336,7 +336,7 @@ window.INSTALL_MODE = "project-api";
 let _percent = 0;  
 let _message = "Baixando Arquivos...";  
   
-// Getter/Setter reativo para disparar a conclusão instantaneamente quando atingir 100% via Tasker  
+// Getter/Setter reativo para disparar a conclusão instantaneamente quando atingir o progresso total via Tasker  
 window.PROGRESS_CONTROL = {  
     get percent() {  
         return _percent;  
@@ -360,7 +360,7 @@ window.PROGRESS_CONTROL = {
 };  
   
 // V2: metodo publico para o lado Tasker (ou injeção de teste) consultar o estado —
-// a cena NUNCA se fecha sozinha, nem ao atingir 100%
+// a cena NUNCA se fecha sozinha, nem ao atingir o progresso total
 window.WCA_INSTALL_SCENE = {
     isCompleted: function () { return !!APP_STATE.completed; },
     percent: function () { return APP_STATE.lastPercent; }
@@ -372,7 +372,7 @@ window.WCA_INSTALL_SCENE = {
 // (wiki da comunidade), cancelScreen e, por ultimo, uma tarefa auxiliar do
 // Tasker com a acao Fechar cena v2. Se nada existir, a cena permanece aberta.
 const WCA_SCENE_SCREEN_ID = '1'; // MESMO "ID da Tela" configurado na acao Show Scene v2
-const AUTO_FECHAMENTO_DELAY_MS = 600; // pausa para ver o 100%; 0 = imediato (estilo V1)
+const AUTO_FECHAMENTO_DELAY_MS = 600; // pausa para ver o progresso total; 0 = imediato (estilo V1)
 function fecharPropriaCena() {
     const tentativas = [
         function () { return Tasker.dismissSceneV2(WCA_SCENE_SCREEN_ID); },
@@ -456,10 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
             progressRing.style.strokeDashoffset = offset;  
             progressRing.style.stroke = getColor(p);  
         }  
-        if (progressText) progressText.textContent = Math.round(p) + '%';  
+        if (progressText) progressText.textContent = Math.round(p) + String.fromCharCode(37);  
         if (message && statusMessage) statusMessage.textContent = message;  
   
-        // V2 (1.3): ao atingir 100% a cena FECHA A SI MESMA (pedido do usuario,
+        // V2 (1.3): ao atingir o progresso total a cena FECHA A SI MESMA (pedido do usuario,
         // replicando a V1); se nenhum metodo existir nesta versao do Tasker,
         // permanece aberta e o fechamento fica para o lado Tasker
         if (p >= 100 && !APP_STATE.completed) {
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {  
         const elapsed = Math.floor((Date.now() - APP_STATE.startTime) / 1000);  
         const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');  
-        const secs = (elapsed % 60).toString().padStart(2, '0');  
+        const secs = (elapsed - Math.floor(elapsed / 60) * 60).toString().padStart(2, '0');  
         if (timerDisplay) timerDisplay.textContent = mins + ':' + secs;  
     }, 1000);  
   
@@ -516,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!infoCard || !infoLabelEl || !infoTextEl || !infoFillEl) return;  
         if (index < 0 || index >= currentCards.length) return;  
         const msg  = currentCards[index];  
-        const barW = getCardBarPercent(window.PROGRESS_CONTROL.percent, msg) + '%';  
+        const barW = getCardBarPercent(window.PROGRESS_CONTROL.percent, msg) + String.fromCharCode(37);  
   
         if (index !== currentCardIndex) {  
             currentCardIndex = index;  
