@@ -521,7 +521,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.12)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.13)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML E MEDIAS, gerado
 // automaticamente pelo GitHub Actions em cada release) e salva/descompacta
 // na pasta do WebView do dispositivo. As MEDIAS (pasta icons/ do zip) sao
@@ -536,7 +536,7 @@ body::before {
 // final, a cena VERIFICA fisicamente o arquivo gravado (existente, nao vazio
 // e com o tamanho exato esperado da release) antes de declarar sucesso,
 // exibir apenas "Download concluido." e se AUTO-FECHAR (nome
-// 010-DOWNLOAD_VIEW [wca] ou ID 1 - equivalentes).
+// 010-DOWNLOAD_VIEW [wca]V2, ID 1 e reservas em cascata).
 // Apos baixar, o proprio zip e DESCOMPACTADO dentro da cena: leitura em
 // base64 pelo shell, parser do diretorio central do zip em JavaScript e
 // gravacao arquivo por arquivo (o build publica o zip SEM compressao
@@ -545,7 +545,7 @@ body::before {
 // o zip e apagado no fim. As etapas visuais tem TEMPO MINIMO de exibicao
 // para o usuario acompanhar cada fase.
 
-const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]';
+const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]V2';
 const SCENE_SCREEN_ID = '1';
 const AUTO_FECHAMENTO_DELAY_MS = 2600;
 const TEMPO_MINIMO_BAIXANDO_MS = 1800;
