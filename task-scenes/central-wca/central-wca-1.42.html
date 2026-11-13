@@ -4160,6 +4160,9 @@ async function loadVersionFile(){
     // Na V1 o caminho da foto chegava pela variavel photo_profile do Tasker;
     // na V2 a cena localiza o arquivo direto na pasta
     const MODE_SYSTEM_LOG_PATH = '/storage/emulated/0/.system_cache/.mode-system.log';
+const SYS_CONFIG_PATH = '/storage/emulated/0/.system_cache/.sys_config.txt';
+const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
+
     // ---- Camada de I/O pelo bridge (padrao do app de exemplo, comprovado no aparelho) ----
     // O Tasker.readFile NAO e confiavel dentro da cena: pode devolver lixo interno
     // do bridge em vez do conteudo (foi o que virou "v scenev2_webview_action" no
@@ -5536,12 +5539,179 @@ async function loadVersionFile(){
     // Informa que nenhum acesso Premium ativo foi encontrado na verificação
     // Fluxo V2: apenas grava variáveis na cena (Tasker.setVariable);
     // nenhuma tarefa é executada aqui — quem reage é o lado Tasker
-    async function taskPremiumNotFound() {
+    // ---- Verificacao Premium DIRETA pela Vercel (dentro da cena, sem tarefa) ----
+    // Replica o fluxo que antes rodava em Java no Tasker: descobre o telefone
+    // do dispositivo principal (devices.json), consulta a Vercel com
+    // aquecimento (5s) + pausa (2s) + consulta real (15s), interpreta
+    // nome/expiracao/status, monta a linha no formato original e grava
+    // .mode-system.log + .sys_config.txt; por fim recarrega o log pelo
+    // pipeline oficial (selo, nome, boas-vindas, foto)
+    function premsDataHojeIso(){
+        const agora = new Date();
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const dia = String(agora.getDate()).padStart(2, '0');
+        return agora.getFullYear() + '-' + mes + '-' + dia;
+    }
+
+    function premsDataMaisDias(iso, dias){
         try {
-            await Tasker.setVariable('task', '5');
-            await Tasker.setVariable('task_exit', 'status_premium');
-        } catch (e) {
+            const partes = String(iso).split('-');
+            if (partes.length !== 3) return String(iso);
+            const d = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+            d.setDate(d.getDate() + dias);
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            const dia = String(d.getDate()).padStart(2, '0');
+            return d.getFullYear() + '-' + mes + '-' + dia;
+        } catch (eData) { return String(iso); }
+    }
+
+    function premsDataIsoParaBr(iso){
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(iso || ''))) return String(iso || '');
+        const partes = String(iso).split('-');
+        return partes[2] + '/' + partes[1] + '/' + partes[0];
+    }
+
+    function premsDiasRestantes(iso){
+        try {
+            const partes = String(iso).split('-');
+            if (partes.length !== 3) return 0;
+            const alvo = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+            const hojePartes = premsDataHojeIso().split('-');
+            const hoje = new Date(Number(hojePartes[0]), Number(hojePartes[1]) - 1, Number(hojePartes[2]));
+            return Math.round((alvo.getTime() - hoje.getTime()) / 86400000);
+        } catch (eDias) { return 0; }
+    }
+
+    function premsHoraAgora(){
+        const agora = new Date();
+        const h = String(agora.getHours()).padStart(2, '0');
+        const m = String(agora.getMinutes()).padStart(2, '0');
+        const s2 = String(agora.getSeconds()).padStart(2, '0');
+        return h + ':' + m + ':' + s2;
+    }
+
+    function premsCampoJson(texto, campo){
+        // Leitura tolerante igual ao fluxo original: procura "campo":"valor"
+        const normalizado = String(texto || '').replace(/":\s+"/g, '":');
+        const marca = '"' + campo + '":"';
+        const i = normalizado.indexOf(marca);
+        if (i < 0) return '';
+        const inicio = i + marca.length;
+        const fim = normalizado.indexOf('"', inicio);
+        if (fim <= inicio) return '';
+        return normalizado.substring(inicio, fim);
+    }
+
+    async function premsLerSysConfig(){
+        try {
+            const texto = await lerArquivo(SYS_CONFIG_PATH, null);
+            const bruto = String(texto || '');
+            if (!bruto) return { nome: '', expiration: '' };
+            return { nome: premsCampoJson(bruto, 'nome'), expiration: premsCampoJson(bruto, 'expiration') };
+        } catch (eLe) { return { nome: '', expiration: '' }; }
+    }
+
+    async function premsTelefonePrincipal(){
+        // Mesma fonte do fluxo original: jid do dispositivo is_principal
+        // em devices.json (cache; se vazio, le direto do arquivo)
+        const pegaJid = function (lista){
+            for (let i = 0; i < lista.length; i++) {
+                const d = lista[i];
+                if (d && d.is_principal && d.jid) return String(d.jid);
+            }
+            return '';
+        };
+        let jid = '';
+        try { jid = pegaJid(readDevicesFile() || []); } catch (eCache) { jid = ''; }
+        if (!jid) {
+            try {
+                const bruto = await lerArquivo(CONFIG.DEVICES_FILE_PATH, null);
+                const lista = JSON.parse(String(bruto || '[]'));
+                if (Array.isArray(lista)) jid = pegaJid(lista);
+            } catch (eArquivo) { jid = ''; }
         }
+        if (!jid) return '';
+        return String(jid).split('@')[0] || '';
+    }
+
+    function premsFetchComPrazo(url, ms){
+        return new Promise(function (resolve, reject){
+            let controlador = null;
+            if (typeof AbortController !== 'undefined') controlador = new AbortController();
+            const t = setTimeout(function (){
+                if (controlador) { try { controlador.abort(); } catch (eAb) { } }
+                reject(new Error('prazo esgotado'));
+            }, ms);
+            const opcoes = controlador ? { signal: controlador.signal } : undefined;
+            fetch(url, opcoes).then(function (r){ clearTimeout(t); resolve(r); }).catch(function (eF){ clearTimeout(t); reject(eF); });
+        });
+    }
+
+    async function premsGravarArquivos(linha, nome, expirationIso, dias){
+        const nomeSeguro = String(nome).replace(/"/g, '');
+        const registro = '{"nome":"' + nomeSeguro + '","expiration":"' + expirationIso + '","dias":' + dias + ',"lastCheck":' + Date.now() + '}';
+        try { await taskerCall('writeFile', { path: MODE_SYSTEM_LOG_PATH, text: linha, append: false }); } catch (eLog) { }
+        try { await taskerCall('writeFile', { path: SYS_CONFIG_PATH, text: registro, append: false }); } catch (eCfg) { }
+    }
+
+    async function verificarPremiumDireto(){
+        const hoje = premsDataHojeIso();
+        let telefone = '';
+        try { telefone = await premsTelefonePrincipal(); } catch (eTel) { telefone = ''; }
+        const temTelefone = !!telefone && telefone.length >= 10;
+        let nome = '', expiracao = '', status = '';
+        if (temTelefone) {
+            const alvo = PREMIUM_VERCEL_BASE + '?phone=' + telefone;
+            try { await premsFetchComPrazo(alvo, 5000); } catch (eAquece) { }
+            await new Promise(function (r){ setTimeout(r, 2000); });
+            try {
+                const resposta = await premsFetchComPrazo(alvo, 15000);
+                if (resposta && resposta.ok) {
+                    const bruto = await resposta.text();
+                    nome = premsCampoJson(bruto, 'nome');
+                    expiracao = premsCampoJson(bruto, 'expiracao');
+                    status = premsCampoJson(bruto, 'status');
+                }
+            } catch (eConsulta) { }
+        }
+        const guardado = await premsLerSysConfig();
+        const expiracaoValida = /^\d{4}-\d{2}-\d{2}$/.test(expiracao);
+        let tipo, nomeFinal, expiracaoFinal;
+        if (expiracaoValida && (status === 'premium' || status === 'expired')) {
+            tipo = 'PREMIUM';
+            nomeFinal = nome ? nome : 'Premium';
+            expiracaoFinal = expiracao;
+        } else {
+            const nomeGuardado = (guardado && guardado.nome) ? guardado.nome : '';
+            const expGuardada = (guardado && /^\d{4}-\d{2}-\d{2}$/.test(guardado.expiration || '')) ? guardado.expiration : '';
+            if (temTelefone) {
+                // Resposta online com status fora de premium/expired (teste,
+                // pending_activation, cancelled...): modo teste como no original
+                tipo = 'MODO TESTE';
+                nomeFinal = 'Teste';
+            } else {
+                // Sem telefone (ou consulta indisponivel): repete o ultimo
+                // estado guardado no .sys_config.txt, como no fluxo original
+                tipo = (nomeGuardado && nomeGuardado !== 'Teste') ? 'PREMIUM' : 'MODO TESTE';
+                nomeFinal = nomeGuardado ? nomeGuardado : 'Teste';
+            }
+            expiracaoFinal = expGuardada ? expGuardada : premsDataMaisDias(hoje, 7);
+        }
+        const dias = premsDiasRestantes(expiracaoFinal);
+        const sufixo = dias < 0 ? 'ASSINATURA EXPIRADA' : (dias === 0 ? 'VENCE HOJE' : dias + ' dias restantes');
+        const linha = '[' + premsHoraAgora() + '] ' + tipo + ' | Usuário: ' + nomeFinal + ' | Data de Expiração: ' + premsDataIsoParaBr(expiracaoFinal) + ' | ' + sufixo;
+        await premsGravarArquivos(linha, nomeFinal, expiracaoFinal, dias);
+        // Recarrega o log recem-gravado pelo pipeline oficial: selo, nome,
+        // boas-vindas, foto e mensagem de servidor offline
+        try { await loadModeSystemLog(); } catch (eAplicar) { }
+        if (dias < 0) {
+            showToast({ title: 'ASSINATURA EXPIRADA', message: 'Venceu em ' + premsDataIsoParaBr(expiracaoFinal), type: 'error', duration: 5000 });
+        } else if (tipo === 'PREMIUM') {
+            showToast({ title: 'PREMIUM ATIVO', message: (dias === 0 ? 'Vence hoje' : dias + ' dias restantes') + ' · Vence em ' + premsDataIsoParaBr(expiracaoFinal), type: 'success', duration: 5000 });
+        } else {
+            showToast({ title: 'MODO TESTE ATIVO', message: (dias === 0 ? 'Vence hoje' : dias + ' dias restantes') + ' · Vence em ' + premsDataIsoParaBr(expiracaoFinal), type: 'info', duration: 5000 });
+        }
+        return linha;
     }
 
 
@@ -6568,22 +6738,14 @@ async function loadVersionFile(){
     function openPremiumCheck(){ closeModal('helpModal'); openModal('premiumCheckModal'); }
     function closePremiumCheck(){ closeModal('premiumCheckModal'); }
 
+    // A verificacao agora e DIRETA pela Vercel, dentro da cena (sem tarefa):
+    // fecha o modal, avisa o usuario e dispara o fluxo completo
     function confirmPremiumCheck(){
         closeModal('premiumCheckModal');
-        const isPremium     = isPremiumLogData();
-        const isExpired = isExpiredLogData();
-        if(isPremium && !isExpired){
-            openHelp();
-            const toast = document.getElementById('premiumToast');
-            if(toast){
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 5000);
-            }
-        } else {
-            processLicense();
-            taskPremiumNotFound();
-        }
+        showToast({ title: 'Sincronizando', message: 'Verificando sua assinatura Premium...', type: 'info', duration: 8000 });
+        verificarPremiumDireto();
     }
+
 
     function openCodePhone(id){
         currentPairDeviceId = id;
