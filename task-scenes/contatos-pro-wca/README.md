@@ -1,8 +1,8 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.10**
-Arquivo: `Contatos Pro WCA 1.10.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.11**
+Arquivo: `Contatos Pro WCA 1.11.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**, **Grupos** e **Minha Agenda** em abas, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
@@ -20,6 +20,8 @@ Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**
 - **Avatares (fotos de perfil)**: a cena busca a foto real de cada **dispositivo conectado** na tela inicial e, ao abrir o modal, do **contato** ou **grupo**; a consulta é `GET /user/avatar?phone=<jid>&is_preview=false&is_community=false` (a mesma usada pela Central), com `X-Device-Id` do próprio dispositivo; a URL devolvida aponta para os servidores do WhatsApp e é aplicada direto na imagem, que substitui o ícone do WhatsApp quando carrega; cache em memória por JID evita repetir a consulta (o botão **Atualizar Dispositivos** limpa o cache e refaz as fotos); se a busca falhar, demorar ou o item não tiver foto, o ícone do WhatsApp permanece;
 - **Layout centralizado**: o container (card + rodapé do desenvolvedor) fica centralizado verticalmente na tela quando há espaço sobrando (como na tela inicial de dispositivos); com conteúdo mais alto que a tela (lista de contatos/grupos grande), volta ao alinhamento do topo com rolagem normal, sem cortar nada;
 - **Listas longas**: a animação de entrada tem teto nos primeiros itens (evita itens que "sumiam" ao rolar, quando o atraso somado passava de segundos) e a busca só re-renderiza após uma pequena pausa (150 ms), com montagem da lista em fragmento — um único lote no DOM;
+- **Números com fonte normal**: os números/JIDs exibidos nas linhas (contatos, grupos e agenda) e nos modais usam a fonte padrão do app (DM Sans), sem a fonte de títulos;
+- **Container na largura da tela**: o card ocupa a largura disponível da tela (com a margem de respiro do app);
 - **Toasts** de confirmação para cópias e ações de seleção.
 
 ## Variáveis do Tasker consumidas pela cena
