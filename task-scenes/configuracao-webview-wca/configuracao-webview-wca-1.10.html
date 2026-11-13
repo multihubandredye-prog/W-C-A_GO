@@ -100,7 +100,7 @@ body::before {
     background: linear-gradient(135deg, rgba(15, 157, 203, 0.1) 0%, rgba(0,0,0,0.4) 100%);
     border-bottom: 1px solid var(--border);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     position: relative;
 }
@@ -114,13 +114,6 @@ body::before {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
     opacity: 0.3;
-}
-
-.header-video {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    object-fit: cover;
 }
 
 .panel-header h2 {
@@ -442,7 +435,6 @@ body::before {
 
 @media (max-width: 520px) {
     .content-wrapper { max-width: 94vw; }
-    .header-video { width: 46px; height: 46px; }
     .panel-header h2 { font-size: 17px; }
     .panel-body { padding: 16px 16px 20px; }
     .section-title { font-size: 1.05rem; }
@@ -454,9 +446,7 @@ body::before {
 
         <div class="main-container">
             <header class="panel-header">
-                <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
                 <h2><span class="accent-text">WHATS CONNECT API</span></h2>
-                <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
             </header>
 
             <div class="panel-body">
@@ -534,7 +524,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.9)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.10)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML, gerado
 // automaticamente pelo GitHub Actions em cada release) e as MEDIAS do
 // projeto direto do repositorio (wca-resources/media no branch main, via

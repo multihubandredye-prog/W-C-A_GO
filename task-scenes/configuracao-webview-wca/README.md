@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.9**
-Arquivo: `configuracao-webview-wca-1.9.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.10**
+Arquivo: `configuracao-webview-wca-1.10.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -16,6 +16,7 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML, gerado automaticam
 - **Pacote padrão**: se a API não responder (sem internet/limite de requisições), a cena usa o pacote embutido **1.3.36** e o badge muda para "Pacote padrão";
 - **Vídeo do cabeçalho**: mesmo caminho das demais cenas (`icons/video-system.mp4`);
 - **Container centralizado na tela** (vertical e horizontal);
+- **Cabeçalho sem vídeos**: só o título "WHATS CONNECT API" centrado (sem os círculos de vídeo ao lado — exclusividade visual desta cena);
 - **Download feito INTEIRO pela cena, sem nenhuma tarefa do Tasker**, em cadeia de tentativas:
   1. `Tasker.httpRequest` com `fileToSave` e **header como UMA STRING** (`User-Agent: Tasker` — formato que o Tasker espera);
   2. o mesmo GET no **mínimo de opções** (sem header);
