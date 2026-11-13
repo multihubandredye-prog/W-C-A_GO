@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.33**
-Arquivo: `Central WCA 1.33.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.34**
+Arquivo: `Central WCA 1.34.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
@@ -97,16 +97,19 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Configurações de desenvolvedor (arquivo .env da API)
 
-O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o painel que edita o arquivo `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` — as configurações da API no dispositivo:
+O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o painel que edita o arquivo `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` — as configurações da API no dispositivo. O painel ocupa a largura da tela e a lista de opções tem área de rolagem ampla:
 
-- **Só o que pode mudar aparece no painel**: Mensagens (resposta automática, marcar como lida, recusar chamadas), Mídia (download automático, segundos antes de apagar), Webhook (ignorar certificado, atraso, tentativas de entrega, **ECO** de mensagens enviadas, eventos), Conta e presença (validação, presença ao conectar, pulso de presença e intervalos);
-- Cada opção **ATIVADO/DESATIVADO** funciona como seleção (uma das duas); os **eventos do webhook** são caixas de seleção com **todas as 18 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos);
+- **Aplicação**: **APP_OS** — o nome do app que o WhatsApp mostra como aparelho conectado. **Na instalação é gravado automaticamente** com o nome da sessão que você definir (o arquivo é criado na instalação com o padrão completo; sem nome definido, fica `app_os`);
+- **Mensagens**: resposta automática (texto), marcar como lida, recusar chamadas; **Mídia**: download automático e segundos antes de apagar; **Webhook**: atraso, tentativas de entrega, **ECO** de mensagens enviadas (`INCLUDE_OUTGOING`) e eventos; **Conta e presença**: validação, presença ao conectar e pulso de presença;
+- Cada opção **ATIVADO/DESATIVADO** funciona como seleção (uma das duas); a **presença ao conectar** (available/unavailable/none) e os **tempos do pulso** são botões-chip com opções padrão (intervalo: 30m/1h/6h/12h/24h/48h; duração: 1m/5m/15m/30m/1h) — sem menus nativos do sistema;
+- Os **eventos do webhook** são caixas de seleção com **todas as 18 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos);
 - **Ícone "?" em cada item** abre um comentário curto explicando o que aquela configuração faz;
-- **Primeira instalação**: o arquivo não precisa existir — o painel abre com os valores padrão e o arquivo só é **criado quando você salva** (sempre completo, no formato padrão do sistema);
-- **Cada salvamento regenera o arquivo inteiro**: as chaves fixas (porta, host, credenciais de acesso, banco de dados, endereço e segredo do webhook, armazenamento de conversas) ficam sempre no padrão do sistema e não aparecem no painel;
+- **Cada salvamento regenera o arquivo inteiro** no formato padrão: as chaves fixas (porta, host, credenciais de acesso, banco de dados, endereço e segredo do webhook, `INSECURE_SKIP_VERIFY=false`, armazenamento de conversas) ficam sempre no padrão do sistema e não aparecem no painel;
 - **Aplicar**: as mudanças valem **depois de reiniciar a API** — use **SALVAR E REINICIAR** (dispara o mesmo reinício do menu) ou **SALVAR** e reinicie depois;
-- Validações impedem salvar valores inválidos (ex.: tentativas menores que 1, duração de pulso sem unidade **s/m/h** — o formato que a API aceita);
+- Validações impedem salvar valores inválidos (ex.: tentativas menores que 1, segundos não numéricos);
 - O modal participa do botão voltar como os demais (fecha pelo voltar, X, tocar fora ou Esc).
+
+**Arquivo inexistente**: sem o `.env`, a API sobe com os valores internos dela (que NÃO são o padrão do WCA — inclusive sem credenciais de acesso definidas). Por isso a instalação passa a **criar o arquivo automaticamente** com o padrão completo (e o `APP_OS` do nome da sessão). Antes da primeira instalação, o painel abre com os valores padrão sem ler nada.
 
 ## Como atualizar no Tasker
 
