@@ -251,15 +251,6 @@ body::before {
 
 .row-value.destaque { color: var(--accent); }
 
-.url-linha {
-    margin-top: 8px;
-    font-size: 0.62rem;
-    color: var(--text-muted);
-    word-break: break-all;
-    text-align: left;
-    font-family: monospace;
-}
-
 .info-texto {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -318,7 +309,7 @@ body::before {
 .progresso-texto {
     font-size: 0.8rem;
     color: var(--text-main);
-    text-align: left;
+    text-align: center;
     line-height: 1.5;
 }
 
@@ -493,7 +484,6 @@ body::before {
                         <span class="row-label">Publicado</span>
                         <span class="row-value" id="pacoteData"></span>
                     </div>
-                    <div class="url-linha" id="pacoteUrl"></div>
                 </div>
 
 
@@ -540,7 +530,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.3)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.4)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
 // Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
 // salva o arquivo zipado na pasta do WebView do dispositivo.
@@ -554,10 +544,20 @@ body::before {
 // e com o tamanho exato esperado da release) antes de declarar sucesso,
 // exibir apenas "Download concluido." e se AUTO-FECHAR (nome
 // 010-DOWNLOAD_VIEW [wca] ou ID 1 - equivalentes).
+// Apos baixar, o proprio zip e DESCOMPACTADO dentro da cena: leitura em
+// base64 pelo shell, parser do diretorio central do zip em JavaScript e
+// gravacao arquivo por arquivo (o build publica o zip SEM compressao
+// interna, entao cada entrada e um recorte direto dos bytes). A pasta
+// task-project/ entra na raiz (prefixo removido, como no fluxo manual) e
+// o zip e apagado no fim. As etapas visuais tem TEMPO MINIMO de exibicao
+// para o usuario acompanhar cada fase.
 
 const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]';
 const SCENE_SCREEN_ID = '1';
-const AUTO_FECHAMENTO_DELAY_MS = 1400;
+const AUTO_FECHAMENTO_DELAY_MS = 2600;
+const TEMPO_MINIMO_BAIXANDO_MS = 1800;
+const TEMPO_MINIMO_VERIFICANDO_MS = 1200;
+
 const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
 const PASTA_DESTINO = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
 const PACOTE_PADRAO = {
@@ -674,7 +674,6 @@ function renderizarPacote(){
     document.getElementById('pacoteArquivo').textContent = pacoteAtual.arquivo;
     document.getElementById('pacoteTamanho').textContent = formatarTamanho(pacoteAtual.tamanho);
     document.getElementById('pacoteData').textContent = formatarData(pacoteAtual.publicado);
-    document.getElementById('pacoteUrl').textContent = pacoteAtual.url;
     card.style.display = 'block';
     const botao = document.getElementById('btnBaixar');
     if (botao) botao.disabled = false;
@@ -891,6 +890,149 @@ async function baixarPacote(){
     }
 }
 
+function dormir(ms){
+    return new Promise(function (r) { setTimeout(r, ms); });
+}
+
+// Mantem cada etapa visivel por um tempo minimo (visualizacao das fases)
+async function garantirTempoVisivel(inicio, minimo){
+    const restante = minimo - (Date.now() - inicio);
+    if (restante > 0) await dormir(restante);
+}
+
+function bytesParaBinario(bytes){
+    let binario = '';
+    const bloco = 8192;
+    for (let i = 0; i < bytes.length; i += bloco) {
+        binario += String.fromCharCode.apply(null, bytes.subarray(i, i + bloco));
+    }
+    return binario;
+}
+
+function base64ParaBytes(b64){
+    const binario = atob(b64);
+    const bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    return bytes;
+}
+
+// Leitura do zip gravado em base64 (uma chamada de shell)
+async function lerZipComoBase64(){
+    const r = await Promise.race([ taskerCall('runShell', { cmd: 'base64 ' + shellQuote(caminhoArquivo()), root: false, timeout: 60 }), bridgeTimeout(70000) ]);
+    return String(r && r.stdout || '').replace(/\s+/g, '');
+}
+
+// Rejeita caminhos perigosos (zip-slip) antes de gravar qualquer arquivo
+function nomeSeguro(nome){
+    if (String(nome).indexOf('\\') >= 0) return null;
+    const partes = String(nome).split('/').filter(function (p) { return p !== ''; });
+    for (let i = 0; i < partes.length; i++) {
+        if (partes[i] === '..') return null;
+    }
+    if (!partes.length) return null;
+    return partes.join('/');
+}
+
+// Infla uma entrada DEFLATED do zip (quando existir); o pacote do build e
+// armazenado sem compressao, entao este caminho e defensivo
+async function inflarDeflate(bytes){
+    const ds = new DecompressionStream('deflate-raw');
+    const fluxo = new Blob([bytes]).stream().pipeThrough(ds);
+    const buffer = await new Response(fluxo).arrayBuffer();
+    return new Uint8Array(buffer);
+}
+
+// Parser do diretorio central do zip (estrutura padrao PK)
+function lerDiretorioCentral(bytes){
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let eocd = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 66000); i--) {
+        if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x05 && bytes[i + 3] === 0x06) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('assinatura-final');
+    const total = dv.getUint16(eocd + 10, true);
+    let ponteiro = dv.getUint32(eocd + 16, true);
+    const entradas = [];
+    for (let n = 0; n < total; n++) {
+        if (dv.getUint32(ponteiro, true) !== 0x02014b50) throw new Error('diretorio-central');
+        const metodo = dv.getUint16(ponteiro + 10, true);
+        const tamanho = dv.getUint32(ponteiro + 20, true);
+        const nomeLen = dv.getUint16(ponteiro + 28, true);
+        const extraLen = dv.getUint16(ponteiro + 30, true);
+        const comentarioLen = dv.getUint16(ponteiro + 32, true);
+        const offsetLocal = dv.getUint32(ponteiro + 42, true);
+        const nome = new TextDecoder().decode(bytes.subarray(ponteiro + 46, ponteiro + 46 + nomeLen));
+        ponteiro += 46 + nomeLen + extraLen + comentarioLen;
+        entradas.push({ nome: nome, metodo: metodo, tamanho: tamanho, offsetLocal: offsetLocal });
+    }
+    return entradas;
+}
+
+function bytesDaEntrada(bytes, entrada){
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (dv.getUint32(entrada.offsetLocal, true) !== 0x04034b50) throw new Error('cabecalho-local');
+    const nomeLen = dv.getUint16(entrada.offsetLocal + 26, true);
+    const extraLen = dv.getUint16(entrada.offsetLocal + 28, true);
+    const inicio = entrada.offsetLocal + 30 + nomeLen + extraLen;
+    return bytes.subarray(inicio, inicio + entrada.tamanho);
+}
+
+// Extrai TODOS os arquivos do zip para a pasta do WebView:
+// task-project/ perde o prefixo (entra na raiz, como no fluxo manual);
+// task-scenes/ e mantido. Cada arquivo sai por base64 + shell.
+async function extrairPacote(){
+    let bytes = null;
+    const b64 = await lerZipComoBase64();
+    if (b64 && b64.length > 100) {
+        try { bytes = base64ParaBytes(b64); } catch (eConv) { bytes = null; }
+    }
+    if (!bytes) {
+        const resposta = await fetch(pacoteAtual.url, { cache: 'no-store' });
+        if (!resposta || !resposta.ok) throw new Error('fonte');
+        bytes = new Uint8Array(await resposta.arrayBuffer());
+    }
+    const entradas = lerDiretorioCentral(bytes);
+    const alvos = [];
+    for (let i = 0; i < entradas.length; i++) {
+        const e = entradas[i];
+        if (e.nome.charAt(e.nome.length - 1) === '/') continue;
+        let nome = e.nome;
+        if (nome.indexOf('task-project/') === 0) nome = nome.slice('task-project/'.length);
+        const limpo = nomeSeguro(nome);
+        if (!limpo) throw new Error('entrada-suspeita: ' + e.nome);
+        alvos.push({ nome: limpo, metodo: e.metodo, dados: bytesDaEntrada(bytes, e) });
+    }
+    if (!alvos.length) throw new Error('vazio');
+    const pastas = {};
+    for (let i = 0; i < alvos.length; i++) {
+        const pos = alvos[i].nome.lastIndexOf('/');
+        if (pos > 0) pastas[alvos[i].nome.slice(0, pos)] = true;
+    }
+    const listaPastas = Object.keys(pastas);
+    if (listaPastas.length) {
+        const cmd = 'mkdir -p ' + shellQuote(PASTA_DESTINO) + listaPastas.map(function (pasta) { return ' ' + shellQuote(PASTA_DESTINO + '/' + pasta); }).join('');
+        await Promise.race([ taskerCall('runShell', { cmd: cmd, root: false, timeout: 20 }), bridgeTimeout(30000) ]);
+    }
+    for (let i = 0; i < alvos.length; i++) {
+        const alvo = alvos[i];
+        let conteudo = alvo.dados;
+        if (alvo.metodo === 8) {
+            conteudo = await inflarDeflate(alvo.dados);
+        } else if (alvo.metodo !== 0) {
+            throw new Error('compressao-desconhecida');
+        }
+        const caminho = PASTA_DESTINO + '/' + alvo.nome;
+        const parcial = caminho + '.b64';
+        await Promise.race([ taskerCall('writeFile', { path: parcial, text: btoa(bytesParaBinario(conteudo)), append: false }), bridgeTimeout(60000) ]);
+        const decodificado = await Promise.race([ taskerCall('runShell', { cmd: 'base64 -d ' + shellQuote(parcial) + ' > ' + shellQuote(caminho) + ' && rm -f ' + shellQuote(parcial), root: false, timeout: 30 }), bridgeTimeout(45000) ]);
+        if (decodificado && decodificado.result !== undefined && Number(decodificado.result) !== 0) throw new Error('gravar: ' + alvo.nome);
+    }
+    const contagem = await Promise.race([ taskerCall('runShell', { cmd: 'find ' + shellQuote(PASTA_DESTINO) + ' -type f | wc -l', root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+    const numero = parseInt(String(contagem && contagem.stdout || '0').trim(), 10);
+    if (isNaN(numero) || numero < alvos.length) throw new Error('contagem');
+    return { ok: true, extraidos: alvos.length };
+}
+
 async function iniciarDownload(){
     if (baixando || !pacoteAtual) return;
     baixando = true;
@@ -906,8 +1048,10 @@ async function iniciarDownload(){
         try { await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_DESTINO), root: false, timeout: 15 }), bridgeTimeout(20000) ]); } catch (eMkdir) { }
     }
     definirProgresso('Baixando o pacote... (pode demorar alguns segundos)', '');
+    const inicioBaixando = Date.now();
     try {
         const resultado = await baixarPacote();
+        await garantirTempoVisivel(inicioBaixando, TEMPO_MINIMO_BAIXANDO_MS);
         if (!resultado.ok) {
             falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');
             definirProgresso('Não foi possível baixar o pacote. Tente novamente.', 'erro');
@@ -915,19 +1059,37 @@ async function iniciarDownload(){
         }
         definirProgresso('Verificando os arquivos salvos...', '');
         const verificacao = await verificarArquivoBaixado();
-        if (spinner) spinner.style.display = 'none';
-        if (verificacao.ok) {
-            finalizado = true;
-            baixando = false;
-            definirProgresso('Download conclu\u00eddo.', 'ok');
-            const botaoOk = document.getElementById('btnBaixar');
-            if (botaoOk) botaoOk.disabled = false;
-            agendarFechamentoProprio();
+        if (!verificacao.ok) {
+            falhaDownload('VERIFICA\u00c7\u00c3O', 'O arquivo n\u00e3o foi gravado corretamente na pasta. Tente novamente.');
+            definirProgresso('O download terminou, mas o arquivo n\u00e3o foi encontrado na pasta.', 'erro');
+            try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
             return;
         }
-        falhaDownload('VERIFICA\u00c7\u00c3O', 'O arquivo n\u00e3o foi gravado corretamente na pasta. Tente novamente.');
-        definirProgresso('O download terminou, mas o arquivo n\u00e3o foi encontrado na pasta.', 'erro');
-        try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eLimpeza) { }
+        definirProgresso('Descompactando o pacote...', '');
+        const inicioExtracao = Date.now();
+        let extracao = { ok: false };
+        try {
+            extracao = await extrairPacote();
+        } catch (eExtracao) {
+            extracao = { ok: false };
+        }
+        await garantirTempoVisivel(inicioExtracao, TEMPO_MINIMO_VERIFICANDO_MS);
+        if (spinner) spinner.style.display = 'none';
+        if (!extracao.ok) {
+            baixando = false;
+            definirProgresso('O pacote foi baixado, mas não foi possível descompactá-lo. O zip foi mantido na pasta.', 'erro');
+            showToast({ type: 'error', title: 'EXTRA\u00c7\u00c3O', message: 'O zip continua na pasta do WebView.' });
+            const botaoExtr = document.getElementById('btnBaixar');
+            if (botaoExtr) botaoExtr.disabled = false;
+            return;
+        }
+        try { await Promise.race([ taskerCall('deleteFile', { path: caminhoArquivo() }), bridgeTimeout(10000) ]); } catch (eZip) { }
+        finalizado = true;
+        baixando = false;
+        definirProgresso('Download conclu\u00eddo.', 'ok');
+        const botaoOk = document.getElementById('btnBaixar');
+        if (botaoOk) botaoOk.disabled = false;
+        agendarFechamentoProprio();
         return;
     } catch (eDownload) {
         falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');

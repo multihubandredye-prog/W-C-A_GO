@@ -76,7 +76,11 @@ def main():
         f, v = escolhidos[chave]
         print(f'  task-project/{f.name}')
 
-    with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_DEFLATED) as z:
+    # ZIP sem compressao interna (ZIP_STORED): cada entrada e um recorte
+    # direto dos bytes, o que permite a cena 010-DOWNLOAD_VIEW descompactar
+    # o pacote por conta propria, sem depender de recursos de descompressao
+    # do WebView do aparelho
+    with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_STORED) as z:
         for pasta in sorted(escolhidas):
             f, _ = escolhidas[pasta]
             z.write(f, f'task-scenes/{pasta}/{f.name}')
