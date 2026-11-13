@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.11**
-Arquivo: `configuracao-webview-wca-1.11.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.12**
+Arquivo: `configuracao-webview-wca-1.12.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -58,5 +58,6 @@ Cena **`010-DOWNLOAD_VIEW [wca]`** (V2), **ID da Tela `1`** (nome e ID equivalen
 - **Etapas com tempo mínimo de exibição** (Baixando ≥ 1,8s; Descompactando ≥ 1,2s; tela final ≥ 2,6s antes de fechar) para o usuário acompanhar as fases — o fechamento automático continua acontecendo;
 - **A URL do download não é exibida** na tela (fica só internamente);
 - **Progresso anunciando cada arquivo**: "Baixando o pacote zip (x MB)..." e "Descompactando (n de total): nome..." — incluindo cada mídia extraída; o usuário vê exatamente o que está sendo processado a cada momento;
+- **Textos centralizados**: o texto de progresso ("Baixando...", "Download concluído.", avisos) ocupa a linha inteira da caixa (flex:1) para o centrado valer de verdade — antes o span encolhia à esquerda da caixa flex mesmo com text-align: center; o parágrafo explicativo do card também ficou centrado;
 - Toasts de sucesso/falha no mesmo estilo da Central;
 - Sem variável do Tasker embutida no JavaScript (tudo lido em runtime), sem `console`.
