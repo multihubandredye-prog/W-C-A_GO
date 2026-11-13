@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.35**
-Arquivo: `Central WCA 1.35.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.36**
+Arquivo: `Central WCA 1.36.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
@@ -102,7 +102,7 @@ O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o 
 - **Aplicação**: **APP_OS** — o nome do app que o WhatsApp mostra como aparelho conectado. **Na instalação é gravado automaticamente** com o nome da sessão que você definir (o arquivo é criado na instalação com o padrão completo; sem nome definido, fica `WhatsConnectApi - Tasker`);
 - **Mensagens**: resposta automática (texto), marcar como lida, recusar chamadas; **Mídia**: download automático e segundos antes de apagar; **Webhook**: atraso, tentativas de entrega, **ECO** de mensagens enviadas (`INCLUDE_OUTGOING`) e eventos; **Conta e presença**: validação, presença ao conectar e pulso de presença;
 - Cada opção **ATIVADO/DESATIVADO** funciona como seleção (uma das duas); a **presença ao conectar** (available/unavailable/none) e os **tempos do pulso** são botões-chip com opções padrão (intervalo: 30m/1h/6h/12h/24h/48h; duração: 1m/5m/15m/30m/1h) — sem menus nativos do sistema;
-- Os **eventos do webhook** são caixas de seleção com **todas as 19 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos). Os principais: `message` (mensagens enviadas e recebidas — o **ECO** controla se as enviadas entram), `chat_presence` (usuário digitando/gravando áudio), `message.ack` (mensagem **entregue/lida**), `status.response`, chamadas, grupos, labels e newsletters;
+- Os **eventos do webhook** são caixas de seleção com **todas as 19 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos). **Cada evento tem o seu ?** com uma explicação curta do que faz (mensagens, entregue/lida, digitando/gravando, chamadas, grupos, etiquetas e canais). Destaques: `message` (mensagens enviadas e recebidas — o **ECO** controla se as enviadas entram), `chat_presence` (usuário digitando/gravando áudio), `message.ack` (mensagem **entregue/lida**), `status.response`;
 - **Salvar pede confirmação**: SALVAR e SALVAR E REINICIAR abrem um modal de confirmação antes de gravar (o texto indica se a API será reiniciada); CANCELAR desiste;
 - **Ícone "?" em cada item** abre um comentário curto explicando o que aquela configuração faz;
 - **Cada salvamento regenera o arquivo inteiro** no formato padrão: as chaves fixas (porta, host, credenciais de acesso, banco de dados, endereço e segredo do webhook, `INSECURE_SKIP_VERIFY=false`, armazenamento de conversas) ficam sempre no padrão do sistema e não aparecem no painel;
