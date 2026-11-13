@@ -462,7 +462,7 @@ body::before {
             <div class="panel-body">
                 <div>
                     <div class="section-title">Configuração do WebView</div>
-                    <div class="section-sub">Pacote de cenas do Tasker</div>
+                    <div class="section-sub">Pacote de cenas e mídias do Tasker</div>
                 </div>
 
                 <div class="status-badge" id="statusBadge"><span class="mini-spinner" id="statusSpinner"></span><span id="statusTexto">Verificando a última release...</span></div>
@@ -488,7 +488,7 @@ body::before {
 
 
                 <div class="info-texto">
-                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> da release mais recente do WhatsConnectApi.
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi.
                 </div>
 
                 <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
@@ -530,10 +530,12 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.6)
-// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML, gerado
-// automaticamente pelo GitHub Actions em cada release) e
-// salva o arquivo zipado na pasta do WebView do dispositivo.
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.7)
+// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML e midias,
+// gerado automaticamente pelo GitHub Actions em cada release) e
+// salva o arquivo zipado na pasta do WebView do dispositivo. As MEDIAS
+// (pasta icons/ do zip) sao extraidas para a pasta icons do projeto,
+// FORA do web-view.
 // TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker, em
 // uma CADEIA de tentativas: 1) bridge Tasker.httpRequest com fileToSave
 // (GET no cliente HTTP nativo, sem limitacao de CORS; header como UMA
@@ -560,6 +562,7 @@ const TEMPO_MINIMO_VERIFICANDO_MS = 1200;
 
 const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
 const PASTA_DESTINO = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
+const PASTA_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
 const PACOTE_PADRAO = {
     tag: '1.3.36',
     arquivo: 'WCA-Tasker-Projetos-1.3.36.zip',
@@ -977,9 +980,16 @@ function bytesDaEntrada(bytes, entrada){
     return bytes.subarray(inicio, inicio + entrada.tamanho);
 }
 
-// Extrai TODOS os arquivos do zip para a pasta do WebView mantendo a
-// estrutura de pastas do pacote (task-scenes/ e task-project/): nada
-// fica solto na raiz. Cada arquivo sai por base64 + shell.
+// ROTAS de extracao: cada pasta raiz do zip vai para um destino no
+// dispositivo. task-scenes/ entra no web-view; icons/ entra na pasta de
+// midias do projeto (FORA do web-view). Pasta raiz desconhecida rejeitada.
+const ROTAS_EXTRACAO = [
+    { prefixo: 'task-scenes/', destino: PASTA_DESTINO, manter: true },
+    { prefixo: 'icons/', destino: PASTA_ICONS, manter: false }
+];
+
+// Extrai TODOS os arquivos do zip mantendo a estrutura interna de cada
+// rota (nada solto na raiz). Cada arquivo sai por base64 + shell.
 async function extrairPacote(){
     let bytes = null;
     const b64 = await lerZipComoBase64();
@@ -996,19 +1006,27 @@ async function extrairPacote(){
     for (let i = 0; i < entradas.length; i++) {
         const e = entradas[i];
         if (e.nome.charAt(e.nome.length - 1) === '/') continue;
+        let rota = null;
+        for (let j = 0; j < ROTAS_EXTRACAO.length; j++) {
+            if (e.nome.indexOf(ROTAS_EXTRACAO[j].prefixo) === 0) { rota = ROTAS_EXTRACAO[j]; break; }
+        }
+        if (!rota) throw new Error('entrada-sem-rota: ' + e.nome);
         const limpo = nomeSeguro(e.nome);
         if (!limpo) throw new Error('entrada-suspeita: ' + e.nome);
-        alvos.push({ nome: limpo, metodo: e.metodo, dados: bytesDaEntrada(bytes, e) });
+        alvos.push({ nome: (rota.manter ? limpo : limpo.slice(rota.prefixo.length)), destino: rota.destino, metodo: e.metodo, dados: bytesDaEntrada(bytes, e) });
     }
     if (!alvos.length) throw new Error('vazio');
-    const pastas = {};
+    const pastasPorDestino = {};
     for (let i = 0; i < alvos.length; i++) {
         const pos = alvos[i].nome.lastIndexOf('/');
-        if (pos > 0) pastas[alvos[i].nome.slice(0, pos)] = true;
+        if (pos > 0) {
+            if (!pastasPorDestino[alvos[i].destino]) pastasPorDestino[alvos[i].destino] = {};
+            pastasPorDestino[alvos[i].destino][alvos[i].nome.slice(0, pos)] = true;
+        }
     }
-    const listaPastas = Object.keys(pastas);
-    if (listaPastas.length) {
-        const cmd = 'mkdir -p ' + shellQuote(PASTA_DESTINO) + listaPastas.map(function (pasta) { return ' ' + shellQuote(PASTA_DESTINO + '/' + pasta); }).join('');
+    for (const destino in pastasPorDestino) {
+        const listaPastas = Object.keys(pastasPorDestino[destino]);
+        const cmd = 'mkdir -p ' + shellQuote(destino) + listaPastas.map(function (pasta) { return ' ' + shellQuote(destino + '/' + pasta); }).join('');
         await Promise.race([ taskerCall('runShell', { cmd: cmd, root: false, timeout: 20 }), bridgeTimeout(30000) ]);
     }
     for (let i = 0; i < alvos.length; i++) {
@@ -1019,16 +1037,30 @@ async function extrairPacote(){
         } else if (alvo.metodo !== 0) {
             throw new Error('compressao-desconhecida');
         }
-        const caminho = PASTA_DESTINO + '/' + alvo.nome;
+        const caminho = alvo.destino + '/' + alvo.nome;
         const parcial = caminho + '.b64';
         await Promise.race([ taskerCall('writeFile', { path: parcial, text: btoa(bytesParaBinario(conteudo)), append: false }), bridgeTimeout(60000) ]);
         const decodificado = await Promise.race([ taskerCall('runShell', { cmd: 'base64 -d ' + shellQuote(parcial) + ' > ' + shellQuote(caminho) + ' && rm -f ' + shellQuote(parcial), root: false, timeout: 30 }), bridgeTimeout(45000) ]);
         if (decodificado && decodificado.result !== undefined && Number(decodificado.result) !== 0) throw new Error('gravar: ' + alvo.nome);
     }
-    const contagem = await Promise.race([ taskerCall('runShell', { cmd: 'find ' + shellQuote(PASTA_DESTINO) + ' -type f | wc -l', root: false, timeout: 15 }), bridgeTimeout(20000) ]);
-    const numero = parseInt(String(contagem && contagem.stdout || '0').trim(), 10);
-    if (isNaN(numero) || numero < alvos.length) throw new Error('contagem');
+    // contagem POR DESTINO: cenas no web-view e midias na pasta icons
+    const esperados = {};
+    for (let i = 0; i < alvos.length; i++) esperados[alvos[i].destino] = (esperados[alvos[i].destino] || 0) + 1;
+    for (const destino in esperados) {
+        const contagem = await Promise.race([ taskerCall('runShell', { cmd: 'find ' + shellQuote(destino) + ' -type f | wc -l', root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+        const numero = parseInt(String(contagem && contagem.stdout || '0').trim(), 10);
+        if (isNaN(numero) || numero < esperados[destino]) throw new Error('contagem');
+    }
     return { ok: true, extraidos: alvos.length };
+}
+
+// Garante uma pasta de destino (bridge createDirectory com reserva mkdir)
+async function garantirPasta(pasta){
+    try {
+        await Promise.race([ taskerCall('createDirectory', { dir: pasta, createParents: true }), bridgeTimeout(20000) ]);
+    } catch (ePasta) {
+        try { await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(pasta), root: false, timeout: 15 }), bridgeTimeout(20000) ]); } catch (eMkdir) { }
+    }
 }
 
 async function iniciarDownload(){
@@ -1039,12 +1071,9 @@ async function iniciarDownload(){
     if (botao) botao.disabled = true;
     const spinner = document.getElementById('progressoSpinner');
     if (spinner) spinner.style.display = '';
-    definirProgresso('Preparando a pasta de destino...', '');
-    try {
-        await Promise.race([ taskerCall('createDirectory', { dir: PASTA_DESTINO, createParents: true }), bridgeTimeout(20000) ]);
-    } catch (ePasta) {
-        try { await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_DESTINO), root: false, timeout: 15 }), bridgeTimeout(20000) ]); } catch (eMkdir) { }
-    }
+    definirProgresso('Preparando as pastas de destino...', '');
+    await garantirPasta(PASTA_DESTINO);
+    await garantirPasta(PASTA_ICONS);
     definirProgresso('Baixando o pacote... (pode demorar alguns segundos)', '');
     const inicioBaixando = Date.now();
     try {

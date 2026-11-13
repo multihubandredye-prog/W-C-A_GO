@@ -1,12 +1,12 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.6**
-Arquivo: `configuracao-webview-wca-1.6.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.7**
+Arquivo: `configuracao-webview-wca-1.7.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
-Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML, gerado automaticamente pelo GitHub Actions em cada release) e salva o arquivo **zipado** na pasta do WebView do dispositivo:
+Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e as mídias (ícones, áudio e vídeo), gerado automaticamente pelo GitHub Actions em cada release) e salva o arquivo **zipado** na pasta do WebView do dispositivo:
 
 ```
 /storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view
@@ -20,7 +20,7 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML, gerado automaticam
   1. `Tasker.httpRequest` com `fileToSave` e **header como UMA STRING** (`User-Agent: Tasker` — formato que o Tasker espera);
   2. o mesmo GET no **mínimo de opções** (sem header);
   3. reserva: `fetch` dentro do WebView convertendo os bytes em **base64** gravado via `writeFile` e decodificado no shell (`base64 -d`) — se falhar, o `.b64` parcial é apagado;
-  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado na pasta via base64 + shell; **a estrutura de pastas do pacote é mantida** (`task-scenes/`) — **nada fica solto na raiz** (desde a 1.6 o pacote da release leva só as cenas; os projetos `.prj.xml` continuam como assets separados da release); o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e contagem final `find | wc -l`;
+  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado via base64 + shell, seguindo **rotas por pasta raiz do zip** — `task-scenes/` → pasta do WebView (mantendo a estrutura) e `icons/` → `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons` (as **mídias**, FORA do web-view; pasta raiz desconhecida é rejeitada); o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e **contagem `find | wc -l` por destino**;
   5. o pacote do build é publicado **sem compressão interna** (ZIP_STORED), então cada entrada é um recorte direto dos bytes — sem depender de descompressão do WebView (entrada comprimida é inflada via `DecompressionStream`, se existir).
 
 ## Fluxo da tela
@@ -55,5 +55,6 @@ Cena **`010-DOWNLOAD_VIEW [wca]`** (V2), **ID da Tela `1`** (nome e ID equivalen
 - Consulta de release com prazo de 20s (`Promise.race`) e fallback embutido;
 - **Etapas com tempo mínimo de exibição** (Baixando ≥ 1,8s; Descompactando ≥ 1,2s; tela final ≥ 2,6s antes de fechar) para o usuário acompanhar as fases — o fechamento automático continua acontecendo;
 - **A URL do download não é exibida** na tela (fica só internamente);
+- **Mídias no mesmo download**: o build embute `wca-resources/media/` no zip (achatado em `icons/`), então vídeo, ícones e imagens usados pelas cenas chegam junto, num download único;
 - Toasts de sucesso/falha no mesmo estilo da Central;
 - Sem variável do Tasker embutida no JavaScript (tudo lido em runtime), sem `console`.
