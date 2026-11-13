@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # Monta o pacote WCA-Tasker-Projetos com a ULTIMA versao (.html) de cada
 # projeto de cena em task-scenes/*/ e as MEDIAS de wca-resources/media
+# NOMES SEM VERSAO dentro do zip: a cena entra como <projeto>.html (ex.:
+# central-wca-1.41.html -> central-wca.html) para que a atualizacao no
+# aparelho SUBSTITUA o arquivo no mesmo caminho, sem acumular versoes
 # (achatadas na pasta icons/ do zip) — os projetos .prj.xml de task-project/
 # NAO entram no zip (a cena 010-DOWNLOAD_VIEW extrai as midias do proprio
 # zip para <projeto>/icons; nada e baixado fora do pacote).
@@ -53,6 +56,14 @@ def ultimas(arquivos):
     for f in arquivos:
         grupos[f.parent.name] = escolher(grupos.get(f.parent.name), (f, versao_de(f.stem)))
     return grupos
+
+
+def nome_sem_versao(nome_arquivo):
+    # Remove a versao no fim do nome do arquivo (ex.: central-wca-1.41.html
+    # -> central-wca.html). A cena 010-DOWNLOAD_VIEW extrai o zip sempre
+    # para o MESMO caminho no aparelho, assim cada atualizacao substitui o
+    # arquivo anterior em vez de acumular versoes no armazenamento
+    return re.sub(r'-\d+(?:\.\d+)+\.html$', '.html', nome_arquivo)
 
 
 def minificar_ativo():
@@ -151,7 +162,7 @@ def main():
     print('Cenas incluidas (ultima versao por projeto):')
     for pasta in sorted(escolhidas):
         f, _ = escolhidas[pasta]
-        print(f'  task-scenes/{pasta}/{f.name}')
+        print(f'  task-scenes/{pasta}/{f.name} -> task-scenes/{pasta}/{nome_sem_versao(f.name)}')
     if midias:
         print('Midias incluidas (wca-resources/media -> icons/):')
         for f in midias:
@@ -167,7 +178,7 @@ def main():
     with zipfile.ZipFile(nome_zip, 'w', zipfile.ZIP_STORED) as z:
         for pasta in sorted(escolhidas):
             f, _ = escolhidas[pasta]
-            destino = f'task-scenes/{pasta}/{f.name}'
+            destino = f'task-scenes/{pasta}/{nome_sem_versao(f.name)}'
             conteudo = f.read_text(encoding='utf-8')
             tamanho_original = len(conteudo.encode('utf-8'))
             if ativa:
@@ -177,18 +188,18 @@ def main():
                     if problemas:
                         print(f'  AVISO: {destino} entra ORIGINAL no zip ({ "; ".join(problemas) })')
                         z.write(f, destino)
-                        linhas_resumo.append((f.name, tamanho_original, tamanho_original, 'original (' + '; '.join(problemas) + ')'))
+                        linhas_resumo.append((nome_sem_versao(f.name), tamanho_original, tamanho_original, 'original (' + '; '.join(problemas) + ')'))
                         continue
                     z.writestr(destino, reduzido)
                     tamanho_final = len(reduzido.encode('utf-8'))
                     minificadas += 1
-                    linhas_resumo.append((f.name, tamanho_original, tamanho_final, 'minificada'))
+                    linhas_resumo.append((nome_sem_versao(f.name), tamanho_original, tamanho_final, 'minificada'))
                     print(f'  minificada: {destino} ({tamanho_original} -> {tamanho_final} bytes)')
                     continue
                 except Exception as e:
                     print(f'  AVISO: {destino} entra ORIGINAL no zip (erro: {e})')
             z.write(f, destino)
-            linhas_resumo.append((f.name, tamanho_original, tamanho_original, 'original'))
+            linhas_resumo.append((nome_sem_versao(f.name), tamanho_original, tamanho_original, 'original'))
         for f in midias:
             z.write(f, f'icons/{f.name}')
 
