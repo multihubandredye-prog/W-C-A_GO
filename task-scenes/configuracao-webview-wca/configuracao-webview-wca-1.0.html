@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsConnectApi | Configuração do WebView</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+@property --spin {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+:root {
+    --bg-body:   #030508;
+    --bg-card:   #07101A;
+    --bg-card-2: #0b1825;
+    --primary:   #0F9DCB;
+    --secondary: #308B64;
+    --accent:    #B5FB2A;
+    --border:    #0F507A;
+    --text-main: #D0E8E0;
+    --text-dim:  #4A6070;
+    --text-muted:#6b7f8f;
+    --error:     #FF4D6A;
+    --gold:      #FFD700;
+    --white:     #ffffff;
+    --radius-lg: 1.5rem;
+    --radius-md: 1rem;
+    --radius-sm: 10px;
+    --shadow-soft: 0 8px 30px rgba(0,0,0,0.35);
+    --shadow-glow: 0 0 20px rgba(181,251,42,0.12);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #000 0%, #0a1929 100%);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+    padding: 18px 0 30px;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(15, 157, 203, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(181, 251, 42, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 520px;
+    padding: 0 4vw;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.main-container {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow:
+        0 12px 35px rgba(0,0,0,0.65),
+        0 0 0 1px rgba(15, 157, 203, 0.1) inset;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, rgba(15, 157, 203, 0.1) 0%, rgba(0,0,0,0.4) 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.panel-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.3;
+}
+
+.header-video {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.panel-header h2 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--primary);
+    text-align: center;
+}
+
+.accent-text { color: var(--accent); }
+
+.panel-body {
+    padding: 20px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 1.18rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.section-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 4px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(181,251,42,0.35);
+    background: rgba(181,251,42,0.08);
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    align-self: center;
+}
+
+.status-badge.padrao {
+    border-color: rgba(15,157,203,0.5);
+    background: rgba(15,157,203,0.08);
+    color: var(--primary);
+}
+
+.mini-spinner {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(181,251,42,0.25);
+    border-top-color: var(--accent);
+    animation: girar 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.card {
+    position: relative;
+    border-radius: var(--radius-md);
+    border: 1.6px solid transparent;
+    padding: 14px;
+    isolation: isolate;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    border-radius: inherit;
+    background: conic-gradient(from var(--spin), var(--primary), var(--accent), var(--primary));
+    animation: spinBorder 5s linear infinite;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--bg-card-2);
+}
+
+.card > * { position: relative; z-index: 1; }
+
+@keyframes spinBorder { to { --spin: 360deg; } }
+
+.row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 2px;
+    border-bottom: 1px dashed rgba(15, 80, 122, 0.35);
+}
+
+.row:last-child { border-bottom: none; }
+
+.row-label {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.row-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-main);
+    text-align: right;
+    word-break: break-all;
+}
+
+.row-value.destaque { color: var(--accent); }
+
+.url-linha {
+    margin-top: 8px;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    word-break: break-all;
+    text-align: left;
+    font-family: monospace;
+}
+
+.destino-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(15,80,122,0.4);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+}
+
+.destino-rotulo {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.destino-caminho {
+    font-family: monospace;
+    font-size: 0.72rem;
+    color: var(--primary);
+    word-break: break-all;
+    text-align: left;
+    line-height: 1.5;
+}
+
+.info-texto {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    text-align: left;
+}
+
+.info-texto strong { color: var(--text-main); }
+
+.btn-action {
+    border: none;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.btn-action:active { transform: translateY(1px); }
+
+.btn-action:disabled { filter: grayscale(0.6); opacity: 0.6; cursor: not-allowed; }
+
+.btn-primario {
+    background: linear-gradient(135deg, var(--primary) 0%, #0b7fa6 100%);
+    box-shadow: 0 8px 22px rgba(15, 157, 203, 0.35);
+    width: 100%;
+}
+
+.btn-primario:hover { filter: brightness(1.08); }
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.progresso-secao {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(15,80,122,0.4);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+}
+
+.progresso-secao.visivel { display: flex; }
+
+.progresso-texto {
+    font-size: 0.8rem;
+    color: var(--text-main);
+    text-align: left;
+    line-height: 1.5;
+}
+
+.progresso-texto.ok { color: var(--accent); }
+
+.progresso-texto.erro { color: var(--error); }
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid rgba(15,80,122,0.52);
+    padding: 24px;
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    position: relative;
+    animation: modalIn 0.32s cubic-bezier(0.22,1,0.36,1) both;
+    box-shadow: var(--shadow-soft);
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-title {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.modal-texto {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-flex { flex: 1; }
+
+.main-footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: #aaa;
+    position: relative;
+    z-index: 1;
+}
+
+.dev-name { color: var(--accent); font-weight: 600; }
+
+.toast-container {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    left: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    background: #0e1b27;
+    border: 1px solid rgba(15,157,203,0.35);
+    color: var(--text-main);
+    padding: 13px 16px;
+    border-radius: 12px;
+    box-shadow: 0 10px 34px rgba(0,0,0,0.45);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    animation: toastIn 0.32s cubic-bezier(0.22,1,0.36,1) both;
+    position: relative;
+    overflow: hidden;
+    max-width: 420px;
+}
+
+.toast.removing { animation: toastOut 0.28s ease forwards; }
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(10px); } }
+
+.toast-icon { font-size: 1.05rem; margin-top: 1px; flex-shrink: 0; }
+
+.toast-title {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.toast-message { color: var(--text-muted); }
+
+.toast-success { border-color: rgba(181,251,42,0.4); }
+.toast-success .toast-icon { color: var(--accent); }
+
+.toast-error { border-color: rgba(255,77,106,0.45); }
+.toast-error .toast-icon { color: var(--error); }
+
+.toast-info .toast-icon { color: var(--primary); }
+
+.d-none { display: none; }
+
+@media (max-width: 520px) {
+    .content-wrapper { max-width: 94vw; }
+    .header-video { width: 46px; height: 46px; }
+    .panel-header h2 { font-size: 17px; }
+    .panel-body { padding: 16px 16px 20px; }
+    .section-title { font-size: 1.05rem; }
+}
+</style>
+</head>
+<body>
+
+    <div class="content-wrapper">
+
+        <div class="main-container">
+            <header class="panel-header">
+                <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+                <h2><span class="accent-text">WHATS CONNECT API</span></h2>
+                <video class="header-video" autoplay loop muted playsinline preload="auto" src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+            </header>
+
+            <div class="panel-body">
+                <div>
+                    <div class="section-title">Configuração do WebView</div>
+                    <div class="section-sub">Pacote de cenas e projetos do Tasker</div>
+                </div>
+
+                <div class="status-badge" id="statusBadge"><span class="mini-spinner" id="statusSpinner"></span><span id="statusTexto">Verificando a última release...</span></div>
+
+                <div class="card" id="pacoteCard" style="display: none;">
+                    <div class="row">
+                        <span class="row-label">Release</span>
+                        <span class="row-value destaque" id="pacoteTag"></span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Arquivo</span>
+                        <span class="row-value" id="pacoteArquivo"></span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Tamanho</span>
+                        <span class="row-value" id="pacoteTamanho"></span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Publicado</span>
+                        <span class="row-value" id="pacoteData"></span>
+                    </div>
+                    <div class="url-linha" id="pacoteUrl"></div>
+                </div>
+
+                <div class="destino-card">
+                    <div class="destino-rotulo">Pasta de destino do download</div>
+                    <div class="destino-caminho" id="destinoPasta"></div>
+                </div>
+
+                <div class="info-texto">
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e os <strong>projetos do Tasker</strong> da release mais recente do WhatsConnectApi e salva direto na pasta do WebView, sem você precisar abrir nada manualmente.
+                </div>
+
+                <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
+
+                <div class="progresso-secao" id="progressoSecao">
+                    <span class="mini-spinner" id="progressoSpinner"></span>
+                    <span class="progresso-texto" id="progressoTexto">Enviando o pedido de download...</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span>
+        </footer>
+
+    </div>
+
+    <div id="confirmBaixarModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <h3 class="modal-title">Baixar o pacote?</h3>
+            <p class="modal-texto" id="confirmBaixarTexto"></p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-action btn-flex btn-ghost" data-close="confirmBaixarModal">CANCELAR</button>
+                <button type="button" id="confirmBaixarOk" class="btn-action btn-flex btn-primario"><i class="fa-solid fa-check"></i> BAIXAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <template id="toastTemplate">
+        <div class="toast">
+            <div class="toast-icon"><i class="fa-solid"></i></div>
+            <div>
+                <strong class="toast-title"></strong>
+                <div class="toast-message"></div>
+            </div>
+        </div>
+    </template>
+
+<script>
+// WHATS CONNECT API - Configuracao do WebView (cena V2, 1.0)
+// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
+// Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
+// salva o arquivo zipado na pasta do WebView do dispositivo.
+// A release e consultada na API do GitHub e vale a mais recente que JA TEM
+// o pacote anexado; sem resposta da API, usa o pacote padrao embutido.
+// O download em si e executado pelo lado Tasker: a cena dispara a
+// 008-BAIXAR_PACOTE_WEBVIEW [wca] com par1 = url do zip, par2 = pasta de
+// destino e par3 = nome do arquivo, e acompanha o andamento pelas variaveis
+// webview_status (iniciado | baixando | concluido | falhou) e
+// webview_progresso (numero de 0 a 100, opcional).
+
+const SCENE_SCREEN_ID = '1';
+const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
+const PASTA_DESTINO = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
+const PACOTE_PADRAO = {
+    tag: '1.3.36',
+    arquivo: 'WCA-Tasker-Projetos-1.3.36.zip',
+    url: 'https://github.com/multihubandredye-prog/W-C-A_GO/releases/download/1.3.36/WCA-Tasker-Projetos-1.3.36.zip',
+    tamanho: 0,
+    publicado: ''
+};
+const PREFIXO_PACOTE = 'WCA-Tasker-Projetos-';
+const TASK_DOWNLOAD = '008-BAIXAR_PACOTE_WEBVIEW [wca]';
+const VAR_STATUS = 'webview_status';
+const VAR_PROGRESSO = 'webview_progresso';
+const MAPA_STATUS = {
+    iniciado: 'Download iniciado...',
+    baixando: 'Baixando o pacote...',
+    concluido: 'Pacote salvo na pasta do WebView.',
+    falhou: 'Não foi possível baixar o pacote. Tente novamente.'
+};
+const SONDA_INTERVALO_MS = 1000;
+const SONDA_MAXIMO = 900;
+
+const WCA_MODAL_STATE_VAR = 'cache_modal';
+const WCA_RETURN_MODAL_VAR = 'return_modal';
+const WCA_MODAL_PAI = { };
+
+let pacoteAtual = null;
+let usandoPadrao = false;
+let baixando = false;
+let finalizado = false;
+let ultimaStatus = '';
+let sondaAtiva = null;
+let sondaRestantes = 0;
+let sondaBase = null;
+
+function getTaskerBridge(){
+    if (typeof Tasker !== 'undefined') return Tasker;
+    if (typeof window !== 'undefined' && window.Tasker) return window.Tasker;
+    return null;
+}
+
+async function taskerCall(name, options){
+    const api = getTaskerBridge();
+    if (!api || typeof api[name] !== 'function') {
+        throw new Error('Tasker.' + name + ' indisponivel. Verifique Allow Phone Access.');
+    }
+    return await api[name](options);
+}
+
+function bridgeTimeout(ms){
+    return new Promise(function(resolve){ setTimeout(resolve, ms); });
+}
+
+function formatarTamanho(bytes){
+    const n = Number(bytes);
+    if (!n || n <= 0) return '—';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatarData(iso){
+    const texto = String(iso || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}/.test(texto)) return '—';
+    return texto.slice(8, 10) + '/' + texto.slice(5, 7) + '/' + texto.slice(0, 4);
+}
+
+// Ultima release que ja contem o pacote anexado: percorre da mais recente
+// para a mais antiga, aceita tag numerica X.Y.Z (com ou sem prefixo v) e
+// procura o asset do pacote pelo nome
+async function obterPacoteMaisRecente(){
+    const resposta = await fetch(RELEASES_API_URL, { headers: { 'User-Agent': 'WCA-WebView-Setup', 'Accept': 'application/vnd.github+json' } });
+    if (!resposta || !resposta.ok) return null;
+    const lista = await resposta.json();
+    if (!Array.isArray(lista)) return null;
+    for (let i = 0; i < lista.length; i++) {
+        const release = lista[i] || {};
+        const tag = String(release.tag_name || '').trim().replace(/^[vV]/, '');
+        if (!/^\d+(\.\d+)*$/.test(tag)) continue;
+        const assets = Array.isArray(release.assets) ? release.assets : [];
+        for (let j = 0; j < assets.length; j++) {
+            const asset = assets[j] || {};
+            const nome = String(asset.name || '');
+            if (nome.indexOf(PREFIXO_PACOTE) !== 0 || !nome.endsWith('.zip')) continue;
+            return {
+                tag: tag,
+                arquivo: nome,
+                url: String(asset.browser_download_url || ''),
+                tamanho: Number(asset.size) || 0,
+                publicado: String(asset.created_at || release.published_at || '')
+            };
+        }
+    }
+    return null;
+}
+
+async function carregarPacote(){
+    let pacote = null;
+    try {
+        pacote = await Promise.race([ obterPacoteMaisRecente(), bridgeTimeout(20000) ]);
+    } catch (e) { pacote = null; }
+    if (pacote && pacote.url) {
+        pacoteAtual = pacote;
+        usandoPadrao = false;
+    } else {
+        pacoteAtual = PACOTE_PADRAO;
+        usandoPadrao = true;
+    }
+    renderizarPacote();
+}
+
+function renderizarPacote(){
+    const badge = document.getElementById('statusBadge');
+    const spinner = document.getElementById('statusSpinner');
+    const texto = document.getElementById('statusTexto');
+    const card = document.getElementById('pacoteCard');
+    if (spinner) spinner.classList.add('d-none');
+    if (usandoPadrao) {
+        badge.classList.add('padrao');
+        if (texto) texto.textContent = 'Pacote padrão • ' + pacoteAtual.tag;
+    } else {
+        if (texto) texto.textContent = 'Pacote encontrado • release ' + pacoteAtual.tag;
+    }
+    document.getElementById('pacoteTag').textContent = pacoteAtual.tag;
+    document.getElementById('pacoteArquivo').textContent = pacoteAtual.arquivo;
+    document.getElementById('pacoteTamanho').textContent = formatarTamanho(pacoteAtual.tamanho);
+    document.getElementById('pacoteData').textContent = formatarData(pacoteAtual.publicado);
+    document.getElementById('pacoteUrl').textContent = pacoteAtual.url;
+    document.getElementById('destinoPasta').textContent = PASTA_DESTINO;
+    card.style.display = 'block';
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = false;
+}
+
+// ---- Toasts ----
+function showToast(info){
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+    const tmpl = document.getElementById('toastTemplate');
+    const el = tmpl.content.cloneNode(true).querySelector('.toast');
+    el.classList.add('toast-' + (info.type || 'info'));
+    const icone = el.querySelector('i');
+    if (icone) icone.classList.add(icons[info.type] || icons.info);
+    const titulo = el.querySelector('.toast-title');
+    if (titulo) {
+        titulo.textContent = info.title || '';
+        if (!info.title) titulo.classList.add('d-none');
+    }
+    const mensagem = el.querySelector('.toast-message');
+    if (mensagem) mensagem.textContent = info.message || '';
+    container.appendChild(el);
+    setTimeout(function () {
+        el.classList.add('removing');
+        el.addEventListener('animationend', function () { el.remove(); }, { once: true });
+    }, info.duration || 3400);
+}
+
+// ---- Modais + botao voltar do Android ----
+function openModal(id){
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+}
+
+function closeModal(id){
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+    if (!document.querySelector('.modal-overlay.open')) document.body.classList.remove('modal-open');
+}
+
+let wcaModalStack = [];
+let wcaModalSyncAgendado = false;
+
+function wcaModalVisivel(id){
+    const el = document.getElementById(id);
+    return !!el && el.classList.contains('open');
+}
+
+function wcaSyncModalStack(){
+    if (wcaModalSyncAgendado) return;
+    wcaModalSyncAgendado = true;
+    setTimeout(function () {
+        wcaModalSyncAgendado = false;
+        try {
+            wcaModalStack = wcaModalStack.filter(wcaModalVisivel);
+            document.querySelectorAll('.modal-overlay.open').forEach(function (el) {
+                if (el.id && wcaModalStack.indexOf(el.id) < 0) wcaModalStack.push(el.id);
+            });
+            const topo = wcaModalStack.length ? wcaModalStack[wcaModalStack.length - 1] : '';
+            const api = getTaskerBridge();
+            if (api && typeof api.setVariable === 'function') api.setVariable(WCA_MODAL_STATE_VAR, topo);
+        } catch (e) {}
+    }, 50);
+}
+
+function wcaFecharModalDoTopo(){
+    try {
+        wcaModalStack = wcaModalStack.filter(wcaModalVisivel);
+        const topo = wcaModalStack.pop();
+        if (topo) closeModal(topo);
+        const pai = WCA_MODAL_PAI[topo];
+        if (pai && !wcaModalVisivel(pai) && !wcaModalStack.some(wcaModalVisivel)) {
+            openModal(pai);
+        }
+        wcaSyncModalStack();
+    } catch (e) {}
+}
+
+const __wcaOpenModalOriginal = openModal;
+openModal = function (id){
+    const resultado = __wcaOpenModalOriginal.apply(this, arguments);
+    if (id) {
+        wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+        wcaModalStack.push(id);
+    }
+    wcaSyncModalStack();
+    return resultado;
+};
+
+const __wcaCloseModalOriginal = closeModal;
+closeModal = function (id){
+    const resultado = __wcaCloseModalOriginal.apply(this, arguments);
+    if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+    wcaSyncModalStack();
+    return resultado;
+};
+
+// ---- Fluxo de download ----
+function definirProgresso(texto, classe){
+    const secao = document.getElementById('progressoSecao');
+    const linha = document.getElementById('progressoTexto');
+    if (!secao || !linha) return;
+    secao.classList.add('visivel');
+    linha.className = 'progresso-texto' + (classe ? ' ' + classe : '');
+    linha.textContent = texto;
+}
+
+function pararSonda(){
+    if (sondaAtiva) { clearInterval(sondaAtiva); sondaAtiva = null; }
+}
+
+function iniciarSonda(){
+    pararSonda();
+    sondaRestantes = SONDA_MAXIMO;
+    // Primeira leitura vira LINHA DE BASE: so e aplicado o que MUDAR a
+    // partir dela (cobre resto de sessao anterior sem mascarar eventos)
+    sondaBase = null;
+    sondaAtiva = setInterval(async function () {
+        if (finalizado || sondaRestantes <= 0) { pararSonda(); return; }
+        sondaRestantes -= 1;
+        try {
+            const api = getTaskerBridge();
+            if (!api || typeof api.getVariable !== 'function') { pararSonda(); return; }
+            const leitura = await Promise.race([ api.getVariable(VAR_STATUS), bridgeTimeout(3000) ]);
+            const valor = String(leitura && leitura.value !== undefined ? leitura.value : leitura || '').trim();
+            if (!valor) return;
+            if (sondaBase === null) { sondaBase = valor; return; }
+            if (valor !== sondaBase) { sondaBase = valor; aplicarStatus(valor); }
+        } catch (eSonda) { }
+    }, SONDA_INTERVALO_MS);
+}
+
+function aplicarStatus(valor){
+    const texto = String(valor || '').trim();
+    // Estados finais (concluido/falhou) nao sao sobrescritos por leituras atrasadas
+    if (!texto || texto === ultimaStatus || finalizado) return;
+    ultimaStatus = texto;
+    if (texto === 'concluido') {
+        finalizado = true;
+        baixando = false;
+        pararSonda();
+        definirProgresso(MAPA_STATUS.concluido, 'ok');
+        const spinner = document.getElementById('progressoSpinner');
+        if (spinner) spinner.style.display = 'none';
+        showToast({ type: 'success', title: 'CONCLUÍDO', message: 'O pacote foi salvo na pasta do WebView.' });
+        const botao = document.getElementById('btnBaixar');
+        if (botao) botao.disabled = false;
+        return;
+    }
+    if (texto === 'falhou') {
+        finalizado = true;
+        baixando = false;
+        pararSonda();
+        definirProgresso(MAPA_STATUS.falhou, 'erro');
+        const spinner = document.getElementById('progressoSpinner');
+        if (spinner) spinner.style.display = 'none';
+        showToast({ type: 'error', title: 'FALHA NO DOWNLOAD', message: 'Verifique a internet e tente novamente.' });
+        const botao = document.getElementById('btnBaixar');
+        if (botao) botao.disabled = false;
+        return;
+    }
+    if (MAPA_STATUS[texto]) definirProgresso(MAPA_STATUS[texto], '');
+}
+
+function aplicarProgresso(valor){
+    const n = parseInt(String(valor).replace(/[^0-9]/g, ''), 10);
+    if (isNaN(n) || n < 0 || n > 100) return;
+    if (finalizado) return;
+    definirProgresso('Baixando o pacote... ' + n + ' de 100', '');
+}
+
+async function iniciarDownload(){
+    if (baixando || !pacoteAtual) return;
+    baixando = true;
+    finalizado = false;
+    ultimaStatus = '';
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = true;
+    const spinner = document.getElementById('progressoSpinner');
+    if (spinner) spinner.style.display = '';
+    definirProgresso('Enviando o pedido de download...', '');
+    try {
+        await taskerCall('runTask', {
+            name: TASK_DOWNLOAD,
+            variables: { par1: pacoteAtual.url, par2: PASTA_DESTINO, par3: pacoteAtual.arquivo }
+        });
+        iniciarSonda();
+    } catch (eTask) {
+        baixando = false;
+        definirProgresso('Não foi possível chamar a tarefa de download. Tente novamente.', 'erro');
+        showToast({ type: 'error', title: 'FALHA AO INICIAR', message: 'Confira se a Allow Phone Access está ativa.' });
+        if (botao) botao.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.opacity = '0';
+    setTimeout(function () {
+        document.body.style.transition = 'opacity 0.1s ease';
+        document.body.style.opacity = '1';
+    }, 100);
+
+    document.getElementById('destinoPasta').textContent = PASTA_DESTINO;
+
+    // Recebimento de variavel: listener SEMPRE com wrapper (nome, valor);
+    // passar a funcao direto e bug (o primeiro argumento e o NOME)
+    try {
+        const api = getTaskerBridge();
+        if (api && typeof api.onVariableChanged === 'function') {
+            api.onVariableChanged(VAR_STATUS, function (nome, valor) { aplicarStatus(valor); });
+            api.onVariableChanged(VAR_PROGRESSO, function (nome, valor) { aplicarProgresso(valor); });
+        }
+    } catch (eListener) { }
+
+    // Comando do botao voltar do Android (Back Pressed no Tasker)
+    try {
+        const api = getTaskerBridge();
+        if (api && typeof api.onVariableChanged === 'function') {
+            api.onVariableChanged(WCA_RETURN_MODAL_VAR, function (nome, valor) { wcaFecharModalDoTopo(); });
+        }
+    } catch (eVoltar) { }
+
+    document.querySelectorAll('[data-close]').forEach(function (b) {
+        b.addEventListener('click', function () { closeModal(b.getAttribute('data-close')); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function (m) { if (m.id) closeModal(m.id); });
+    });
+
+    const btnBaixar = document.getElementById('btnBaixar');
+    if (btnBaixar) btnBaixar.addEventListener('click', function () {
+        if (baixando || !pacoteAtual) return;
+        document.getElementById('confirmBaixarTexto').textContent = 'O arquivo ' + pacoteAtual.arquivo + ' (release ' + pacoteAtual.tag + ') será baixado e salvo na pasta do WebView. Continuar?';
+        openModal('confirmBaixarModal');
+    });
+
+    const confirmOk = document.getElementById('confirmBaixarOk');
+    if (confirmOk) confirmOk.addEventListener('click', function () {
+        closeModal('confirmBaixarModal');
+        iniciarDownload();
+    });
+
+    carregarPacote();
+});
+</script>
+</body>
+</html>

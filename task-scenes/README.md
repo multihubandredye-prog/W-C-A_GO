@@ -13,6 +13,7 @@ Cada projeto fica em uma **subpasta própria**, contendo o **HTML da última ver
 | Seletor de WhatsApp WCA | `004-WHATSAPP_SELETOR [wca]` | `seletor-whatsapp-wca/` |
 | Gerar Tarefa de Envio WCA | `005-GERAR_TAREFA_ENVIO [wca]` | `gerar-tarefa-envio-wca/` |
 | Contatos Pro WCA | Contatos Pro | `contatos-pro-wca/` |
+| Configuração do WebView | `007-CONFIGURACAO_WEBVIEW [wca]` | `configuracao-webview-wca/` |
 
 ## Convenções
 
