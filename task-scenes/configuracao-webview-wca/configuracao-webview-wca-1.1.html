@@ -50,7 +50,6 @@ body {
     align-items: center;
     position: relative;
     overflow-x: hidden;
-    padding: 18px 0 30px;
 }
 
 body::before {
@@ -72,6 +71,8 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    justify-content: center;
+    min-height: 100vh;
     position: relative;
     z-index: 1;
 }
@@ -257,31 +258,6 @@ body::before {
     word-break: break-all;
     text-align: left;
     font-family: monospace;
-}
-
-.destino-card {
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(15,80,122,0.4);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-}
-
-.destino-rotulo {
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-}
-
-.destino-caminho {
-    font-family: monospace;
-    font-size: 0.72rem;
-    color: var(--primary);
-    word-break: break-all;
-    text-align: left;
-    line-height: 1.5;
 }
 
 .info-texto {
@@ -521,13 +497,9 @@ body::before {
                     <div class="url-linha" id="pacoteUrl"></div>
                 </div>
 
-                <div class="destino-card">
-                    <div class="destino-rotulo">Pasta de destino do download</div>
-                    <div class="destino-caminho" id="destinoPasta"></div>
-                </div>
 
                 <div class="info-texto">
-                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e os <strong>projetos do Tasker</strong> da release mais recente do WhatsConnectApi e salva direto na pasta do WebView, sem você precisar abrir nada manualmente.
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e os <strong>projetos do Tasker</strong> da release mais recente do WhatsConnectApi.
                 </div>
 
                 <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
@@ -569,7 +541,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena V2, 1.0)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.1)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
 // Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
 // salva o arquivo zipado na pasta do WebView do dispositivo.
@@ -580,8 +552,13 @@ body::before {
 // destino e par3 = nome do arquivo, e acompanha o andamento pelas variaveis
 // webview_status (iniciado | baixando | concluido | falhou) e
 // webview_progresso (numero de 0 a 100, opcional).
+// Ao receber concluido, a cena VERIFICA que os arquivos foram salvos na
+// pasta (leitura da pasta via shell), exibe apenas "Download concluido."
+// e se AUTO-FECHA (nome 010-DOWNLOAD_VIEW [wca] ou ID 1 — equivalentes).
 
+const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]';
 const SCENE_SCREEN_ID = '1';
+const AUTO_FECHAMENTO_DELAY_MS = 1400;
 const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
 const PASTA_DESTINO = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
 const PACOTE_PADRAO = {
@@ -633,6 +610,63 @@ async function taskerCall(name, options){
 
 function bridgeTimeout(ms){
     return new Promise(function(resolve){ setTimeout(resolve, ms); });
+}
+
+function shellQuote(value){
+    return "'" + String(value).replace(/'/g, "'\\''") + "'";
+}
+
+// Confirmacao fisica: a pasta de destino precisa existir e ter pelo menos
+// um arquivo dentro (a leitura e feita via shell, sem depender do bridge de
+// listas). Retorna true somente com arquivos realmente gravados.
+async function verificarArquivosNaPasta(){
+    const pasta = shellQuote(PASTA_DESTINO);
+    const comando = "if [ -d " + pasta + " ] && ls -1 " + pasta + " | grep -q .; then printf '__WCA_OK__'; else printf '__WCA_FAIL__'; fi";
+    const resultado = await taskerCall('runShell', { cmd: comando, root: false, timeout: 10 });
+    const saida = String(resultado && resultado.stdout || '');
+    return saida.indexOf('__WCA_OK__') >= 0;
+}
+
+// Estado final: confere a pasta, exibe apenas "Download concluido." e fecha
+// a cena sozinha apos uma pausa curta para o usuario ler
+async function confirmarSalvamento(){
+    let salvo = false;
+    try {
+        salvo = await Promise.race([ verificarArquivosNaPasta(), bridgeTimeout(15000) ]);
+    } catch (eVerificacao) { salvo = false; }
+    const spinner = document.getElementById('progressoSpinner');
+    if (spinner) spinner.style.display = 'none';
+    if (salvo) {
+        definirProgresso('Download concluído.', 'ok');
+        const botaoOk = document.getElementById('btnBaixar');
+        if (botaoOk) botaoOk.disabled = false;
+        agendarFechamentoProprio();
+        return;
+    }
+    finalizado = false;
+    baixando = false;
+    definirProgresso('O download terminou, mas os arquivos não foram encontrados na pasta.', 'erro');
+    showToast({ type: 'error', title: 'VERIFICAÇÃO', message: 'Nada foi gravado na pasta do WebView. Tente novamente.' });
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = false;
+}
+
+// Auto-fechamento (mesma cascata validada das outras cenas): nome ou ID
+// da cena sao equivalentes para o dismiss
+function fecharPropriaCena(){
+    const tentativas = [
+        function () { return Tasker.dismissSceneV2(SCENE_NAME); },
+        function () { return Tasker.dismissSceneV2(SCENE_SCREEN_ID); },
+        function () { return Tasker.dismissLayout(SCENE_SCREEN_ID); },
+        function () { return Tasker.cancelScreen(''); }
+    ];
+    for (let i = 0; i < tentativas.length; i++) {
+        try { tentativas[i](); return true; } catch (eTentativa) { }
+    }
+    return false;
+}
+function agendarFechamentoProprio(){
+    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
 }
 
 function formatarTamanho(bytes){
@@ -708,7 +742,6 @@ function renderizarPacote(){
     document.getElementById('pacoteTamanho').textContent = formatarTamanho(pacoteAtual.tamanho);
     document.getElementById('pacoteData').textContent = formatarData(pacoteAtual.publicado);
     document.getElementById('pacoteUrl').textContent = pacoteAtual.url;
-    document.getElementById('destinoPasta').textContent = PASTA_DESTINO;
     card.style.display = 'block';
     const botao = document.getElementById('btnBaixar');
     if (botao) botao.disabled = false;
@@ -856,12 +889,7 @@ function aplicarStatus(valor){
         finalizado = true;
         baixando = false;
         pararSonda();
-        definirProgresso(MAPA_STATUS.concluido, 'ok');
-        const spinner = document.getElementById('progressoSpinner');
-        if (spinner) spinner.style.display = 'none';
-        showToast({ type: 'success', title: 'CONCLUÍDO', message: 'O pacote foi salvo na pasta do WebView.' });
-        const botao = document.getElementById('btnBaixar');
-        if (botao) botao.disabled = false;
+        confirmarSalvamento();
         return;
     }
     if (texto === 'falhou') {
@@ -917,7 +945,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.opacity = '1';
     }, 100);
 
-    document.getElementById('destinoPasta').textContent = PASTA_DESTINO;
 
     // Recebimento de variavel: listener SEMPRE com wrapper (nome, valor);
     // passar a funcao direto e bug (o primeiro argumento e o NOME)
