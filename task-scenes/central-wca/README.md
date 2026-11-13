@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.39**
-Arquivo: `Central WCA 1.39.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.40**
+Arquivo: `Central WCA 1.40.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
@@ -97,7 +97,7 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 
 ## Configurações de desenvolvedor (arquivo .env da API)
 
-O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o painel que edita o arquivo `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` — as configurações da API no dispositivo. O painel ocupa a largura da tela e a lista de opções tem área de rolagem ampla:
+O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o painel que edita o arquivo `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` — as configurações da API no dispositivo. O painel ocupa **a tela inteira** (cabeçalho no topo, lista de opções ocupando todo o espaço com rolagem, botões fixos no pé):
 
 - **Aplicação**: **APP_OS** — o nome do app que o WhatsApp mostra como aparelho conectado. **Na instalação é gravado automaticamente** com o nome da sessão que você definir (o arquivo é criado na instalação com o padrão completo; sem nome definido, fica `WhatsConnectApi - Tasker`);
 - **Mensagens**: resposta automática (texto), marcar como lida, recusar chamadas; **Mídia**: download automático e segundos antes de apagar; **Webhook**: atraso, tentativas de entrega, **ECO** de mensagens enviadas (`INCLUDE_OUTGOING`) e eventos; **Conta e presença**: validação, presença ao conectar e pulso de presença;
