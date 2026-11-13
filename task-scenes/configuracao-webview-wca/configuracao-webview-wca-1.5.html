@@ -530,7 +530,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.4)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.5)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML + projetos do
 // Tasker, gerado automaticamente pelo GitHub Actions em cada release) e
 // salva o arquivo zipado na pasta do WebView do dispositivo.
@@ -547,8 +547,8 @@ body::before {
 // Apos baixar, o proprio zip e DESCOMPACTADO dentro da cena: leitura em
 // base64 pelo shell, parser do diretorio central do zip em JavaScript e
 // gravacao arquivo por arquivo (o build publica o zip SEM compressao
-// interna, entao cada entrada e um recorte direto dos bytes). A pasta
-// task-project/ entra na raiz (prefixo removido, como no fluxo manual) e
+// interna, entao cada entrada e um recorte direto dos bytes). A estrutura
+// de pastas do pacote e mantida (task-scenes/ e task-project/), nada fica
 // o zip e apagado no fim. As etapas visuais tem TEMPO MINIMO de exibicao
 // para o usuario acompanhar cada fase.
 
@@ -977,9 +977,9 @@ function bytesDaEntrada(bytes, entrada){
     return bytes.subarray(inicio, inicio + entrada.tamanho);
 }
 
-// Extrai TODOS os arquivos do zip para a pasta do WebView:
-// task-project/ perde o prefixo (entra na raiz, como no fluxo manual);
-// task-scenes/ e mantido. Cada arquivo sai por base64 + shell.
+// Extrai TODOS os arquivos do zip para a pasta do WebView mantendo a
+// estrutura de pastas do pacote (task-scenes/ e task-project/): nada
+// fica solto na raiz. Cada arquivo sai por base64 + shell.
 async function extrairPacote(){
     let bytes = null;
     const b64 = await lerZipComoBase64();
@@ -996,9 +996,7 @@ async function extrairPacote(){
     for (let i = 0; i < entradas.length; i++) {
         const e = entradas[i];
         if (e.nome.charAt(e.nome.length - 1) === '/') continue;
-        let nome = e.nome;
-        if (nome.indexOf('task-project/') === 0) nome = nome.slice('task-project/'.length);
-        const limpo = nomeSeguro(nome);
+        const limpo = nomeSeguro(e.nome);
         if (!limpo) throw new Error('entrada-suspeita: ' + e.nome);
         alvos.push({ nome: limpo, metodo: e.metodo, dados: bytesDaEntrada(bytes, e) });
     }

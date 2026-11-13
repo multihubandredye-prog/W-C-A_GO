@@ -1,8 +1,8 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.4**
-Arquivo: `configuracao-webview-wca-1.4.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.5**
+Arquivo: `configuracao-webview-wca-1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ## O que a cena faz
 
@@ -20,7 +20,7 @@ Baixa o pacote **WCA-Tasker-Projetos** (reúne as cenas HTML e os projetos do Ta
   1. `Tasker.httpRequest` com `fileToSave` e **header como UMA STRING** (`User-Agent: Tasker` — formato que o Tasker espera);
   2. o mesmo GET no **mínimo de opções** (sem header);
   3. reserva: `fetch` dentro do WebView convertendo os bytes em **base64** gravado via `writeFile` e decodificado no shell (`base64 -d`) — se falhar, o `.b64` parcial é apagado;
-  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado na pasta via base64 + shell; `task-project/` perde o prefixo (entra na raiz) e `task-scenes/` é mantido; o **zip é apagado** no fim — resta só o conteúdo; guardas contra **zip-slip** e contagem final `find | wc -l`;
+  4. **Descompactação automática (tudo na cena)**: o zip é lido em **base64** pelo shell, o **diretório central é parseado em JavaScript** (estrutura PK) e cada arquivo é regravado na pasta via base64 + shell; **a estrutura de pastas do pacote é mantida** (`task-scenes/` e `task-project/`) — **nada fica solto na raiz**; o **zip é apagado** no fim — resta só o conteúdo (o zip só permanece se a descompactação falhar, para permitir nova tentativa sem baixar de novo); guardas contra **zip-slip** e contagem final `find | wc -l`;
   5. o pacote do build é publicado **sem compressão interna** (ZIP_STORED), então cada entrada é um recorte direto dos bytes — sem depender de descompressão do WebView (entrada comprimida é inflada via `DecompressionStream`, se existir).
 
 ## Fluxo da tela
