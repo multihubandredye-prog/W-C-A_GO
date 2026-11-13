@@ -1,17 +1,18 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.8**
-Arquivo: `Contatos Pro WCA 1.8.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.9**
+Arquivo: `Contatos Pro WCA 1.9.html` — **único arquivo**, com HTML + CSS + JS inline.
 
-Central de contatos e grupos: escolhe um dispositivo logado e lista as **conversas reais** do WhatsApp em abas **Contatos** e **Grupos**, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
+Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**, **Grupos** e **Minha Agenda** em abas, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
 ## Funcionamento
 
 - **Tela de dispositivos**: busca `GET /devices` na API local e lista os com `state = logged_in` (nome, número e selo "Online"); botão **Atualizar Dispositivos** refaz a busca;
 - **Tela de contatos/grupos**: busca `GET /user/my/contacts?filter=chatted` (agenda sincronizada no WhatsApp) e `GET /user/my/groups` (todos os grupos que você participa) com `X-Device-Id` do dispositivo escolhido. Contatos válidos descartam JIDs inválidos (`0@…`, `status@…`); grupos ficam só os `@g.us`;
 - **Ordenação (com nome primeiro)**: quem tem nome salvo fica no início em ordem alfabética; quem só tem número (sem nome na agenda) vai para o fim, também em ordem — vale para contatos e grupos;
-- **Abas**: Contatos/Grupos com contadores e indicador deslizante; **arrastar para o lado** na lista (esquerda ou direita) alterna entre as abas — rolagem vertical e modo de seleção não trocam;
+- **Abas**: Contatos/Grupos/Minha Agenda com contadores e indicador deslizante; **arrastar para o lado** na lista alterna entre as três abas (esquerda = próxima, direita = anterior) — rolagem vertical e modo de seleção não trocam;
+- **Minha Agenda (aba própria)**: os contatos da agenda do aparelho chegam pela variável **`contacts_address`** do Tasker (JSON em array com `number` e `display_name`, como o do projeto). A cena lê no padrão das outras cenas: listener + sondagem de 16 leituras a cada 500 ms (prazo de 1,5 s por leitura); se o valor chegar depois, o listener cobre. **Variável inexistente ou vazia: a aba fica vazia ("Nenhum contato na agenda") e as outras abas seguem normalmente.** Ordenação com nome primeiro (A-Z, nomes estilizados normalizados) e quem só tem número no fim; busca por nome ou número; tocar num contato abre o mesmo modal (copiar nome/número, LID e foto — o que não existir fica como "não sincronizado"/ícone);
 - **Busca**: filtra por nome (sem acentos/pontuação) ou número/JID em tempo real, atualizando os contadores;
 - **Seleção múltipla**: toque longo (0,5s, com vibração) entra no modo de seleção; toques alternam itens; **Todos** seleciona/desfaz a lista atual; **Limpar** zera; barra inferior com o total e cópias em lote (**Nome** / **Número ou JID** / **Tudo**) e pré-visualização em modal (primeiros 60 itens);
 - **Modais**: contato (copiar nome, número, nome + número e **LID** — copia só o número do LID, sem o sufixo) e grupo (copiar nome, JID ou ambos); fecham pelo X, tocando fora ou tecla Esc; a linha do LID busca `GET /user/info?phone=<número>` (campo `resolved_lid`) em segundo plano, com cache por JID e indicação "Buscando LID… / LID não sincronizado / LID indisponível";
@@ -23,7 +24,9 @@ Central de contatos e grupos: escolhe um dispositivo logado e lista as **convers
 
 ## Variáveis do Tasker consumidas pela cena
 
-**Nenhuma.** Toda a informação vem da API local; a autenticação e o host ficam no próprio código.
+- **`contacts_address`** — JSON em array com os contatos da agenda do aparelho (`number`, `display_name`, `account_type`, `_id`). Se for **local** (nome em minúscula), defina-a na tarefa que abre a cena **DEPOIS** da ação Show Scene v2 (mesmo esquema do Painel de Atividade); se for global, basta existir quando a cena abrir. Vazia ou inexistente: a aba **Minha Agenda** fica vazia e nada mais é afetado. Os valores são lidos por listener + sondagem (a cena cobre valor definido antes ou logo depois do Show).
+
+Toda a informação das abas Contatos e Grupos vem da API local; a autenticação e o host ficam no próprio código.
 
 ## Botão voltar do Android (Back Pressed)
 
