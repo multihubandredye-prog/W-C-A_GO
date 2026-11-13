@@ -3112,7 +3112,35 @@ input.first-install-attention {
 .dev-note { font-size: 0.64rem; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
 .dev-cancel { margin-top: 12px; flex-shrink: 0; margin-bottom: 4px; }
 
-    </style>
+    /* Overlay da desinstalacao (fora do fluxo de modais; acima de tudo) */
+#uninstallOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 12000;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+#uninstallOverlay.open { display: flex; }
+.uninstall-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 22px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+}
+.uninstall-title { font-size: 1.05rem; font-weight: 700; color: var(--white); letter-spacing: 0.02em; }
+.uninstall-etapa { margin-top: 14px; font-size: 0.82rem; color: var(--accent); font-weight: 600; }
+.uninstall-item { margin-top: 10px; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; min-height: 34px; word-break: break-all; }
+.uninstall-bar { margin-top: 14px; width: 100%; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.uninstall-bar-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.25s ease; }
+</style>
+
 </head>
 <body>
 
@@ -3467,6 +3495,8 @@ input.first-install-attention {
         </div>
     </div>
 
+    <div id="uninstallOverlay" aria-hidden="true"></div>
+
     <div id="confirmRestartModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-content">
             <div class="restart-icon-wrap"><i class="fa-solid fa-rotate-right"></i></div>
@@ -3636,6 +3666,12 @@ input.first-install-attention {
                 <button class="menu-item-new" id="menuCheckUpdatesBtn">
                     <div class="icon-container icon-primary"><i class="fa-solid fa-arrows-rotate"></i></div>
                     <div class="text-container"><div class="item-title">Verificar Atualizações</div><div class="item-subtitle">Buscar novas versões do WCA</div></div>
+                    <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
+                </button>
+
+                <button class="menu-item-new" id="menuDevSettingsBtn">
+                    <div class="icon-container icon-muted"><i class="fa-solid fa-sliders"></i></div>
+                    <div class="text-container"><div class="item-title">Configurações do desenvolvedor</div><div class="item-subtitle">Parâmetros avançados (.env)</div></div>
                     <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </button>
 
@@ -3890,7 +3926,6 @@ input.first-install-attention {
                     <span id="licencaLabel" class="status-mode">CARREGANDO...</span>
                     <span id="licencaExp" class="status-exp">---</span>
                 </div>
-                <button id="devSettingsBtn" class="btn-menu" aria-label="Configurações de desenvolvedor"><i class="fa-solid fa-sliders"></i></button>
                 <button id="menuBtn" class="btn-menu" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
             </div>
 
@@ -4579,10 +4614,11 @@ async function loadVersionFile(){
         openModal('devConfirmModal');
     }
     function setupDevSettings(){
-        const btn = document.getElementById('devSettingsBtn');
-        if (!btn) return;
         devMontarEventosGrid();
-        btn.addEventListener('click', function () { devAbrir(); });
+        const btn = document.getElementById('devSettingsBtn');
+        if (btn) btn.addEventListener('click', function () { devAbrir(); });
+        const itemDevMenu = document.getElementById('menuDevSettingsBtn');
+        if (itemDevMenu) itemDevMenu.addEventListener('click', function () { closeModal('helpModal'); devAbrir(); });
         document.querySelectorAll('#devSettingsModal .dev-toggle').forEach(function (tg) {
             tg.addEventListener('click', function (eTg) {
                 const op = eTg.target.closest('.dev-opt');
@@ -5274,16 +5310,147 @@ async function loadVersionFile(){
         }
     }
 
-    // Desinstala o WCA, removendo a conexão do WhatsApp
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    // Desinstala o WCA INTEIRO DENTRO da cena (V2), passo a passo com barra de
+    // progresso: 1) desconecta todos os usuarios pela API (se estiver em
+    // execucao; se nao, pula); 2) enumera e elimina os arquivos das pastas do
+    // sistema um a um; 3) conclui e encerra as cenas em cascata
+    const PASTA_BIN_WCA = '/data/data/net.dinglisch.android.taskerm/files/WCA';
+    const PASTA_PROJETO_WCA = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api';
+    let desinstalandoWca = false;
+    let desinElTitulo = null;
+    let desinElEtapa = null;
+    let desinElItem = null;
+    let desinElBarra = null;
+
+
     async function taskUninstallWca() {
+        await iniciarDesinstalacaoWca();
+    }
+
+    function desinDormir(ms){
+        return new Promise(function (r) { setTimeout(r, ms); });
+    }
+
+    function desinAbrirOverlay(){
+        let ov = document.getElementById('uninstallOverlay');
+        if (!ov) { ov = document.createElement('div'); ov.id = 'uninstallOverlay'; document.body.appendChild(ov); }
+        ov.innerHTML = '';
+        const card = document.createElement('div'); card.className = 'uninstall-card';
+        desinElTitulo = document.createElement('h3'); desinElTitulo.className = 'uninstall-title'; desinElTitulo.textContent = 'Desinstalando o WCA';
+        desinElEtapa = document.createElement('div'); desinElEtapa.className = 'uninstall-etapa'; desinElEtapa.textContent = 'Preparando...';
+        desinElItem = document.createElement('div'); desinElItem.className = 'uninstall-item'; desinElItem.textContent = '';
+        const wrap = document.createElement('div'); wrap.className = 'uninstall-bar';
+        desinElBarra = document.createElement('div'); desinElBarra.className = 'uninstall-bar-fill'; desinElBarra.style.width = '0' + String.fromCharCode(37);
+        wrap.appendChild(desinElBarra);
+        card.appendChild(desinElTitulo); card.appendChild(desinElEtapa); card.appendChild(desinElItem); card.appendChild(wrap);
+        ov.appendChild(card);
+        ov.classList.add('open');
+    }
+
+    function desinEtapa(texto){ if (desinElEtapa) desinElEtapa.textContent = texto; }
+    function desinItem(texto){ if (desinElItem) desinElItem.textContent = texto; }
+    function desinProgresso(feito, total){
+        if (!desinElBarra) return;
+        const pct = total > 0 ? Math.min(100, Math.round((feito / total) * 100)) : 0;
+        desinElBarra.style.width = pct + String.fromCharCode(37);
+    }
+
+    function desinNomeArquivo(caminho){
+        const partes = String(caminho).split('/');
+        return partes[partes.length - 1] || caminho;
+    }
+
+    async function desinListaArquivos(pasta){
         try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'uninstall-wca' }
-            });
-        } catch (e) {
+            const r = await Promise.race([ taskerCall('runShell', { cmd: 'find ' + shellQuote(pasta) + ' -type f 2>/dev/null', root: false, timeout: 60 }), bridgeTimeout(70000) ]);
+            return String((r && r.stdout) || '').split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 0; });
+        } catch (eLista) { return []; }
+    }
+
+    // Etapa 1: desconecta TODOS os usuarios (mesmo fluxo da lixeira de cada
+    // dispositivo: logout no app + DELETE do dispositivo). API fora do ar pula
+    async function desinDesconectarUsuarios(){
+        desinEtapa('Etapa 1 de 3 — Desconectando os usuários conectados');
+        let dispositivos = [];
+        try {
+            const resposta = await Promise.race([
+                fetch(CONFIG.API_URL + '/devices', { headers: { 'Authorization': CONFIG.AUTH } }),
+                desinDormir(3000)
+            ]);
+            if (resposta && resposta.ok) {
+                const dados = await resposta.json();
+                dispositivos = (dados && dados.results) || [];
+            }
+        } catch (eApi) { dispositivos = []; }
+        if (!dispositivos.length) {
+            desinItem('API não está em execução — etapa pulada');
+            await desinDormir(900);
+            return;
         }
+        for (let i = 0; i < dispositivos.length; i++) {
+            const dev = dispositivos[i];
+            const id = dev && dev.id ? dev.id : '';
+            const rotulo = dev && (dev.pushName || dev.jid) ? String(dev.pushName || dev.jid) : String(id || (i + 1));
+            desinItem('Desconectando (' + (i + 1) + ' de ' + dispositivos.length + '): ' + rotulo);
+            desinProgresso(i, dispositivos.length);
+            if (id) {
+                try { await fetch(CONFIG.API_URL + '/app/logout', { headers: { 'Authorization': CONFIG.AUTH, 'X-Device-Id': id } }); } catch (eLogout) { }
+                try { await fetch(CONFIG.API_URL + '/devices/' + id, { method: 'DELETE', headers: { 'Authorization': CONFIG.AUTH, 'X-Device-Id': id } }); } catch (eDel) { }
+            }
+            await desinDormir(150);
+        }
+        desinProgresso(dispositivos.length, dispositivos.length);
+        try { clearDevicesFile(); } catch (eArq) { }
+    }
+
+    // Etapa 2: enumera os arquivos das duas pastas e elimina um a um (100ms)
+    async function desinEliminarArquivos(){
+        desinEtapa('Etapa 2 de 3 — Eliminando os arquivos do WCA');
+        const listaBin = await desinListaArquivos(PASTA_BIN_WCA);
+        const listaProj = await desinListaArquivos(PASTA_PROJETO_WCA);
+        const arquivos = listaBin.concat(listaProj);
+        if (!arquivos.length) {
+            desinItem('Nenhum arquivo encontrado — etapa pulada');
+            await desinDormir(900);
+            return;
+        }
+        for (let i = 0; i < arquivos.length; i++) {
+            desinItem('Eliminando (' + (i + 1) + ' de ' + arquivos.length + '): ' + desinNomeArquivo(arquivos[i]));
+            desinProgresso(i, arquivos.length);
+            try { await Promise.race([ taskerCall('runShell', { cmd: 'rm -f ' + shellQuote(arquivos[i]), root: false, timeout: 20 }), bridgeTimeout(25000) ]); } catch (eRm) { }
+            await desinDormir(100);
+        }
+        desinProgresso(arquivos.length, arquivos.length);
+        desinItem('Removendo as pastas do WCA...');
+        try { await Promise.race([ taskerCall('runShell', { cmd: 'rm -rf ' + shellQuote(PASTA_BIN_WCA) + ' ' + shellQuote(PASTA_PROJETO_WCA), root: false, timeout: 60 }), bridgeTimeout(70000) ]); } catch (eRmDir) { }
+    }
+
+    // Fecha as cenas em cascata: o Tasker pode aceitar em silencio um
+    // identificador que nao corresponde a tela, entao TODOS sao disparados
+    function fecharCenasAposDesinstalacao(){
+        const candidatos = ['001-CENTRAL_WHATS_CONNECT_API [wca]V2', '001-CENTRAL_WHATS_CONNECT_API [wca]', '1'];
+        for (let i = 0; i < candidatos.length; i++) {
+            try { Tasker.dismissSceneV2(candidatos[i]); } catch (eA) { }
+        }
+        try { Tasker.dismissLayout('1'); } catch (eB) { }
+        try { Tasker.cancelScreen(''); } catch (eC) { }
+    }
+
+    async function iniciarDesinstalacaoWca(){
+        if (desinstalandoWca) return;
+        desinstalandoWca = true;
+        desinAbrirOverlay();
+        await desinDormir(300);
+        try {
+            await desinDesconectarUsuarios();
+            await desinEliminarArquivos();
+        } catch (eFluxo) { }
+        desinEtapa('Etapa 3 de 3 — Concluído');
+        desinItem('');
+        desinProgresso(1, 1);
+        if (desinElTitulo) desinElTitulo.textContent = 'Desinstalação concluída';
+        await desinDormir(2200);
+        fecharCenasAposDesinstalacao();
     }
 
     // Desativa o WCA, pausando o serviço temporariamente
