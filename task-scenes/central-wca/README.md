@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.38**
-Arquivo: `Central WCA 1.38.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.39**
+Arquivo: `Central WCA 1.39.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
@@ -102,7 +102,7 @@ O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o 
 - **Aplicação**: **APP_OS** — o nome do app que o WhatsApp mostra como aparelho conectado. **Na instalação é gravado automaticamente** com o nome da sessão que você definir (o arquivo é criado na instalação com o padrão completo; sem nome definido, fica `WhatsConnectApi - Tasker`);
 - **Mensagens**: resposta automática (texto), marcar como lida, recusar chamadas; **Mídia**: download automático e segundos antes de apagar; **Webhook**: atraso, tentativas de entrega, **ECO** de mensagens enviadas (`INCLUDE_OUTGOING`) e eventos; **Conta e presença**: validação, presença ao conectar e pulso de presença;
 - Cada opção **ATIVADO/DESATIVADO** funciona como seleção (uma das duas); a **presença ao conectar** (available/unavailable/none) e os **tempos do pulso** são botões-chip com opções padrão (intervalo: 30m/1h/6h/12h/24h/48h; duração: 1m/5m/15m/30m/1h) — sem menus nativos do sistema;
-- **Todos os ? do sistema abrem a mesma bolha flutuante** junto ao ícone, com título e explicação: as linhas do painel de desenvolvedor, cada evento do webhook (fecha com novo toque, toque fora, ao rolar a lista ou ao fechar o painel) e o ? do **nome da sessão** na instalação;
+- **Todos os ? do sistema abrem a mesma bolha flutuante** junto ao ícone, com título e explicação: as linhas do painel de desenvolvedor, cada evento do webhook (fecha com novo toque, toque fora, ao rolar a lista ou ao fechar o painel) e o ? do **nome da sessão** na instalação. A bolha fica em camada **acima do painel** e os toques nos ? são tratados por **delegação no documento** (um único listener), além de a bolha ser recriada sozinha se necessário;
 - Os **eventos do webhook** são caixas de seleção com **todas as 19 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos). **Cada evento tem o seu ?**: a explicação curta aparece numa **bolha flutuante** junto ao botão (fecha com novo toque, toque fora, ao rolar a lista ou ao fechar o painel). Destaques: `message` (mensagens enviadas e recebidas — o **ECO** controla se as enviadas entram), `chat_presence` (usuário digitando/gravando áudio), `message.ack` (mensagem **entregue/lida**), `status.response`;
 - **Salvar pede confirmação**: SALVAR e SALVAR E REINICIAR abrem um modal de confirmação antes de gravar (o texto indica se a API será reiniciada); CANCELAR desiste;
 - **Ícone "?" em cada item** abre um comentário curto explicando o que aquela configuração faz;
