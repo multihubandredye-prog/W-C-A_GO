@@ -1,8 +1,8 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.31**
-Arquivo: `Central WCA 1.31.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.32**
+Arquivo: `Central WCA 1.32.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
@@ -87,6 +87,13 @@ Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio =
 2. Ação **Definir Variável**: `return_modal` = `%TIMES` (valor diferente a cada press garante o disparo).
 
 **Os nomes das variáveis ficam no JavaScript da cena** (constantes `WCA_MODAL_STATE_VAR` = `cache_modal` e `WCA_RETURN_MODAL_VAR` = `return_modal`, no bloco "Botao voltar do Android"). Podem ser renomeados para qualquer nome (letras/números/_, sem `%`), desde que o MESMO nome seja usado nos dois lados: na constante do HTML e na expressão/ação do handler do Tasker. **Nomes padronizados (12/11/2026, para replicar em qualquer cena):** `cache_modal` (estado — qual modal está no topo, vazio = nenhum) + `return_modal` (comando do voltar). **Regras do `%`:** OBRIGATÓRIO na expressão do Cancelar Evento (`"%cache_modal" != ""`) e no valor `%TIMES` (são referências a variáveis); OPCIONAL no campo da variável da ação Definir Variável (com ou sem `%` funcionam — os exemplos do próprio Tasker usam sem). Fechamento da cena continua sendo SEMPRE pelo Tasker (o JS nunca faz dismiss).
+
+## Tela do QR Code / código de pareamento
+
+- O QR gira sozinho enquanto o modal está aberto: quando o contador chega a zero (30 segundos), um novo QR é buscado automaticamente (`qr_duration` da API);
+- **Sair da tela do QR por QUALQUER caminho (X, CANCELAR, tocar fora, Esc ou o botão voltar) desbloqueia o dispositivo**: o card deixa de mostrar "AGUARDANDO" e os botões **QR Code** e **Com código** voltam imediatamente, permitindo gerar um novo QR — antes, sair pelo voltar travava o card em "Aguardando conexão" sem os botões;
+- Se o QR for pedido de novo enquanto a sessão de pareamento anterior ainda está viva na API (janela de alguns minutos), a API pode não gerar na hora — o modal mostra a mensagem "Não foi possível gerar o QR Code. Aguarde alguns segundos e toque em QR Code de novo." em vez de ficar carregando para sempre; passada a janela, o novo QR sai de primeira;
+- Fechar o modal do QR **sem** ter conectado também cancela o pareamento do lado da cena (o dispositivo criado volta ao estado normal; se ele já estava conectado, segue conectado — nada é deslogado nessa situação).
 
 ## Como atualizar no Tasker
 
