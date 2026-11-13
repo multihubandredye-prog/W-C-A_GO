@@ -11,7 +11,7 @@ on:
         required: false
         default: ''
       release_title:
-        description: 'Título do release (ex: 🚀 [CORE] 1.2.4). Opcional'
+        description: 'Título do release (ex: 🚀 [CORE] ,🚀 [UI] ,🚀 [FULL]'
         required: false
         default: ''
 
