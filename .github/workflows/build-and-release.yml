@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag da release (ex: v5.0.3- tasker). Deixe vazio para calcular automaticamente'
+        description: 'Tag da release (ex: v5.0.3- tasker). Deixe vazio para calcular automaticamente a partir da última tag'
         required: false
         default: ''
       release_title:
@@ -39,9 +39,16 @@ jobs:
             INPUT_TAG="${{ github.event.inputs.tag_name }}"
             INPUT_TITLE="${{ github.event.inputs.release_title }}"
             
-            # Se a tag foi deixada vazia, calcula automaticamente com base no settings.go
+            # Se a tag foi deixada vazia, calcula automaticamente a partir da ULTIMA TAG
+            # do repositorio (mais recente por data); sem nenhuma tag valida, usa settings.go
             if [ -z "$INPUT_TAG" ]; then
-              CURRENT_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
+              ULTIMA_TAG=$(git tag | sed 's/^v//' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+              echo "💡 Última tag de release: ${ULTIMA_TAG:-<nenhuma>}"
+              CURRENT_VERSION="$ULTIMA_TAG"
+              if [ -z "$CURRENT_VERSION" ]; then
+                CURRENT_VERSION=$(grep 'AppVersion' src/config/settings.go | cut -d'"' -f2)
+                echo "⚠️ Sem tag de release válida no repositório — usando a versão do settings.go: $CURRENT_VERSION"
+              fi
               MAJOR_MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f1-2)
               PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3 | sed 's/v//')
               NEW_PATCH=$((PATCH + 1))
