@@ -14,6 +14,14 @@ on:
         description: 'Título do release (ex: 🚀 [CORE] ,🚀 [UI] ,🚀 [FULL]'
         required: false
         default: ''
+      minificar:
+        description: 'Minificar os HTMLs das cenas dentro do zip? (códigos reduzidos ~30% no pacote)'
+        required: false
+        default: 'no'
+        type: choice
+        options:
+          - 'no'
+          - 'yes'
 
 permissions:
   contents: write
@@ -192,7 +200,10 @@ jobs:
       - name: Empacotar cenas e projetos do Tasker (zip)
         env:
           RELEASE_TAG: ${{ env.RELEASE_TAG }}
-        run: python3 .github/scripts/build_tasker_bundle.py
+          MINIFICAR: ${{ inputs.minificar || 'no' }}
+        run: |
+          python3 -c "import rjsmin, rcssmin" 2>/dev/null || pip install --quiet rjsmin rcssmin
+          python3 .github/scripts/build_tasker_bundle.py
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
