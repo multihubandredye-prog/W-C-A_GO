@@ -1,10 +1,16 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.43**
-Arquivo: `central-wca-1.43.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.44**
+Arquivo: `central-wca-1.44.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Refinamento do design dos campos numéricos e do resultado (1.44)
+
+- Os 3 campos numéricos (`AUTO_DELETE_MEDIA_DURATION`, `WHATSAPP_WEBHOOK_DELAY_MS`, `WHATSAPP_WEBHOOK_MAX_ATTEMPTS`) agora ficam em **uma única linha** (rótulo à esquerda + botão `?` + caixinha à direita);
+- A caixinha numérica é **compacta** (110px) com o número **centralizado** dentro (placeholder do delay encurtado para `500` — a explicação completa continua no `?`);
+- O modal de resultado do Verificar Premium ganhou **respiro entre a informação e o botão FECHAR** (`margin-top: 20px` nos botões).
 
 ## UX do premium check, Configurações da API e design (desde a 1.43)
 

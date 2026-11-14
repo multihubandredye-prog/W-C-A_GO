@@ -3091,7 +3091,11 @@ input.first-install-attention {
 .dev-opt { padding: 7px 4px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); color: var(--text-muted); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all .15s; }
 .dev-opt.active { background: rgba(181,251,42,0.14); border-color: var(--accent); color: var(--accent); }
 .dev-input { width: 100%; margin-top: 8px; padding: 9px 12px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); color: var(--text-main); font-size: 0.82rem; font-family: inherit; text-align: left; }
-.dev-input-num { max-width: 170px; }
+.dev-row-inline { display: flex; align-items: center; gap: 8px; }
+.dev-row-inline .dev-key { flex: 1; font-size: 0.64rem; }
+.dev-input-num { width: 110px; max-width: 110px; min-width: 78px; margin-top: 0; margin-left: auto; padding: 9px 6px; text-align: center; }
+#premiumResultModal .confirm-actions { margin-top: 20px; }
+
 .dev-actions { display: flex; gap: 12px; margin-top: 18px; flex-shrink: 0; }
 .dev-choices { grid-template-columns: repeat(3, 1fr); }
 .dev-choices .dev-opt { font-size: 0.56rem; padding: 7px 2px; letter-spacing: 0.02em; }
@@ -3378,31 +3382,28 @@ input.first-install-attention {
                         <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
                     </div>
                 </div>
-                <div class="dev-row">
-                    <div class="dev-label-row">
+                
+<div class="dev-row dev-row-inline">
                         <span class="dev-key">AUTO_DELETE_MEDIA_DURATION</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                        <div class="dev-help">Segundos que cada mídia baixada fica guardada antes de ser apagada do dispositivo. Ex.: 30.</div>
+                        <input type="text" id="devInDelMedia" class="dev-input dev-input-num" inputmode="numeric" placeholder="30">
                     </div>
-                    <div class="dev-help">Segundos que cada mídia baixada fica guardada antes de ser apagada do dispositivo. Ex.: 30.</div>
-                    <input type="text" id="devInDelMedia" class="dev-input dev-input-num" inputmode="numeric" placeholder="30">
-                </div>
                 <div class="dev-group-title">Webhook</div>
-                <div class="dev-row">
-                    <div class="dev-label-row">
+                
+<div class="dev-row dev-row-inline">
                         <span class="dev-key">WHATSAPP_WEBHOOK_DELAY_MS</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                        <div class="dev-help">Atraso em milissegundos antes de entregar cada evento no webhook. Vazio = sem atraso.</div>
+                        <input type="text" id="devInDelay" class="dev-input dev-input-num" inputmode="numeric" placeholder="500">
                     </div>
-                    <div class="dev-help">Atraso em milissegundos antes de entregar cada evento no webhook. Vazio = sem atraso.</div>
-                    <input type="text" id="devInDelay" class="dev-input dev-input-num" inputmode="numeric" placeholder="Ex.: 500 (vazio = sem atraso)">
-                </div>
-                <div class="dev-row">
-                    <div class="dev-label-row">
+                
+<div class="dev-row dev-row-inline">
                         <span class="dev-key">WHATSAPP_WEBHOOK_MAX_ATTEMPTS</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                        <div class="dev-help">Tentativas de entrega por evento: 1 envia uma única vez, sem reenvio (recomendado para o Tasker — evita eventos duplicados). Valores maiores reenviam em caso de falha, esperando 1s, 2s, 4s, 8s (ex.: 5).</div>
+                        <input type="text" id="devInMaxAttempts" class="dev-input dev-input-num" inputmode="numeric" placeholder="1">
                     </div>
-                    <div class="dev-help">Tentativas de entrega por evento: 1 envia uma única vez, sem reenvio (recomendado para o Tasker — evita eventos duplicados). Valores maiores reenviam em caso de falha, esperando 1s, 2s, 4s, 8s (ex.: 5).</div>
-                    <input type="text" id="devInMaxAttempts" class="dev-input dev-input-num" inputmode="numeric" placeholder="1">
-                </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
                         <span class="dev-key">WHATSAPP_WEBHOOK_INCLUDE_OUTGOING</span>
