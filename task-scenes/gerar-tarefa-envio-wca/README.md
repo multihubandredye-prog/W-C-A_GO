@@ -1,8 +1,10 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.15**
-Arquivo: `gerar-tarefa-de-envio-wca-1.15.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.16**
+Arquivo: `gerar-tarefa-de-envio-wca-1.16.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
