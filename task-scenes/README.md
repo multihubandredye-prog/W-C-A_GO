@@ -14,6 +14,7 @@ Cada projeto fica em uma **subpasta própria**, contendo o **HTML da última ver
 | Gerar Tarefa de Envio WCA | `005-GERAR_TAREFA_ENVIO [wca]` | `gerar-tarefa-envio-wca/` |
 | Contatos Pro WCA | Contatos Pro | `contatos-pro-wca/` |
 | Configuração do WebView | `010-DOWNLOAD_VIEW [wca]` | `configuracao-webview-wca/` |
+| Guia / Help WCA | `007-GUIA/HELP [wca]V2` | `guia-help-wca/` |
 
 ## Convenções
 
