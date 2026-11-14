@@ -1,10 +1,16 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.44**
-Arquivo: `central-wca-1.44.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.45**
+Arquivo: `central-wca-1.45.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Espaçamento interno dos inputs corrigido de vez (1.45)
+
+- **Causa raiz** do espaçamento à esquerda dentro das caixas (visível desde as primeiras versões): a regra global `input[type="text"]` do painel tem `padding: .78rem .78rem .78rem 2.5rem` (espaço para o ícone dos campos do painel principal) e especificidade MAIOR que `.dev-input` — todos os inputs do painel dev herdavam o **padding esquerdo de ~40px**;
+- Com o `text-align: center` dos campos numéricos, o texto centrava dentro do content box (que começa após esse padding) e ficava deslocado para a direita;
+- **Correção**: as regras dos inputs do painel agora são `#devSettingsModal .dev-input` e `#devSettingsModal .dev-input-num` (especificidade maior que a global) — padding simétrico real (9px 12px no geral; 9px 6px no numérico) e o número centra de verdade na caixinha.
 
 ## Refinamento do design dos campos numéricos e do resultado (1.44)
 
