@@ -1,10 +1,16 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.2**
-Arquivo: `gerar-tarefa-de-envio-wca-1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.3**
+Arquivo: `gerar-tarefa-de-envio-wca-1.3.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
+
+## Substituição de número corrigida (1.3)
+
+- No XML real, o placeholder é o **literal `5581XXXXXXXX` (com X)** — 61 ocorrências nos valores padrão das ações. **Só ele** é substituído pelo telefone do dispositivo;
+- **Números reais ficam intactos**: os 130 exemplos de **13 dígitos** nos labels (`5581819999999`, `5581888888888`, `5581999999999`...) e o `558181999999` (12 dígitos, `%contact_phone`) — o regex antigo `5581\d{8}` corrompia os primeiros 12 dígitos dos exemplos de 13;
+- **Tela inteira (configuração do lado do Tasker)**: para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena deve usar **FullscreenWithResult** (Modo de Exibição), igual à cena 010 — em `DialogWithResult` a janela do diálogo é fixa e o CSS não a expande; manter **ID da Tela = 1** e Dispensar Automático vazio.
 
 ## Seleção em tela inteira (1.2)
 

@@ -214,7 +214,13 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.2)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.3)
+// Substituicao de numero CORRIGIDA: so o PLACEHOLDER LITERAL 5581XXXXXXXX
+// (com X) recebe o telefone do dispositivo; numeros REAIS do XML (os
+// exemplos de 13 digitos como 5581819999999 e o 558181999999) ficam
+// INTACTOS - o regex anterior 5581\d{8} corrompia os primeiros 12 digitos
+// dos exemplos de 13
+
 // Na selecao, a cena EXPANDE para a TELA INTEIRA (classe modo-selecao): a
 // lista rola ocupando todo o espaco e os botoes ficam fixos embaixo
 
@@ -666,7 +672,8 @@ async function gerarXml(){
             xmlFinal = xmlFinal.replace(/<tids>[\s\S]*?<\/tids>/, '');
         }
         xmlFinal = xmlFinal.split('id-number').join('id:' + final4);
-        xmlFinal = xmlFinal.replace(/5581\d{8}/g, numero);
+        // so o placeholder LITERAL (com X) e trocado; numeros reais ficam
+        xmlFinal = xmlFinal.split('5581XXXXXXXX').join(numero);
         const avisos = [];
         const alvos = {};
         const rePerf = /<code>130<\/code>\s*<Str sr="arg0"[^>]*>([^<]+)<\/Str>/g;
