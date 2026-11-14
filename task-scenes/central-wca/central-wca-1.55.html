@@ -4735,25 +4735,44 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
         devAplicarNosControles();
     }
+    function devNormalizarEnv(texto){
+        return String(texto || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trimEnd();
+    }
+    async function devConfirmarGravacaoEnv(conteudo){
+        for (let tentativa = 0; tentativa < 4; tentativa++) {
+            const lido = await Promise.race([
+                lerArquivo(DEV_ENV_PATH, DEV_ENV_REGEX),
+                bridgeTimeout(15000)
+            ]);
+            if (devNormalizarEnv(lido) === devNormalizarEnv(conteudo)) return true;
+            await new Promise(function (resolve) { setTimeout(resolve, 300); });
+        }
+        return false;
+    }
     async function devSalvar(reiniciar){
         const status = document.getElementById('devStatus');
         if (!status) return;
         status.classList.remove('dev-status-erro');
         const e = devColetarDosControles();
         if (!e) return;
+        const conteudo = devMontarArquivo(e);
+        status.textContent = 'Gravando e confirmando o arquivo .env…';
         try {
             const escrita = await Promise.race([
-                taskerCall('writeFile', { path: DEV_ENV_PATH, text: devMontarArquivo(e), append: false }),
+                taskerCall('writeFile', { path: DEV_ENV_PATH, text: conteudo, append: false }),
                 bridgeTimeout(15000)
             ]);
             if (actionFailed(escrita)) throw new Error('Tasker.writeFile sinalizou falha ao gravar o .env');
+            const confirmado = await devConfirmarGravacaoEnv(conteudo);
+            if (!confirmado) throw new Error('A leitura de confirmação não encontrou o conteúdo gravado no .env');
             closeModal('devSettingsModal');
-            showToast({ title: 'Configurações de desenvolvedor', message: reiniciar ? 'Salvas. Reiniciando a API para aplicar…' : 'Salvas no arquivo .env — reinicie a API para aplicar.', type: 'success' });
+            showToast({ title: 'Configurações de desenvolvedor', message: reiniciar ? 'Salvas e confirmadas. Reiniciando a API para aplicar…' : 'Salvas no arquivo .env — reinicie a API para aplicar.', type: 'success' });
             if (reiniciar) {
+                await new Promise(function (resolve) { setTimeout(resolve, 700); });
                 try { await taskRestartWca(); } catch (eReinicio) {}
             }
         } catch (eGravacao) {
-            status.textContent = 'Falha ao gravar o arquivo .env. Verifique o Allow Phone Access e tente de novo.';
+            status.textContent = 'Falha ao gravar e confirmar o arquivo .env. A API não foi reiniciada. Verifique o Allow Phone Access e tente de novo.';
             status.classList.add('dev-status-erro');
         }
     }

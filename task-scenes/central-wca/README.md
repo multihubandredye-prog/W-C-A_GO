@@ -1,10 +1,17 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.54**
-Arquivo: `central-wca-1.54.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.55**
+Arquivo: `central-wca-1.55.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Gravação confirmada antes de reiniciar a API
+
+- **SALVAR E REINICIAR** grava o conteúdo completo do `.env`, lê novamente o arquivo e confirma que o conteúdo persistido é exatamente o conteúdo configurado;
+- A tarefa `006-CONFIGURAR_SISTEMA [wca]` com `restart-wca` só é executada depois dessa confirmação e de uma pequena margem para sincronização do armazenamento;
+- Se a gravação não puder ser confirmada, a API **não é reiniciada** e o painel informa a falha;
+- O botão **SALVAR** usa a mesma confirmação de persistência, sem executar o reinício.
 
 ## Feedback de toque em vez de hover (1.54)
 
