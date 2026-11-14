@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Instruções de Uso - WhatsConnect API</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -1105,7 +1106,7 @@ body {
 .video-player-content { max-width: 100rem; width: 96vw; padding: 1.2rem; }
 .video-player-container { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 1.2rem; overflow: hidden; }
 .video-player-container iframe, .video-player-container video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: contain; background: #000; }
-.video-player-actions { display: flex; justify-content: center; margin-top: 1.2rem; }
+.video-player-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: .8rem; margin-top: 1.2rem; }
 .video-fullscreen { display: inline-flex; align-items: center; justify-content: center; gap: .7rem; min-height: 4.6rem; padding: .8rem 1.5rem; border: .1rem solid var(--primary); border-radius: 1rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #001016; font: 600 1.4rem Inter, sans-serif; }
 .video-fullscreen:active { transform: scale(.97); filter: brightness(1.08); }
 .telegram-link { touch-action: manipulation; }
@@ -1709,6 +1710,7 @@ body {
             <div id="videoPlayerContainer" class="video-player-container"></div>
             <div class="video-player-actions">
                 <button type="button" class="video-fullscreen" onclick="expandirVideo()"><i class="fas fa-expand"></i> TELA CHEIA</button>
+                <button type="button" class="video-fullscreen video-youtube" onclick="abrirVideoExterno()"><i class="fab fa-youtube"></i> ABRIR NO YOUTUBE</button>
             </div>
         </div>
     </div>
@@ -2620,19 +2622,30 @@ function closeVideoModal() {
     publicarModalAtual();
 }
 
+let videoAtualUrl = '';
+
 function openVideoPlayer(title, url) {
     const modal = document.getElementById('videoPlayerModal');
     const titulo = document.getElementById('videoPlayerTitleText');
     const container = document.getElementById('videoPlayerContainer');
     const info = getVideoIdentifier(url);
+    videoAtualUrl = url;
     titulo.textContent = title || 'Assistindo vídeo';
     container.innerHTML = '';
     if (info.type === 'youtube') {
         const iframe = document.createElement('iframe');
         iframe.id = 'videoAtivo';
-        iframe.src = 'https://www.youtube.com/embed/' + encodeURIComponent(info.id) + '?autoplay=1&playsinline=1&rel=0';
+        const parametros = new URLSearchParams({
+            autoplay: '1',
+            playsinline: '1',
+            rel: '0',
+            origin: 'https://github.com',
+            widget_referrer: 'https://github.com/multihubandredye-prog/W-C-A_GO'
+        });
+        iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(info.id) + '?' + parametros.toString();
         iframe.title = title || 'Vídeo tutorial';
-        iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
         iframe.setAttribute('allowfullscreen', '');
         container.appendChild(iframe);
     } else {
@@ -2661,8 +2674,19 @@ function closeVideoPlayer() {
         try { video.load(); } catch (e) {}
     }
     if (container) container.innerHTML = '';
+    videoAtualUrl = '';
     if (modal) modal.classList.remove('show');
     publicarModalAtual();
+}
+
+function abrirVideoExterno() {
+    if (!videoAtualUrl) return;
+    try {
+        const aberta = window.open(videoAtualUrl, '_blank', 'noopener');
+        if (!aberta) window.location.href = videoAtualUrl;
+    } catch (erroVideo) {
+        window.location.href = videoAtualUrl;
+    }
 }
 
 function expandirVideo() {
