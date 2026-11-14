@@ -179,8 +179,8 @@ body {
 .resultado-box p { font-size: 0.78rem; color: var(--text-main); word-break: break-all; margin-top: 0.35rem; text-align: left; }
 .resultado-aviso { color: #FFD166; }
 .resultado-box .btn-massa { margin-top: 0.8rem; }
-.content-wrapper.modo-selecao { height: 100vh; justify-content: flex-start; }
-.content-wrapper.modo-selecao .main-container { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.content-wrapper.modo-selecao { width: 100vw; max-width: 100vw; height: 100vh; justify-content: flex-start; }
+.content-wrapper.modo-selecao .main-container { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0; border-left: none; border-right: none; }
 .content-wrapper.modo-selecao .info-container { flex: 1; min-height: 0; max-height: none; overflow: hidden; }
 .content-wrapper.modo-selecao .lista-tarefas { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin: 0.6rem 1.25rem; }
 .content-wrapper.modo-selecao .botoes-massa { padding-bottom: 1.1rem; }
@@ -214,7 +214,11 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.3)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.4)
+// Na selecao o container ocupa a TELA INTEIRA (largura e altura) e as
+// tarefas de infraestrutura do projeto principal (const TAREFAS_OCULTAS)
+// nao aparecem na lista nem geram aviso de dependencia
+
 // Substituicao de numero CORRIGIDA: so o PLACEHOLDER LITERAL 5581XXXXXXXX
 // (com X) recebe o telefone do dispositivo; numeros REAIS do XML (os
 // exemplos de 13 digitos como 5581819999999 e o 558181999999) ficam
@@ -244,6 +248,11 @@ const XML_URL = 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_G
 const PASTA_TASKS_SEND = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/tasks-send';
 const PASTA_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
 const XML_ORIG_PATH = PASTA_TASKS_SEND + '/id_number.prj.xml';
+
+// Tarefas de infraestrutura do projeto principal: nao entram na selecao
+// (sao chamadas pelas tarefas de envio e ja existem no outro projeto)
+const TAREFAS_OCULTAS = ['003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]'];
+
 
 let dispositivoAtual = null;  // { nome, numero, final4 }
 let projetoCarregado = null;  // { xml, tarefas: [{ id, nme, bloco }], tidsOrig: [] }
@@ -463,10 +472,12 @@ function parseProjeto(xml){
         const nme = (/<nme>([^<]*)<\/nme>/.exec(bloco) || [])[1] || '';
         if (id) tarefas.push({ id: id, nme: nme, bloco: bloco });
     }
-    tarefas.sort(function (a, b) { return a.nme < b.nme ? -1 : (a.nme > b.nme ? 1 : 0); });
+    // infraestrutura ([wca]) fica fora da lista de selecao
+    const visiveis = tarefas.filter(function (t) { return TAREFAS_OCULTAS.indexOf(t.nme) < 0; });
+    visiveis.sort(function (a, b) { return a.nme < b.nme ? -1 : (a.nme > b.nme ? 1 : 0); });
     const tidsTag = /<tids>([^<]*)<\/tids>/.exec(xml);
     const tidsOrig = tidsTag ? tidsTag[1].split(',').map(function (t) { return t.trim(); }).filter(Boolean) : [];
-    return { xml: xml, tarefas: tarefas, tidsOrig: tidsOrig };
+    return { xml: xml, tarefas: visiveis, tidsOrig: tidsOrig };
 }
 
 async function abrirSelecaoTarefas(nome, numero, final4){
@@ -680,7 +691,7 @@ async function gerarXml(){
         let mp;
         while ((mp = rePerf.exec(xmlFinal)) !== null) { alvos[mp[1]] = true; }
         Object.keys(alvos).forEach(function (alvo) {
-            if (!nomesSel[alvo]) avisos.push('A tarefa ' + alvo + ' é chamada por alguma das selecionadas e NÃO foi incluída.');
+            if (!nomesSel[alvo] && TAREFAS_OCULTAS.indexOf(alvo) < 0) avisos.push('A tarefa ' + alvo + ' é chamada por alguma das selecionadas e NÃO foi incluída.');
         });
         let caminhoIcone = '';
         try {

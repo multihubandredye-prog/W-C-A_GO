@@ -1,10 +1,16 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.3**
-Arquivo: `gerar-tarefa-de-envio-wca-1.3.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.4**
+Arquivo: `gerar-tarefa-de-envio-wca-1.4.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
+
+## Container alargado e tarefas de infraestrutura ocultas (1.4)
+
+- No modo seleção (com **FullscreenWithResult** na ação), o container ocupa **a tela inteira de verdade**: **100vw de largura** e altura completa, cantos retos e colado nas bordas (sem moldura do cartão compacto);
+- **`003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]` não aparece na lista** (`TAREFAS_OCULTAS`): é infraestrutura chamada pelas tarefas de envio e já existe no projeto principal — e o aviso de dependência **não a menciona**;
+- A contagem e o MARCAR TODAS consideram só as tarefas visíveis (61).
 
 ## Substituição de número corrigida (1.3)
 
