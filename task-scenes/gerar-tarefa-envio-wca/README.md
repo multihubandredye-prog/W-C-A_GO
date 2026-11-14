@@ -1,11 +1,11 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.17**
-Arquivo: `gerar-tarefa-de-envio-wca-1.17.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.18**
+Arquivo: `gerar-tarefa-de-envio-wca-1.18.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
-- **Laços com `multiples()` preservados (1.17)**: o Tasker avalia os itens do laço (Para) na importação quando "Estruturar Saída" está ligado — como a variável ainda não foi definida, `multiples()` virava vazio e o laço ficava sem itens. A geração desliga o "Estruturar Saída" (`arg2=0`) nesses laços, então o `multiples()` é preservado na importação;
+- **Laços com `multiples()` preservados (1.18)**: o Tasker avalia as variáveis do XML na importação do projeto — como a variável `multiples` ainda não foi definida, `multiples()` virava vazio e o laço (Para) ficava sem itens. A geração grava os itens do laço como **texto literal** (o placeholder de JIDs `XXXXXXXXX-XXXXXXXXX`), que o Tasker não avalia — o laço sobrevive à importação e basta trocar o placeholder pelos JIDs reais;
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
