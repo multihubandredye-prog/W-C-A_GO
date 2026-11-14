@@ -1,10 +1,16 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.4**
-Arquivo: `gerar-tarefa-de-envio-wca-1.4.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.5**
+Arquivo: `gerar-tarefa-de-envio-wca-1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
+
+## Ícone duplicado corrigido (1.5)
+
+- **Causa**: a base do Canvas era a **primeira imagem alfabética** de `icons/` — após a primeira geração, o `icon-id-<4>.png` gerado passa a ser o primeiro (`icon-id-...` < `icon-system.png`) e vira a base da próxima, desenhando os dígitos **duas vezes** (o já embutido + o novo, em escalas/posições diferentes);
+- **Correção**: arquivos `icon-id-*` são **excluídos** da seleção da base — a base é sempre a primeira imagem **original** de `icons/`;
+- No aparelho, o `icon-id-3129.png` contaminado pode ser apagado (ou simplesmente gerado de novo — com a 1.5 a base volta a ser o `icon-system.png` e o arquivo é sobrescrito limpo).
 
 ## Container alargado e tarefas de infraestrutura ocultas (1.4)
 
