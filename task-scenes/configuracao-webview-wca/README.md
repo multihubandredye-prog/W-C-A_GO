@@ -1,8 +1,10 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.18**
-Arquivo: `configuracao-webview-wca-1.18.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.19**
+Arquivo: `configuracao-webview-wca-1.19.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Feedback de toque (versão atual)**: todo o CSS usa **`:active`** no lugar de `:hover` — a cena é usada só em celular, então o feedback visual acontece **no toque**;
 
 - **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
 
