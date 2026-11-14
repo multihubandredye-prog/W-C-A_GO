@@ -1,10 +1,15 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.53**
-Arquivo: `central-wca-1.53.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.54**
+Arquivo: `central-wca-1.54.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Feedback de toque em vez de hover (1.54)
+
+- Todo o CSS usa **`:active`** no lugar de `:hover` (47 regras) — a cena é usada só em celular, então o feedback visual acontece **no toque**, não ao passar o cursor;
+- Vale para botões, itens de menu, cartões, tooltip de status e barras de rolagem;
 
 ## Textos da tela inicial e rodapé (1.53)
 
