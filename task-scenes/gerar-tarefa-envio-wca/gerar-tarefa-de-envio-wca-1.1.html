@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsConnectApi | Dispositivos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-body: #000;
+    --bg-card: #06222A;
+    --primary: #0F9DCB;
+    --accent: #B5FB2A;
+    --border: #0F507A;
+    --text-main: #C6E3DC;
+    --text-dim: #8494A4;
+    font-size: 16px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.content-wrapper {
+    width: 92vw;
+    max-width: 28rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-container {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 1.125rem;
+    border: 0.0625rem solid var(--border);
+    box-shadow: 0 0.75rem 2.1875rem rgba(0,0,0,0.65);
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 0.875rem 1.25rem;
+    background: rgba(0,0,0,0.4);
+    border-bottom: 0.0625rem solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-video {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.panel-header h2 {
+    font-size: 1.125rem;
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.0375rem;
+}
+
+.accent-text { color: var(--accent); }
+
+.info-container {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.instrucao {
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    margin-bottom: 0.25rem;
+}
+
+.btn-device {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(15, 157, 203, 0.08);
+    color: var(--text-main);
+    border: 0.0625rem solid var(--border);
+    border-radius: 0.75rem;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    text-align: left;
+}
+
+.btn-device i {
+    color: var(--accent);
+    font-size: 1.2rem;
+}
+
+.btn-device div {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-device strong {
+    color: #fff;
+    font-size: 0.9375rem;
+}
+
+.btn-device span {
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+}
+
+.btn-device:active {
+    transform: scale(0.97);
+    background: var(--border);
+}
+
+.main-footer {
+    padding: 1.25rem 0;
+    text-align: center;
+    font-size: 0.8125rem;
+    color: #aaa;
+}
+
+.dev-name {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.info-container::-webkit-scrollbar { width: 0.25rem; }
+.info-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0.625rem; }
+
+#statusMsg {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--primary);
+}
+
+.position-center { justify-content: center; min-height: 100vh; }.selecao-topo { text-align: center; padding: 0.875rem 1.25rem 0.25rem; }
+.selecao-topo strong { display: block; color: #fff; font-size: 1rem; }
+.selecao-topo span { color: var(--text-dim); font-size: 0.8125rem; }
+.status-msg { text-align: center; padding: 0.9rem; color: var(--primary); }
+.status-erro { color: #FF6B81; }
+.lista-tarefas { margin: 0.6rem 1.25rem; max-height: 46vh; overflow-y: auto; display: grid; gap: 0.4rem; }
+.lista-tarefas::-webkit-scrollbar { width: 0.25rem; }
+.lista-tarefas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0.625rem; }
+.chip-tarefa { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; background: rgba(15,157,203,0.06); border: 0.0625rem solid var(--border); border-radius: 0.5rem; cursor: pointer; }
+.chip-tarefa input { accent-color: #B5FB2A; width: 0.9375rem; height: 0.9375rem; flex-shrink: 0; }
+.chip-tarefa span { font-size: 0.74rem; color: var(--text-main); word-break: break-all; text-align: left; }
+.contagem-tarefas { text-align: center; font-size: 0.78rem; color: var(--text-dim); padding: 0.35rem; }
+.botoes-massa { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 0.5rem 1.25rem 1rem; }
+.btn-massa { padding: 0.7rem 0.6rem; background: rgba(15,157,203,0.08); color: var(--text-main); border: 0.0625rem solid var(--border); border-radius: 0.6rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+.btn-massa:disabled { opacity: 0.5; }
+.btn-massa-destaque { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn-massa-largo { grid-column: 1 / -1; }
+.resultado-box { margin: 1rem 1.25rem; padding: 1.1rem; background: rgba(15,157,203,0.06); border: 0.0625rem solid var(--border); border-radius: 0.75rem; text-align: center; }
+.resultado-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem; }
+.resultado-box p { font-size: 0.78rem; color: var(--text-main); word-break: break-all; margin-top: 0.35rem; text-align: left; }
+.resultado-aviso { color: #FFD166; }
+.resultado-box .btn-massa { margin-top: 0.8rem; }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="content-wrapper position-center">
+
+        <div class="main-container">
+            <header class="panel-header">
+                <video class="header-video" autoplay loop muted playsinline src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+                <h2><span class="accent-text">WHATS CONNECT API</span></h2>
+                <video class="header-video" autoplay loop muted playsinline src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4"></video>
+            </header>
+
+            <div class="info-container" id="dispositivosContainer">
+                <div id="statusMsg">
+                    <i class="fas fa-circle-notch fa-spin"></i> Sincronizando...
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span>
+        </footer>
+
+    </div>
+
+<script>
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.1)
+// Lista os dispositivos logados na API local e, ao escolher um numero, abre a
+// SELECAO das tarefas do projeto id_number.prj.xml (baixado do repositorio
+// para system/tasks-send). Ao gerar, monta um XML com APENAS as tarefas
+// escolhidas (valido: blocos Task removidos e ids retirados do tids),
+// substitui id-number por id:<4 ultimos digitos>, troca os numeros
+// 5581XXXXXXXX pelo numero do dispositivo e desenha o icone do projeto
+// (4 digitos em Canvas, degradê e relevo 3D) gravando em icons/icon-id-<4>.png
+// e apontando o path-img para ele. NAO grava variaveis do Tasker.
+
+const WCA_SCENE_SCREEN_ID = '1'; // MESMO "ID da Tela" configurado na acao Cena v2 Mostrar
+const AUTO_FECHAMENTO_DELAY_MS = 600; // pausa entre responder e fechar
+const API_URL = 'http://localhost:3000/devices';
+const API_HEADERS_FETCH = { 'Accept': 'application/json', 'Authorization': 'Basic dXNlcjE6cGFzczE=' };
+const API_HEADERS_BRIDGE = 'Accept: application/json\nAuthorization: Basic dXNlcjE6cGFzczE=';
+
+// ---- Gerador de XML (1.1) ----
+const XML_URL = 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/task-project/id_number.prj.xml';
+const PASTA_TASKS_SEND = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/tasks-send';
+const PASTA_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
+const XML_ORIG_PATH = PASTA_TASKS_SEND + '/id_number.prj.xml';
+
+let dispositivoAtual = null;  // { nome, numero, final4 }
+let projetoCarregado = null;  // { xml, tarefas: [{ id, nme, bloco }], tidsOrig: [] }
+let gerandoXml = false;
+
+function shellQuote(valor){
+    return chr39 + String(valor).replace(/'/g, chr39 + '\\' + chr39) + chr39;
+}
+const chr39 = String.fromCharCode(39);
+
+
+function getTaskerBridge(){
+    if (typeof Tasker !== 'undefined') return Tasker;
+    if (typeof window !== 'undefined' && window.Tasker) return window.Tasker;
+    return null;
+}
+
+async function taskerCall(name, options){
+    const api = getTaskerBridge();
+    if (!api || typeof api[name] !== 'function') {
+        throw new Error('Tasker.' + name + ' indisponivel.');
+    }
+    return await api[name](options);
+}
+
+function fecharPropriaCena() {
+    const tentativas = [
+        function () { return Tasker.dismissSceneV2(WCA_SCENE_SCREEN_ID); },
+        function () { return Tasker.dismissLayout(WCA_SCENE_SCREEN_ID); },
+        function () { return Tasker.cancelScreen(''); },
+        function () { return Tasker.runTask({ name: '005-FECHAR_GERAR_TAREFA_ENVIO [wca]', variables: { par1: 'fechar-cena' } }).catch(function () { }); }
+    ];
+    // o Tasker pode ACEITAR em silencio um metodo sem efeito: dispara TODOS
+    let algumOk = false;
+    for (let i = 0; i < tentativas.length; i++) {
+        try { tentativas[i](); algumOk = true; } catch (eTentativa) { }
+    }
+    return algumOk;
+}
+function agendarFechamentoProprio() {
+    setTimeout(function () { fecharPropriaCena(); }, AUTO_FECHAMENTO_DELAY_MS);
+}
+
+// Procura o primeiro texto dentro da resposta do bridge (as chaves de saida
+// do httpRequest nao sao documentadas; varre profundidade limitada)
+function primeiroTextoProfundo(valor, profundidade, vistos){
+    if (typeof valor === 'string') return valor;
+    if (!valor || typeof valor !== 'object' || profundidade > 6 || vistos.has(valor)) return null;
+    vistos.add(valor);
+    const preferidas = ['contents', 'text', 'data', 'result', 'stdout', 'body', 'http_data', 'response', 'output', 'value'];
+    for (let i = 0; i < preferidas.length; i++) {
+        if (typeof valor[preferidas[i]] === 'string') return valor[preferidas[i]];
+    }
+    for (let i = 0; i < preferidas.length; i++) {
+        if (valor[preferidas[i]] && typeof valor[preferidas[i]] === 'object') {
+            const interno = primeiroTextoProfundo(valor[preferidas[i]], profundidade + 1, vistos);
+            if (interno !== null) return interno;
+        }
+    }
+    const chaves = Object.keys(valor);
+    for (let i = 0; i < chaves.length; i++) {
+        if (typeof valor[chaves[i]] === 'string') return valor[chaves[i]];
+    }
+    for (let i = 0; i < chaves.length; i++) {
+        if (valor[chaves[i]] && typeof valor[chaves[i]] === 'object') {
+            const interno = primeiroTextoProfundo(valor[chaves[i]], profundidade + 1, vistos);
+            if (interno !== null) return interno;
+        }
+    }
+    return null;
+}
+
+async function buscarDadosApi(){
+    // 1) mesma chamada do projeto original (fetch direto no WebView)
+    try {
+        const resposta = await fetch(API_URL, { method: 'GET', headers: API_HEADERS_FETCH });
+        if (resposta && resposta.ok) {
+            const dados = JSON.parse(await resposta.text());
+            if (dados && typeof dados === 'object') return dados;
+        }
+    } catch (eFetch) {
+    }
+    // 2) fallback: uma tentativa pelo bridge (caso o acesso direto falhe)
+    try {
+        const resultado = await Promise.race([
+            taskerCall('httpRequest', { method: 'GET', url: API_URL, headers: API_HEADERS_BRIDGE, timeout: 10 }),
+            new Promise(function (_, rejeitar) {
+                setTimeout(function () { rejeitar(new Error('prazo da busca excedido')); }, 15000);
+            })
+        ]);
+        const bruto = primeiroTextoProfundo(resultado, 0, new Set());
+        if (bruto) {
+            const dados = JSON.parse(bruto);
+            if (dados && typeof dados === 'object' && dados.code) return dados;
+        }
+    } catch (eBridge) {
+    }
+    return null;
+}
+
+function escapar(texto){
+    return String(texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+async function buscarDispositivos() {
+    const container = document.getElementById('dispositivosContainer');
+    if (!container) return;
+    const dados = await buscarDadosApi();
+    if (!dados) {
+        container.innerHTML = "<div id='statusMsg'>Servidor Offline.</div>";
+        return;
+    }
+    if (dados.code === 'SUCCESS') {
+        const logados = (dados.results || []).filter(function (dev) { return dev && dev.state === 'logged_in'; });
+        renderizarBotoes(logados);
+    } else {
+        container.innerHTML = "<div id='statusMsg'>Erro na API.</div>";
+    }
+}
+
+function renderizarBotoes(lista) {
+    const container = document.getElementById('dispositivosContainer');
+    container.innerHTML = '';
+
+    if (!lista || lista.length === 0) {
+        container.innerHTML = "<div id='statusMsg'>Nenhum dispositivo logado.</div>";
+        return;
+    }
+
+    const p = document.createElement('p');
+    p.className = 'instrucao';
+    p.innerText = 'Selecione o número que deseja utilizar para gerar as tarefas:';
+    container.appendChild(p);
+
+    lista.forEach(function (dev) {
+        const numeroCompleto = String(dev.jid || '').split('@')[0];
+        const ultimosQuatro = numeroCompleto.slice(-4);
+        const nome = dev.display_name || 'WhatsApp';
+
+        const btn = document.createElement('button');
+        btn.className = 'btn-device';
+        btn.innerHTML =
+            '<i class="fab fa-whatsapp"></i>' +
+            '<div>' +
+            '<strong>' + escapar(nome) + '</strong>' +
+            '<span>' + escapar(numeroCompleto) + '</span>' +
+            '</div>';
+
+        btn.addEventListener('click', function () {
+            abrirSelecaoTarefas(nome, numeroCompleto, ultimosQuatro);
+        });
+
+        container.appendChild(btn);
+    });
+}
+
+// ---- GERADOR DE XML PERSONALIZADO (1.1) ----
+// Dispositivo escolhido -> selecao das tarefas -> XML filtrado e
+// personalizado gravado em system/tasks-send. Sem saida de variaveis.
+function dormir(ms){
+    return new Promise(function (r) { setTimeout(r, ms); });
+}
+
+async function lerTexto(path){
+    try {
+        const r = await taskerCall('readFile', { path: path });
+        if (typeof r === 'string') return r;
+        if (r && typeof r.contents === 'string') return r.contents;
+    } catch (eRead) {
+    }
+    try {
+        const sh = await Promise.race([ taskerCall('runShell', { cmd: 'cat ' + shellQuote(path), root: false, timeout: 30 }), new Promise(function (r2) { setTimeout(r2, 30000); }) ]);
+        if (sh && typeof sh.stdout === 'string') return sh.stdout;
+    } catch (eSh) {
+    }
+    return '';
+}
+
+async function garantirPastas(){
+    try { await taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_TASKS_SEND) + ' ' + shellQuote(PASTA_ICONS), root: false, timeout: 20 }); } catch (eMk) { }
+}
+
+async function baixarProjetoXml(){
+    await garantirPastas();
+    try {
+        await Promise.race([
+            taskerCall('httpRequest', { method: 'GET', url: XML_URL, headers: 'User-Agent: Tasker', fileToSave: XML_ORIG_PATH, timeout: 90, autoRedirect: true }),
+            new Promise(function (_, rej) { setTimeout(function () { rej(new Error('prazo do download excedido')); }, 120000); })
+        ]);
+    } catch (eBridge) {
+        // fallback: fetch direto e gravacao via bridge
+        try {
+            const r = await fetch(XML_URL, { method: 'GET' });
+            if (!r || !r.ok) throw new Error('download falhou');
+            const texto = await r.text();
+            if (texto.indexOf('<TaskerData') < 0) throw new Error('conteudo invalido');
+            await taskerCall('writeFile', { path: XML_ORIG_PATH, text: texto, append: false });
+        } catch (eFetch) {
+            throw new Error('Nao foi possivel baixar o projeto id_number.prj.xml');
+        }
+    }
+    const xml = await lerTexto(XML_ORIG_PATH);
+    if (String(xml).indexOf('<TaskerData') < 0) throw new Error('O arquivo baixado nao e um projeto valido');
+    return String(xml);
+}
+
+function parseProjeto(xml){
+    const tarefas = [];
+    const re = /<Task sr="task\d+"[\s\S]*?<\/Task>/g;
+    let m;
+    while ((m = re.exec(xml)) !== null) {
+        const bloco = m[0];
+        const id = (/<id>(\d+)<\/id>/.exec(bloco) || [])[1] || '';
+        const nme = (/<nme>([^<]*)<\/nme>/.exec(bloco) || [])[1] || '';
+        if (id) tarefas.push({ id: id, nme: nme, bloco: bloco });
+    }
+    tarefas.sort(function (a, b) { return a.nme < b.nme ? -1 : (a.nme > b.nme ? 1 : 0); });
+    const tidsTag = /<tids>([^<]*)<\/tids>/.exec(xml);
+    const tidsOrig = tidsTag ? tidsTag[1].split(',').map(function (t) { return t.trim(); }).filter(Boolean) : [];
+    return { xml: xml, tarefas: tarefas, tidsOrig: tidsOrig };
+}
+
+async function abrirSelecaoTarefas(nome, numero, final4){
+    dispositivoAtual = { nome: nome, numero: numero, final4: final4 };
+    const container = document.getElementById('dispositivosContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    const topo = document.createElement('div');
+    topo.className = 'selecao-topo';
+    const nomeEl = document.createElement('strong');
+    nomeEl.textContent = nome;
+    const numEl = document.createElement('span');
+    numEl.textContent = numero + '  (id:' + final4 + ')';
+    topo.appendChild(nomeEl);
+    topo.appendChild(numEl);
+    container.appendChild(topo);
+    const status = document.createElement('div');
+    status.id = 'statusProjeto';
+    status.className = 'status-msg';
+    status.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Carregando o projeto id_number...';
+    container.appendChild(status);
+    if (!projetoCarregado) {
+        try {
+            const xml = await baixarProjetoXml();
+            projetoCarregado = parseProjeto(xml);
+        } catch (eProj) {
+            status.textContent = String(eProj && eProj.message) || 'Falha ao carregar o projeto.';
+            status.classList.add('status-erro');
+            const voltar = document.createElement('button');
+            voltar.className = 'btn-massa btn-massa-largo';
+            voltar.textContent = 'VOLTAR';
+            voltar.addEventListener('click', voltarParaDispositivos);
+            container.appendChild(voltar);
+            return;
+        }
+    }
+    renderizarSelecao();
+}
+
+function voltarParaDispositivos(){
+    dispositivoAtual = null;
+    buscarDispositivos();
+}
+
+function renderizarSelecao(){
+    const container = document.getElementById('dispositivosContainer');
+    if (!container || !projetoCarregado) return;
+    container.innerHTML = '';
+    const topo = document.createElement('div');
+    topo.className = 'selecao-topo';
+    const nomeEl = document.createElement('strong');
+    nomeEl.textContent = dispositivoAtual ? dispositivoAtual.nome : '';
+    const numEl = document.createElement('span');
+    numEl.textContent = dispositivoAtual ? dispositivoAtual.numero + '  (id:' + dispositivoAtual.final4 + ')' : '';
+    topo.appendChild(nomeEl);
+    topo.appendChild(numEl);
+    container.appendChild(topo);
+    const instrucao = document.createElement('p');
+    instrucao.className = 'instrucao';
+    instrucao.textContent = 'Marque as tarefas que devem entrar no XML:';
+    container.appendChild(instrucao);
+    const lista = document.createElement('div');
+    lista.className = 'lista-tarefas';
+    lista.id = 'listaTarefas';
+    projetoCarregado.tarefas.forEach(function (t) {
+        const chip = document.createElement('div');
+        chip.className = 'chip-tarefa';
+        const inp = document.createElement('input');
+        inp.type = 'checkbox';
+        inp.value = t.id;
+        const nomeT = document.createElement('span');
+        nomeT.textContent = t.nme;
+        chip.appendChild(inp);
+        chip.appendChild(nomeT);
+        chip.addEventListener('click', function (eCli) {
+            if (eCli.target === inp) return;
+            inp.checked = !inp.checked;
+            atualizarContagem();
+        });
+        inp.addEventListener('change', atualizarContagem);
+        lista.appendChild(chip);
+    });
+    container.appendChild(lista);
+    const contagem = document.createElement('div');
+    contagem.id = 'contagemTarefas';
+    contagem.className = 'contagem-tarefas';
+    container.appendChild(contagem);
+    const aviso = document.createElement('div');
+    aviso.id = 'avisoSelecao';
+    aviso.className = 'status-msg status-erro';
+    aviso.style.display = 'none';
+    container.appendChild(aviso);
+    const botoes = document.createElement('div');
+    botoes.className = 'botoes-massa';
+    const bMarcar = document.createElement('button');
+    bMarcar.className = 'btn-massa';
+    bMarcar.textContent = 'MARCAR TODAS';
+    bMarcar.addEventListener('click', function () { marcarTodas(true); });
+    const bDesmarcar = document.createElement('button');
+    bDesmarcar.className = 'btn-massa';
+    bDesmarcar.textContent = 'DESMARCAR TODAS';
+    bDesmarcar.addEventListener('click', function () { marcarTodas(false); });
+    const bGerar = document.createElement('button');
+    bGerar.className = 'btn-massa btn-massa-destaque';
+    bGerar.id = 'btnGerarXml';
+    bGerar.textContent = 'GERAR XML';
+    bGerar.addEventListener('click', gerarXml);
+    const bVoltar = document.createElement('button');
+    bVoltar.className = 'btn-massa';
+    bVoltar.textContent = 'VOLTAR';
+    bVoltar.addEventListener('click', voltarParaDispositivos);
+    botoes.appendChild(bMarcar);
+    botoes.appendChild(bDesmarcar);
+    botoes.appendChild(bGerar);
+    botoes.appendChild(bVoltar);
+    container.appendChild(botoes);
+    atualizarContagem();
+}
+
+function marcarTodas(marcar){
+    const lista = document.getElementById('listaTarefas');
+    if (!lista) return;
+    lista.querySelectorAll('input[type="checkbox"]').forEach(function (inp) { inp.checked = !!marcar; });
+    atualizarContagem();
+}
+
+function atualizarContagem(){
+    const lista = document.getElementById('listaTarefas');
+    const contagem = document.getElementById('contagemTarefas');
+    if (!lista || !contagem) return;
+    const todas = lista.querySelectorAll('input[type="checkbox"]');
+    let n = 0;
+    todas.forEach(function (inp) { if (inp.checked) n = n + 1; });
+    contagem.textContent = n + ' de ' + todas.length + ' tarefas selecionadas';
+}
+
+function selecionados(){
+    const lista = document.getElementById('listaTarefas');
+    if (!lista) return { ids: [], nomes: [] };
+    const ids = [];
+    const nomes = [];
+    lista.querySelectorAll('input[type="checkbox"]').forEach(function (inp) {
+        if (!inp.checked) return;
+        ids.push(inp.value);
+        const chip = inp.parentElement;
+        const sp = chip ? chip.querySelector('span') : null;
+        nomes.push(sp ? sp.textContent : '');
+    });
+    return { ids: ids, nomes: nomes };
+}
+
+async function gerarXml(){
+    if (gerandoXml) return;
+    const aviso = document.getElementById('avisoSelecao');
+    const mostrarAviso = function (msg) {
+        if (aviso) { aviso.textContent = msg; aviso.style.display = 'block'; }
+    };
+    const sel = selecionados();
+    if (!sel.ids.length) { mostrarAviso('Marque ao menos uma tarefa para gerar o XML.'); return; }
+    if (!dispositivoAtual || !projetoCarregado) { mostrarAviso('Estado perdido - volte e escolha o dispositivo de novo.'); return; }
+    gerandoXml = true;
+    const botaoGerar = document.getElementById('btnGerarXml');
+    if (botaoGerar) botaoGerar.disabled = true;
+    if (aviso) aviso.style.display = 'none';
+    const status = document.getElementById('statusProjeto') || (function () {
+        const d = document.createElement('div');
+        d.id = 'statusProjeto';
+        d.className = 'status-msg';
+        document.getElementById('dispositivosContainer').appendChild(d);
+        return d;
+    })();
+    try {
+        status.style.display = 'block';
+        status.classList.remove('status-erro');
+        status.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Montando o XML com ' + sel.ids.length + ' tarefa(s)...';
+        const final4 = dispositivoAtual.final4;
+        const numero = dispositivoAtual.numero;
+        const idsSel = {};
+        sel.ids.forEach(function (id) { idsSel[id] = true; });
+        const nomesSel = {};
+        sel.nomes.forEach(function (n) { nomesSel[n] = true; });
+        const re = /<Task sr="task\d+"[\s\S]*?<\/Task>/g;
+        let xmlFinal = projetoCarregado.xml.replace(re, function (bloco) {
+            const id = (/<id>(\d+)<\/id>/.exec(bloco) || [])[1] || '';
+            return idsSel[id] ? bloco : '';
+        });
+        const tidsNovo = projetoCarregado.tidsOrig.filter(function (id) { return idsSel[id]; });
+        if (tidsNovo.length) {
+            xmlFinal = xmlFinal.replace(/<tids>[\s\S]*?<\/tids>/, '<tids>' + tidsNovo.join(',') + '</tids>');
+        } else {
+            xmlFinal = xmlFinal.replace(/<tids>[\s\S]*?<\/tids>/, '');
+        }
+        xmlFinal = xmlFinal.split('id-number').join('id:' + final4);
+        xmlFinal = xmlFinal.replace(/5581\d{8}/g, numero);
+        const avisos = [];
+        const alvos = {};
+        const rePerf = /<code>130<\/code>\s*<Str sr="arg0"[^>]*>([^<]+)<\/Str>/g;
+        let mp;
+        while ((mp = rePerf.exec(xmlFinal)) !== null) { alvos[mp[1]] = true; }
+        Object.keys(alvos).forEach(function (alvo) {
+            if (!nomesSel[alvo]) avisos.push('A tarefa ' + alvo + ' é chamada por alguma das selecionadas e NÃO foi incluída.');
+        });
+        let caminhoIcone = '';
+        try {
+            status.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Gerando o icone com os digitos id:' + final4 + '...';
+            caminhoIcone = await gerarIconeFinal(final4);
+        } catch (eIcone) {
+            avisos.push('Icone nao gerado: ' + (String(eIcone && eIcone.message) || 'falha no Canvas') + '. O XML ficou com o placeholder original.');
+        }
+        if (caminhoIcone) {
+            xmlFinal = xmlFinal.split('>path-img<').join('>' + caminhoIcone + '<');
+        }
+        if (typeof DOMParser !== 'undefined') {
+            try {
+                const doc = new DOMParser().parseFromString(xmlFinal, 'application/xml');
+                if (doc && doc.getElementsByTagName('parsererror').length > 0) throw new Error('estrutura invalida');
+            } catch (eVal) {
+                throw new Error('O XML montado ficou invalido');
+            }
+        }
+        const caminhoFinal = PASTA_TASKS_SEND + '/id_number-' + final4 + '.prj.xml';
+        await taskerCall('writeFile', { path: caminhoFinal, text: xmlFinal, append: false });
+        mostrarResultado(sel.ids.length, caminhoFinal, caminhoIcone, avisos);
+    } catch (eGeral) {
+        status.classList.add('status-erro');
+        status.textContent = 'Falha ao gerar: ' + (String(eGeral && eGeral.message) || 'erro desconhecido');
+        if (botaoGerar) botaoGerar.disabled = false;
+    } finally {
+        gerandoXml = false;
+    }
+}
+
+async function gerarIconeFinal(final4){
+    const rLista = await Promise.race([ taskerCall('runShell', { cmd: 'ls -1 -- ' + shellQuote(PASTA_ICONS), root: false, timeout: 20 }), new Promise(function (r2) { setTimeout(r2, 25000); }) ]);
+    const nomes = String((rLista && rLista.stdout) || '').split('\n').map(function (n) { return n.trim(); }).filter(function (n) { return /\.(png|jpe?g|webp)$/i.test(n); });
+    if (!nomes.length) throw new Error('nenhuma imagem base em icons/');
+    nomes.sort();
+    const base = PASTA_ICONS + '/' + nomes[0];
+    const mime = /\.jpe?g$/i.test(nomes[0]) ? 'image/jpeg' : (/\.webp$/i.test(nomes[0]) ? 'image/webp' : 'image/png');
+    const rB64 = await Promise.race([ taskerCall('runShell', { cmd: 'base64 ' + shellQuote(base), root: false, timeout: 60 }), new Promise(function (r2) { setTimeout(r2, 60000); }) ]);
+    const b64 = String((rB64 && rB64.stdout) || '').replace(/\s+/g, '');
+    if (!b64) throw new Error('imagem base ilegivel');
+    const img = new Image();
+    await new Promise(function (resolver, rejeitar) {
+        img.onload = function () { resolver(); };
+        img.onerror = function () { rejeitar(new Error('WebView nao decodificou a imagem base')); };
+        img.src = 'data:' + mime + ';base64,' + b64;
+    });
+    const fator = img.naturalWidth / 1000;
+    const corteEsquerda = -40 * fator;
+    const corteDireita = -50 * fator;
+    const corteTopo = -385 * fator;
+    const corteBaixo = -20 * fator;
+    const tamanhoFonte = 450 * fator;
+    const ajusteY = -460 * fator;
+    const profundidade3D = Math.round(15 * fator);
+    const espessuraContorno = 12 * fator;
+    const larguraFinal = Math.round(img.naturalWidth - corteEsquerda - corteDireita);
+    const yCalc = ajusteY > 0 ? ajusteY : 0;
+    const alturaFinal = Math.round(img.naturalHeight + yCalc - corteTopo - corteBaixo);
+    if (larguraFinal <= 0 || alturaFinal <= 0) throw new Error('cortes resultam em tamanho invalido');
+    const canvas = document.createElement('canvas');
+    canvas.width = larguraFinal;
+    canvas.height = alturaFinal;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, -corteEsquerda, -corteTopo);
+    const xFinal = (img.naturalWidth / 2) - corteEsquerda;
+    const yFinal = (img.naturalHeight / 2) + ajusteY - corteTopo;
+    ctx.font = 'bold ' + tamanhoFonte + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = espessuraContorno;
+    ctx.fillStyle = '#002233';
+    ctx.strokeStyle = '#002233';
+    for (let i = 1; i <= profundidade3D; i++) {
+        ctx.fillText(final4, xFinal, yFinal + i);
+        ctx.strokeText(final4, xFinal, yFinal + i);
+    }
+    ctx.strokeStyle = '#004466';
+    ctx.strokeText(final4, xFinal, yFinal);
+    const grad = ctx.createLinearGradient(0, yFinal - tamanhoFonte, 0, yFinal);
+    grad.addColorStop(0, '#99FF00');
+    grad.addColorStop(1, '#00CCFF');
+    ctx.fillStyle = grad;
+    ctx.fillText(final4, xFinal, yFinal);
+    const dataUrl = canvas.toDataURL('image/png');
+    const partes = String(dataUrl).split('base64,');
+    const b64Png = partes.length > 1 ? partes[1] : '';
+    if (!b64Png) throw new Error('Canvas nao retornou o PNG');
+    const destinoPng = PASTA_ICONS + '/icon-id-' + final4 + '.png';
+    const destinoB64 = destinoPng + '.b64';
+    await taskerCall('writeFile', { path: destinoB64, text: b64Png, append: false });
+    await taskerCall('runShell', { cmd: 'base64 -d ' + shellQuote(destinoB64) + ' > ' + shellQuote(destinoPng) + ' && rm -f ' + shellQuote(destinoB64), root: false, timeout: 60 });
+    return destinoPng;
+}
+
+function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
+    const container = document.getElementById('dispositivosContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    const ok = document.createElement('div');
+    ok.className = 'resultado-box';
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'XML gerado com sucesso';
+    const l1 = document.createElement('p');
+    l1.textContent = 'Tarefas incluídas: ' + total;
+    const l2 = document.createElement('p');
+    l2.textContent = 'XML: ' + caminhoXml;
+    ok.appendChild(titulo);
+    ok.appendChild(l1);
+    ok.appendChild(l2);
+    if (caminhoIcone) {
+        const l3 = document.createElement('p');
+        l3.textContent = 'Ícone: ' + caminhoIcone;
+        ok.appendChild(l3);
+    }
+    if (avisos && avisos.length) {
+        avisos.forEach(function (a) {
+            const w = document.createElement('p');
+            w.className = 'resultado-aviso';
+            w.textContent = a;
+            ok.appendChild(w);
+        });
+    }
+    const fechar = document.createElement('button');
+    fechar.className = 'btn-massa btn-massa-largo';
+    fechar.textContent = 'FECHAR';
+    fechar.addEventListener('click', fecharPropriaCena);
+    ok.appendChild(fechar);
+    container.appendChild(ok);
+}
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    buscarDispositivos();
+});
+</script>
+</body>
+</html>
