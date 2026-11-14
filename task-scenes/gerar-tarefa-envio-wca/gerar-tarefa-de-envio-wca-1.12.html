@@ -298,7 +298,7 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.11)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.12)
 // Fluxo: todas as tarefas ja vem MARCADAS; um unico icone no canto
 // superior direito (acima da lista) alterna marcar/desmarcar todas; o
 // botao GERAR PROJETO abre uma CONFIRMACAO (modal) antes de gerar; apos
@@ -746,7 +746,7 @@ function renderizarSelecao(){
     btnToggle.className = 'btn-toggle-todas';
     btnToggle.id = 'btnToggleTodas';
     btnToggle.title = 'Marcar ou desmarcar todas';
-    btnToggle.innerHTML = '<i class="fas fa-xmark"></i>';
+    btnToggle.innerHTML = '<i class="fas fa-check-double"></i>';
     btnToggle.addEventListener('click', alternarTodas);
     linhaInstrucao.appendChild(instrucao);
     linhaInstrucao.appendChild(btnToggle);
@@ -819,13 +819,6 @@ function alternarTodas(){
     atualizarContagem();
 }
 
-function atualizarIconeToggle(){
-    const btn = document.getElementById('btnToggleTodas');
-    const lista = document.getElementById('listaTarefas');
-    if (!btn || !lista) return;
-    btn.innerHTML = '<i class="fas ' + (todasMarcadas(lista) ? 'fa-xmark' : 'fa-check-double') + '"></i>';
-}
-
 function atualizarContagem(){
     const lista = document.getElementById('listaTarefas');
     const contagem = document.getElementById('contagemTarefas');
@@ -834,7 +827,6 @@ function atualizarContagem(){
     let n = 0;
     todas.forEach(function (inp) { if (inp.checked) n = n + 1; });
     contagem.textContent = n + ' de ' + todas.length + ' tarefas selecionadas';
-    atualizarIconeToggle();
 }
 
 function selecionados(){
@@ -1091,7 +1083,7 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
     const ok = document.createElement('div');
     ok.className = 'resultado-box';
     const titulo = document.createElement('h3');
-    titulo.textContent = 'XML gerado com sucesso';
+    titulo.textContent = 'Gerado com sucesso';
     ok.appendChild(titulo);
     if (caminhoIcone) {
         const img = document.createElement('img');

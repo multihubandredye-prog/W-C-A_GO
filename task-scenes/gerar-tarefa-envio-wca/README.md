@@ -1,20 +1,20 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.11**
-Arquivo: `gerar-tarefa-de-envio-wca-1.11.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.12**
+Arquivo: `gerar-tarefa-de-envio-wca-1.12.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
 ## Seleção
 
 - **Todas as tarefas já vêm marcadas** por padrão;
-- Um **único ícone** (Font Awesome) no **canto superior direito**, acima da lista, **alterna marcar/desmarcar todas** (`fa-xmark` quando todas estão marcadas, `fa-check-double` quando não estão);
+- Um **único ícone** (Font Awesome, dupla checagem `fa-check-double` — sempre o mesmo) no **canto superior direito**, acima da lista, **alterna marcar/desmarcar todas**;
 - O botão **GERAR PROJETO** abre uma **confirmação** (modal com o resumo: nº de tarefas + número/id) antes de gerar — CONFIRMAR gera, CANCELAR (ou voltar/clicar fora) fecha o modal e volta à seleção.
 
 ## Resultado limpo + contagem de instalação
 
-- Ao gerar, a cena mostra apenas **"XML gerado com sucesso"** e a **imagem do ícone gerado** (`icons/icon-id-<4>.png`) — **sem caminhos de arquivo** na tela;
+- Ao gerar, a cena mostra apenas **"Gerado com sucesso"** e a **imagem do ícone gerado** (`icons/icon-id-<4>.png`) — **sem caminhos de arquivo** na tela;
 - O título da seleção é **"Marque as tarefas que devem ser criadas."**;
 - Começa uma **contagem regressiva de 10s** com o número numa **bola verde** (badge arredondado, número em negrito) à **direita** de "Iniciando o processo de instalação" (`10` → `1`): **sem clique**, ao zerar publica `project_created = true` e **encerra sozinha**;
 - O botão **INSTALAR AGORA** fica **fora do cartão**, **logo abaixo dele** (o footer do desenvolvedor fica no rodapé da tela) — ao clicar, **cancela a contagem**, publica `project_created` e encerra na hora; a tarefa que mostra a cena instala o projeto;
@@ -70,4 +70,4 @@ Para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena dev
 
 ## Rollback
 
-A versão anterior (`1.10`) permanece no workspace para força-voltar em caso de erro.
+A versão anterior (`1.11`) permanece no workspace para força-voltar em caso de erro.
