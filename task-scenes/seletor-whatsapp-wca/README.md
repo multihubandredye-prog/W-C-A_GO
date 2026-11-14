@@ -1,8 +1,10 @@
 # Seletor de WhatsApp WCA — Cena V2 (WebView)
 
 Projeto: `004-WHATSAPP_SELETOR [wca]`
-Versão atual: **1.1**
-Arquivo: `seletor-de-whatsapp-wca-1.1.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.2**
+Arquivo: `seletor-de-whatsapp-wca-1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Feedback de toque (versão atual)**: todo o CSS usa **`:active`** no lugar de `:hover` — a cena é usada só em celular, então o feedback visual acontece **no toque**;
 
 - **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
 

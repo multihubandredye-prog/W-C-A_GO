@@ -227,7 +227,7 @@ body::before {
     transition: width 0.5s, height 0.5s;
 }
 
-.btn-whatsapp:hover::before {
+.btn-whatsapp:active::before {
     width: 300px;
     height: 300px;
 }
@@ -237,7 +237,7 @@ body::before {
     color: white;
 }
 
-.btn-messenger:hover {
+.btn-messenger:active {
     background: linear-gradient(135deg, var(--btn-messenger-hover) 0%, #189f4a 100%);
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(37, 211, 102, 0.4);
@@ -248,7 +248,7 @@ body::before {
     color: white;
 }
 
-.btn-business:hover {
+.btn-business:active {
     background: linear-gradient(135deg, var(--btn-business-hover) 0%, #005580 100%);
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 136, 204, 0.4);
@@ -432,7 +432,7 @@ body::before {
 
 
 <script>
-// WHATS CONNECT API - Seletor de WhatsApp (cena V2, 1.1)
+// WHATS CONNECT API - Seletor de WhatsApp (cena V2, 1.2)
 // Conteudo estatico (badge, texto e contagem sao fixos, como no original).
 // Os botoes gravam a variavel de tela bottom (wa-message | wa-business) — que
 // volta para a tarefa que exibiu a cena quando ela e dismissada — e fecham a
