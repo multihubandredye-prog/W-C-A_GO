@@ -251,6 +251,7 @@ body {
 .resultado-aviso { color: #FFD166; }
 .resultado-box .btn-massa { margin-top: 0.8rem; }
 .resultado-img { width: 11rem; max-width: 70vw; border-radius: 0.75rem; border: 0.0625rem solid var(--border); box-shadow: 0 0 1.5rem rgba(181,251,42,0.15); margin: 0.5rem auto 0.25rem; display: block; animation: floatIn 0.6s ease both; }
+.progresso-instalacao { text-align: center; color: var(--accent); font-size: 0.85rem; font-weight: 600; margin-top: 0.6rem; }
 .content-wrapper.modo-selecao { width: 100vw; max-width: 100vw; height: 100vh; justify-content: flex-start; }
 .content-wrapper.modo-selecao .main-container { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0; }
 .content-wrapper.modo-selecao .main-container::before { inset: 0; border-radius: 0; }
@@ -295,13 +296,15 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.8)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.9)
 // Fluxo: todas as tarefas ja vem MARCADAS; um unico icone no canto
 // superior direito (acima da lista) alterna marcar/desmarcar todas; o
-// botao GERAR XML abre uma CONFIRMACAO (modal) antes de gerar; apos gerar,
-// o botao INSTALAR PROJETO fica FORA do cartao, fixo no rodape da tela
-// (acima do footer) - ao clicar, publica project_created e encerra, e a
-// tarefa que mostra a cena instala o projeto.
+// botao GERAR PROJETO abre uma CONFIRMACAO (modal) antes de gerar; apos
+// gerar, comeca uma CONTAGEM REGRESSIVA de 10s ("10 - Iniciando o
+// processo de instalacao"): sem clique, publica project_created e encerra
+// sozinha ao zerar; o botao INSTALAR AGORA (fora do cartao, no rodape da
+// tela) cancela a contagem e encerra na hora - a tarefa que mostra a cena
+// instala o projeto.
 //
 // Variavel project_created: a cena publica 'false' ao abrir, 'true' quando
 // o XML e gerado com sucesso e reafirma o valor antes de encerrar (botao
@@ -390,6 +393,7 @@ async function taskerCall(name, options){
 }
 
 async function fecharPropriaCena() {
+    pararContagemInstalacao();
     // antes de encerrar, publica se o projeto foi criado (true/false)
     try {
         if (typeof Tasker !== 'undefined' && Tasker.setVariable) {
@@ -706,8 +710,9 @@ function voltarParaDispositivos(){
     buscarDispositivos();
 }
 
-// Remove o botao INSTALAR PROJETO e qualquer modal aberto (volta a lista)
+// Remove o botao INSTALAR AGORA e qualquer modal aberto (volta a lista)
 function limparTelaResultado(){
+    pararContagemInstalacao();
     const btn = document.getElementById('btnInstalarProjeto');
     if (btn && btn.remove) btn.remove();
     const modal = document.getElementById('confirmModal');
@@ -783,7 +788,7 @@ function renderizarSelecao(){
     const bGerar = document.createElement('button');
     bGerar.className = 'btn-massa btn-massa-destaque';
     bGerar.id = 'btnGerarXml';
-    bGerar.textContent = 'GERAR XML';
+    bGerar.textContent = 'GERAR PROJETO';
     bGerar.addEventListener('click', abrirConfirmacao);
     const bVoltar = document.createElement('button');
     bVoltar.className = 'btn-massa';
@@ -849,7 +854,7 @@ function abrirConfirmacao(){
     const sel = selecionados();
     if (!sel.ids.length) {
         const aviso = document.getElementById('avisoSelecao');
-        if (aviso) { aviso.textContent = 'Marque ao menos uma tarefa para gerar o XML.'; aviso.style.display = 'block'; }
+        if (aviso) { aviso.textContent = 'Marque ao menos uma tarefa para gerar o projeto.'; aviso.style.display = 'block'; }
         return;
     }
     fecharConfirmacao();
@@ -861,7 +866,7 @@ function abrirConfirmacao(){
     const titulo = document.createElement('h3');
     titulo.textContent = 'Confirmar geração';
     const texto = document.createElement('p');
-    texto.textContent = 'Gerar o XML com ' + sel.ids.length + ' tarefa(s) para o número ' + (dispositivoAtual ? dispositivoAtual.numero : '') + ' (id:' + (dispositivoAtual ? dispositivoAtual.final4 : '') + ')?';
+    texto.textContent = 'Gerar o projeto com ' + sel.ids.length + ' tarefa(s) para o número ' + (dispositivoAtual ? dispositivoAtual.numero : '') + ' (id:' + (dispositivoAtual ? dispositivoAtual.final4 : '') + ')?';
     const botoes = document.createElement('div');
     botoes.className = 'modal-botoes';
     const canc = document.createElement('button');
@@ -898,7 +903,7 @@ async function gerarXml(){
         if (aviso) { aviso.textContent = msg; aviso.style.display = 'block'; }
     };
     const sel = selecionados();
-    if (!sel.ids.length) { mostrarAviso('Marque ao menos uma tarefa para gerar o XML.'); return; }
+    if (!sel.ids.length) { mostrarAviso('Marque ao menos uma tarefa para gerar o projeto.'); return; }
     if (!dispositivoAtual || !projetoCarregado) { mostrarAviso('Estado perdido - volte e escolha o dispositivo de novo.'); return; }
     gerandoXml = true;
     const botaoGerar = document.getElementById('btnGerarXml');
@@ -1041,6 +1046,37 @@ async function gerarIconeFinal(final4){
     return destinoPng;
 }
 
+// Contagem regressiva de 10s apos gerar: sem clique, publica
+// project_created e encerra sozinha ao zerar; o botao INSTALAR AGORA
+// cancela a contagem e encerra na hora
+let timerInstalacao = null;
+
+function iniciarContagemInstalacao(){
+    pararContagemInstalacao();
+    let restante = 10;
+    const el = document.getElementById('progressoInstalacao');
+    const atualizar = function () {
+        if (el) el.textContent = restante + ' — Iniciando o processo de instalação';
+    };
+    atualizar();
+    timerInstalacao = setInterval(function () {
+        restante = restante - 1;
+        if (restante <= 0) {
+            pararContagemInstalacao();
+            fecharPropriaCena();
+        } else {
+            atualizar();
+        }
+    }, 1000);
+}
+
+function pararContagemInstalacao(){
+    if (timerInstalacao !== null) {
+        clearInterval(timerInstalacao);
+        timerInstalacao = null;
+    }
+}
+
 function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
     definirModoTela(false);
     wcaDefinirTela('resultado');
@@ -1060,6 +1096,10 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
         img.src = 'file://' + caminhoIcone;
         ok.appendChild(img);
     }
+    const progresso = document.createElement('p');
+    progresso.className = 'progresso-instalacao';
+    progresso.id = 'progressoInstalacao';
+    ok.appendChild(progresso);
     if (avisos && avisos.length) {
         avisos.forEach(function (a) {
             const w = document.createElement('p');
@@ -1069,17 +1109,18 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
         });
     }
     container.appendChild(ok);
-    // botao INSTALAR PROJETO: fora do cartao, fixo no rodape da tela
+    // botao INSTALAR AGORA: fora do cartao, fixo no rodape da tela
     const wrapper = document.querySelector('.content-wrapper');
     if (wrapper) {
         wrapper.classList.add('modo-resultado');
         const instalar = document.createElement('button');
         instalar.className = 'btn-instalar';
         instalar.id = 'btnInstalarProjeto';
-        instalar.textContent = 'INSTALAR PROJETO';
+        instalar.textContent = 'INSTALAR AGORA';
         instalar.addEventListener('click', fecharPropriaCena);
         wrapper.appendChild(instalar);
     }
+    iniciarContagemInstalacao();
 }
 
 
