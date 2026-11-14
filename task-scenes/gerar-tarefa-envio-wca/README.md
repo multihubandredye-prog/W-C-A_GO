@@ -1,13 +1,14 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.12**
-Arquivo: `gerar-tarefa-de-envio-wca-1.12.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.13**
+Arquivo: `gerar-tarefa-de-envio-wca-1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
 ## Seleção
 
+- A lista exibe o **nome curto** das tarefas — só o que vem depois de `id-number-` (ex.: `001-id-number-wca-texto` → `wca-texto`); o nome completo fica guardado internamente (os avisos de dependência usam ele);
 - **Todas as tarefas já vêm marcadas** por padrão;
 - Um **único ícone** (Font Awesome, dupla checagem `fa-check-double` — sempre o mesmo) no **canto superior direito**, acima da lista, **alterna marcar/desmarcar todas**;
 - O botão **GERAR PROJETO** abre uma **confirmação** (modal com o resumo: nº de tarefas + número/id) antes de gerar — CONFIRMAR gera, CANCELAR (ou voltar/clicar fora) fecha o modal e volta à seleção.
@@ -70,4 +71,4 @@ Para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena dev
 
 ## Rollback
 
-A versão anterior (`1.11`) permanece no workspace para força-voltar em caso de erro.
+A versão anterior (`1.12`) permanece no workspace para força-voltar em caso de erro.

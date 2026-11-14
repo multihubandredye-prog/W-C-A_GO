@@ -298,7 +298,10 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.12)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.13)
+// Lista com nome CURTO: exibe so o que vem depois de "id-number-"
+// (ex.: 001-id-number-wca-texto -> wca-texto); o nome COMPLETO fica
+// guardado no dataset do checkbox (avisos de dependencia usam ele).
 // Fluxo: todas as tarefas ja vem MARCADAS; um unico icone no canto
 // superior direito (acima da lista) alterna marcar/desmarcar todas; o
 // botao GERAR PROJETO abre uma CONFIRMACAO (modal) antes de gerar; apos
@@ -724,6 +727,13 @@ function limparTelaResultado(){
     if (wrapper && wrapper.classList) wrapper.classList.remove('modo-resultado');
 }
 
+// Nome curto para a lista: so o que vem depois de "id-number-"
+function nomeCurto(nome){
+    const s = String(nome);
+    const i = s.indexOf('id-number-');
+    return i >= 0 ? s.slice(i + 'id-number-'.length) : s;
+}
+
 function renderizarSelecao(){
     const container = document.getElementById('dispositivosContainer');
     if (!container || !projetoCarregado) return;
@@ -762,9 +772,10 @@ function renderizarSelecao(){
         const inp = document.createElement('input');
         inp.type = 'checkbox';
         inp.value = t.id;
+        inp.dataset.nome = t.nme;
         inp.checked = true;
         const nomeT = document.createElement('span');
-        nomeT.textContent = t.nme;
+        nomeT.textContent = nomeCurto(t.nme);
         chip.appendChild(inp);
         chip.appendChild(nomeT);
         chip.addEventListener('click', function (eCli) {
@@ -837,9 +848,7 @@ function selecionados(){
     lista.querySelectorAll('input[type="checkbox"]').forEach(function (inp) {
         if (!inp.checked) return;
         ids.push(inp.value);
-        const chip = inp.parentElement;
-        const sp = chip ? chip.querySelector('span') : null;
-        nomes.push(sp ? sp.textContent : '');
+        nomes.push(inp.dataset && inp.dataset.nome ? inp.dataset.nome : '');
     });
     return { ids: ids, nomes: nomes };
 }
