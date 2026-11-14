@@ -2031,6 +2031,7 @@ body.modal-open { overflow: hidden; }
 .aviso-banner.expandido {
     z-index: 25000;
     box-shadow: 0 0 30px rgba(255,193,7,.4);
+    background: linear-gradient(135deg, rgba(66,53,10,.98), rgba(38,30,6,.98));
 }
 .aviso-banner.expandido p {
     max-height: 38vh;
@@ -4257,7 +4258,7 @@ async function obterUltimaVersaoRelease(){
         return '';
     }
 
-    // ---- Avisos do desenvolvedor (1.47; quebras de linha na 1.48; tamanho fixo na 1.49; expandir por cima de tudo na 1.50) ----
+    // ---- Avisos do desenvolvedor (1.47; quebras de linha na 1.48; tamanho fixo na 1.49; expandir por cima de tudo na 1.50; fundo opaco na 1.51) ----
     // Lê o arquivo 'avisos' de wca-resources/updates no repositório (mesmo
     // padrão de fontes da cena Atualizações: API do GitHub primeiro, raw como
     // fallback). O banner fica ACIMA do footer e só aparece quando há texto;
