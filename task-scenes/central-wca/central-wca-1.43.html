@@ -3090,7 +3090,8 @@ input.first-install-attention {
 .dev-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
 .dev-opt { padding: 7px 4px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); color: var(--text-muted); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all .15s; }
 .dev-opt.active { background: rgba(181,251,42,0.14); border-color: var(--accent); color: var(--accent); }
-.dev-input { width: 100%; margin-top: 8px; padding: 9px 10px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); color: var(--text-main); font-size: 0.82rem; font-family: inherit; }
+.dev-input { width: 100%; margin-top: 8px; padding: 9px 12px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); color: var(--text-main); font-size: 0.82rem; font-family: inherit; text-align: left; }
+.dev-input-num { max-width: 170px; }
 .dev-actions { display: flex; gap: 12px; margin-top: 18px; flex-shrink: 0; }
 .dev-choices { grid-template-columns: repeat(3, 1fr); }
 .dev-choices .dev-opt { font-size: 0.56rem; padding: 7px 2px; letter-spacing: 0.02em; }
@@ -3139,7 +3140,16 @@ input.first-install-attention {
 .uninstall-item { margin-top: 10px; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; min-height: 34px; word-break: break-all; }
 .uninstall-bar { margin-top: 14px; width: 100%; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
 .uninstall-bar-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.25s ease; }
+.prem-spinner { font-size: 2.6rem; color: var(--accent); }
+.prem-progress-texto { margin-top: 10px; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+.prem-res-icone { font-size: 2.5rem; }
+.prem-res-premium { color: var(--gold); }
+.prem-res-expirada { color: var(--error); }
+.prem-res-teste { color: var(--primary); }
+.prem-res-nome { margin-top: 10px; font-size: 0.86rem; font-weight: 600; color: var(--text-main); }
+.prem-res-detalhe { margin-top: 4px; font-size: 0.78rem; color: var(--text-muted); }
 </style>
+
 
 </head>
 <body>
@@ -3277,10 +3287,42 @@ input.first-install-attention {
         </div>
     </div>
 
+    <div id="devAlertModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="delete-icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="modal-title default-title">CONFIGURAÇÕES DA API</h3>
+            <p class="delete-review-text">Esta área permite ajustar parâmetros avançados da API no arquivo .env do dispositivo. Alterações incorretas podem afetar o funcionamento do WCA. Continue apenas se você sabe o que está fazendo.</p>
+            <div class="confirm-actions">
+                <button class="btn-action btn-flex btn-border" data-close="devAlertModal">CANCELAR</button>
+                <button id="devAlertOkBtn" class="btn-action btn-flex btn-danger">CONTINUAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="premiumProgressModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="prem-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+            <h3 class="modal-title default-title">VERIFICANDO ASSINATURA</h3>
+            <p class="prem-progress-texto">Sincronizando sua assinatura Premium com o servidor. Aguarde um instante...</p>
+        </div>
+    </div>
+
+    <div id="premiumResultModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="prem-res-icone"><i id="premResIconI" class="fa-solid fa-crown prem-res-premium"></i></div>
+            <h3 class="modal-title default-title" id="premResTitulo">PREMIUM ATIVO</h3>
+            <p class="prem-res-nome" id="premResNome"></p>
+            <p class="prem-res-detalhe" id="premResDetalhe"></p>
+            <div class="confirm-actions">
+                <button class="btn-action btn-flex btn-border" data-close="premiumResultModal">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
     <div id="devSettingsModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-content dev-modal">
             <div class="dev-icon-wrap"><i class="fa-solid fa-sliders"></i></div>
-            <h3 class="modal-title default-title">CONFIGURAÇÕES DE DESENVOLVEDOR</h3>
+            <h3 class="modal-title default-title">CONFIGURAÇÕES DA API</h3>
             <p class="dev-file-path">/data/data/net.dinglisch.android.taskerm/files/WCA/.env</p>
             <div class="dev-status" id="devStatus"></div>
             <div class="dev-wrap">
@@ -3342,7 +3384,7 @@ input.first-install-attention {
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Segundos que cada mídia baixada fica guardada antes de ser apagada do dispositivo. Ex.: 30.</div>
-                    <input type="text" id="devInDelMedia" class="dev-input" inputmode="numeric" placeholder="30">
+                    <input type="text" id="devInDelMedia" class="dev-input dev-input-num" inputmode="numeric" placeholder="30">
                 </div>
                 <div class="dev-group-title">Webhook</div>
                 <div class="dev-row">
@@ -3351,7 +3393,7 @@ input.first-install-attention {
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Atraso em milissegundos antes de entregar cada evento no webhook. Vazio = sem atraso.</div>
-                    <input type="text" id="devInDelay" class="dev-input" inputmode="numeric" placeholder="Ex.: 500 (vazio = sem atraso)">
+                    <input type="text" id="devInDelay" class="dev-input dev-input-num" inputmode="numeric" placeholder="Ex.: 500 (vazio = sem atraso)">
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
@@ -3359,7 +3401,7 @@ input.first-install-attention {
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Tentativas de entrega por evento: 1 envia uma única vez, sem reenvio (recomendado para o Tasker — evita eventos duplicados). Valores maiores reenviam em caso de falha, esperando 1s, 2s, 4s, 8s (ex.: 5).</div>
-                    <input type="text" id="devInMaxAttempts" class="dev-input" inputmode="numeric" placeholder="1">
+                    <input type="text" id="devInMaxAttempts" class="dev-input dev-input-num" inputmode="numeric" placeholder="1">
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
@@ -3633,6 +3675,12 @@ input.first-install-attention {
                     <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </button>
 
+                <button class="menu-item-new" id="menuDevSettingsBtn">
+                    <div class="icon-container icon-muted"><i class="fa-solid fa-sliders"></i></div>
+                    <div class="text-container"><div class="item-title">Configurações da API</div><div class="item-subtitle">Editar o arquivo .env do WCA</div></div>
+                    <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
+                </button>
+
                 <button class="menu-item-new" id="menuFaqBtn">
                     <div class="icon-container"><i class="fa-solid fa-book"></i></div>
                     <div class="text-container"><div class="item-title">Ajuda</div><div class="item-subtitle">Tutoriais e Documentação</div></div>
@@ -3666,12 +3714,6 @@ input.first-install-attention {
                 <button class="menu-item-new" id="menuCheckUpdatesBtn">
                     <div class="icon-container icon-primary"><i class="fa-solid fa-arrows-rotate"></i></div>
                     <div class="text-container"><div class="item-title">Verificar Atualizações</div><div class="item-subtitle">Buscar novas versões do WCA</div></div>
-                    <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
-                </button>
-
-                <button class="menu-item-new" id="menuDevSettingsBtn">
-                    <div class="icon-container icon-muted"><i class="fa-solid fa-sliders"></i></div>
-                    <div class="text-container"><div class="item-title">Configurações do desenvolvedor</div><div class="item-subtitle">Parâmetros avançados (.env)</div></div>
                     <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </button>
 
@@ -4621,7 +4663,13 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const btn = document.getElementById('devSettingsBtn');
         if (btn) btn.addEventListener('click', function () { devAbrir(); });
         const itemDevMenu = document.getElementById('menuDevSettingsBtn');
-        if (itemDevMenu) itemDevMenu.addEventListener('click', function () { closeModal('helpModal'); devAbrir(); });
+        if (itemDevMenu) itemDevMenu.addEventListener('click', function () { closeModal('helpModal'); openModal('devAlertModal'); });
+        const botaoAlertaDev = document.getElementById('devAlertOkBtn');
+        if (botaoAlertaDev) botaoAlertaDev.addEventListener('click', function () { closeModal('devAlertModal'); devAbrir(); });
+        ['devAlertModal', 'premiumProgressModal', 'premiumResultModal'].forEach(function (idExtra) {
+            const overlayExtra = document.getElementById(idExtra);
+            if (overlayExtra) overlayExtra.addEventListener('click', function () { setTimeout(premsReabrirMenuSeHome, 0); });
+        });
         document.querySelectorAll('#devSettingsModal .dev-toggle').forEach(function (tg) {
             tg.addEventListener('click', function (eTg) {
                 const op = eTg.target.closest('.dev-opt');
@@ -5704,14 +5752,31 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         // Recarrega o log recem-gravado pelo pipeline oficial: selo, nome,
         // boas-vindas, foto e mensagem de servidor offline
         try { await loadModeSystemLog(); } catch (eAplicar) { }
-        if (dias < 0) {
-            showToast({ title: 'ASSINATURA EXPIRADA', message: 'Venceu em ' + premsDataIsoParaBr(expiracaoFinal), type: 'error', duration: 5000 });
-        } else if (tipo === 'PREMIUM') {
-            showToast({ title: 'PREMIUM ATIVO', message: (dias === 0 ? 'Vence hoje' : dias + ' dias restantes') + ' · Vence em ' + premsDataIsoParaBr(expiracaoFinal), type: 'success', duration: 5000 });
-        } else {
-            showToast({ title: 'MODO TESTE ATIVO', message: (dias === 0 ? 'Vence hoje' : dias + ' dias restantes') + ' · Vence em ' + premsDataIsoParaBr(expiracaoFinal), type: 'info', duration: 5000 });
-        }
-        return linha;
+        return { tipo: tipo, nome: nomeFinal, expiracao: expiracaoFinal, dias: dias };
+    }
+
+    // Voltar/clicar fora nunca deixam o usuario na tela inicial: se nenhum
+    // modal ficou aberto, reabre o menu
+    function premsReabrirMenuSeHome(){
+        try { if (!document.querySelector('.modal-overlay.open')) openModal('helpModal'); } catch (eMenu) { }
+    }
+
+    // Resultado em um modal pequeno: icone/titulo conforme o tipo, nome do
+    // usuario e vencimento; FECHAR/clicar fora/voltar fecham e voltam ao menu
+    function premsMostrarResultado(resultado){
+        try { closeModal('premiumProgressModal'); } catch (eProg) { }
+        if (!resultado) return;
+        const icone = document.getElementById('premResIconI');
+        const titulo = document.getElementById('premResTitulo');
+        const nome = document.getElementById('premResNome');
+        const detalhe = document.getElementById('premResDetalhe');
+        const vence = premsDataIsoParaBr(resultado.expiracao);
+        const sufixo = resultado.dias < 0 ? 'ASSINATURA EXPIRADA' : (resultado.dias === 0 ? 'VENCE HOJE' : resultado.dias + ' dias restantes');
+        if (icone) icone.className = resultado.dias < 0 ? 'fa-solid fa-circle-xmark prem-res-expirada' : (resultado.tipo === 'PREMIUM' ? 'fa-solid fa-crown prem-res-premium' : 'fa-solid fa-flask prem-res-teste');
+        if (titulo) titulo.textContent = resultado.dias < 0 ? 'ASSINATURA EXPIRADA' : (resultado.tipo === 'PREMIUM' ? 'PREMIUM ATIVO' : 'MODO TESTE ATIVO');
+        if (nome) nome.textContent = 'Usuário: ' + resultado.nome;
+        if (detalhe) detalhe.textContent = 'Vence em ' + vence + ' · ' + sufixo;
+        openModal('premiumResultModal');
     }
 
 
@@ -5960,7 +6025,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         "confirmReinstallApiModal": "reinstall_api_confirm",
         "confirmReinstallTaskModal": "reinstall_task_confirm",
         "duplicateDeviceModal": "duplicate_device_alert",
-        "helpModal": "menu",
+        "helpModal": "menu", "devAlertModal": "dev_api_alert", "devSettingsModal": "dev_api_settings", "premiumProgressModal": "premium_check_progress", "premiumResultModal": "premium_check_result",
         "premiumCheckModal": "premium_check",
         "sessionHelpModal": "session_help",
         "reviewsModal": "reviews",
@@ -6058,7 +6123,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         reviewsModal: 'helpModal',
         buyConfirmModal: 'buyModal',
         deleteReviewModal: 'reviewsModal',
-        confirmCancelPremiumRequestModal: 'premiumHistoryModal'
+        confirmCancelPremiumRequestModal: 'premiumHistoryModal', devAlertModal: 'helpModal', devSettingsModal: 'helpModal', premiumProgressModal: 'helpModal', premiumResultModal: 'helpModal'
     };
     let wcaModalStack = [];
     let wcaModalSyncAgendado = false;
@@ -6739,11 +6804,15 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     function closePremiumCheck(){ closeModal('premiumCheckModal'); }
 
     // A verificacao agora e DIRETA pela Vercel, dentro da cena (sem tarefa):
-    // fecha o modal, avisa o usuario e dispara o fluxo completo
-    function confirmPremiumCheck(){
+    // abre um modal de PROGRESSO e, ao concluir, exibe o resultado em um
+    // modal pequeno (sem toasts; fechar por fora, botao ou voltar volta ao
+    // menu, nunca para a tela inicial)
+    async function confirmPremiumCheck(){
         closeModal('premiumCheckModal');
-        showToast({ title: 'Sincronizando', message: 'Verificando sua assinatura Premium...', type: 'info', duration: 8000 });
-        verificarPremiumDireto();
+        openModal('premiumProgressModal');
+        let resultado = null;
+        try { resultado = await verificarPremiumDireto(); } catch (eVer) { resultado = null; }
+        premsMostrarResultado(resultado);
     }
 
 

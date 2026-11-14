@@ -1,10 +1,18 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.42**
-Arquivo: `central-wca-1.42.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.43**
+Arquivo: `central-wca-1.43.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## UX do premium check, Configurações da API e design (desde a 1.43)
+
+- **Verificar Premium SEM toasts**: ao confirmar o SIM, abre um modal de **progresso** ("VERIFICANDO ASSINATURA" com spinner) e, ao concluir, o resultado aparece em um **modal pequeno** (ícone/título conforme o tipo, nome do usuário e "Vence em dd/mm/yyyy · N dias restantes / VENCE HOJE / ASSINATURA EXPIRADA") com botão FECHAR;
+- **Fechar por qualquer via volta ao MENU** (nunca para a tela inicial): botão voltar (modais registrados no mapa de pais `WCA_MODAL_PAI`), clicar fora ou FECHAR — durante a verificação inclusive, o voltar reabre o menu e o resultado aparece quando a consulta terminar;
+- **Configurações da API**: o item antes chamado "Configurações do desenvolvedor" agora se chama **"Configurações da API — Editar o arquivo .env do WCA"**, foi **movido para cima do item Ajuda** e, ao ser clicado, exibe um **modal de alerta formal** ("alterações incorretas podem afetar o funcionamento do WCA") antes de abrir o painel (CANCELAR/CONTINUAR); o título do painel também virou "CONFIGURAÇÕES DA API";
+- **Voltar corrigido nos dois fluxos**: o painel de Configurações da API e os novos modais fecham para o MENU (o painel não estava registrado no mapa de pais e o voltar caía na tela inicial);
+- **Design do painel**: inputs com texto **alinhado à esquerda** (o texto herdava o centralizado do modal — o "espaçamento esquisito") e os 3 campos numéricos (`AUTO_DELETE_MEDIA_DURATION`, `WHATSAPP_WEBHOOK_DELAY_MS`, `WHATSAPP_WEBHOOK_MAX_ATTEMPTS`) com **largura compacta** (max 170px) em vez da caixa gigante;
 
 ## Verificação Premium direta (desde a 1.42 — sem tarefa do Tasker)
 
