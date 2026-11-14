@@ -298,7 +298,8 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.14)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.15)
+// Botoes da selecao: VOLTAR a esquerda e GERAR PROJETO a direita.
 // Duas variaveis de saida: project_created (true/false) e id_project
 // (os 4 ultimos digitos do dispositivo, ex.: 3129) - ambas publicadas
 // ao gerar e reafirmadas antes de encerrar.
@@ -813,8 +814,8 @@ function renderizarSelecao(){
     bVoltar.className = 'btn-massa';
     bVoltar.textContent = 'VOLTAR';
     bVoltar.addEventListener('click', voltarParaDispositivos);
-    botoes.appendChild(bGerar);
     botoes.appendChild(bVoltar);
+    botoes.appendChild(bGerar);
     container.appendChild(botoes);
     atualizarContagem();
 }

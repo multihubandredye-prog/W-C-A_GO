@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.14**
-Arquivo: `gerar-tarefa-de-envio-wca-1.14.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.15**
+Arquivo: `gerar-tarefa-de-envio-wca-1.15.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
@@ -47,7 +47,7 @@ Seleção e geração das tarefas de envio: lista os dispositivos logados da API
 ## Funcionamento
 
 - **Busca dos dispositivos**: `GET http://localhost:3000/devices` (fetch direto; se falhar, uma tentativa pelo bridge com prazo de 15s). Só entram os `state = logged_in`;
-- **Toque no dispositivo** → tela de seleção: baixa o `id_number.prj.xml` (bridge `httpRequest` com `fileToSave` direto em `system/tasks-send/`; fallback `fetch` + `writeFile`) e lista **todas as tarefas** com checkbox **já marcadas** (ordenadas por nome), com contagem "N de M", ícone de alternar todas no canto superior direito e botões **GERAR PROJETO / VOLTAR**;
+- **Toque no dispositivo** → tela de seleção: baixa o `id_number.prj.xml` (bridge `httpRequest` com `fileToSave` direto em `system/tasks-send/`; fallback `fetch` + `writeFile`) e lista **todas as tarefas** com checkbox **já marcadas** (ordenadas por nome), com contagem "N de M", ícone de alternar todas no canto superior direito e botões **VOLTAR** (esquerda) **/ GERAR PROJETO** (direita);
 - **GERAR PROJETO** abre a **confirmação** (modal) e, ao CONFIRMAR, monta o arquivo final:
   1. **Filtro**: remove os blocos `<Task>` não selecionados **e** os ids deles do `<tids>` do projeto (o XML continua **válido** para importação);
   2. **Substituições**: `id-number` → `id:<4 últimos dígitos>` (ex.: `001-id:7777-wca-texto`) em nomes de tarefas e do projeto; só o placeholder literal `5581XXXXXXXX` (com X) → número completo do dispositivo (**números reais ficam intactos**);
@@ -72,4 +72,4 @@ Para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena dev
 
 ## Rollback
 
-A versão anterior (`1.13`) permanece no workspace para força-voltar em caso de erro.
+A versão anterior (`1.14`) permanece no workspace para força-voltar em caso de erro.
