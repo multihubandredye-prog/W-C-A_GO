@@ -228,6 +228,23 @@ body {
 .btn-massa:disabled { opacity: 0.5; }
 .btn-massa-destaque { background: var(--primary); border-color: var(--primary); color: #fff; }
 .btn-massa-largo { grid-column: 1 / -1; }
+.linha-instrucao { display: flex; align-items: center; gap: 0.6rem; padding: 0 1.25rem; }
+.linha-instrucao .instrucao { flex: 1; text-align: left; margin-bottom: 0; }
+.btn-toggle-todas { width: 2.25rem; height: 2.25rem; border-radius: 0.5rem; background: rgba(15,157,203,0.08); border: 0.0625rem solid var(--border); color: var(--accent); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.15s; }
+.btn-toggle-todas:active { transform: scale(0.92); }
+.btn-instalar { order: 1; align-self: center; padding: 0.9rem 2.5rem; background: var(--primary); border: 0.0625rem solid var(--primary); color: #fff; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; letter-spacing: 0.05rem; cursor: pointer; animation: floatIn 0.6s ease both; }
+.btn-instalar:active { transform: scale(0.97); }
+.main-footer { order: 2; }
+.content-wrapper.modo-resultado { height: 100vh; }
+.content-wrapper.modo-resultado .main-container { margin-top: auto; }
+.content-wrapper.modo-resultado .btn-instalar { margin-top: auto; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.72); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 1.25rem; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: var(--bg-card); border: 0.0625rem solid var(--border); border-radius: 1rem; padding: 1.25rem; width: 100%; max-width: 22rem; text-align: center; animation: modalIn 0.25s ease both; }
+.modal-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem; }
+.modal-box p { font-size: 0.85rem; color: var(--text-main); margin-bottom: 1rem; }
+.modal-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@keyframes modalIn { from { transform: scale(.92) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
 .resultado-box { margin: 1rem 1.25rem; padding: 1.1rem; background: rgba(15,157,203,0.06); border: 0.0625rem solid var(--border); border-radius: 0.75rem; text-align: center; }
 .resultado-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem; }
 .resultado-box p { font-size: 0.78rem; color: var(--text-main); word-break: break-all; margin-top: 0.35rem; text-align: left; }
@@ -278,10 +295,13 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.7)
-// Bordas corrigidas: o fundo da lista e OPAQUO (o anel conico aparece so
-// na borda, sem brilho no centro) e, na selecao em tela inteira, o anel do
-// cartao e desenhado PARA DENTRO (visivel nas laterais sem sair da tela).
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.8)
+// Fluxo: todas as tarefas ja vem MARCADAS; um unico icone no canto
+// superior direito (acima da lista) alterna marcar/desmarcar todas; o
+// botao GERAR XML abre uma CONFIRMACAO (modal) antes de gerar; apos gerar,
+// o botao INSTALAR PROJETO fica FORA do cartao, fixo no rodape da tela
+// (acima do footer) - ao clicar, publica project_created e encerra, e a
+// tarefa que mostra a cena instala o projeto.
 //
 // Variavel project_created: a cena publica 'false' ao abrir, 'true' quando
 // o XML e gerado com sucesso e reafirma o valor antes de encerrar (botao
@@ -422,10 +442,16 @@ function wcaDefinirTela(id){
     wcaSyncModalStack();
 }
 
+function wcaAbrirModal(id){
+    wcaModalStack.push(id);
+    wcaSyncModalStack();
+}
+
 function wcaFecharModalDoTopo(){
     try {
         const topo = wcaModalStack.pop();
-        if (topo) voltarParaDispositivos();
+        if (topo === 'confirmacao') fecharConfirmacao();
+        else if (topo) voltarParaDispositivos();
         wcaSyncModalStack();
     } catch (e) {}
 }
@@ -504,6 +530,7 @@ function escapar(texto){
 }
 
 async function buscarDispositivos() {
+    limparTelaResultado();
     const container = document.getElementById('dispositivosContainer');
     if (!container) return;
     const dados = await buscarDadosApi();
@@ -679,6 +706,16 @@ function voltarParaDispositivos(){
     buscarDispositivos();
 }
 
+// Remove o botao INSTALAR PROJETO e qualquer modal aberto (volta a lista)
+function limparTelaResultado(){
+    const btn = document.getElementById('btnInstalarProjeto');
+    if (btn && btn.remove) btn.remove();
+    const modal = document.getElementById('confirmModal');
+    if (modal && modal.remove) modal.remove();
+    const wrapper = document.querySelector('.content-wrapper');
+    if (wrapper && wrapper.classList) wrapper.classList.remove('modo-resultado');
+}
+
 function renderizarSelecao(){
     const container = document.getElementById('dispositivosContainer');
     if (!container || !projetoCarregado) return;
@@ -692,10 +729,20 @@ function renderizarSelecao(){
     topo.appendChild(nomeEl);
     topo.appendChild(numEl);
     container.appendChild(topo);
+    const linhaInstrucao = document.createElement('div');
+    linhaInstrucao.className = 'linha-instrucao';
     const instrucao = document.createElement('p');
     instrucao.className = 'instrucao';
     instrucao.textContent = 'Marque as tarefas que devem ser criadas.';
-    container.appendChild(instrucao);
+    const btnToggle = document.createElement('button');
+    btnToggle.className = 'btn-toggle-todas';
+    btnToggle.id = 'btnToggleTodas';
+    btnToggle.title = 'Marcar ou desmarcar todas';
+    btnToggle.innerHTML = '<i class="fas fa-xmark"></i>';
+    btnToggle.addEventListener('click', alternarTodas);
+    linhaInstrucao.appendChild(instrucao);
+    linhaInstrucao.appendChild(btnToggle);
+    container.appendChild(linhaInstrucao);
     const listaBorda = document.createElement('div');
     listaBorda.className = 'lista-borda';
     const lista = document.createElement('div');
@@ -707,6 +754,7 @@ function renderizarSelecao(){
         const inp = document.createElement('input');
         inp.type = 'checkbox';
         inp.value = t.id;
+        inp.checked = true;
         const nomeT = document.createElement('span');
         nomeT.textContent = t.nme;
         chip.appendChild(inp);
@@ -732,36 +780,42 @@ function renderizarSelecao(){
     container.appendChild(aviso);
     const botoes = document.createElement('div');
     botoes.className = 'botoes-massa';
-    const bMarcar = document.createElement('button');
-    bMarcar.className = 'btn-massa';
-    bMarcar.textContent = 'MARCAR TODAS';
-    bMarcar.addEventListener('click', function () { marcarTodas(true); });
-    const bDesmarcar = document.createElement('button');
-    bDesmarcar.className = 'btn-massa';
-    bDesmarcar.textContent = 'DESMARCAR TODAS';
-    bDesmarcar.addEventListener('click', function () { marcarTodas(false); });
     const bGerar = document.createElement('button');
     bGerar.className = 'btn-massa btn-massa-destaque';
     bGerar.id = 'btnGerarXml';
     bGerar.textContent = 'GERAR XML';
-    bGerar.addEventListener('click', gerarXml);
+    bGerar.addEventListener('click', abrirConfirmacao);
     const bVoltar = document.createElement('button');
     bVoltar.className = 'btn-massa';
     bVoltar.textContent = 'VOLTAR';
     bVoltar.addEventListener('click', voltarParaDispositivos);
-    botoes.appendChild(bMarcar);
-    botoes.appendChild(bDesmarcar);
     botoes.appendChild(bGerar);
     botoes.appendChild(bVoltar);
     container.appendChild(botoes);
     atualizarContagem();
 }
 
-function marcarTodas(marcar){
+function todasMarcadas(lista){
+    const boxes = lista.querySelectorAll('input[type="checkbox"]');
+    if (!boxes.length) return false;
+    let todas = true;
+    boxes.forEach(function (inp) { if (!inp.checked) todas = false; });
+    return todas;
+}
+
+function alternarTodas(){
     const lista = document.getElementById('listaTarefas');
     if (!lista) return;
-    lista.querySelectorAll('input[type="checkbox"]').forEach(function (inp) { inp.checked = !!marcar; });
+    const desmarcar = todasMarcadas(lista);
+    lista.querySelectorAll('input[type="checkbox"]').forEach(function (inp) { inp.checked = !desmarcar; });
     atualizarContagem();
+}
+
+function atualizarIconeToggle(){
+    const btn = document.getElementById('btnToggleTodas');
+    const lista = document.getElementById('listaTarefas');
+    if (!btn || !lista) return;
+    btn.innerHTML = '<i class="fas ' + (todasMarcadas(lista) ? 'fa-xmark' : 'fa-check-double') + '"></i>';
 }
 
 function atualizarContagem(){
@@ -772,6 +826,7 @@ function atualizarContagem(){
     let n = 0;
     todas.forEach(function (inp) { if (inp.checked) n = n + 1; });
     contagem.textContent = n + ' de ' + todas.length + ' tarefas selecionadas';
+    atualizarIconeToggle();
 }
 
 function selecionados(){
@@ -787,6 +842,53 @@ function selecionados(){
         nomes.push(sp ? sp.textContent : '');
     });
     return { ids: ids, nomes: nomes };
+}
+
+// Confirmacao antes de gerar: modal com o resumo (n de tarefas + numero)
+function abrirConfirmacao(){
+    const sel = selecionados();
+    if (!sel.ids.length) {
+        const aviso = document.getElementById('avisoSelecao');
+        if (aviso) { aviso.textContent = 'Marque ao menos uma tarefa para gerar o XML.'; aviso.style.display = 'block'; }
+        return;
+    }
+    fecharConfirmacao();
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay open';
+    overlay.id = 'confirmModal';
+    const box = document.createElement('div');
+    box.className = 'modal-box';
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'Confirmar geração';
+    const texto = document.createElement('p');
+    texto.textContent = 'Gerar o XML com ' + sel.ids.length + ' tarefa(s) para o número ' + (dispositivoAtual ? dispositivoAtual.numero : '') + ' (id:' + (dispositivoAtual ? dispositivoAtual.final4 : '') + ')?';
+    const botoes = document.createElement('div');
+    botoes.className = 'modal-botoes';
+    const canc = document.createElement('button');
+    canc.className = 'btn-massa';
+    canc.textContent = 'CANCELAR';
+    canc.addEventListener('click', fecharConfirmacao);
+    const conf = document.createElement('button');
+    conf.className = 'btn-massa btn-massa-destaque';
+    conf.textContent = 'CONFIRMAR';
+    conf.addEventListener('click', function () { fecharConfirmacao(); gerarXml(); });
+    botoes.appendChild(canc);
+    botoes.appendChild(conf);
+    box.appendChild(titulo);
+    box.appendChild(texto);
+    box.appendChild(botoes);
+    overlay.appendChild(box);
+    overlay.addEventListener('click', function (eCli) { if (eCli.target === overlay) fecharConfirmacao(); });
+    const wrapper = document.querySelector('.content-wrapper');
+    if (wrapper) wrapper.appendChild(overlay);
+    wcaAbrirModal('confirmacao');
+}
+
+function fecharConfirmacao(){
+    const overlay = document.getElementById('confirmModal');
+    if (overlay && overlay.remove) overlay.remove();
+    wcaModalStack = wcaModalStack.filter(function (x) { return x !== 'confirmacao'; });
+    wcaSyncModalStack();
 }
 
 async function gerarXml(){
@@ -966,12 +1068,18 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
             ok.appendChild(w);
         });
     }
-    const fechar = document.createElement('button');
-    fechar.className = 'btn-massa btn-massa-largo';
-    fechar.textContent = 'FECHAR';
-    fechar.addEventListener('click', fecharPropriaCena);
-    ok.appendChild(fechar);
     container.appendChild(ok);
+    // botao INSTALAR PROJETO: fora do cartao, fixo no rodape da tela
+    const wrapper = document.querySelector('.content-wrapper');
+    if (wrapper) {
+        wrapper.classList.add('modo-resultado');
+        const instalar = document.createElement('button');
+        instalar.className = 'btn-instalar';
+        instalar.id = 'btnInstalarProjeto';
+        instalar.textContent = 'INSTALAR PROJETO';
+        instalar.addEventListener('click', fecharPropriaCena);
+        wrapper.appendChild(instalar);
+    }
 }
 
 
