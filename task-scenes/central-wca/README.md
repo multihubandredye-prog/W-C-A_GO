@@ -1,10 +1,16 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.52**
-Arquivo: `central-wca-1.52.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.53**
+Arquivo: `central-wca-1.53.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Textos da tela inicial e rodapé (1.53)
+
+- O selo de status exibe **API ONLINE** (antes "whats connect api conectado");
+- A tela de boas-vindas Premium **não exibe mais** o subtítulo "Sua assinatura Premium do WCA está ativa";
+- O rodapé exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:") — vale para todas as cenas do projeto;
 
 ## Avisos do desenvolvedor acima do footer (1.47–1.52)
 
