@@ -1,15 +1,16 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.47**
-Arquivo: `central-wca-1.47.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.48**
+Arquivo: `central-wca-1.48.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
-## Avisos do desenvolvedor acima do footer (1.47)
+## Avisos do desenvolvedor acima do footer (1.47/1.48)
 
 - **Banner destacado acima do footer** (fixo, com pulso e ícone de alerta) que lê o arquivo `wca-resources/updates/avisos` no repositório — mesmo padrão de fontes da cena Atualizações (API do GitHub primeiro, raw como fallback);
 - O banner **só aparece quando há texto** no arquivo: arquivo vazio ou falha de rede = banner oculto, sem erro na tela;
+- As **quebras de linha do arquivo são respeitadas** na exibição (`white-space: pre-line`, 1.48) — parágrafos e linhas em branco aparecem como escritos;
 - Para publicar um aviso, basta escrever o texto no arquivo `wca-resources/updates/avisos` do repositório — a Central exibe na próxima abertura.
 
 ## Chips de eventos: clique em qualquer lugar e +15% (1.46)

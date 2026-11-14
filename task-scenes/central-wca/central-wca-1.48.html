@@ -2009,6 +2009,7 @@ body.modal-open { overflow: hidden; }
     font-weight: 500;
     line-height: 1.42;
     margin: 0;
+    white-space: pre-line;
 }
 .aviso-banner .aviso-icone {
     font-size: 1.3rem;
@@ -4206,7 +4207,7 @@ async function obterUltimaVersaoRelease(){
         return '';
     }
 
-    // ---- Avisos do desenvolvedor (1.47) ----
+    // ---- Avisos do desenvolvedor (1.47, quebras de linha respeitadas na 1.48) ----
     // Lê o arquivo 'avisos' de wca-resources/updates no repositório (mesmo
     // padrão de fontes da cena Atualizações: API do GitHub primeiro, raw como
     // fallback). O banner fica ACIMA do footer e só aparece quando há texto;
