@@ -1,8 +1,10 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.17**
-Arquivo: `configuracao-webview-wca-1.17.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.18**
+Arquivo: `configuracao-webview-wca-1.18.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
 
 ## O que a cena faz
 
