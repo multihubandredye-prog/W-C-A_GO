@@ -179,6 +179,12 @@ body {
 .resultado-box p { font-size: 0.78rem; color: var(--text-main); word-break: break-all; margin-top: 0.35rem; text-align: left; }
 .resultado-aviso { color: #FFD166; }
 .resultado-box .btn-massa { margin-top: 0.8rem; }
+.content-wrapper.modo-selecao { height: 100vh; justify-content: flex-start; }
+.content-wrapper.modo-selecao .main-container { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.content-wrapper.modo-selecao .info-container { flex: 1; min-height: 0; max-height: none; overflow: hidden; }
+.content-wrapper.modo-selecao .lista-tarefas { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin: 0.6rem 1.25rem; }
+.content-wrapper.modo-selecao .botoes-massa { padding-bottom: 1.1rem; }
+
 </style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -208,7 +214,10 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.1)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.2)
+// Na selecao, a cena EXPANDE para a TELA INTEIRA (classe modo-selecao): a
+// lista rola ocupando todo o espaco e os botoes ficam fixos embaixo
+
 // Lista os dispositivos logados na API local e, ao escolher um numero, abre a
 // SELECAO das tarefas do projeto id_number.prj.xml (baixado do repositorio
 // para system/tasks-send). Ao gerar, monta um XML com APENAS as tarefas
@@ -456,6 +465,7 @@ function parseProjeto(xml){
 
 async function abrirSelecaoTarefas(nome, numero, final4){
     dispositivoAtual = { nome: nome, numero: numero, final4: final4 };
+    definirModoTela(true);
     const container = document.getElementById('dispositivosContainer');
     if (!container) return;
     container.innerHTML = '';
@@ -491,7 +501,18 @@ async function abrirSelecaoTarefas(nome, numero, final4){
     renderizarSelecao();
 }
 
+function definirModoTela(expandido){
+    const wrapper = document.querySelector('.content-wrapper');
+    if (wrapper && wrapper.classList) {
+        if (expandido) wrapper.classList.add('modo-selecao'); else wrapper.classList.remove('modo-selecao');
+    }
+    if (document.body && document.body.classList) {
+        if (expandido) document.body.classList.add('modo-selecao'); else document.body.classList.remove('modo-selecao');
+    }
+}
+
 function voltarParaDispositivos(){
+    definirModoTela(false);
     dispositivoAtual = null;
     buscarDispositivos();
 }
@@ -750,6 +771,7 @@ async function gerarIconeFinal(final4){
 }
 
 function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
+    definirModoTela(false);
     const container = document.getElementById('dispositivosContainer');
     if (!container) return;
     container.innerHTML = '';
