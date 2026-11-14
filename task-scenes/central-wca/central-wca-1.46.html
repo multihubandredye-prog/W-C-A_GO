@@ -3103,10 +3103,10 @@ input.first-install-attention {
 .dev-times .dev-opt { font-size: 0.62rem; padding: 7px 2px; }
 .dev-input:focus, .dev-select:focus { outline: none; border-color: var(--primary); }
 .dev-events { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-.dev-chip { display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); font-size: 0.66rem; color: var(--text-dim); cursor: pointer; }
-.dev-chip input { accent-color: #B5FB2A; width: 13px; height: 13px; flex-shrink: 0; }
+.dev-chip { display: flex; align-items: center; gap: 6px; padding: 8px 9px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); font-size: 0.76rem; color: var(--text-dim); cursor: pointer; }
+.dev-chip input { accent-color: #B5FB2A; width: 15px; height: 15px; flex-shrink: 0; }
 .dev-chip span { word-break: break-all; text-align: left; cursor: pointer; }
-.dev-chip .dev-chip-help { background: none; border: none; color: rgba(181,251,42,0.75); cursor: pointer; font-size: 0.72rem; padding: 0 0 0 2px; margin-left: auto; flex-shrink: 0; line-height: 1; }
+.dev-chip .dev-chip-help { background: none; border: none; color: rgba(181,251,42,0.75); cursor: pointer; font-size: 0.82rem; padding: 0 0 0 2px; margin-left: auto; flex-shrink: 0; line-height: 1; }
 .dev-bubble { display: none; position: fixed; z-index: 12000; max-width: 78vw; padding: 10px 12px; border-radius: 0.8rem; border: 1px solid rgba(181,251,42,0.4); background: rgba(10,13,18,0.98); box-shadow: 0 8px 24px rgba(0,0,0,0.55); font-size: 0.72rem; color: var(--text-main); line-height: 1.45; text-align: left; }
 .dev-bubble strong { display: block; margin-bottom: 3px; font-size: 0.64rem; letter-spacing: 0.05em; color: var(--primary); font-family: var(--font-mono, monospace); }
 .dev-bubble.open { display: block; animation: devBubbleIn 0.16s ease-out; }
@@ -4495,7 +4495,15 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             const helpIc = document.createElement('i');
             helpIc.className = 'fa-solid fa-circle-question';
             helpBtn.appendChild(helpIc);
-            sp.addEventListener('click', function () { inp.checked = !inp.checked; });
+            // O CHIP INTEIRO alterna o evento: clique em qualquer area (fundo,
+            // texto ou espacos) marca/desmarca; a caixinha alterna nativamente e
+            // o botao de ajuda (?) nao desmarca, apenas abre a explicacao
+            lab.addEventListener('click', function (eCli) {
+                const alvo = eCli.target;
+                if (alvo === inp) return;
+                if (helpBtn && (alvo === helpBtn || (helpBtn.contains && helpBtn.contains(alvo)))) return;
+                inp.checked = !inp.checked;
+            });
             lab.appendChild(inp);
             lab.appendChild(sp);
             lab.appendChild(helpBtn);

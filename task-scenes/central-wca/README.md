@@ -1,10 +1,15 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.45**
-Arquivo: `central-wca-1.45.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.46**
+Arquivo: `central-wca-1.46.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Chips de eventos: clique em qualquer lugar e +15% (1.46)
+
+- **O chip INTEIRO do evento alterna** (antes só a caixinha): clique no fundo, no texto ou em qualquer área marca/desmarca; a caixinha alterna nativamente (sem dupla alternância) e o botão `?` **não desmarca** — só abre a explicação;
+- Chips **~15% maiores**: texto 0.66→0.76rem, caixinha 13→15px, `?` 0.72→0.82rem, padding 8px 9px.
 
 ## Espaçamento interno dos inputs corrigido de vez (1.45)
 
