@@ -1,19 +1,18 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.51**
-Arquivo: `central-wca-1.51.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.52**
+Arquivo: `central-wca-1.52.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
 
-## Avisos do desenvolvedor acima do footer (1.47–1.51)
+## Avisos do desenvolvedor acima do footer (1.47–1.52)
 
 - **Banner destacado acima do footer** (fixo, com pulso e ícone de alerta) que lê o arquivo `wca-resources/updates/avisos` no repositório — mesmo padrão de fontes da cena Atualizações (API do GitHub primeiro, raw como fallback);
 - O banner **só aparece quando há texto** no arquivo: arquivo vazio ou falha de rede = banner oculto, sem erro na tela;
 - As **quebras de linha do arquivo são respeitadas** na exibição (`white-space: pre-line`, 1.48) — parágrafos e linhas em branco aparecem como escritos;
-- **Tamanho fixo (1.49)**: o banner mostra **4 linhas** e o texto **rola por dentro** dele (rolagem interna com barra fina); quando há conteúdo cortado, aparece um **botão de expandir** (seta) que abre o banner até 38vh para leitura completa e recolhe no segundo clique;
-- **Expandir por cima de tudo (1.50)**: a seta fica no **canto superior direito** do banner; ao expandir, um **fundo escuro** aparece atrás e o banner sobe para **z-index 25000** (acima de modais e toasts); **clicar fora** (no fundo) ou na seta de novo **recolhe**;
-- **Fundo opaco ao expandir (1.51)**: o banner expandido usa fundo dourado-escuro **opaco** (98%) — nada aparece através dele (antes a logo animada do cartão vazava pelo fundo semitransparente);
+- **Tamanho fixo (1.49)**: o banner mostra **4 linhas** e o texto **rola por dentro** dele (rolagem interna com barra fina); quando há conteúdo cortado, aparece um **botão de expandir** (seta no canto superior direito);
+- **Modal centralizado (1.52)**: a seta **não expande o banner no lugar** — abre um **modal centralizado** (`avisoModal`, sistema de modais da Central) com o texto completo e rolagem interna; fecha por **FECHAR**, **clicar fora**, **Escape** ou **botão voltar** (publicado no `cache_modal`); o banner continua compacto acima do footer;
 - Com o banner visível, o corpo ganha **respiro embaixo** (`body.com-aviso`, padding 15rem) — o cartão sobe e o banner **nunca cobre** as informações;
 - Para publicar um aviso, basta escrever o texto no arquivo `wca-resources/updates/avisos` do repositório — a Central exibe na próxima abertura.
 

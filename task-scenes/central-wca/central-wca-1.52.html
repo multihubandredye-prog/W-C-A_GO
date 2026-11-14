@@ -2022,22 +2022,20 @@ body.modal-open { overflow: hidden; }
     mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
     padding-right: 1.6rem;
 }
-.aviso-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.55);
-    z-index: 24999;
+.aviso-modal-texto {
+    font-size: .9rem;
+    color: #fff;
+    line-height: 1.5;
+    white-space: pre-line;
+    text-align: left;
+    max-height: 55vh;
+    overflow-y: auto;
+    margin: 0 0 1rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,193,7,.5) transparent;
 }
-.aviso-banner.expandido {
-    z-index: 25000;
-    box-shadow: 0 0 30px rgba(255,193,7,.4);
-    background: linear-gradient(135deg, rgba(66,53,10,.98), rgba(38,30,6,.98));
-}
-.aviso-banner.expandido p {
-    max-height: 38vh;
-    -webkit-mask-image: none;
-    mask-image: none;
-}
+.aviso-modal-texto::-webkit-scrollbar { width: 4px; }
+.aviso-modal-texto::-webkit-scrollbar-thumb { background: rgba(255,193,7,.5); border-radius: 4px; }
 .aviso-expandir {
     position: absolute;
     top: .45rem;
@@ -2056,8 +2054,6 @@ body.modal-open { overflow: hidden; }
     cursor: pointer;
     padding: 0;
 }
-.aviso-expandir i { transition: transform .25s ease; }
-.aviso-banner.expandido .aviso-expandir i { transform: rotate(180deg); }
 body.com-aviso { padding-bottom: 15rem; }
 .aviso-banner .aviso-icone {
     font-size: 1.3rem;
@@ -3390,6 +3386,17 @@ input.first-install-attention {
         </div>
     </div>
 
+    <div id="avisoModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="delete-icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="modal-title default-title">AVISO IMPORTANTE</h3>
+            <p class="aviso-modal-texto" id="avisoModalTexto"></p>
+            <div class="confirm-actions">
+                <button class="btn-action btn-flex btn-border" data-close="avisoModal">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
     <div id="premiumResultModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-content">
             <div class="prem-res-icone"><i id="premResIconI" class="fa-solid fa-crown prem-res-premium"></i></div>
@@ -4105,8 +4112,6 @@ input.first-install-attention {
         </div>
     </div>
 
-    <div id="avisoBackdrop" class="aviso-backdrop d-none"></div>
-
     <div id="avisoBanner" class="aviso-banner d-none" role="alert">
         <span class="aviso-icone"><i class="fa-solid fa-triangle-exclamation"></i></span>
         <p id="avisoTexto"></p>
@@ -4258,7 +4263,7 @@ async function obterUltimaVersaoRelease(){
         return '';
     }
 
-    // ---- Avisos do desenvolvedor (1.47; quebras de linha na 1.48; tamanho fixo na 1.49; expandir por cima de tudo na 1.50; fundo opaco na 1.51) ----
+    // ---- Avisos do desenvolvedor (1.47; quebras de linha na 1.48; tamanho fixo na 1.49; modal centralizado na 1.52) ----
     // Lê o arquivo 'avisos' de wca-resources/updates no repositório (mesmo
     // padrão de fontes da cena Atualizações: API do GitHub primeiro, raw como
     // fallback). O banner fica ACIMA do footer e só aparece quando há texto;
@@ -4292,6 +4297,8 @@ async function obterUltimaVersaoRelease(){
         const paragrafo = document.getElementById('avisoTexto');
         if (!banner || !paragrafo) return;
         paragrafo.textContent = texto;
+        const textoModal = document.getElementById('avisoModalTexto');
+        if (textoModal) textoModal.textContent = texto;
         banner.classList.remove('d-none');
         // Tamanho fixo (1.49): o texto rola dentro do banner (4 linhas); o
         // botão de expandir só aparece quando há conteúdo cortado. O corpo
@@ -9390,22 +9397,10 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         loadDevicesCache().then(refreshDevicesDependentUi).catch(function () {});
         loadVersionFile().catch(function () {});
         carregarAviso().catch(function () {});
-        // Banner de avisos (1.50): expandir mostra o fundo escuro e põe o
-        // banner por cima de tudo; clicar fora (no fundo) recolhe.
-        function alternarAviso(expandir) {
-            const banner = document.getElementById('avisoBanner');
-            const fundo = document.getElementById('avisoBackdrop');
-            if (!banner) return;
-            banner.classList.toggle('expandido', expandir);
-            if (fundo) fundo.classList.toggle('d-none', !expandir);
-        }
+        // Banner de avisos (1.52): a seta abre um modal centralizado com o
+        // texto completo (o banner continua compacto acima do footer).
         const btnAviso = document.getElementById('avisoExpandir');
-        if (btnAviso) btnAviso.addEventListener('click', function () {
-            const banner = document.getElementById('avisoBanner');
-            alternarAviso(!(banner && banner.classList.contains('expandido')));
-        });
-        const fundoAviso = document.getElementById('avisoBackdrop');
-        if (fundoAviso) fundoAviso.addEventListener('click', function () { alternarAviso(false); });
+        if (btnAviso) btnAviso.addEventListener('click', function () { openModal('avisoModal'); });
         loadModeSystemLog().catch(function () {});
         loadUserProfilePicture().catch(function () {});
         // loadTaskerVars().catch(function () {}); // DESLIGADO: valores fictícios fixos no CONFIG por enquanto
