@@ -2020,6 +2020,17 @@ body.modal-open { overflow: hidden; }
 .aviso-banner.com-corte p {
     -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    padding-right: 1.6rem;
+}
+.aviso-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 24999;
+}
+.aviso-banner.expandido {
+    z-index: 25000;
+    box-shadow: 0 0 30px rgba(255,193,7,.4);
 }
 .aviso-banner.expandido p {
     max-height: 38vh;
@@ -2027,7 +2038,10 @@ body.modal-open { overflow: hidden; }
     mask-image: none;
 }
 .aviso-expandir {
-    margin: .45rem auto 0 auto;
+    position: absolute;
+    top: .45rem;
+    right: .45rem;
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4090,6 +4104,8 @@ input.first-install-attention {
         </div>
     </div>
 
+    <div id="avisoBackdrop" class="aviso-backdrop d-none"></div>
+
     <div id="avisoBanner" class="aviso-banner d-none" role="alert">
         <span class="aviso-icone"><i class="fa-solid fa-triangle-exclamation"></i></span>
         <p id="avisoTexto"></p>
@@ -4241,7 +4257,7 @@ async function obterUltimaVersaoRelease(){
         return '';
     }
 
-    // ---- Avisos do desenvolvedor (1.47; quebras de linha na 1.48; tamanho fixo com expandir na 1.49) ----
+    // ---- Avisos do desenvolvedor (1.47; quebras de linha na 1.48; tamanho fixo na 1.49; expandir por cima de tudo na 1.50) ----
     // Lê o arquivo 'avisos' de wca-resources/updates no repositório (mesmo
     // padrão de fontes da cena Atualizações: API do GitHub primeiro, raw como
     // fallback). O banner fica ACIMA do footer e só aparece quando há texto;
@@ -9373,11 +9389,22 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         loadDevicesCache().then(refreshDevicesDependentUi).catch(function () {});
         loadVersionFile().catch(function () {});
         carregarAviso().catch(function () {});
+        // Banner de avisos (1.50): expandir mostra o fundo escuro e põe o
+        // banner por cima de tudo; clicar fora (no fundo) recolhe.
+        function alternarAviso(expandir) {
+            const banner = document.getElementById('avisoBanner');
+            const fundo = document.getElementById('avisoBackdrop');
+            if (!banner) return;
+            banner.classList.toggle('expandido', expandir);
+            if (fundo) fundo.classList.toggle('d-none', !expandir);
+        }
         const btnAviso = document.getElementById('avisoExpandir');
         if (btnAviso) btnAviso.addEventListener('click', function () {
             const banner = document.getElementById('avisoBanner');
-            if (banner) banner.classList.toggle('expandido');
+            alternarAviso(!(banner && banner.classList.contains('expandido')));
         });
+        const fundoAviso = document.getElementById('avisoBackdrop');
+        if (fundoAviso) fundoAviso.addEventListener('click', function () { alternarAviso(false); });
         loadModeSystemLog().catch(function () {});
         loadUserProfilePicture().catch(function () {});
         // loadTaskerVars().catch(function () {}); // DESLIGADO: valores fictícios fixos no CONFIG por enquanto
