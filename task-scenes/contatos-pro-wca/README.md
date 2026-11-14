@@ -1,8 +1,10 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.13**
-Arquivo: `contatos-pro-wca-1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.14**
+Arquivo: `contatos-pro-wca-1.14.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
 
 Central de contatos e grupos: escolhe um dispositivo logado e lista **Contatos**, **Grupos** e **Minha Agenda** em abas, com busca, seleção múltipla (toque longo), modais de detalhes com cópia rápida e **LID do contato em segundo plano**. As cópias vão para a **área de transferência** do dispositivo (nomes, números/JIDs, ou tudo, um por linha).
 
