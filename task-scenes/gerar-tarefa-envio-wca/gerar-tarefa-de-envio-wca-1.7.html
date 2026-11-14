@@ -214,8 +214,8 @@ body {
 .status-msg { text-align: center; padding: 0.9rem; color: var(--primary); }
 .status-erro { color: #FF6B81; }
 .lista-borda { position: relative; border-radius: 0.75rem; margin: 0.6rem 1.25rem; }
-.lista-borda::before { content: ''; position: absolute; inset: -1.5px; border-radius: calc(0.75rem + 1.5px); background: conic-gradient(from var(--spin), transparent 0deg, var(--primary) 50deg, var(--accent) 110deg, transparent 170deg, transparent 360deg); animation: spinBorder 6s linear infinite; z-index: 0; }
-.lista-borda::after { content: ''; position: absolute; inset: 0; border-radius: 0.75rem; background: rgba(0,0,0,0.25); z-index: 0; }
+.lista-borda::before { content: ''; position: absolute; inset: -2px; border-radius: calc(0.75rem + 2px); background: conic-gradient(from var(--spin), transparent 0deg, var(--primary) 50deg, var(--accent) 110deg, transparent 170deg, transparent 360deg); animation: spinBorder 6s linear infinite; z-index: 0; }
+.lista-borda::after { content: ''; position: absolute; inset: 0; border-radius: 0.75rem; background: #051a21; z-index: 0; }
 .lista-tarefas { position: relative; z-index: 1; max-height: 46vh; overflow-y: auto; display: grid; gap: 0.4rem; padding: 0.5rem; }
 .lista-tarefas::-webkit-scrollbar { width: 0.25rem; }
 .lista-tarefas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0.625rem; }
@@ -236,8 +236,8 @@ body {
 .resultado-img { width: 11rem; max-width: 70vw; border-radius: 0.75rem; border: 0.0625rem solid var(--border); box-shadow: 0 0 1.5rem rgba(181,251,42,0.15); margin: 0.5rem auto 0.25rem; display: block; animation: floatIn 0.6s ease both; }
 .content-wrapper.modo-selecao { width: 100vw; max-width: 100vw; height: 100vh; justify-content: flex-start; }
 .content-wrapper.modo-selecao .main-container { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0; }
-.content-wrapper.modo-selecao .main-container::before { border-radius: 0; }
-.content-wrapper.modo-selecao .main-container::after { border-radius: 0; }
+.content-wrapper.modo-selecao .main-container::before { inset: 0; border-radius: 0; }
+.content-wrapper.modo-selecao .main-container::after { inset: 2px; border-radius: 0; }
 .content-wrapper.modo-selecao .panel-header { border-radius: 0; }
 .content-wrapper.modo-selecao .info-container { flex: 1; min-height: 0; max-height: none; overflow: hidden; }
 .content-wrapper.modo-selecao .lista-borda { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -278,7 +278,15 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.6)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.7)
+// Bordas corrigidas: o fundo da lista e OPAQUO (o anel conico aparece so
+// na borda, sem brilho no centro) e, na selecao em tela inteira, o anel do
+// cartao e desenhado PARA DENTRO (visivel nas laterais sem sair da tela).
+//
+// Variavel project_created: a cena publica 'false' ao abrir, 'true' quando
+// o XML e gerado com sucesso e reafirma o valor antes de encerrar (botao
+// FECHAR) - a tarefa que mostra a cena le project_created ao dispensar.
+//
 // Resultado limpo: apos gerar, a cena mostra apenas "XML gerado com
 // sucesso" e a IMAGEM do icone gerado (sem caminhos de arquivo); o titulo
 // da selecao e "Marque as tarefas que devem ser criadas."
@@ -339,6 +347,7 @@ const TAREFAS_OCULTAS = ['003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]'];
 let dispositivoAtual = null;  // { nome, numero, final4 }
 let projetoCarregado = null;  // { xml, tarefas: [{ id, nme, bloco }], tidsOrig: [] }
 let gerandoXml = false;
+let projetoCriado = false;  // true quando o XML foi gerado com sucesso
 
 function shellQuote(valor){
     return chr39 + String(valor).replace(/'/g, chr39 + '\\' + chr39) + chr39;
@@ -360,7 +369,13 @@ async function taskerCall(name, options){
     return await api[name](options);
 }
 
-function fecharPropriaCena() {
+async function fecharPropriaCena() {
+    // antes de encerrar, publica se o projeto foi criado (true/false)
+    try {
+        if (typeof Tasker !== 'undefined' && Tasker.setVariable) {
+            await Tasker.setVariable('project_created', projetoCriado ? 'true' : 'false');
+        }
+    } catch (eVar) { }
     const tentativas = [
         function () { return Tasker.dismissSceneV2(WCA_SCENE_SCREEN_ID); },
         function () { return Tasker.dismissLayout(WCA_SCENE_SCREEN_ID); },
@@ -927,6 +942,8 @@ async function gerarIconeFinal(final4){
 function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
     definirModoTela(false);
     wcaDefinirTela('resultado');
+    projetoCriado = true;
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'true'); } catch (eOk) { }
     const container = document.getElementById('dispositivosContainer');
     if (!container) return;
     container.innerHTML = '';
@@ -959,6 +976,8 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
 
 
 document.addEventListener('DOMContentLoaded', function () {
+    // estado inicial: nenhum projeto criado nesta abertura
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'false'); } catch (eInit) { }
     buscarDispositivos();
 });
 </script>

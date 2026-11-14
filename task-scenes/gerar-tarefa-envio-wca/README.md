@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.6**
-Arquivo: `gerar-tarefa-de-envio-wca-1.6.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.7**
+Arquivo: `gerar-tarefa-de-envio-wca-1.7.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
@@ -20,7 +20,9 @@ Seleção e geração das tarefas de envio: lista os dispositivos logados da API
 
 ## Bordas animadas estilo Central
 
-- O cartão principal e a **lista de tarefas** usam o mesmo **gradiente cônico giratório** (`spinBorder`) da Central WCA — inclusive na seleção em **tela inteira**, onde as bordas laterais voltam a aparecer;
+- O cartão principal e a **lista de tarefas** usam o mesmo **gradiente cônico giratório** (`spinBorder`) da Central WCA;
+- O fundo da lista é **opaco** — o anel aparece **só na borda** (sem brilho no centro);
+- Na seleção em **tela inteira**, o anel do cartão é desenhado **para dentro** (`inset: 0`/`2px`) — visível nas **laterais** sem sair da tela;
 - Entrada com `cardSlide`, brilho no topo do cabeçalho (`topShine`) e a lista de tarefas com borda animada própria (`spinBorder` 6s).
 
 ## Tarefas detectadas automaticamente
@@ -52,10 +54,11 @@ Para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena dev
 ## Variáveis do Tasker consumidas pela cena
 
 - **`cache_modal`** (escrita pela cena): tela do topo (`selecao`/`resultado`/vazio) — usada pelo handler de Back Pressed;
-- **`return_modal`** (escrita pelo Tasker): comando de voltar — a cena escuta e retorna à lista de dispositivos.
+- **`return_modal`** (escrita pelo Tasker): comando de voltar — a cena escuta e retorna à lista de dispositivos;
+- **`project_created`** (escrita pela cena): **`false`** ao abrir, **`true`** quando o XML é gerado com sucesso (reafirmado antes de encerrar pelo botão FECHAR) — a tarefa que mostra a cena lê `%project_created` ao dispensar.
 
 **Nenhuma variável de tarefa é gravada** — a entrega é o **arquivo XML gerado** no aparelho.
 
 ## Rollback
 
-A versão anterior (`1.5`) permanece no workspace para força-voltar em caso de erro.
+A versão anterior (`1.6`) permanece no workspace para força-voltar em caso de erro.
