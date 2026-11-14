@@ -298,7 +298,7 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.16)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.17)
 // Botoes da selecao: VOLTAR a esquerda e GERAR PROJETO a direita.
 // Duas variaveis de saida: project_created (true/false) e id_project
 // (os 4 ultimos digitos do dispositivo, ex.: 3129) - ambas publicadas
@@ -950,6 +950,13 @@ async function gerarXml(){
         xmlFinal = xmlFinal.split('id-number').join('id:' + final4);
         // so o placeholder LITERAL (com X) e trocado; numeros reais ficam
         xmlFinal = xmlFinal.split('5581XXXXXXXX').join(numero);
+        // Correcao (1.17): o Tasker AVALIA os itens do laco (Para) na importacao
+        // quando 'Estruturar Saida' esta ligado; como a variavel multiples ainda
+        // nao foi definida, a chamada multiples() vira vazio e o laco fica sem
+        // itens. Desliga o Estruturar Saida (arg2=0) nos lacos com multiples().
+        const chr37 = String.fromCharCode(37);
+        const reLaco = new RegExp('(<Action sr="act\\d+" ve="7">\\s*<code>39</code>\\s*<Str sr="arg0" ve="3">[^<]*</Str>\\s*<Str sr="arg1" ve="3">[^<]*' + chr37 + 'multiples\\(\\)[^<]*</Str>\\s*<Int sr="arg2" val=")1(")', 'g');
+        xmlFinal = xmlFinal.replace(reLaco, '$10$2');
         const avisos = [];
         const alvos = {};
         const rePerf = /<code>130<\/code>\s*<Str sr="arg0"[^>]*>([^<]+)<\/Str>/g;
