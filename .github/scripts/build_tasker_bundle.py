@@ -28,6 +28,9 @@ import zipfile
 from pathlib import Path
 
 
+PASTAS_MIDIA_EXCLUIDAS = {'videos-tutoriais'}
+
+
 def versao_de(stem):
     # Extrai a versao no fim do nome (ex.: "Central WCA 1.40" -> (1, 40)).
     m = re.search(r'(\d+(?:\.\d+)*)\s*$', stem)
@@ -140,11 +143,17 @@ def main():
 
     # Midias (video, imagens, audio): embutidas no zip achatadas em icons/
     # (sem subpastas e sem arquivos ocultos como .gitkeep); a cena
-    # 010-DOWNLOAD_VIEW extrai essa pasta para <projeto>/icons no aparelho
+    # 010-DOWNLOAD_VIEW extrai essa pasta para <projeto>/icons no aparelho.
+    # videos-tutoriais e somente online e nunca entra no pacote.
     midias_raiz = raiz / 'wca-resources' / 'media'
     midias = sorted(
         f for f in midias_raiz.rglob('*')
-        if f.is_file() and not f.name.startswith('.')
+        if f.is_file()
+        and not f.name.startswith('.')
+        and not any(
+            parte in PASTAS_MIDIA_EXCLUIDAS
+            for parte in f.relative_to(midias_raiz).parts[:-1]
+        )
     ) if midias_raiz.is_dir() else []
 
     tag = os.environ.get('RELEASE_TAG', '').strip().replace('/', '-')
