@@ -1710,7 +1710,6 @@ body {
             <div id="videoPlayerContainer" class="video-player-container"></div>
             <div class="video-player-actions">
                 <button type="button" class="video-fullscreen" onclick="expandirVideo()"><i class="fas fa-expand"></i> TELA CHEIA</button>
-                <button type="button" class="video-fullscreen video-youtube" onclick="abrirVideoExterno()"><i class="fab fa-youtube"></i> ABRIR NO YOUTUBE</button>
             </div>
         </div>
     </div>
@@ -2622,14 +2621,11 @@ function closeVideoModal() {
     publicarModalAtual();
 }
 
-let videoAtualUrl = '';
-
 function openVideoPlayer(title, url) {
     const modal = document.getElementById('videoPlayerModal');
     const titulo = document.getElementById('videoPlayerTitleText');
     const container = document.getElementById('videoPlayerContainer');
     const info = getVideoIdentifier(url);
-    videoAtualUrl = url;
     titulo.textContent = title || 'Assistindo vídeo';
     container.innerHTML = '';
     if (info.type === 'youtube') {
@@ -2639,6 +2635,8 @@ function openVideoPlayer(title, url) {
             autoplay: '1',
             playsinline: '1',
             rel: '0',
+            controls: '1',
+            fs: '1',
             origin: 'https://github.com',
             widget_referrer: 'https://github.com/multihubandredye-prog/W-C-A_GO'
         });
@@ -2674,19 +2672,8 @@ function closeVideoPlayer() {
         try { video.load(); } catch (e) {}
     }
     if (container) container.innerHTML = '';
-    videoAtualUrl = '';
     if (modal) modal.classList.remove('show');
     publicarModalAtual();
-}
-
-function abrirVideoExterno() {
-    if (!videoAtualUrl) return;
-    try {
-        const aberta = window.open(videoAtualUrl, '_blank', 'noopener');
-        if (!aberta) window.location.href = videoAtualUrl;
-    } catch (erroVideo) {
-        window.location.href = videoAtualUrl;
-    }
 }
 
 function expandirVideo() {

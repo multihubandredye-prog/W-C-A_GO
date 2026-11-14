@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.1**
-Arquivo: `guia-help-wca-1.1.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.2**
+Arquivo: `guia-help-wca-1.2.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -19,7 +19,6 @@ Arquivo: `guia-help-wca-1.1.html` — arquivo único, com HTML + CSS + JavaScrip
 - **VER VÍDEOS TUTORIAIS** abre a lista dentro da própria cena;
 - Tocar em um vídeo abre o reprodutor dentro de um segundo modal, sem tarefa auxiliar e sem fechar a cena;
 - Links do YouTube usam `youtube-nocookie.com`, política `strict-origin-when-cross-origin`, identificação de origem e `widget_referrer` no `iframe`;
-- O player oferece **ABRIR NO YOUTUBE** como alternativa caso o WebView local continue bloqueado pelo erro 153;
 - Links diretos de mídia usam o elemento `<video>` nativo;
 - O reprodutor oferece controles e o botão **TELA CHEIA**;
 - Fechar o player interrompe e elimina a mídia carregada;
