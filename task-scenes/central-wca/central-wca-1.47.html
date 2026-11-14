@@ -1987,6 +1987,36 @@ body.modal-open { overflow: hidden; }
 }
 .dev-name { color: var(--accent); font-weight: 600; }
 
+.aviso-banner {
+    position: fixed;
+    bottom: 3.1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 520px;
+    z-index: 10;
+    background: linear-gradient(135deg, rgba(255,193,7,0.16), rgba(255,193,7,0.05));
+    border: 1px solid rgba(255,193,7,0.55);
+    border-radius: 12px;
+    padding: .85rem 1rem;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(255,193,7,0.25);
+    animation: alertPulse 2s infinite ease-in-out;
+}
+.aviso-banner p {
+    font-size: .84rem;
+    color: #fff;
+    font-weight: 500;
+    line-height: 1.42;
+    margin: 0;
+}
+.aviso-banner .aviso-icone {
+    font-size: 1.3rem;
+    color: #ffc107;
+    margin-bottom: .35rem;
+    display: inline-block;
+}
+
 @keyframes spinBorder { to { --spin: 360deg; } }
 @keyframes floatIn { from { opacity:0; transform: translateY(-18px);} to {opacity:1; transform: translateY(0);} }
 @keyframes cardSlide { from { opacity:0; transform: translateY(18px) scale(.975);} to {opacity:1; transform: translateY(0) scale(1);} }
@@ -4026,6 +4056,11 @@ input.first-install-attention {
         </div>
     </div>
 
+    <div id="avisoBanner" class="aviso-banner d-none" role="alert">
+        <span class="aviso-icone"><i class="fa-solid fa-triangle-exclamation"></i></span>
+        <p id="avisoTexto"></p>
+    </div>
+
     <footer class="main-footer">
         Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span>
     </footer>
@@ -4169,6 +4204,43 @@ async function obterUltimaVersaoRelease(){
             }
         } catch (eBusca) { }
         return '';
+    }
+
+    // ---- Avisos do desenvolvedor (1.47) ----
+    // Lê o arquivo 'avisos' de wca-resources/updates no repositório (mesmo
+    // padrão de fontes da cena Atualizações: API do GitHub primeiro, raw como
+    // fallback). O banner fica ACIMA do footer e só aparece quando há texto;
+    // arquivo vazio ou falha de rede = banner oculto, sem erro na tela.
+    const AVISO_FONTES = [
+        'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents/wca-resources/updates/avisos?ref=main',
+        'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/avisos'
+    ];
+    async function carregarAviso(){
+        let texto = '';
+        for (let i = 0; i < AVISO_FONTES.length && !texto; i++) {
+            try {
+                const resposta = await fetch(AVISO_FONTES[i], { headers: { "User-Agent": "WCA-Panel", "Accept": "application/vnd.github+json" } });
+                if (!resposta || !resposta.ok) continue;
+                const bruto = await resposta.text();
+                try {
+                    const obj = JSON.parse(bruto);
+                    if (obj && obj.content) {
+                        texto = decodeURIComponent(escape(atob(String(obj.content).replace(/\s+/g, ''))));
+                    } else {
+                        texto = bruto;
+                    }
+                } catch (eParse) {
+                    texto = bruto;
+                }
+            } catch (eAviso) { }
+        }
+        texto = String(texto || '').trim();
+        if (!texto) return;
+        const banner = document.getElementById('avisoBanner');
+        const paragrafo = document.getElementById('avisoTexto');
+        if (!banner || !paragrafo) return;
+        paragrafo.textContent = texto;
+        banner.classList.remove('d-none');
     }
 
 async function loadVersionFile(){
@@ -9257,6 +9329,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         // paralelo com prazo de 4s e a UI é atualizada quando concluem
         loadDevicesCache().then(refreshDevicesDependentUi).catch(function () {});
         loadVersionFile().catch(function () {});
+        carregarAviso().catch(function () {});
         loadModeSystemLog().catch(function () {});
         loadUserProfilePicture().catch(function () {});
         // loadTaskerVars().catch(function () {}); // DESLIGADO: valores fictícios fixos no CONFIG por enquanto
