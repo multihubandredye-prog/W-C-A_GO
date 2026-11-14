@@ -298,7 +298,10 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.13)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.14)
+// Duas variaveis de saida: project_created (true/false) e id_project
+// (os 4 ultimos digitos do dispositivo, ex.: 3129) - ambas publicadas
+// ao gerar e reafirmadas antes de encerrar.
 // Lista com nome CURTO: exibe so o que vem depois de "id-number-"
 // (ex.: 001-id-number-wca-texto -> wca-texto); o nome COMPLETO fica
 // guardado no dataset do checkbox (avisos de dependencia usam ele).
@@ -376,7 +379,8 @@ const TAREFAS_OCULTAS = ['003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]'];
 let dispositivoAtual = null;  // { nome, numero, final4 }
 let projetoCarregado = null;  // { xml, tarefas: [{ id, nme, bloco }], tidsOrig: [] }
 let gerandoXml = false;
-let projetoCriado = false;  // true quando o XML foi gerado com sucesso
+let projetoCriado = false;  // true quando o XML foi gerado com sucesso
+let idProjetoGerado = '';  // 4 ultimos digitos do dispositivo gerado
 
 function shellQuote(valor){
     return chr39 + String(valor).replace(/'/g, chr39 + '\\' + chr39) + chr39;
@@ -403,7 +407,8 @@ async function fecharPropriaCena() {
     // antes de encerrar, publica se o projeto foi criado (true/false)
     try {
         if (typeof Tasker !== 'undefined' && Tasker.setVariable) {
-            await Tasker.setVariable('project_created', projetoCriado ? 'true' : 'false');
+            await Tasker.setVariable('project_created', projetoCriado ? 'true' : 'false');
+            await Tasker.setVariable('id_project', idProjetoGerado);
         }
     } catch (eVar) { }
     const tentativas = [
@@ -1085,7 +1090,9 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
     definirModoTela(false);
     wcaDefinirTela('resultado');
     projetoCriado = true;
-    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'true'); } catch (eOk) { }
+    idProjetoGerado = dispositivoAtual ? dispositivoAtual.final4 : '';
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'true'); } catch (eOk) { }
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('id_project', idProjetoGerado); } catch (eId) { }
     const container = document.getElementById('dispositivosContainer');
     if (!container) return;
     container.innerHTML = '';
@@ -1138,7 +1145,8 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
 
 document.addEventListener('DOMContentLoaded', function () {
     // estado inicial: nenhum projeto criado nesta abertura
-    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'false'); } catch (eInit) { }
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'false'); } catch (eInit) { }
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('id_project', ''); } catch (eInitId) { }
     buscarDispositivos();
 });
 </script>

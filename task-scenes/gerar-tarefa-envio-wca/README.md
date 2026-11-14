@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.13**
-Arquivo: `gerar-tarefa-de-envio-wca-1.13.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.14**
+Arquivo: `gerar-tarefa-de-envio-wca-1.14.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
 
@@ -55,7 +55,7 @@ Seleção e geração das tarefas de envio: lista os dispositivos logados da API
   4. **Validação**: DOMParser (quando disponível) rejeita XML malformado;
   5. **Gravação**: `system/tasks-send/id_number-<4>.prj.xml` (o original baixado permanece como cache);
 - **Avisos no resultado**: dependências — tarefas chamadas via Perform Task (code 130) pelas selecionadas mas **não incluídas** (ex.: `003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]`); ícone não gerado (o XML mantém o placeholder);
-- **INSTALAR AGORA** (logo abaixo do cartão, fora dele) cancela a contagem, publica `project_created` e encerra a cena pela **cascata completa** (dismissSceneV2 `1` → dismissLayout `1` → cancelScreen → tarefa `005-FECHAR_GERAR_TAREFA_ENVIO [wca]`); sem clique, a contagem de 10s encerra sozinha do mesmo jeito.
+- **INSTALAR AGORA** (logo abaixo do cartão, fora dele) cancela a contagem, publica `project_created` e `id_project` e encerra a cena pela **cascata completa** (dismissSceneV2 `1` → dismissLayout `1` → cancelScreen → tarefa `005-FECHAR_GERAR_TAREFA_ENVIO [wca]`); sem clique, a contagem de 10s encerra sozinha do mesmo jeito.
 
 ## Tela inteira (configuração do lado do Tasker)
 
@@ -65,10 +65,11 @@ Para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena dev
 
 - **`cache_modal`** (escrita pela cena): tela do topo (`selecao`/`resultado`/vazio) — usada pelo handler de Back Pressed;
 - **`return_modal`** (escrita pelo Tasker): comando de voltar — a cena escuta e retorna à lista de dispositivos;
-- **`project_created`** (escrita pela cena): **`false`** ao abrir, **`true`** quando o XML é gerado com sucesso (reafirmado antes de encerrar pelo botão FECHAR) — a tarefa que mostra a cena lê `%project_created` ao dispensar.
+- **`project_created`** (escrita pela cena): **`false`** ao abrir, **`true`** quando o XML é gerado com sucesso (reafirmado antes de encerrar) — a tarefa que mostra a cena lê `%project_created` ao dispensar;
+- **`id_project`** (escrita pela cena): **vazio** ao abrir, os **4 últimos dígitos do dispositivo** (ex.: `3129`) quando o projeto é gerado (reafirmado antes de encerrar) — a tarefa que mostra a cena lê `%id_project` ao dispensar.
 
 **Nenhuma variável de tarefa é gravada** — a entrega é o **arquivo XML gerado** no aparelho.
 
 ## Rollback
 
-A versão anterior (`1.12`) permanece no workspace para força-voltar em caso de erro.
+A versão anterior (`1.13`) permanece no workspace para força-voltar em caso de erro.
