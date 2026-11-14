@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.2**
-Arquivo: `guia-help-wca-1.2.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.3**
+Arquivo: `guia-help-wca-1.3.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -16,10 +16,11 @@ Arquivo: `guia-help-wca-1.2.html` — arquivo único, com HTML + CSS + JavaScrip
 
 ## Vídeos tutoriais
 
-- **VER VÍDEOS TUTORIAIS** abre a lista dentro da própria cena;
-- Tocar em um vídeo abre o reprodutor dentro de um segundo modal, sem tarefa auxiliar e sem fechar a cena;
-- Links do YouTube usam `youtube-nocookie.com`, política `strict-origin-when-cross-origin`, identificação de origem e `widget_referrer` no `iframe`;
-- Links diretos de mídia usam o elemento `<video>` nativo;
+- **VER VÍDEOS TUTORIAIS** consulta dinamicamente a pasta `wca-resources/media/videos-tutoriais` pela API `contents` do GitHub;
+- Todos os arquivos `.mp4`, `.webm`, `.ogg`, `.ogv` e `.m4v` presentes na pasta são listados automaticamente, em ordem natural pelo nome;
+- O título exibido é gerado a partir do nome do arquivo, sem extensão e com hífens/sublinhados convertidos em espaços;
+- Tocar em um vídeo usa o `download_url` retornado pelo GitHub e abre o elemento `<video>` nativo dentro de um segundo modal, sem tarefa auxiliar e sem fechar a cena;
+- A lista é consultada novamente sempre que o modal é aberto, permitindo adicionar ou remover vídeos sem atualizar o HTML;
 - O reprodutor oferece controles e o botão **TELA CHEIA**;
 - Fechar o player interrompe e elimina a mídia carregada;
 - Voltar no player retorna à lista de vídeos; voltar na lista fecha o modal.

@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Instruções de Uso - WhatsConnect API</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -1715,12 +1714,8 @@ body {
     </div>
 
     <script>
-const videoConfig = `
-Vídeo Exemplo 1 |https://youtu.be/qJoOrCXVYNw
-,
-Vídeo Exemplo 2 |https://youtu.be/clLsm7cAx5Q
-,teste 3 |https://youtu.be/liKRZUlEl8k
-`.trim();
+const VIDEOS_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents/wca-resources/media/videos-tutoriais';
+const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.ogv', '.m4v'];
 
 const DEFAULT_THUMBNAIL_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/icon-system.png';
 
@@ -2550,15 +2545,6 @@ const quickNavData = {
     ]
 };
 
-function getVideoIdentifier(url) {
-    const youtubeRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(youtubeRegExp);
-    if (match && match[2].length === 11) {
-        return { type: 'youtube', id: match[2] };
-    }
-    return { type: 'direct', url: url };
-}
-
 function wcaSetVariable(nome, valor) {
     try {
         if (window.Tasker && typeof Tasker.setVariable === 'function') {
@@ -2583,35 +2569,62 @@ function publicarModalAtual() {
     wcaSetVariable(WCA_MODAL_STATE_VAR, atual);
 }
 
-function openVideoModal() {
+function nomeVideoParaTitulo(nome) {
+    return String(nome || '')
+        .replace(/\.[^.]+$/, '')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function arquivoVideoValido(item) {
+    if (!item || item.type !== 'file' || !item.download_url) return false;
+    const nome = String(item.name || '').toLowerCase();
+    return VIDEO_EXTENSIONS.some(function (extensao) { return nome.endsWith(extensao); });
+}
+
+async function carregarVideosTutoriais() {
+    const resposta = await fetch(VIDEOS_API_URL + '?ref=main&t=' + Date.now(), {
+        method: 'GET',
+        headers: { 'Accept': 'application/vnd.github+json' },
+        cache: 'no-store'
+    });
+    if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
+    const itens = await resposta.json();
+    if (!Array.isArray(itens)) return [];
+    return itens.filter(arquivoVideoValido).sort(function (a, b) {
+        return String(a.name).localeCompare(String(b.name), 'pt-BR', { numeric: true, sensitivity: 'base' });
+    });
+}
+
+async function openVideoModal() {
     const videoListModal = document.getElementById('videoModal');
     const thumbnailsContainer = document.getElementById('videoThumbnails');
-    thumbnailsContainer.innerHTML = '';
-    if (!videoConfig || videoConfig.trim() === '') {
-        thumbnailsContainer.innerHTML = '<p style="color:var(--text-dim);font-style:italic;text-align:center;padding:2rem">Nenhum vídeo disponível no momento.</p>';
-        videoListModal.classList.add('show');
-        publicarModalAtual();
-        return;
-    }
-    const videoEntries = videoConfig.split(',').map(function (v) { return v.trim(); }).filter(Boolean);
-    videoEntries.forEach(function (videoEntry) {
-        const videoParts = videoEntry.split('|');
-        if (videoParts.length < 2) return;
-        const title = videoParts[0].trim();
-        const url = videoParts.slice(1).join('|').trim();
-        const info = getVideoIdentifier(url);
-        const thumbnailElement = document.createElement('button');
-        thumbnailElement.type = 'button';
-        thumbnailElement.className = 'video-thumb';
-        thumbnailElement.addEventListener('click', function () { openVideoPlayer(title, url); });
-        const imagem = info.type === 'youtube' ? 'https://img.youtube.com/vi/' + info.id + '/hqdefault.jpg' : 'file://' + DEFAULT_THUMBNAIL_PATH;
-        thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="' + imagem + '" alt=""><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div>';
-        thumbnailElement.querySelector('.video-thumb-title').textContent = title;
-        thumbnailElement.querySelector('img').alt = title;
-        thumbnailsContainer.appendChild(thumbnailElement);
-    });
+    thumbnailsContainer.innerHTML = '<p style="color:var(--text-dim);font-style:italic;text-align:center;padding:2rem"><i class="fas fa-spinner fa-spin"></i> Carregando vídeos...</p>';
     videoListModal.classList.add('show');
     publicarModalAtual();
+    try {
+        const videos = await carregarVideosTutoriais();
+        thumbnailsContainer.innerHTML = '';
+        if (!videos.length) {
+            thumbnailsContainer.innerHTML = '<p style="color:var(--text-dim);font-style:italic;text-align:center;padding:2rem">Nenhum vídeo disponível no momento.</p>';
+            return;
+        }
+        videos.forEach(function (arquivo) {
+            const title = nomeVideoParaTitulo(arquivo.name) || arquivo.name;
+            const url = arquivo.download_url;
+            const thumbnailElement = document.createElement('button');
+            thumbnailElement.type = 'button';
+            thumbnailElement.className = 'video-thumb';
+            thumbnailElement.addEventListener('click', function () { openVideoPlayer(title, url); });
+            thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="file://' + DEFAULT_THUMBNAIL_PATH + '" alt=""><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div>';
+            thumbnailElement.querySelector('.video-thumb-title').textContent = title;
+            thumbnailElement.querySelector('img').alt = title;
+            thumbnailsContainer.appendChild(thumbnailElement);
+        });
+    } catch (erroVideos) {
+        thumbnailsContainer.innerHTML = '<p style="color:var(--danger);font-style:italic;text-align:center;padding:2rem"><i class="fas fa-exclamation-triangle"></i> Não foi possível carregar os vídeos. Verifique a conexão e tente novamente.</p>';
+    }
 }
 
 function closeVideoModal() {
@@ -2625,39 +2638,18 @@ function openVideoPlayer(title, url) {
     const modal = document.getElementById('videoPlayerModal');
     const titulo = document.getElementById('videoPlayerTitleText');
     const container = document.getElementById('videoPlayerContainer');
-    const info = getVideoIdentifier(url);
     titulo.textContent = title || 'Assistindo vídeo';
     container.innerHTML = '';
-    if (info.type === 'youtube') {
-        const iframe = document.createElement('iframe');
-        iframe.id = 'videoAtivo';
-        const parametros = new URLSearchParams({
-            autoplay: '1',
-            playsinline: '1',
-            rel: '0',
-            controls: '1',
-            fs: '1',
-            origin: 'https://github.com',
-            widget_referrer: 'https://github.com/multihubandredye-prog/W-C-A_GO'
-        });
-        iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(info.id) + '?' + parametros.toString();
-        iframe.title = title || 'Vídeo tutorial';
-        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
-        iframe.setAttribute('allowfullscreen', '');
-        container.appendChild(iframe);
-    } else {
-        const video = document.createElement('video');
-        video.id = 'videoAtivo';
-        video.src = url;
-        video.controls = true;
-        video.autoplay = true;
-        video.playsInline = true;
-        video.preload = 'metadata';
-        container.appendChild(video);
-        const inicio = video.play();
-        if (inicio && typeof inicio.catch === 'function') inicio.catch(function () {});
-    }
+    const video = document.createElement('video');
+    video.id = 'videoAtivo';
+    video.src = url;
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    container.appendChild(video);
+    const inicio = video.play();
+    if (inicio && typeof inicio.catch === 'function') inicio.catch(function () {});
     modal.classList.add('show');
     publicarModalAtual();
 }
