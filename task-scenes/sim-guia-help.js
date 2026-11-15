@@ -1,6 +1,6 @@
 const fs=require('fs');
 const {execFileSync}=require('child_process');
-const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.23.html';
+const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.24.html';
 const WRAPPER='/home/user/wca-resources/youtube-player.html';
 const html=fs.readFileSync(ALVO,'utf8');
 const wrapper=fs.readFileSync(WRAPPER,'utf8');
@@ -60,7 +60,7 @@ ok('T45 página e feed são sempre combinados sem repetir vídeos',js.includes('
 ok('T46 vídeos usam lista vertical com miniaturas compactas',css.includes('.youtube-video-list { display: flex; flex-direction: column;')&&css.includes('grid-template-columns: 15rem minmax(0, 1fr)')&&css.includes('height: 8.45rem'));
 ok('T47 cartões exibem ordem título e publicação',js.includes("ordem.textContent = (video.tipo === 'short' ? 'SHORT ' : 'VÍDEO ')")&&js.includes('titulo.textContent = video.titulo')&&js.includes('formatarDataYoutube(video.publicado)'));
 ok('T48 Shorts são identificados na listagem',js.includes("endereco.includes('/shorts/') ? 'short' : 'video'")&&js.includes("video.tipo === 'short'"));
-ok('T49 intermediário possui origem HTTPS e política de referência',js.includes('https://raw.githack.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/youtube-player.html')&&wrapper.includes('<meta name="referrer" content="strict-origin-when-cross-origin">')&&wrapper.includes("iframe.referrerPolicy='strict-origin-when-cross-origin'"));
+ok('T49 intermediário possui URL HTTPS imutável e política de referência',js.includes('https://rawcdn.githack.com/multihubandredye-prog/W-C-A_GO/c7c3079894bdc7a08432c93049f081536ad3c458/wca-resources/youtube-player.html')&&wrapper.includes('<meta name="referrer" content="strict-origin-when-cross-origin">')&&wrapper.includes("iframe.referrerPolicy='strict-origin-when-cross-origin'"));
 ok('T50 intermediário valida ID e incorpora YouTube sem cookies',wrapper.includes("/^[A-Za-z0-9_-]{11}$/.test(video)")&&wrapper.includes("'https://www.youtube-nocookie.com/embed/'")&&wrapper.includes("iframe.setAttribute('allowfullscreen','')"));
 ok('T51 player não possui botão X próprio',!html.includes('id="videoPlayerClose"')&&!css.includes('.youtube-player-close'));
 ok('T52 intermediário informa posição e aceita início restaurado',wrapper.includes("enablejsapi:'1'")&&wrapper.includes("start:String(start)")&&wrapper.includes("func:'getCurrentTime'")&&wrapper.includes("source:'wca-youtube-player',type:'state'")&&js.includes('persistirVideoAtual(dados.time, dados.playerState)'));
