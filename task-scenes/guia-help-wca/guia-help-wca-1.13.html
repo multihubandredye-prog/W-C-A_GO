@@ -512,31 +512,15 @@ body {
     overflow: hidden;
 }
 
-.video-thumb-image img,
-.video-thumb-image video {
+.video-thumb-image img {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-}
-
-.video-thumb-image img {
     object-fit: contain;
     background: #000;
-    transition: opacity 0.2s ease;
 }
-
-.video-thumb-image video {
-    object-fit: cover;
-    background: #000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-.video-thumb-image.has-video-frame img { opacity: 0; }
-.video-thumb-image.has-video-frame video { opacity: 1; }
 
 .video-thumb-play {
     position: absolute;
@@ -2620,26 +2604,6 @@ async function carregarVideosTutoriais() {
     });
 }
 
-function prepararMiniaturaVideo(elemento, url) {
-    if (!elemento || !url) return;
-    const area = elemento.parentElement;
-    let quadroPronto = false;
-    function exibirQuadro() {
-        if (quadroPronto || elemento.readyState < 2) return;
-        quadroPronto = true;
-        if (area) area.classList.add('has-video-frame');
-    }
-    elemento.addEventListener('loadedmetadata', function () {
-        const duracao = Number(elemento.duration || 0);
-        const ponto = Number.isFinite(duracao) && duracao > 1 ? Math.min(1, duracao / 20) : 0;
-        try { elemento.currentTime = ponto; } catch (eTempoMiniatura) {}
-    });
-    elemento.addEventListener('loadeddata', exibirQuadro);
-    elemento.addEventListener('seeked', exibirQuadro);
-    elemento.src = url;
-    try { elemento.load(); } catch (eCargaMiniatura) {}
-}
-
 async function openVideoModal() {
     const videoListModal = document.getElementById('videoModal');
     const thumbnailsContainer = document.getElementById('videoThumbnails');
@@ -2660,12 +2624,11 @@ async function openVideoModal() {
             thumbnailElement.type = 'button';
             thumbnailElement.className = 'video-thumb';
             thumbnailElement.addEventListener('click', function () { openVideoPlayer(title, url); });
-            thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="file://' + DEFAULT_THUMBNAIL_PATH + '" alt=""><video muted playsinline preload="metadata" aria-hidden="true"></video><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div><span class="video-thumb-size"></span>';
+            thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="file://' + DEFAULT_THUMBNAIL_PATH + '" alt=""><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div><span class="video-thumb-size"></span>';
             thumbnailElement.querySelector('.video-thumb-title').textContent = title;
             thumbnailElement.querySelector('.video-thumb-size').textContent = formatarTamanhoVideo(arquivo.size);
             thumbnailElement.querySelector('img').alt = title;
             thumbnailsContainer.appendChild(thumbnailElement);
-            prepararMiniaturaVideo(thumbnailElement.querySelector('video'), url);
         });
     } catch (erroVideos) {
         thumbnailsContainer.innerHTML = '<p style="color:var(--danger);font-style:italic;text-align:center;padding:2rem"><i class="fas fa-exclamation-triangle"></i> Não foi possível carregar os vídeos. Verifique a conexão e tente novamente.</p>';
@@ -2797,9 +2760,10 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     video.playsInline = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.poster = VIDEO_LOADING_POSTER;
     container.appendChild(video);
+    try { video.load(); } catch (eCargaVideo) {}
     manipuladorToqueVideo = registrarToqueNoPlayer;
     container.addEventListener('touchstart', manipuladorToqueVideo, { capture: true, passive: true });
     video.addEventListener('loadedmetadata', function () {
