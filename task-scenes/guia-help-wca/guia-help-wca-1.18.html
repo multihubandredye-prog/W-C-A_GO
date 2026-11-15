@@ -1174,12 +1174,6 @@ body {
     .header h1 { font-size: 1.3rem; }
     .header p { font-size: 1rem; }
 }
-body.video-aberto { overflow: hidden; }
-#videoPlayerModal { background: #000; align-items: stretch; justify-content: stretch; }
-#videoPlayerModal.show { display: block; }
-.video-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; border-radius: 0; overflow: hidden; background: #000; box-shadow: none; }
-.video-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; border-radius: 0; overflow: hidden; }
-.video-player-container iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
 .telegram-link { touch-action: manipulation; }
     </style>
 </head>
@@ -1787,15 +1781,9 @@ body.video-aberto { overflow: hidden; }
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <div id="videoPlayerModal" class="modal">
-        <div class="modal-content video-player-content">
-            <div id="videoPlayerContainer" class="video-player-container"></div>
-        </div>
-    </div>
-
     <script>
 const YOUTUBE_PLAYLIST_ID = 'PLEgPa9Eoqrdc';
-const YOUTUBE_PLAYLIST_URL = 'https://youtube.com/playlist?list=' + YOUTUBE_PLAYLIST_ID;
+const YOUTUBE_PLAYLIST_URL = 'https://www.youtube.com/playlist?list=' + YOUTUBE_PLAYLIST_ID;
 
 const LID_DESC = '<strong>true-false</strong> — Quando o número do usuário for um LID, defina o campo como <code>true</code>; caso contrário, defina-o como <code>false</code>. Esta distinção refere-se a números comuns em comparação com LIDs.';
 
@@ -2657,98 +2645,21 @@ function wcaSetVariable(nome, valor) {
 const WCA_MODAL_STATE_VAR = 'cache_modal';
 const WCA_RETURN_MODAL_VAR = 'return_modal';
 
-function modalAberto(id) {
-    const el = document.getElementById(id);
-    return !!(el && el.classList.contains('show'));
-}
-
 function publicarModalAtual() {
-    let atual = '';
-    if (modalAberto('videoPlayerModal')) atual = 'videoPlayerModal';
-    wcaSetVariable(WCA_MODAL_STATE_VAR, atual);
-}
-
-const WCA_MODAL_FOCUS_EXIT_MS = 360;
-function abrirModalComFoco(modal) {
-    if (!modal) return;
-    if (modal._wcaFocusTimer) {
-        clearTimeout(modal._wcaFocusTimer);
-        modal._wcaFocusTimer = null;
-    }
-    modal.classList.remove('modal-focus-enter', 'modal-focus-exit');
-    modal.classList.add('show');
-    void modal.offsetWidth;
-    modal.classList.add('modal-focus-enter');
-}
-
-function fecharModalComFoco(modal) {
-    if (!modal || !modal.classList.contains('show') || modal.classList.contains('modal-focus-exit')) return;
-    modal.classList.remove('modal-focus-enter', 'show');
-    void modal.offsetWidth;
-    modal.classList.add('modal-focus-exit');
-    modal._wcaFocusTimer = setTimeout(function () {
-        modal._wcaFocusTimer = null;
-        modal.classList.remove('modal-focus-exit');
-    }, WCA_MODAL_FOCUS_EXIT_MS);
+    wcaSetVariable(WCA_MODAL_STATE_VAR, '');
 }
 
 function openVideoModal() {
-    const modal = document.getElementById('videoPlayerModal');
-    const container = document.getElementById('videoPlayerContainer');
-    if (!modal || !container) return;
-    container.innerHTML = '';
-    const iframe = document.createElement('iframe');
-    iframe.id = 'videoAtivo';
-    const parametros = new URLSearchParams({
-        list: YOUTUBE_PLAYLIST_ID,
-        autoplay: '0',
-        playsinline: '1',
-        rel: '0',
-        origin: 'https://github.com',
-        widget_referrer: 'https://github.com/multihubandredye-prog/W-C-A_GO'
-    });
-    iframe.src = 'https://www.youtube-nocookie.com/embed/videoseries?' + parametros.toString();
-    iframe.title = 'Playlist de vídeos tutoriais WCA';
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
-    iframe.setAttribute('allowfullscreen', '');
-    container.appendChild(iframe);
-    document.body.classList.add('video-aberto');
-    abrirModalComFoco(modal);
-    publicarModalAtual();
-}
-
-function closeVideoPlayer() {
-    const modal = document.getElementById('videoPlayerModal');
-    const container = document.getElementById('videoPlayerContainer');
-    const iframe = container ? container.querySelector('iframe') : null;
-    if (iframe) iframe.src = 'about:blank';
-    if (container) container.innerHTML = '';
-    document.body.classList.remove('video-aberto');
-    fecharModalComFoco(modal);
-    publicarModalAtual();
-}
-
-function closeVideoModal() {
-    closeVideoPlayer();
-}
-
-function fecharModalDoTopo() {
-    if (modalAberto('videoPlayerModal')) closeVideoPlayer();
+    try {
+        const aberta = window.open(YOUTUBE_PLAYLIST_URL, '_blank', 'noopener,noreferrer');
+        if (!aberta) window.location.href = YOUTUBE_PLAYLIST_URL;
+    } catch (erroYoutube) {
+        window.location.href = YOUTUBE_PLAYLIST_URL;
+    }
 }
 
 function iniciarVoltarV2() {
     publicarModalAtual();
-    try {
-        if (window.Tasker && typeof Tasker.onVariableChanged === 'function') {
-            Tasker.onVariableChanged(WCA_RETURN_MODAL_VAR, function (nome, valor) {
-                fecharModalDoTopo();
-            });
-        }
-    } catch (e) {}
-    const observador = new MutationObserver(function () { publicarModalAtual(); });
-    const player = document.getElementById('videoPlayerModal');
-    if (player) observador.observe(player, { attributes: true, attributeFilter: ['class'] });
 }
 
 function getTelegramLink(username) {
@@ -3254,16 +3165,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     scrollTopButton.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    window.onclick = function(event) {
-        if (event.target === document.getElementById('videoPlayerModal')) closeVideoPlayer();
-    };
-
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            if (modalAberto('videoPlayerModal')) closeVideoPlayer();
-        }
     });
 
     document.querySelectorAll('.credits-person .handle a').forEach(link => {

@@ -1,10 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.17**
-Arquivo: `guia-help-wca-1.17.html` — arquivo único, com HTML + CSS + JavaScript inline.
-
-- **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
+Versão atual: **1.18**
+Arquivo: `guia-help-wca-1.18.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -23,12 +21,11 @@ Arquivo: `guia-help-wca-1.17.html` — arquivo único, com HTML + CSS + JavaScri
 
 ## Vídeos tutoriais
 
-- **ABRIR PLAYLIST DE TUTORIAIS** abre diretamente a playlist oficial `PLEgPa9Eoqrdc` do YouTube;
-- O player do YouTube é incorporado ao WebView em um overlay que ocupa `100vw × 100dvh`, sem baixar ou listar vídeos do repositório;
-- A playlist usa `youtube-nocookie.com`, identificação de origem e política de referência compatível com o player incorporado;
-- A reprodução não começa automaticamente: o usuário escolhe o vídeo e toca em Play no próprio player do YouTube;
-- O botão voltar do Android encerra o player, descarrega o conteúdo incorporado e retorna ao Guia;
-- Não há dependência da pasta `wca-resources/media/videos-tutoriais`, miniaturas locais, arquivos de vídeo ou estado de reprodução no Tasker.
+- **ABRIR PLAYLIST DE TUTORIAIS** abre diretamente a playlist oficial `PLEgPa9Eoqrdc` no YouTube;
+- A playlist é aberta fora do player incorporado do WebView, evitando o erro 153 causado pela ausência de referência HTTP em páginas locais;
+- O sistema tenta abrir o aplicativo ou a página externa do YouTube e usa navegação direta como fallback caso a nova janela seja bloqueada;
+- O usuário escolhe e reproduz os vídeos no próprio YouTube;
+- Não há dependência da pasta `wca-resources/media/videos-tutoriais`, miniaturas locais, arquivos de vídeo, iframe ou estado de reprodução no Tasker.
 
 ## Telegram
 
