@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.5**
-Arquivo: `atualizacoes-wca-1.5.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.6**
+Arquivo: `atualizacoes-wca-1.6.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação.
 
@@ -10,9 +10,9 @@ Painel de atualização direta do WCA. A cena identifica a release real mais rec
 
 | Rótulo da release | Modo | Operação |
 |---|---|---|
-| `[CORE]` | `core` | Baixa e substitui `whatsapp-wca-aarch64.bin` e `ffmpeg-wca-aarch64.bin` |
-| `[UI]` | `ui` / projeto | Baixa `W_C_A_API.prj.xml`, define `type_project = project-task` e encerra a cena para o Tasker continuar a importação |
-| `[FULL]` | `full` | Atualiza os dois binários, baixa `W_C_A_API.prj.xml`, define `type_project = project-task` e encerra a cena |
+| `[CORE]` | `core` | Baixa e substitui os dois binários; usa `type_project = project-api` |
+| `[UI]` | `ui` / projeto | Baixa `W_C_A_API.prj.xml`; usa `type_project = project-task` |
+| `[FULL]` | `full` | Atualiza os dois binários e baixa `W_C_A_API.prj.xml`; usa `type_project = project-full` |
 
 ## Destinos
 
@@ -34,13 +34,27 @@ A versão instalada é gravada em:
 
 Após a conclusão, a cena mostra uma contagem regressiva de 10 segundos. O botão permite encerrar imediatamente.
 
-Nos modos de projeto e full, antes do encerramento é definida a variável local:
+Após os downloads, antes do encerramento, a cena define a variável local `type_project` e executa:
 
 ```text
-type_project = project-task
+006-CONFIGURAR_SISTEMA [wca]
 ```
 
-Ao encerrar a cena V2, a tarefa que a exibiu recebe a variável e pode executar a importação do projeto. O modo core não define `type_project`.
+A tarefa recebe:
+
+```text
+par1 = installation-update
+```
+
+O valor de `type_project` segue o modo:
+
+| Modo | `type_project` |
+|---|---|
+| Projeto/UI | `project-task` |
+| Core | `project-api` |
+| Full | `project-full` |
+
+A tarefa é disparada antes da contagem regressiva e do encerramento da cena.
 
 ## Tratamento de falhas
 
@@ -48,7 +62,7 @@ Ao encerrar a cena V2, a tarefa que a exibiu recebe a variável e pode executar 
 - Em caso de erro, o temporário é removido;
 - O botão muda para **TENTAR NOVAMENTE**;
 - A cena permanece aberta e mostra a mensagem do erro;
-- Nenhuma tarefa instaladora é disparada pela cena.
+- `006-CONFIGURAR_SISTEMA [wca]` só é disparada depois que todos os arquivos do modo passam nas validações.
 
 ## Recursos externos
 
@@ -70,4 +84,4 @@ Ao encerrar a cena V2, a tarefa que a exibiu recebe a variável e pode executar 
 1. Abra a cena `006-ATUALIZACOES [wca]`;
 2. Substitua o HTML do WebView pelo conteúdo integral da versão atual;
 3. Confirme que **Allow Phone Access** está habilitado;
-4. Na tarefa que mostra a cena, após o retorno, trate `type_project = project-task` para importar o XML baixado.
+4. Na `006-CONFIGURAR_SISTEMA [wca]`, trate `par1 = installation-update` com `type_project = project-task | project-api | project-full`.

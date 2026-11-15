@@ -310,7 +310,7 @@ h2 {
       </div>
     </div>
     <script>
-// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.5)
+// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.6)
 // A cena identifica a release real mais recente e executa a atualizacao sem
 // encaminhar para a cena de instalacao. CORE substitui os dois binarios; UI
 // baixa o projeto Tasker; FULL executa as duas etapas. Projeto e FULL publicam
@@ -332,6 +332,7 @@ const UPDATE_FILES = {
     ffmpeg: { name: 'ffmpeg-wca-aarch64.bin', path: BIN_DIR + '/ffmpeg-wca-aarch64.bin' },
     project: { name: 'W_C_A_API.prj.xml', path: PROJECT_FILE_PATH }
 };
+const UPDATE_TASK_NAME = '006-CONFIGURAR_SISTEMA [wca]';
 const WCA_SCENE_SCREEN_ID = '1';
 const COUNTDOWN_SECONDS = 10;
 const PADRAO_TITULO_RELEASE = /\[\s*(ui|core|full)\s*\]/i;
@@ -624,6 +625,20 @@ function iniciarContagemFinal(precisaProjeto){
     }, 1000);
 }
 
+function typeProjectParaAtualizacao(tipo){
+    if (tipo === 'core') return 'project-api';
+    if (tipo === 'full') return 'project-full';
+    if (tipo === 'ui' || tipo === 'project') return 'project-task';
+    return '';
+}
+
+function dispararConfiguracao(typeProject){
+    return taskerCall('runTask', {
+        name: UPDATE_TASK_NAME,
+        variables: { par1: 'installation-update', type_project: typeProject }
+    });
+}
+
 async function executarAtualizacao(tipo){
     if (updateRunning) return;
     updateRunning = true;
@@ -649,11 +664,12 @@ async function executarAtualizacao(tipo){
         if (currentUpdateVersion) {
             await taskerCall('writeFile', { path: VERSION_FILE_PATH, text: currentUpdateVersion, append: false });
         }
-        if (atualizarProjeto) {
-            const api = getTaskerBridge();
-            if (!api || typeof api.setVariable !== 'function') throw new Error('Tasker.setVariable indisponível.');
-            await api.setVariable('type_project', 'project-task');
-        }
+        const typeProject = typeProjectParaAtualizacao(tipo);
+        if (!typeProject) throw new Error('Tipo de projeto da atualização não identificado.');
+        const api = getTaskerBridge();
+        if (!api || typeof api.setVariable !== 'function') throw new Error('Tasker.setVariable indisponível.');
+        await api.setVariable('type_project', typeProject);
+        dispararConfiguracao(typeProject).catch(function () { });
         iniciarContagemFinal(atualizarProjeto);
     } catch (erroAtualizacao) {
         updateRunning = false;
