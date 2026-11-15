@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.20**
-Arquivo: `guia-help-wca-1.20.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.21**
+Arquivo: `guia-help-wca-1.21.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -22,10 +22,11 @@ Arquivo: `guia-help-wca-1.20.html` — arquivo único, com HTML + CSS + JavaScri
 ## Vídeos tutoriais
 
 - **ABRIR PLAYLIST DE TUTORIAIS** abre dentro do Guia uma lista dos vídeos públicos da playlist oficial `PLEgPa9Eoqrdc`;
-- A listagem consulta primeiro o feed oficial do YouTube sem chave de API e, enquanto o feed ainda estiver atualizando, usa a própria página pública da playlist como fallback;
+- A listagem consulta tanto o feed oficial do YouTube quanto a página pública da playlist e combina os resultados sem repetir IDs;
+- Essa combinação preserva a ordem da página da playlist e inclui vídeos comuns, Shorts e itens não listados que estejam visíveis na playlist pública; o feed complementa data, título e identificação dos Shorts públicos;
 - As consultas priorizam `Tasker.httpRequest`, evitando o bloqueio CORS do WebView, e usam `fetch` somente como fallback;
-- Os vídeos aparecem em uma lista vertical compacta, mantendo a ordem da playlist; cada linha mostra numeração, miniatura pequena, título e informação de publicação;
-- Tocar em uma linha abre aquele vídeo diretamente no aplicativo ou página externa do YouTube;
+- Os vídeos aparecem em uma lista vertical compacta; cada linha mostra numeração ou indicação **SHORT**, miniatura pequena, título real e informação de publicação;
+- Tocar em uma linha abre o endereço adequado daquele conteúdo no YouTube: `/watch` para vídeo comum ou `/shorts` para Short;
 - O modal também possui o botão **ABRIR PLAYLIST COMPLETA NO YOUTUBE**;
 - O player incorporado não voltou: a reprodução continua no próprio YouTube, evitando o erro 153;
 - O botão voltar do Android fecha primeiro a lista e retorna ao Guia;

@@ -1,6 +1,6 @@
 const fs=require('fs');
 const {execFileSync}=require('child_process');
-const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.20.html';
+const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.21.html';
 const html=fs.readFileSync(ALVO,'utf8');
 let total=0, falhas=0;
 function ok(nome,cond,detalhe=''){total++;if(cond)console.log('PASS '+nome);else{falhas++;console.log('FAIL '+nome+(detalhe?' :: '+detalhe:''));}}
@@ -34,7 +34,7 @@ ok('T21 voltar fecha a lista sem fechar o Guia',js.includes('Tasker.onVariableCh
 ok('T22 novidades continuam lendo changelog',js.includes('wca-resources/updates/changelog.txt'));
 ok('T23 rodapé exibe somente o nome',html.includes('<span class="dev-name">Andredye Oliveira Melo</span>')&&!html.includes('Desenvolvedor: <span class="dev-name">'));
 ok('T24 nenhuma variável Tasker antiga de vídeo/link',!js.includes('video_url')&&!js.includes('link_user')&&!js.includes('user_name')&&!js.includes('video_rotation_state'));
-ok('T25 vídeos abrem externamente no próprio YouTube',js.includes("abrirNoYoutube('https://www.youtube.com/watch?v='")&&!js.includes('container.appendChild(iframe)')&&!js.includes('youtube-nocookie.com'));
+ok('T25 vídeos abrem externamente no próprio YouTube',js.includes("'https://www.youtube.com/watch?v=' + encodeURIComponent(video.id)")&&js.includes('abrirNoYoutube(destino)')&&!js.includes('container.appendChild(iframe)')&&!js.includes('youtube-nocookie.com'));
 ok('T26 playlist não depende de armazenamento ou restauração local',!js.includes('wca_help_video_local')&&!js.includes('localStorage')&&!js.includes('restaurarVideoAposRotacao'));
 ok('T27 não há autoplay nem botão fechar de player',!js.includes('autoplay')&&!html.includes('> FECHAR</button>'));
 ok('T28 lista possui fechamento e acesso à playlist completa',html.includes('id="videoModalClose"')&&html.includes('id="openFullPlaylist"')&&js.includes('function closeVideoModal()'));
@@ -54,8 +54,9 @@ ok('T41 todas as 21 variáveis antes ausentes do Receiver foram adicionadas',['c
 ok('T42 novidades usam API do GitHub antes do raw',js.includes('api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents/wca-resources/updates/changelog.txt')&&js.includes("'Accept': 'application/vnd.github.raw'")&&js.indexOf('api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents')<js.indexOf('raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt'));
 ok('T43 novidades tentam fontes em sequência e ignoram resposta vazia',js.includes('for (let i = 0; i < fontes.length; i++)')&&js.includes('if (!resposta || !resposta.ok) continue')&&js.includes("if (!String(texto || '').trim()) continue"));
 ok('T44 listagem interpreta o feed XML oficial',js.includes("new DOMParser().parseFromString(xml, 'application/xml')")&&js.includes("getElementsByTagNameNS('*', 'entry')")&&js.includes("textoXml(entrada, 'videoId')"));
-ok('T45 página pública serve de fallback enquanto o feed atualiza',js.includes('function lerVideosDaPagina(html)')&&js.includes('lockupViewModel')&&js.includes('if (videosFeed.length) return videosFeed'));
+ok('T45 página e feed são sempre combinados sem repetir vídeos',js.includes('function lerVideosDaPagina(html)')&&js.includes('function combinarVideosYoutube(videosPagina, videosFeed)')&&js.includes('return combinarVideosYoutube(videosPagina, videosFeed)')&&js.includes('if (!vistos.has(videoFeed.id))'));
 ok('T46 vídeos usam lista vertical com miniaturas compactas',css.includes('.youtube-video-list { display: flex; flex-direction: column;')&&css.includes('grid-template-columns: 15rem minmax(0, 1fr)')&&css.includes('height: 8.45rem'));
-ok('T47 cartões exibem ordem título e publicação',js.includes("ordem.textContent = 'VÍDEO ' + String(indice + 1).padStart(2, '0')")&&js.includes('titulo.textContent = video.titulo')&&js.includes('origem.textContent = formatarDataYoutube(video.publicado)'));
+ok('T47 cartões exibem ordem título e publicação',js.includes("ordem.textContent = (video.tipo === 'short' ? 'SHORT ' : 'VÍDEO ')")&&js.includes('titulo.textContent = video.titulo')&&js.includes('formatarDataYoutube(video.publicado)'));
+ok('T48 Shorts são identificados e abertos no endereço correto',js.includes("endereco.includes('/shorts/') ? 'short' : 'video'")&&js.includes("'https://www.youtube.com/shorts/'")&&js.includes("video.tipo === 'short'"));
 console.log('RESULTADO: '+(falhas?'FALHARAM '+falhas+' DE '+total:'TODOS PASSARAM ('+total+'/'+total+')'));
 process.exitCode=falhas?1:0;

@@ -2760,7 +2760,11 @@ function lerVideosDoFeed(xml) {
         const id = textoXml(entrada, 'videoId');
         const titulo = textoXml(entrada, 'title');
         const publicado = textoXml(entrada, 'published');
-        return id && titulo ? { id: id, titulo: titulo, publicado: publicado } : null;
+        const links = Array.from(entrada.getElementsByTagNameNS('*', 'link'));
+        const alternativo = links.find(function (link) { return link.getAttribute('rel') === 'alternate'; });
+        const endereco = alternativo ? String(alternativo.getAttribute('href') || '') : '';
+        const tipo = endereco.includes('/shorts/') ? 'short' : 'video';
+        return id && titulo ? { id: id, titulo: titulo, publicado: publicado, tipo: tipo } : null;
     }).filter(Boolean);
 }
 
@@ -2777,19 +2781,43 @@ function lerVideosDaPagina(html) {
         const id = correspondencia[1];
         if (!id || vistos.has(id)) continue;
         vistos.add(id);
-        encontrados.push({ id: id, titulo: decodificarTituloYoutube(correspondencia[2]), publicado: '' });
+        encontrados.push({ id: id, titulo: decodificarTituloYoutube(correspondencia[2]), publicado: '', tipo: 'video' });
     }
     return encontrados;
 }
 
+function combinarVideosYoutube(videosPagina, videosFeed) {
+    const feedPorId = new Map(videosFeed.map(function (video) { return [video.id, video]; }));
+    const combinados = [];
+    const vistos = new Set();
+    videosPagina.forEach(function (videoPagina) {
+        const videoFeed = feedPorId.get(videoPagina.id);
+        combinados.push(videoFeed ? {
+            id: videoPagina.id,
+            titulo: videoPagina.titulo || videoFeed.titulo,
+            publicado: videoFeed.publicado || videoPagina.publicado,
+            tipo: videoFeed.tipo || videoPagina.tipo
+        } : videoPagina);
+        vistos.add(videoPagina.id);
+    });
+    videosFeed.forEach(function (videoFeed) {
+        if (!vistos.has(videoFeed.id)) combinados.push(videoFeed);
+    });
+    return combinados;
+}
+
 async function obterVideosYoutube() {
+    let videosFeed = [];
+    let videosPagina = [];
     try {
         const xml = await baixarTextoYoutube(YOUTUBE_PLAYLIST_FEED, 'application/atom+xml, application/xml, text/xml');
-        const videosFeed = lerVideosDoFeed(xml);
-        if (videosFeed.length) return videosFeed;
+        videosFeed = lerVideosDoFeed(xml);
     } catch (erroFeed) {}
-    const pagina = await baixarTextoYoutube(YOUTUBE_PLAYLIST_URL, 'text/html, application/xhtml+xml');
-    return lerVideosDaPagina(pagina);
+    try {
+        const pagina = await baixarTextoYoutube(YOUTUBE_PLAYLIST_URL, 'text/html, application/xhtml+xml');
+        videosPagina = lerVideosDaPagina(pagina);
+    } catch (erroPagina) {}
+    return combinarVideosYoutube(videosPagina, videosFeed);
 }
 
 function formatarDataYoutube(valor) {
@@ -2829,20 +2857,23 @@ function renderizarVideosYoutube(videos) {
         info.className = 'youtube-video-info';
         const ordem = document.createElement('span');
         ordem.className = 'youtube-video-order';
-        ordem.textContent = 'VÍDEO ' + String(indice + 1).padStart(2, '0');
+        ordem.textContent = (video.tipo === 'short' ? 'SHORT ' : 'VÍDEO ') + String(indice + 1).padStart(2, '0');
         const titulo = document.createElement('span');
         titulo.className = 'youtube-video-title';
         titulo.textContent = video.titulo;
         const origem = document.createElement('span');
         origem.className = 'youtube-video-source';
-        origem.textContent = formatarDataYoutube(video.publicado);
+        origem.textContent = (video.tipo === 'short' ? 'Short do YouTube · ' : '') + formatarDataYoutube(video.publicado);
         info.appendChild(ordem);
         info.appendChild(titulo);
         info.appendChild(origem);
         card.appendChild(thumb);
         card.appendChild(info);
         card.addEventListener('click', function () {
-            abrirNoYoutube('https://www.youtube.com/watch?v=' + encodeURIComponent(video.id) + '&list=' + encodeURIComponent(YOUTUBE_PLAYLIST_ID));
+            const destino = video.tipo === 'short'
+                ? 'https://www.youtube.com/shorts/' + encodeURIComponent(video.id) + '?list=' + encodeURIComponent(YOUTUBE_PLAYLIST_ID)
+                : 'https://www.youtube.com/watch?v=' + encodeURIComponent(video.id) + '&list=' + encodeURIComponent(YOUTUBE_PLAYLIST_ID);
+            abrirNoYoutube(destino);
         });
         lista.appendChild(card);
     });
