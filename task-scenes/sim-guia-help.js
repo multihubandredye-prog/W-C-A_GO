@@ -1,6 +1,6 @@
 const fs=require('fs');
 const {execFileSync}=require('child_process');
-const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.15.html';
+const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.16.html';
 const html=fs.readFileSync(ALVO,'utf8');
 let total=0, falhas=0;
 function ok(nome,cond,detalhe=''){total++;if(cond)console.log('PASS '+nome);else{falhas++;console.log('FAIL '+nome+(detalhe?' :: '+detalhe:''));}}
@@ -51,5 +51,7 @@ ok('T38 resultado abre aba detalhes e destaca destino',js.includes('switchTab(it
 ok('T39 recursos recentes documentados',html.includes('id="recursos-recentes"')&&html.includes('System Metrics')&&html.includes('WHATSAPP_WEBHOOK_INCLUDE_OUTGOING')&&html.includes('WHATSAPP_CHAT_STORAGE')&&html.includes('Recuperação de mídia expirada'));
 ok('T40 variáveis recentes de presença documentadas',['is_chat_presence','is_typing','is_recording_audio','is_presence_paused','presence_status'].every(x=>js.includes('\\u0025'+x)));
 ok('T41 todas as 21 variáveis antes ausentes do Receiver foram adicionadas',['context_info','ephemeral_timestamp','expiration','ids_count','ids_json','is_chat_presence','is_presence_paused','is_recording_audio','is_typing','json_raw_input','metodo','origem','parse_error','parse_success','porta_destino','porta_origem','presence_status','recebido_em','timestamp_body','timestamp_payload','url_original'].every(x=>js.includes('\\u0025'+x)));
+ok('T42 novidades usam API do GitHub antes do raw',js.includes('api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents/wca-resources/updates/changelog.txt')&&js.includes("'Accept': 'application/vnd.github.raw'")&&js.indexOf('api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents')<js.indexOf('raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt'));
+ok('T43 novidades tentam fontes em sequência e ignoram resposta vazia',js.includes('for (let i = 0; i < fontes.length; i++)')&&js.includes('if (!resposta || !resposta.ok) continue')&&js.includes("if (!String(texto || '').trim()) continue"));
 console.log('RESULTADO: '+(falhas?'FALHARAM '+falhas+' DE '+total:'TODOS PASSARAM ('+total+'/'+total+')'));
 process.exitCode=falhas?1:0;

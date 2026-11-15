@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.15**
-Arquivo: `guia-help-wca-1.15.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.16**
+Arquivo: `guia-help-wca-1.16.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
@@ -17,7 +17,7 @@ Arquivo: `guia-help-wca-1.15.html` — arquivo único, com HTML + CSS + JavaScri
 - Exibe os **20 grupos de variáveis do Receiver**;
 - Documenta as variáveis atuais do receptor, incluindo diagnóstico da requisição, contexto e estados detalhados de presença;
 - Explica métricas do sistema, recuperação de mídia expirada, inclusão de mensagens enviadas no webhook e persistência de conversas;
-- Carrega as últimas novidades a partir de `wca-resources/updates/changelog.txt` no repositório;
+- Carrega as últimas novidades a partir de `wca-resources/updates/changelog.txt`, usando a API do GitHub como fonte principal e `raw.githubusercontent.com` como fallback;
 - Usa feedback visual `:active`, adequado ao uso no celular;
 - O rodapé exibe somente o nome do desenvolvedor.
 

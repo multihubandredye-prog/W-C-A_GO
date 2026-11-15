@@ -3120,24 +3120,33 @@ function initClickOutside() {
     });
 }
 
-function loadNovidades() {
+async function loadNovidades() {
     const container = document.getElementById('novidadesContent');
     if (!container) return;
-    const url = 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt';
-    fetch(url)
-        .then(resp => {
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            return resp.text();
-        })
-        .then(text => {
-            const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const fontes = [
+        {
+            url: 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents/wca-resources/updates/changelog.txt',
+            opcoes: { headers: { 'Accept': 'application/vnd.github.raw' }, cache: 'no-store' }
+        },
+        {
+            url: 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt',
+            opcoes: { cache: 'no-store' }
+        }
+    ];
+    for (let i = 0; i < fontes.length; i++) {
+        try {
+            const resposta = await fetch(fontes[i].url, fontes[i].opcoes);
+            if (!resposta || !resposta.ok) continue;
+            const texto = await resposta.text();
+            if (!String(texto || '').trim()) continue;
+            const escaped = texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             container.innerHTML = `<pre class="novidades-text">${escaped}</pre>`;
-        })
-        .catch(err => {
-            container.innerHTML = `<p style="color: var(--text-dim); font-style: italic; text-align: center; padding: 1.5rem;">
-                <i class="fas fa-exclamation-triangle"></i> Não foi possível carregar as novidades. Verifique sua conexão ou acesse o changelog diretamente no GitHub.
-            </p>`;
-        });
+            return;
+        } catch (erroFonte) {}
+    }
+    container.innerHTML = `<p style="color: var(--text-dim); font-style: italic; text-align: center; padding: 1.5rem;">
+        <i class="fas fa-exclamation-triangle"></i> Não foi possível carregar as novidades. Verifique sua conexão ou tente novamente.
+    </p>`;
 }
 
 function buildReceiverList() {
