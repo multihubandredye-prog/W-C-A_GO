@@ -2644,12 +2644,89 @@ function closeVideoModal() {
     publicarModalAtual();
 }
 
-function openVideoPlayer(title, url) {
+const VIDEO_STATE_KEY = 'wca_help_video_state';
+const VIDEO_STATE_MAX_AGE = 600000;
+let videoAtualDados = null;
+let videoFechando = false;
+let ultimaPersistenciaVideo = 0;
+
+function textoDoBridge(valor, profundidade) {
+    if (typeof valor === 'string') return valor;
+    if (!valor || typeof valor !== 'object' || profundidade > 5) return '';
+    const chaves = ['value', 'result', 'text', 'contents', 'data', 'variables'];
+    for (let i = 0; i < chaves.length; i++) {
+        const interno = textoDoBridge(valor[chaves[i]], profundidade + 1);
+        if (interno) return interno;
+    }
+    return '';
+}
+
+function gravarEstadoVideo(texto) {
+    try { localStorage.setItem(VIDEO_STATE_KEY, texto); } catch (eLocal) {}
+    wcaSetVariable('help_video_state', texto);
+}
+
+function limparEstadoVideo() {
+    try { localStorage.removeItem(VIDEO_STATE_KEY); } catch (eLocal) {}
+    wcaSetVariable('help_video_state', '');
+}
+
+function salvarEstadoVideo(forcar) {
+    if (videoFechando || !videoAtualDados || !modalAberto('videoPlayerModal')) return;
+    const agora = Date.now();
+    if (!forcar && agora - ultimaPersistenciaVideo < 800) return;
+    const video = document.getElementById('videoAtivo');
+    if (!video) return;
+    ultimaPersistenciaVideo = agora;
+    const estado = {
+        title: videoAtualDados.title,
+        url: videoAtualDados.url,
+        time: Number.isFinite(video.currentTime) ? video.currentTime : 0,
+        playing: !video.paused && !video.ended,
+        updatedAt: agora
+    };
+    gravarEstadoVideo(JSON.stringify(estado));
+}
+
+async function lerEstadoVideo() {
+    let texto = '';
+    try { texto = localStorage.getItem(VIDEO_STATE_KEY) || ''; } catch (eLocal) {}
+    if (!texto) {
+        try {
+            let bruto = Tasker.getVariable('help_video_state');
+            if (bruto && typeof bruto.then === 'function') bruto = await bruto;
+            texto = textoDoBridge(bruto, 0);
+        } catch (eTasker) {}
+    }
+    if (!texto) return null;
+    try {
+        const estado = JSON.parse(texto);
+        if (!estado || !estado.url || !estado.updatedAt) return null;
+        if (Date.now() - Number(estado.updatedAt) > VIDEO_STATE_MAX_AGE) {
+            limparEstadoVideo();
+            return null;
+        }
+        return estado;
+    } catch (eJson) {
+        limparEstadoVideo();
+        return null;
+    }
+}
+
+async function restaurarVideoAposRotacao() {
+    const estado = await lerEstadoVideo();
+    if (!estado || modalAberto('videoPlayerModal')) return;
+    openVideoPlayer(estado.title, estado.url, estado);
+}
+
+function openVideoPlayer(title, url, estadoRestaurado) {
     const modal = document.getElementById('videoPlayerModal');
     const titulo = document.getElementById('videoPlayerTitleText');
     const container = document.getElementById('videoPlayerContainer');
     titulo.textContent = title || 'Assistindo vídeo';
     container.innerHTML = '';
+    videoAtualDados = { title: title || 'Assistindo vídeo', url: url };
+    videoFechando = false;
     const video = document.createElement('video');
     video.id = 'videoAtivo';
     video.src = url;
@@ -2660,14 +2737,33 @@ function openVideoPlayer(title, url) {
     video.setAttribute('webkit-playsinline', '');
     video.preload = 'metadata';
     container.appendChild(video);
-    const inicio = video.play();
-    if (inicio && typeof inicio.catch === 'function') inicio.catch(function () {});
+    video.addEventListener('loadedmetadata', function () {
+        const tempo = estadoRestaurado ? Number(estadoRestaurado.time || 0) : 0;
+        if (tempo > 0 && Number.isFinite(tempo)) {
+            try { video.currentTime = tempo; } catch (eTempo) {}
+        }
+        const deveTocar = !estadoRestaurado || estadoRestaurado.playing !== false;
+        if (deveTocar) {
+            const inicioRestaurado = video.play();
+            if (inicioRestaurado && typeof inicioRestaurado.catch === 'function') inicioRestaurado.catch(function () {});
+        }
+    });
+    video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
+    video.addEventListener('play', function () { salvarEstadoVideo(true); });
+    video.addEventListener('pause', function () { salvarEstadoVideo(true); });
+    video.addEventListener('ended', function () { limparEstadoVideo(); });
+    if (!estadoRestaurado) {
+        const inicio = video.play();
+        if (inicio && typeof inicio.catch === 'function') inicio.catch(function () {});
+    }
     document.body.classList.add('video-aberto');
     modal.classList.add('show');
     publicarModalAtual();
+    salvarEstadoVideo(true);
 }
 
 function closeVideoPlayer() {
+    videoFechando = true;
     const modal = document.getElementById('videoPlayerModal');
     const container = document.getElementById('videoPlayerContainer');
     const video = container ? container.querySelector('video') : null;
@@ -2679,7 +2775,10 @@ function closeVideoPlayer() {
     if (container) container.innerHTML = '';
     document.body.classList.remove('video-aberto');
     if (modal) modal.classList.remove('show');
+    videoAtualDados = null;
+    limparEstadoVideo();
     publicarModalAtual();
+    videoFechando = false;
 }
 
 function fecharModalDoTopo() {
@@ -3047,6 +3146,10 @@ function initSwipe() {
     }, { passive: true });
 }
 
+window.addEventListener('pagehide', function () { salvarEstadoVideo(true); });
+window.addEventListener('beforeunload', function () { salvarEstadoVideo(true); });
+document.addEventListener('visibilitychange', function () { if (document.hidden) salvarEstadoVideo(true); });
+
 document.addEventListener('DOMContentLoaded', () => {
     buildEnvioList();
     buildReceiverList();
@@ -3055,6 +3158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initClickOutside();
     loadNovidades();
     iniciarVoltarV2();
+    setTimeout(restaurarVideoAposRotacao, 150);
 
     const scrollTopButton = document.getElementById('scrollTop');
     window.addEventListener('scroll', () => {

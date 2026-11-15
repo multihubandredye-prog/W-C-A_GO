@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.4**
-Arquivo: `guia-help-wca-1.4.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.5**
+Arquivo: `guia-help-wca-1.5.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -25,6 +25,8 @@ Arquivo: `guia-help-wca-1.4.html` — arquivo único, com HTML + CSS + JavaScrip
 - O player usa `object-fit: contain`, controles nativos, `playsinline`/`webkit-playsinline` e botão **FECHAR** sobre o vídeo;
 - A lista também exibe o tamanho de cada arquivo retornado pelo GitHub;
 - Fechar o player interrompe e elimina a mídia carregada;
+- Durante a reprodução, URL, título, posição e estado são persistidos em `localStorage` e na variável local `help_video_state`; se a rotação recriar o WebView, o player é reaberto automaticamente no mesmo ponto aproximado;
+- O estado de restauração expira após 10 minutos sem atualização e é apagado imediatamente ao tocar em **FECHAR**;
 - Voltar no player retorna à lista de vídeos; voltar na lista fecha o modal.
 
 ## Telegram
