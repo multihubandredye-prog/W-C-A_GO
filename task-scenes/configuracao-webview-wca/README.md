@@ -1,8 +1,10 @@
 # Configuração do WebView
 
 Projeto: `010-DOWNLOAD_VIEW [wca]`
-Versão atual: **1.19**
-Arquivo: `configuracao-webview-wca-1.19.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.20**
+Arquivo: `configuracao-webview-wca-1.20.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
 - **Feedback de toque (versão atual)**: todo o CSS usa **`:active`** no lugar de `:hover` — a cena é usada só em celular, então o feedback visual acontece **no toque**;
 

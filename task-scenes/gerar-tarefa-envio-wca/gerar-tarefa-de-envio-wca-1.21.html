@@ -245,7 +245,11 @@ body {
 .modal-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem; }
 .modal-box p { font-size: 0.85rem; color: var(--text-main); margin-bottom: 1rem; }
 .modal-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-@keyframes modalIn { from { transform: scale(.92) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+@keyframes modalIn { from { transform: scale(1.15); filter: blur(14px); opacity: .24; } to { transform: scale(1); filter: blur(0); opacity: 1; } }
+@keyframes modalFocusOut { from { transform: scale(1); filter: blur(0); opacity: 1; } to { transform: scale(1.15); filter: blur(14px); opacity: .16; } }
+.modal-overlay.modal-focus-enter .modal-box { animation: modalIn .48s cubic-bezier(.22,.75,.2,1) both; will-change: transform, filter, opacity; }
+.modal-overlay.modal-focus-exit { display: flex; }
+.modal-overlay.modal-focus-exit .modal-box { animation: modalFocusOut .36s cubic-bezier(.55,.06,.68,.19) both; pointer-events: none; }
 .resultado-box { margin: 1rem 1.25rem; padding: 1.1rem; background: rgba(15,157,203,0.06); border: 0.0625rem solid var(--border); border-radius: 0.75rem; text-align: center; }
 .resultado-box h3 { color: var(--accent); font-size: 1rem; margin-bottom: 0.5rem; }
 .resultado-box p { font-size: 0.78rem; color: var(--text-main); word-break: break-all; margin-top: 0.35rem; text-align: left; }
@@ -298,7 +302,7 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.18)
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.20)
 // Botoes da selecao: VOLTAR a esquerda e GERAR PROJETO a direita.
 // Duas variaveis de saida: project_created (true/false) e id_project
 // (os 4 ultimos digitos do dispositivo, ex.: 3129) - ambas publicadas
@@ -867,9 +871,9 @@ function abrirConfirmacao(){
         if (aviso) { aviso.textContent = 'Marque ao menos uma tarefa para gerar o projeto.'; aviso.style.display = 'block'; }
         return;
     }
-    fecharConfirmacao();
+    fecharConfirmacao(true);
     const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay open';
+    overlay.className = 'modal-overlay open modal-focus-enter';
     overlay.id = 'confirmModal';
     const box = document.createElement('div');
     box.className = 'modal-box';
@@ -899,9 +903,17 @@ function abrirConfirmacao(){
     wcaAbrirModal('confirmacao');
 }
 
-function fecharConfirmacao(){
+function fecharConfirmacao(imediato){
     const overlay = document.getElementById('confirmModal');
-    if (overlay && overlay.remove) overlay.remove();
+    if (overlay && overlay.remove) {
+        if (imediato) overlay.remove();
+        else if (!overlay.classList.contains('modal-focus-exit')) {
+            overlay.classList.remove('modal-focus-enter', 'open');
+            void overlay.offsetWidth;
+            overlay.classList.add('modal-focus-exit');
+            setTimeout(function () { if (overlay.remove) overlay.remove(); }, 360);
+        }
+    }
     wcaModalStack = wcaModalStack.filter(function (x) { return x !== 'confirmacao'; });
     wcaSyncModalStack();
 }
@@ -950,14 +962,14 @@ async function gerarXml(){
         xmlFinal = xmlFinal.split('id-number').join('id:' + final4);
         // so o placeholder LITERAL (com X) e trocado; numeros reais ficam
         xmlFinal = xmlFinal.split('5581XXXXXXXX').join(numero);
-        // Correcao (1.18): o Tasker AVALIA as variaveis do XML na importacao do
-        // projeto; como a variavel multiples ainda nao foi definida, a chamada
-        // multiples() vira vazio e o laco (Para) fica sem itens. Para o laco
-        // sobreviver a importacao, os itens sao gravados como TEXTO LITERAL
-        // (o placeholder de JIDs), que o Tasker nao avalia.
+        // Correcao (1.20): o Tasker AVALIA a chamada multiples() durante a
+        // importacao quando encontra o caractere da variavel diretamente no
+        // XML. A entidade numerica evita essa avaliacao antecipada; o parser
+        // XML a converte de volta e o campo Itens recebe exatamente multiples().
         const chr37 = String.fromCharCode(37);
+        const entidade37 = String.fromCharCode(38) + '#37;';
         const reLaco = new RegExp('(<Action sr="act\\d+" ve="7">\\s*<code>39</code>\\s*<Str sr="arg0" ve="3">[^<]*</Str>\\s*<Str sr="arg1" ve="3">)[^<]*' + chr37 + 'multiples\\(\\)[^<]*(</Str>)', 'g');
-        xmlFinal = xmlFinal.replace(reLaco, '$1XXXXXXXXX-XXXXXXXXX$2');
+        xmlFinal = xmlFinal.replace(reLaco, '$1' + entidade37 + 'multiples()$2');
         const avisos = [];
         const alvos = {};
         const rePerf = /<code>130<\/code>\s*<Str sr="arg0"[^>]*>([^<]+)<\/Str>/g;

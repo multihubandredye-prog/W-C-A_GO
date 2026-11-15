@@ -498,10 +498,10 @@ body {
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 50px rgba(0,0,0,0.6);
   overflow:hidden;
-  animation: modalIn 0.3s cubic-bezier(0.2,0.8,0.2,1) both;
+  animation: modalIn 0.48s cubic-bezier(0.22,0.75,0.2,1) both;
 }
 .modal.large { max-width:420px; }
-.modal-overlay.hiding .modal { animation: modalOut 0.2s ease both; }
+.modal-overlay.hiding .modal { animation: modalOut 0.36s cubic-bezier(0.55,0.06,0.68,0.19) both; }
 .modal-avatar-wrap {
   position:relative;
   height:88px;
@@ -628,8 +628,8 @@ body {
 @keyframes fadeOut { from{opacity:1;} to{opacity:0;} }
 @keyframes slideIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 @keyframes slideDown { from{opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
-@keyframes modalIn { from{opacity:0; transform:translateY(14px) scale(0.97);} to{opacity:1; transform:translateY(0) scale(1);} }
-@keyframes modalOut { from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(10px) scale(0.98);} }
+@keyframes modalIn { from{opacity:.24; transform:scale(1.15); filter:blur(14px);} to{opacity:1; transform:scale(1); filter:blur(0);} }
+@keyframes modalOut { from{opacity:1; transform:scale(1); filter:blur(0);} to{opacity:.16; transform:scale(1.15); filter:blur(14px);} }
 @keyframes spin { to{transform:rotate(360deg);} }
 @keyframes toastIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
 @keyframes toastOut { from{opacity:1; transform:translateY(0);} to{opacity:0; transform:translateY(8px);} }
@@ -654,6 +654,7 @@ footer .dev { color:var(--text-dim); font-weight:600; }
   backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
 }
 .lightbox-overlay.hiding { animation: fadeOut 0.2s ease both; }
+.lightbox-overlay.hiding .lightbox-img { animation: modalOut 0.36s cubic-bezier(0.55,0.06,0.68,0.19) both; }
 .lightbox-box { position: relative; }
 .lightbox-box::before {
   content: '';
@@ -669,7 +670,7 @@ footer .dev { color:var(--text-dim); font-weight:600; }
   animation: spinBorder 3s linear infinite;
   z-index: 0;
 }
-.lightbox-img { display: block; width: min(78vw, 300px); height: min(78vw, 300px); object-fit: cover; border-radius: 28px; position: relative; z-index: 1; animation: modalIn 0.3s cubic-bezier(0.2,0.8,0.2,1) both; }
+.lightbox-img { display: block; width: min(78vw, 300px); height: min(78vw, 300px); object-fit: cover; border-radius: 28px; position: relative; z-index: 1; animation: modalIn 0.48s cubic-bezier(0.22,0.75,0.2,1) both; }
 .lightbox-hint { color: var(--text-muted); font-size: 0.78rem; }
 .modal-lid {
   font-size:0.72rem;

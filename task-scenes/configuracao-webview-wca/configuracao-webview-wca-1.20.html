@@ -343,6 +343,31 @@ body::before {
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes modalFocusIn {
+    from { transform: scale(1.15); filter: blur(14px); opacity: 0.24; }
+    to { transform: scale(1); filter: blur(0); opacity: 1; }
+}
+
+@keyframes modalFocusOut {
+    from { transform: scale(1); filter: blur(0); opacity: 1; }
+    to { transform: scale(1.15); filter: blur(14px); opacity: 0.16; }
+}
+
+.modal-overlay > .modal-content {
+    transform-origin: center center;
+    will-change: transform, filter, opacity;
+}
+
+.modal-overlay.modal-focus-enter > .modal-content {
+    animation: modalFocusIn 0.48s cubic-bezier(0.22,0.75,0.2,1) both;
+}
+
+.modal-overlay.modal-focus-exit { display: flex; }
+.modal-overlay.modal-focus-exit > .modal-content {
+    animation: modalFocusOut 0.36s cubic-bezier(0.55,0.06,0.68,0.19) both;
+    pointer-events: none;
+}
+
 .modal-title {
     font-size: 1rem;
     font-weight: 800;
@@ -721,7 +746,7 @@ let wcaModalSyncAgendado = false;
 
 function wcaModalVisivel(id){
     const el = document.getElementById(id);
-    return !!el && el.classList.contains('open');
+    return !!el && el.classList.contains('open') && !el.classList.contains('modal-focus-exit');
 }
 
 function wcaSyncModalStack(){
@@ -731,7 +756,7 @@ function wcaSyncModalStack(){
         wcaModalSyncAgendado = false;
         try {
             wcaModalStack = wcaModalStack.filter(wcaModalVisivel);
-            document.querySelectorAll('.modal-overlay.open').forEach(function (el) {
+            document.querySelectorAll('.modal-overlay.open:not(.modal-focus-exit)').forEach(function (el) {
                 if (el.id && wcaModalStack.indexOf(el.id) < 0) wcaModalStack.push(el.id);
             });
             const topo = wcaModalStack.length ? wcaModalStack[wcaModalStack.length - 1] : '';
@@ -754,9 +779,20 @@ function wcaFecharModalDoTopo(){
     } catch (e) {}
 }
 
+const WCA_MODAL_FOCUS_EXIT_MS = 360;
 const __wcaOpenModalOriginal = openModal;
 openModal = function (id){
+    const modal = id ? document.getElementById(id) : null;
+    if (modal && modal._wcaFocusTimer) {
+        clearTimeout(modal._wcaFocusTimer);
+        modal._wcaFocusTimer = null;
+    }
+    if (modal) modal.classList.remove('modal-focus-enter', 'modal-focus-exit');
     const resultado = __wcaOpenModalOriginal.apply(this, arguments);
+    if (modal) {
+        void modal.offsetWidth;
+        modal.classList.add('modal-focus-enter');
+    }
     if (id) {
         wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
         wcaModalStack.push(id);
@@ -767,9 +803,24 @@ openModal = function (id){
 
 const __wcaCloseModalOriginal = closeModal;
 closeModal = function (id){
+    const modal = id ? document.getElementById(id) : null;
+    if (!modal || !modal.classList.contains('open')) {
+        const resultadoDireto = __wcaCloseModalOriginal.apply(this, arguments);
+        if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+        wcaSyncModalStack();
+        return resultadoDireto;
+    }
+    if (modal.classList.contains('modal-focus-exit')) return;
+    modal.classList.remove('modal-focus-enter');
+    void modal.offsetWidth;
+    modal.classList.add('modal-focus-exit');
     const resultado = __wcaCloseModalOriginal.apply(this, arguments);
     if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
     wcaSyncModalStack();
+    modal._wcaFocusTimer = setTimeout(function () {
+        modal._wcaFocusTimer = null;
+        modal.classList.remove('modal-focus-exit');
+    }, WCA_MODAL_FOCUS_EXIT_MS);
     return resultado;
 };
 

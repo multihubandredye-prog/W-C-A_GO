@@ -1,8 +1,10 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.13**
-Arquivo: `guia-help-wca-1.13.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.14**
+Arquivo: `guia-help-wca-1.14.html` — arquivo único, com HTML + CSS + JavaScript inline.
+
+- **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
 ## Funcionamento atual
 

@@ -1,8 +1,10 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.15**
-Arquivo: `contatos-pro-wca-1.15.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.16**
+Arquivo: `contatos-pro-wca-1.16.html` — **único arquivo**, com HTML + CSS + JS inline.
+
+- **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
 - **Feedback de toque (versão atual)**: todo o CSS usa **`:active`** no lugar de `:hover` — a cena é usada só em celular, então o feedback visual acontece **no toque**;
 
