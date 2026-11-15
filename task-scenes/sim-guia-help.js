@@ -1,6 +1,6 @@
 const fs=require('fs');
 const {execFileSync}=require('child_process');
-const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.19.html';
+const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.20.html';
 const html=fs.readFileSync(ALVO,'utf8');
 let total=0, falhas=0;
 function ok(nome,cond,detalhe=''){total++;if(cond)console.log('PASS '+nome);else{falhas++;console.log('FAIL '+nome+(detalhe?' :: '+detalhe:''));}}
@@ -55,5 +55,7 @@ ok('T42 novidades usam API do GitHub antes do raw',js.includes('api.github.com/r
 ok('T43 novidades tentam fontes em sequência e ignoram resposta vazia',js.includes('for (let i = 0; i < fontes.length; i++)')&&js.includes('if (!resposta || !resposta.ok) continue')&&js.includes("if (!String(texto || '').trim()) continue"));
 ok('T44 listagem interpreta o feed XML oficial',js.includes("new DOMParser().parseFromString(xml, 'application/xml')")&&js.includes("getElementsByTagNameNS('*', 'entry')")&&js.includes("textoXml(entrada, 'videoId')"));
 ok('T45 página pública serve de fallback enquanto o feed atualiza',js.includes('function lerVideosDaPagina(html)')&&js.includes('lockupViewModel')&&js.includes('if (videosFeed.length) return videosFeed'));
+ok('T46 vídeos usam lista vertical com miniaturas compactas',css.includes('.youtube-video-list { display: flex; flex-direction: column;')&&css.includes('grid-template-columns: 15rem minmax(0, 1fr)')&&css.includes('height: 8.45rem'));
+ok('T47 cartões exibem ordem título e publicação',js.includes("ordem.textContent = 'VÍDEO ' + String(indice + 1).padStart(2, '0')")&&js.includes('titulo.textContent = video.titulo')&&js.includes('origem.textContent = formatarDataYoutube(video.publicado)'));
 console.log('RESULTADO: '+(falhas?'FALHARAM '+falhas+' DE '+total:'TODOS PASSARAM ('+total+'/'+total+')'));
 process.exitCode=falhas?1:0;
