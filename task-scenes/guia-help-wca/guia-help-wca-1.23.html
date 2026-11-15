@@ -1203,8 +1203,6 @@ body.video-aberto { overflow: hidden; }
 .youtube-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; background: #000; }
 .youtube-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
 .youtube-player-container iframe { display: block; width: 100%; height: 100%; border: 0; background: #000; }
-.youtube-player-close { position: fixed; top: 1.2rem; right: 1.2rem; z-index: 12010; width: 4.4rem; height: 4.4rem; display: flex; align-items: center; justify-content: center; border: .1rem solid rgba(255,255,255,.45); border-radius: 50%; background: rgba(0,0,0,.78); color: #fff; font-size: 2.2rem; cursor: pointer; }
-.youtube-player-close:active { transform: scale(.94); background: rgba(255,77,77,.88); }
 .telegram-link { touch-action: manipulation; }
     </style>
 </head>
@@ -1826,7 +1824,6 @@ body.video-aberto { overflow: hidden; }
 
     <div id="videoPlayerModal" class="modal">
         <div class="modal-content youtube-player-content">
-            <button id="videoPlayerClose" class="youtube-player-close" type="button" aria-label="Fechar vídeo"><i class="fas fa-times"></i></button>
             <div id="youtubePlayerContainer" class="youtube-player-container"></div>
         </div>
     </div>
@@ -1836,6 +1833,11 @@ const YOUTUBE_PLAYLIST_ID = 'PLEgPa9Eoqrdc';
 const YOUTUBE_PLAYLIST_URL = 'https://www.youtube.com/playlist?list=' + YOUTUBE_PLAYLIST_ID;
 const YOUTUBE_PLAYLIST_FEED = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + YOUTUBE_PLAYLIST_ID;
 const YOUTUBE_PLAYER_WRAPPER = 'https://raw.githack.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/youtube-player.html';
+const VIDEO_STATE_KEY = 'wca_help_youtube_state';
+const VIDEO_TASKER_STATE_VAR = 'video_rotation_state';
+const VIDEO_STATE_MAX_AGE = 600000;
+let videoAtualDados = null;
+let ultimaPersistenciaVideo = 0;
 
 const LID_DESC = '<strong>true-false</strong> — Quando o número do usuário for um LID, defina o campo como <code>true</code>; caso contrário, defina-o como <code>false</code>. Esta distinção refere-se a números comuns em comparação com LIDs.';
 
@@ -2940,20 +2942,93 @@ function closeVideoModal() {
     publicarModalAtual();
 }
 
-function openVideoPlayer(video) {
+function textoEstadoVideo(valor, profundidade) {
+    if (typeof valor === 'string') return valor;
+    if (!valor || typeof valor !== 'object' || profundidade > 5) return '';
+    const chaves = ['value', 'result', 'text', 'contents', 'data', 'variables'];
+    for (let i = 0; i < chaves.length; i++) {
+        const interno = textoEstadoVideo(valor[chaves[i]], profundidade + 1);
+        if (interno) return interno;
+    }
+    return '';
+}
+
+function gravarEstadoVideo(estado) {
+    const texto = JSON.stringify(estado);
+    try { localStorage.setItem(VIDEO_STATE_KEY, texto); } catch (erroLocal) {}
+    wcaSetVariable(VIDEO_TASKER_STATE_VAR, texto);
+}
+
+function limparEstadoVideo() {
+    try { localStorage.removeItem(VIDEO_STATE_KEY); } catch (erroLocal) {}
+    wcaSetVariable(VIDEO_TASKER_STATE_VAR, '');
+}
+
+async function lerEstadoVideo() {
+    let texto = '';
+    try { texto = localStorage.getItem(VIDEO_STATE_KEY) || ''; } catch (erroLocal) {}
+    if (!texto) {
+        try {
+            let bruto = Tasker.getVariable(VIDEO_TASKER_STATE_VAR);
+            if (bruto && typeof bruto.then === 'function') bruto = await bruto;
+            texto = textoEstadoVideo(bruto, 0);
+        } catch (erroTasker) {}
+    }
+    if (!texto) return null;
+    try {
+        const estado = JSON.parse(texto);
+        if (!estado || !estado.id || !estado.updatedAt) return null;
+        if (Date.now() - Number(estado.updatedAt) > VIDEO_STATE_MAX_AGE) {
+            limparEstadoVideo();
+            return null;
+        }
+        return estado;
+    } catch (erroJson) {
+        limparEstadoVideo();
+        return null;
+    }
+}
+
+function persistirVideoAtual(tempo, estadoPlayer) {
+    if (!videoAtualDados) return;
+    const agora = Date.now();
+    if (agora - ultimaPersistenciaVideo < 450 && Number(tempo) === Number(videoAtualDados.time)) return;
+    ultimaPersistenciaVideo = agora;
+    videoAtualDados.time = Number.isFinite(Number(tempo)) ? Math.max(0, Number(tempo)) : Number(videoAtualDados.time || 0);
+    videoAtualDados.playerState = Number.isFinite(Number(estadoPlayer)) ? Number(estadoPlayer) : Number(videoAtualDados.playerState || -1);
+    videoAtualDados.updatedAt = agora;
+    gravarEstadoVideo(videoAtualDados);
+}
+
+function openVideoPlayer(video, estadoRestaurado) {
     const modal = document.getElementById('videoPlayerModal');
     const container = document.getElementById('youtubePlayerContainer');
     container.innerHTML = '';
+    const tempoInicial = estadoRestaurado ? Number(estadoRestaurado.time || 0) : 0;
+    videoAtualDados = {
+        id: video.id,
+        titulo: video.titulo || 'Vídeo tutorial WCA',
+        tipo: video.tipo || 'video',
+        time: tempoInicial,
+        playerState: estadoRestaurado ? Number(estadoRestaurado.playerState || -1) : -1,
+        updatedAt: Date.now()
+    };
     const iframe = document.createElement('iframe');
-    const parametros = new URLSearchParams({ video: video.id, list: YOUTUBE_PLAYLIST_ID });
+    const parametros = new URLSearchParams({
+        video: video.id,
+        list: YOUTUBE_PLAYLIST_ID,
+        start: String(Math.max(0, Math.floor(tempoInicial))),
+        version: '2'
+    });
     iframe.src = YOUTUBE_PLAYER_WRAPPER + '?' + parametros.toString();
-    iframe.title = video.titulo || 'Vídeo tutorial WCA';
+    iframe.title = videoAtualDados.titulo;
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     container.appendChild(iframe);
     document.body.classList.add('video-aberto');
     abrirModalComFoco(modal);
+    persistirVideoAtual(tempoInicial, videoAtualDados.playerState);
     publicarModalAtual();
 }
 
@@ -2965,7 +3040,27 @@ function closeVideoPlayer() {
     container.innerHTML = '';
     document.body.classList.remove('video-aberto');
     fecharModalComFoco(modal);
+    videoAtualDados = null;
+    limparEstadoVideo();
     publicarModalAtual();
+}
+
+async function restaurarVideoAposRotacao() {
+    const estado = await lerEstadoVideo();
+    if (!estado || document.getElementById('videoPlayerModal').classList.contains('show')) return;
+    openVideoModal();
+    openVideoPlayer(estado, estado);
+}
+
+function iniciarEstadoVideo() {
+    window.addEventListener('message', function (evento) {
+        const iframe = document.querySelector('#youtubePlayerContainer iframe');
+        if (!iframe || evento.source !== iframe.contentWindow) return;
+        const dados = evento.data;
+        if (!dados || dados.source !== 'wca-youtube-player' || dados.type !== 'state') return;
+        persistirVideoAtual(dados.time, dados.playerState);
+    });
+    setTimeout(restaurarVideoAposRotacao, 180);
 }
 
 function iniciarVoltarV2() {
@@ -2984,7 +3079,6 @@ function iniciarVoltarV2() {
     observador.observe(lista, { attributes: true, attributeFilter: ['class'] });
     observador.observe(player, { attributes: true, attributeFilter: ['class'] });
     document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
-    document.getElementById('videoPlayerClose').addEventListener('click', closeVideoPlayer);
     document.getElementById('openFullPlaylist').addEventListener('click', function () { abrirNoYoutube(YOUTUBE_PLAYLIST_URL); });
     lista.addEventListener('click', function (evento) { if (evento.target === lista) closeVideoModal(); });
     document.addEventListener('keydown', function (evento) {
@@ -3486,6 +3580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initClickOutside();
     loadNovidades();
     iniciarVoltarV2();
+    iniciarEstadoVideo();
 
     const scrollTopButton = document.getElementById('scrollTop');
     window.addEventListener('scroll', () => {

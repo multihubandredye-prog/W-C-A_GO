@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.22**
-Arquivo: `guia-help-wca-1.22.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.23**
+Arquivo: `guia-help-wca-1.23.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -29,8 +29,12 @@ Arquivo: `guia-help-wca-1.22.html` — arquivo único, com HTML + CSS + JavaScri
 - Tocar em uma linha abre o vídeo em tela cheia dentro do próprio WebView do Guia;
 - Para evitar o erro 153 das páginas locais, o Guia carrega um intermediário HTTPS mínimo hospedado pelo GitHack a partir de `wca-resources/youtube-player.html`; esse intermediário fornece a referência HTTP exigida pelo player incorporado do YouTube;
 - O player usa `youtube-nocookie.com`, mantém controles, tela cheia e suporte à playlist, sem sair para a página ou aplicativo do YouTube;
+- Não existe botão X sobre o player: o fechamento é feito pelo botão voltar do Android;
+- Durante a reprodução, o intermediário envia periodicamente a posição atual ao Guia. ID, título, tipo, posição aproximada e estado ficam preservados em `localStorage` e na variável local `video_rotation_state`;
+- Quando a rotação recria o WebView, o Guia reabre a lista e o mesmo vídeo em tela cheia, retomando do ponto aproximado salvo;
 - O modal também possui o botão **ABRIR PLAYLIST COMPLETA NO YOUTUBE** como alternativa externa;
 - O botão voltar do Android fecha primeiro o player e retorna à lista; um segundo voltar fecha a lista e retorna ao Guia;
+- O estado expira após 10 minutos e é eliminado ao fechar o player normalmente;
 - Não há dependência da pasta `wca-resources/media/videos-tutoriais`, arquivos de vídeo locais ou chave da YouTube Data API.
 
 ## Telegram

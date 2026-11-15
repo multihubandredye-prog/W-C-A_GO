@@ -1,6 +1,6 @@
 const fs=require('fs');
 const {execFileSync}=require('child_process');
-const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.22.html';
+const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.23.html';
 const WRAPPER='/home/user/wca-resources/youtube-player.html';
 const html=fs.readFileSync(ALVO,'utf8');
 const wrapper=fs.readFileSync(WRAPPER,'utf8');
@@ -35,9 +35,9 @@ ok('T20 carregamento da lista ocorre somente pela ação do usuário',html.inclu
 ok('T21 voltar fecha player antes da lista',js.includes('Tasker.onVariableChanged(WCA_RETURN_MODAL_VAR, function (nome, valor)')&&js.includes("if (player.classList.contains('show')) closeVideoPlayer()")&&js.includes("else if (lista.classList.contains('show')) closeVideoModal()"));
 ok('T22 novidades continuam lendo changelog',js.includes('wca-resources/updates/changelog.txt'));
 ok('T23 rodapé exibe somente o nome',html.includes('<span class="dev-name">Andredye Oliveira Melo</span>')&&!html.includes('Desenvolvedor: <span class="dev-name">'));
-ok('T24 nenhuma variável Tasker antiga de vídeo/link',!js.includes('video_url')&&!js.includes('link_user')&&!js.includes('user_name')&&!js.includes('video_rotation_state'));
+ok('T24 somente a variável local atual de rotação é usada',!js.includes('video_url')&&!js.includes('link_user')&&!js.includes('user_name')&&js.includes("const VIDEO_TASKER_STATE_VAR = 'video_rotation_state'"));
 ok('T25 cartões abrem vídeo dentro do WebView',js.includes('openVideoPlayer(video)')&&js.includes('container.appendChild(iframe)')&&js.includes("iframe.src = YOUTUBE_PLAYER_WRAPPER + '?'"));
-ok('T26 playlist não depende de armazenamento ou restauração local',!js.includes('wca_help_video_local')&&!js.includes('localStorage')&&!js.includes('restaurarVideoAposRotacao'));
+ok('T26 rotação restaura vídeo e posição por armazenamento duplo',js.includes('wca_help_youtube_state')&&js.includes('localStorage.setItem(VIDEO_STATE_KEY')&&js.includes('wcaSetVariable(VIDEO_TASKER_STATE_VAR')&&js.includes('Tasker.getVariable(VIDEO_TASKER_STATE_VAR)')&&js.includes('restaurarVideoAposRotacao'));
 ok('T27 player inicia após toque no cartão e não possui botão textual',wrapper.includes("autoplay:'1'")&&!html.includes('> FECHAR</button>'));
 ok('T28 lista possui fechamento e acesso à playlist completa',html.includes('id="videoModalClose"')&&html.includes('id="openFullPlaylist"')&&js.includes('function closeVideoModal()'));
 ok('T29 endereço oficial da playlist permanece configurado',js.includes("const YOUTUBE_PLAYLIST_URL = 'https://www.youtube.com/playlist?list=' + YOUTUBE_PLAYLIST_ID"));
@@ -62,5 +62,7 @@ ok('T47 cartões exibem ordem título e publicação',js.includes("ordem.textCon
 ok('T48 Shorts são identificados na listagem',js.includes("endereco.includes('/shorts/') ? 'short' : 'video'")&&js.includes("video.tipo === 'short'"));
 ok('T49 intermediário possui origem HTTPS e política de referência',js.includes('https://raw.githack.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/youtube-player.html')&&wrapper.includes('<meta name="referrer" content="strict-origin-when-cross-origin">')&&wrapper.includes("iframe.referrerPolicy='strict-origin-when-cross-origin'"));
 ok('T50 intermediário valida ID e incorpora YouTube sem cookies',wrapper.includes("/^[A-Za-z0-9_-]{11}$/.test(video)")&&wrapper.includes("'https://www.youtube-nocookie.com/embed/'")&&wrapper.includes("iframe.setAttribute('allowfullscreen','')"));
+ok('T51 player não possui botão X próprio',!html.includes('id="videoPlayerClose"')&&!css.includes('.youtube-player-close'));
+ok('T52 intermediário informa posição e aceita início restaurado',wrapper.includes("enablejsapi:'1'")&&wrapper.includes("start:String(start)")&&wrapper.includes("func:'getCurrentTime'")&&wrapper.includes("source:'wca-youtube-player',type:'state'")&&js.includes('persistirVideoAtual(dados.time, dados.playerState)'));
 console.log('RESULTADO: '+(falhas?'FALHARAM '+falhas+' DE '+total:'TODOS PASSARAM ('+total+'/'+total+')'));
 process.exitCode=falhas?1:0;

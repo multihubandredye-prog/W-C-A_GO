@@ -15,11 +15,12 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#000}#playe
 var params=new URLSearchParams(location.search);
 var video=String(params.get('video')||'');
 var list=String(params.get('list')||'');
+var start=Math.max(0,Math.floor(Number(params.get('start')||0)));
 if(!/^[A-Za-z0-9_-]{11}$/.test(video)){
  document.body.innerHTML='<div class="error">Vídeo inválido.</div>';
  return;
 }
-var query=new URLSearchParams({autoplay:'1',playsinline:'1',rel:'0',origin:location.origin,widget_referrer:location.href});
+var query=new URLSearchParams({autoplay:'1',playsinline:'1',rel:'0',enablejsapi:'1',start:String(start),origin:location.origin,widget_referrer:location.href});
 if(/^[A-Za-z0-9_-]{10,80}$/.test(list)) query.set('list',list);
 var iframe=document.createElement('iframe');
 iframe.id='player';
@@ -29,6 +30,27 @@ iframe.referrerPolicy='strict-origin-when-cross-origin';
 iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
 iframe.setAttribute('allowfullscreen','');
 document.body.appendChild(iframe);
+function enviarEstado(time,playerState){
+ window.parent.postMessage({source:'wca-youtube-player',type:'state',time:Number(time||0),playerState:Number(playerState)},'*');
+}
+window.addEventListener('message',function(event){
+ var data=event.data;
+ if(typeof data==='string'){
+  try{data=JSON.parse(data)}catch(error){return}
+ }
+ if(!data||data.event!=='infoDelivery'||!data.info)return;
+ if(Number.isFinite(Number(data.info.currentTime))) enviarEstado(data.info.currentTime,data.info.playerState);
+});
+iframe.addEventListener('load',function(){
+ var ouvir=JSON.stringify({event:'listening',id:'player'});
+ try{iframe.contentWindow.postMessage(ouvir,'*')}catch(error){}
+ setInterval(function(){
+  try{
+   iframe.contentWindow.postMessage(ouvir,'*');
+   iframe.contentWindow.postMessage(JSON.stringify({event:'command',func:'getCurrentTime',args:[]}), '*');
+  }catch(error){}
+ },500);
+});
 })();
 </script>
 </body>
