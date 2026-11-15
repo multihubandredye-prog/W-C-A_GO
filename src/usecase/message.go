@@ -309,6 +309,31 @@ func (service serviceMessage) StarMessage(ctx context.Context, request domainMes
 	return nil
 }
 
+func mediaRetryMessageInfo(message *domainChatStorage.Message) (types.MessageInfo, error) {
+	if message == nil {
+		return types.MessageInfo{}, fmt.Errorf("message is missing")
+	}
+	chat, err := types.ParseJID(message.ChatJID)
+	if err != nil || chat.User == "" {
+		return types.MessageInfo{}, fmt.Errorf("invalid chat JID %q", message.ChatJID)
+	}
+	info := types.MessageInfo{
+		ID: message.ID,
+		MessageSource: types.MessageSource{
+			Chat: chat.ToNonAD(), IsFromMe: message.IsFromMe,
+			IsGroup: chat.Server == types.GroupServer || chat.Server == types.BroadcastServer,
+		},
+	}
+	if info.IsGroup {
+		sender, parseErr := types.ParseJID(message.Sender)
+		if parseErr != nil || sender.User == "" {
+			return types.MessageInfo{}, fmt.Errorf("group or broadcast message %s has no valid sender", message.ID)
+		}
+		info.Sender = sender.ToNonAD()
+	}
+	return info, nil
+}
+
 // DownloadMedia implements message.IMessageService.
 func (service serviceMessage) DownloadMedia(ctx context.Context, request domainMessage.DownloadMediaRequest) (response domainMessage.DownloadMediaResponse, err error) {
 	if err = validations.ValidateDownloadMedia(ctx, request); err != nil {
@@ -403,10 +428,28 @@ func (service serviceMessage) DownloadMedia(ctx context.Context, request domainM
 		return response, fmt.Errorf("unsupported media type: %s", message.MediaType)
 	}
 
-	// Download the media using existing utils.ExtractMedia function
-	extractedMedia, err := utils.ExtractMedia(ctx, client, dateDir, downloadableMsg.(whatsmeow.DownloadableMessage))
+	// Download normally first. If WhatsApp expired the CDN object, ask the
+	// connected phone to re-upload it and retry with the returned direct path.
+	mediaFile := downloadableMsg.(whatsmeow.DownloadableMessage)
+	extractedMedia, err := utils.ExtractMedia(ctx, client, dateDir, mediaFile)
+	if utils.IsExpiredMediaError(err) {
+		info, infoErr := mediaRetryMessageInfo(message)
+		if infoErr != nil {
+			return response, fmt.Errorf("failed to recover expired media: %v; original download error: %w", infoErr, err)
+		}
+		directPath, retryErr := whatsapp.RequestMediaReupload(ctx, client, info, message.MediaKey, whatsapp.DefaultMediaRetryTimeout)
+		if retryErr != nil {
+			return response, fmt.Errorf("failed to recover expired media: %v; original download error: %w", retryErr, err)
+		}
+		reuploaded, retryErr := utils.DownloadReuploadedMedia(ctx, client, directPath, mediaFile, dateDir)
+		if retryErr != nil {
+			return response, fmt.Errorf("failed to download re-uploaded media: %v; original download error: %w", retryErr, err)
+		}
+		extractedMedia = reuploaded.ExtractedMedia
+		err = nil
+	}
 	if err != nil {
-		return response, fmt.Errorf("failed to download media: %v", err)
+		return response, fmt.Errorf("failed to download media: %w", err)
 	}
 
 	// Get file size

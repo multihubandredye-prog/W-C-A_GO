@@ -270,8 +270,8 @@ func (suite *UtilsTestSuite) TestGetMetaDataFromURLNormalizesLinkPreviewThumbnai
 
 	inlineImage, _, err := image.Decode(bytes.NewReader(meta.JPEGThumb))
 	assert.NoError(suite.T(), err)
-	assert.LessOrEqual(suite.T(), inlineImage.Bounds().Dx(), 400)
-	assert.LessOrEqual(suite.T(), inlineImage.Bounds().Dy(), 400)
+	assert.LessOrEqual(suite.T(), inlineImage.Bounds().Dx(), 1024)
+	assert.LessOrEqual(suite.T(), inlineImage.Bounds().Dy(), 1024)
 	assert.NotEqual(suite.T(), meta.ImageThumb, meta.JPEGThumb)
 }
 

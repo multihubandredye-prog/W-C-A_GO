@@ -93,6 +93,10 @@ O serviço fica disponível em `http://localhost:3000`.
 As opções são lidas de variáveis de ambiente ou de um arquivo `.env` na raiz
 do projeto.
 
+A rota autenticada `GET /app/metrics` informa versão, uptime, memória, disco e quantidade de dispositivos sem exigir `X-Device-Id`.
+
+Quando `GET /message/:message_id/download` encontra mídia expirada no CDN do WhatsApp, a API solicita ao telefone conectado um novo upload, aguarda até 30 segundos e refaz o download. Os endpoints e cabeçalhos usados pelo Tasker não mudam.
+
 #### Aplicação
 
 | Variável | Padrão | Descrição |
@@ -103,6 +107,7 @@ do projeto.
 | `APP_OS` | Não | Nome exibido em *Aparelhos conectados* no WhatsApp |
 | `APP_BASIC_AUTH` | Não | Credenciais `usuario:senha`, separadas por vírgula |
 | `APP_BASE_PATH` | Não | Prefixo das rotas, por exemplo `/api` |
+| `APP_BODY_LIMIT` | `135000000` | Limite total do corpo HTTP, dimensionado para vídeo de 100 MB enviado em Base64 ou multipart |
 | `APP_TRUSTED_PROXIES` | Não | Faixas de IP confiáveis atrás de proxy reverso |
 
 #### Banco de dados
@@ -112,6 +117,8 @@ do projeto.
 | `DB_URI` | `file:storages/whatsapp.db` | Conexão principal — SQLite ou PostgreSQL |
 | `DB_KEYS_URI` | Não | Armazenamento das chaves de criptografia |
 
+As sequências `&amp;` em `DB_URI` e `DB_KEYS_URI` são normalizadas automaticamente para `&`, permitindo usar com segurança valores copiados de uma WebView ou página HTML.
+
 #### Webhook
 
 | Variável | Padrão | Descrição |
@@ -119,7 +126,7 @@ do projeto.
 | `WHATSAPP_WEBHOOK` | Não | URLs que recebem os eventos, separadas por vírgula |
 | `WHATSAPP_WEBHOOK_SECRET` | Não | Segredo usado para assinar o payload |
 | `WHATSAPP_WEBHOOK_EVENTS` | *todos* | Filtra quais eventos são enviados |
-| `WHATSAPP_WEBHOOK_INCLUDE_OUTGOING` | `false` | Também notifica mensagens enviadas por você |
+| `WHATSAPP_WEBHOOK_INCLUDE_OUTGOING` | `true` | Envia mensagens de saída ao webhook; `false` suprime somente esses eventos |
 | `WHATSAPP_WEBHOOK_INSECURE_SKIP_VERIFY` | `false` | Ignora validação de certificado TLS |
 | `WHATSAPP_WEBHOOK_DELAY_MS` | `1500` | Intervalo em ms entre os envios de webhook por URL — um evento por vez (0 = paralelo) |
 | `WHATSAPP_WEBHOOK_MAX_ATTEMPTS` | `1` | Máximo de tentativas de entrega por webhook — `1` envia uma única vez, sem reenvio |
@@ -156,9 +163,14 @@ WHATSAPP_WEBHOOK_MAX_ATTEMPTS=1
 | `WHATSAPP_AUTO_MARK_READ` | `false` | Marca as mensagens como lidas ao recebê-las |
 | `WHATSAPP_AUTO_REJECT_CALL` | `false` | Rejeita chamadas automaticamente |
 | `WHATSAPP_AUTO_DOWNLOAD_MEDIA` | `true` | Baixa as mídias recebidas para o disco |
-| `AUTO_DELETE_MEDIA_DURATION` | Não | Segundos até apagar a mídia baixada |
+| `WHATSAPP_MAX_IMAGE_SIZE` | `20000000` | Limite de imagem em bytes |
+| `WHATSAPP_MAX_FILE_SIZE` | `50000000` | Limite de arquivo em bytes |
+| `WHATSAPP_MAX_VIDEO_SIZE` | `100000000` | Limite de vídeo em bytes |
+| `WHATSAPP_MAX_DOWNLOAD_SIZE` | `500000000` | Limite absoluto de download em bytes |
+| `AUTO_DELETE_MEDIA` | `false` | Ativa a exclusão automática de mídias |
+| `AUTO_DELETE_MEDIA_DURATION` | `300` | Segundos até apagar a mídia; só é aplicado quando `AUTO_DELETE_MEDIA=true` |
 | `WHATSAPP_ACCOUNT_VALIDATION` | `true` | Verifica se o número existe no WhatsApp antes de enviar |
-| `WHATSAPP_CHAT_STORAGE` | `true` | Persiste o histórico de conversas |
+| `WHATSAPP_CHAT_STORAGE` | `true` | Persiste chats, mensagens e dispositivos; `false` usa banco temporário em memória, perdido ao reiniciar |
 
 #### Presença
 

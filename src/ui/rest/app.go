@@ -2,16 +2,49 @@ package rest
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	domainApp "github.com/multihubandredye-prog/W-C-A_GO/domains/app"
 	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/pkg/sysmetrics"
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
-	"github.com/gofiber/fiber/v2"
 )
 
 type App struct {
 	Service domainApp.IAppUsecase
+}
+
+// InitRestAppMetrics registers operational metrics outside device middleware.
+// The route remains protected by the existing global Basic Auth middleware.
+func InitRestAppMetrics(app fiber.Router) {
+	app.Get("/app/metrics", AppMetrics)
+}
+
+func AppMetrics(c *fiber.Ctx) error {
+	snapshot := sysmetrics.Collect(map[string]string{
+		"media": config.PathMedia, "storages": config.PathStorages,
+	}, config.PathStorages)
+	devices := map[string]int{"total": 0, "logged_in": 0, "connected": 0}
+	if dm := whatsapp.GetDeviceManager(); dm != nil {
+		for _, device := range dm.ListDevices() {
+			devices["total"]++
+			if device.IsLoggedIn() {
+				devices["logged_in"]++
+			}
+			if device.IsConnected() {
+				devices["connected"]++
+			}
+		}
+	}
+	sessionStore := "sqlite"
+	if strings.HasPrefix(strings.Trim(config.DBURI, "\"'"), "postgres:") {
+		sessionStore = "postgres"
+	}
+	return c.JSON(utils.ResponseData{Status: 200, Code: "SUCCESS", Message: "Fetch app metrics success", Results: map[string]any{
+		"version": config.AppVersion, "session_store": sessionStore, "chat_storage_persistent": config.ChatStorageEnabled, "devices": devices, "system": snapshot,
+	}})
 }
 
 func InitRestApp(app fiber.Router, service domainApp.IAppUsecase) App {

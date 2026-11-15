@@ -5,12 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/multihubandredye-prog/W-C-A_GO/config"
-	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
-	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest"
-	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/helpers"
-	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/middleware"
-	"github.com/multihubandredye-prog/W-C-A_GO/ui/websocket"
 	"github.com/dustin/go-humanize"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/basicauth"
@@ -18,6 +12,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html/v2"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
+	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/helpers"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/middleware"
+	"github.com/multihubandredye-prog/W-C-A_GO/ui/websocket"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -41,7 +41,7 @@ func restServer(_ *cobra.Command, _ []string) {
 	fiberConfig := fiber.Config{
 		Views:                   engine,
 		EnableTrustedProxyCheck: true,
-		BodyLimit:               int(config.WhatsappSettingMaxVideoSize),
+		BodyLimit:               int(config.AppBodyLimit),
 		Network:                 "tcp",
 	}
 
@@ -131,6 +131,9 @@ func restServer(_ *cobra.Command, _ []string) {
 		rest.InitRestNewsletter(r, newsletterUsecase)
 		websocket.RegisterRoutes(r, appUsecase)
 	}
+
+	// Instance metrics require Basic Auth but no selected device.
+	rest.InitRestAppMetrics(apiGroup)
 
 	// Device management routes (no device_id required)
 	rest.InitRestDevice(apiGroup, deviceUsecase)

@@ -510,6 +510,10 @@ func ExtractMedia(ctx context.Context, client *whatsmeow.Client, storageLocation
 		return extractedMedia, err
 	}
 
+	return storeExtractedMedia(storageLocation, mediaFile, data)
+}
+
+func storeExtractedMedia(storageLocation string, mediaFile whatsmeow.DownloadableMessage, data []byte) (extractedMedia ExtractedMedia, err error) {
 	// Validate file size before writing to disk
 	maxFileSize := config.WhatsappSettingMaxDownloadSize
 	if int64(len(data)) > maxFileSize {

@@ -14,8 +14,9 @@ var (
 	AppOs                  = "WCA"
 	AppPlatform            = waCompanionReg.DeviceProps_PlatformType(1)
 	AppBasicAuthCredential []string
-	AppBasePath            = ""
-	AppTrustedProxies      []string // Trusted proxy IP ranges (e.g., "0.0.0.0/0" for all, or specific CIDRs)
+	AppBasePath                     = ""
+	AppBodyLimit           int64    = 135000000 // Supports a 100MB payload encoded as base64
+	AppTrustedProxies      []string             // Trusted proxy IP ranges (e.g., "0.0.0.0/0" for all, or specific CIDRs)
 
 	McpPort = "8080"
 	McpHost = "localhost"
@@ -36,6 +37,7 @@ var (
 	WhatsappWebhookSecret             = "secret"
 	WhatsappWebhookInsecureSkipVerify = false          // Skip TLS certificate verification for webhooks (insecure)
 	WhatsappWebhookEvents             []string         // Whitelist of events to forward to webhook (empty = all events)
+	WhatsappWebhookIncludeOutgoing             = true  // Preserve existing outgoing webhook behavior
 	WhatsappWebhookDelayMS                     = 1500  // Delay between webhook deliveries per URL in milliseconds (0 = parallel delivery)
 	WhatsappWebhookMaxAttempts                 = 1     // Max webhook delivery attempts per URL (1 = no retry; legacy upstream behavior was 5)
 	WhatsappAutoRejectCall                     = false // Auto-reject incoming calls
@@ -53,6 +55,7 @@ var (
 	WhatsappPresencePulseInterval              = 24 * time.Hour
 	WhatsappPresencePulseDuration              = 5 * time.Minute
 
+	ChatStorageEnabled           = true
 	ChatStorageURI               = "file:storages/chatstorage.db"
 	ChatStorageEnableForeignKeys = true
 	ChatStorageEnableWAL         = true

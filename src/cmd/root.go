@@ -77,9 +77,64 @@ func init() {
 	cobra.OnInitialize(initEnvConfig, initApp)
 }
 
+// normalizeDatabaseURI repairs HTML-escaped query separators that may be
+// introduced when a Tasker/WebView configuration is copied through HTML.
+func normalizeDatabaseURI(value string) string {
+	return strings.ReplaceAll(value, "&amp;", "&")
+}
+
+func positiveInt64Setting(key string, current int64) int64 {
+	if !viper.IsSet(key) {
+		return current
+	}
+	value := viper.GetInt64(key)
+	if value <= 0 {
+		logrus.Warnf("Ignoring invalid %s=%d; keeping %d", strings.ToUpper(key), value, current)
+		return current
+	}
+	return value
+}
+
+func normalizeRequestLimits() {
+	largest := config.WhatsappSettingMaxImageSize
+	if config.WhatsappSettingMaxFileSize > largest {
+		largest = config.WhatsappSettingMaxFileSize
+	}
+	if config.WhatsappSettingMaxVideoSize > largest {
+		largest = config.WhatsappSettingMaxVideoSize
+	}
+	// Base64 expands binary data to roughly four thirds of its size. The
+	// additional MiB covers JSON fields or multipart boundaries.
+	requiredBody := largest + largest/3 + 1048576
+	if config.AppBodyLimit < requiredBody {
+		logrus.Warnf("Raising APP_BODY_LIMIT from %d to %d so configured media limits remain usable", config.AppBodyLimit, requiredBody)
+		config.AppBodyLimit = requiredBody
+	}
+	if config.WhatsappSettingMaxDownloadSize < largest {
+		logrus.Warnf("Raising WHATSAPP_MAX_DOWNLOAD_SIZE from %d to %d so configured media limits remain usable", config.WhatsappSettingMaxDownloadSize, largest)
+		config.WhatsappSettingMaxDownloadSize = largest
+	}
+}
+
+func redactedSettings(settings map[string]any) map[string]any {
+	redacted := make(map[string]any, len(settings))
+	for key, value := range settings {
+		lower := strings.ToLower(key)
+		sensitive := strings.Contains(lower, "secret") || strings.Contains(lower, "token") ||
+			strings.Contains(lower, "password") || strings.Contains(lower, "credential") ||
+			strings.Contains(lower, "basic_auth") || lower == "db_keys_uri"
+		if sensitive && fmt.Sprint(value) != "" {
+			redacted[key] = "[REDACTED]"
+		} else {
+			redacted[key] = value
+		}
+	}
+	return redacted
+}
+
 // initEnvConfig loads configuration from environment variables
 func initEnvConfig() {
-	fmt.Println(viper.AllSettings())
+	fmt.Println(redactedSettings(viper.AllSettings()))
 	// Application settings
 	if envPort := viper.GetString("app_port"); envPort != "" {
 		config.AppPort = envPort
@@ -100,6 +155,7 @@ func initEnvConfig() {
 	if envBasePath := viper.GetString("app_base_path"); envBasePath != "" {
 		config.AppBasePath = envBasePath
 	}
+	config.AppBodyLimit = positiveInt64Setting("app_body_limit", config.AppBodyLimit)
 	if envTrustedProxies := viper.GetString("app_trusted_proxies"); envTrustedProxies != "" {
 		proxies := strings.Split(envTrustedProxies, ",")
 		config.AppTrustedProxies = proxies
@@ -107,10 +163,10 @@ func initEnvConfig() {
 
 	// Database settings
 	if envDBURI := viper.GetString("db_uri"); envDBURI != "" {
-		config.DBURI = envDBURI
+		config.DBURI = normalizeDatabaseURI(envDBURI)
 	}
 	if envDBKEYSURI := viper.GetString("db_keys_uri"); envDBKEYSURI != "" {
-		config.DBKeysURI = envDBKEYSURI
+		config.DBKeysURI = normalizeDatabaseURI(envDBKEYSURI)
 	}
 
 	// WhatsApp settings
@@ -123,6 +179,10 @@ func initEnvConfig() {
 	if viper.IsSet("whatsapp_auto_download_media") {
 		config.WhatsappAutoDownloadMedia = viper.GetBool("whatsapp_auto_download_media")
 	}
+	config.WhatsappSettingMaxImageSize = positiveInt64Setting("whatsapp_max_image_size", config.WhatsappSettingMaxImageSize)
+	config.WhatsappSettingMaxFileSize = positiveInt64Setting("whatsapp_max_file_size", config.WhatsappSettingMaxFileSize)
+	config.WhatsappSettingMaxVideoSize = positiveInt64Setting("whatsapp_max_video_size", config.WhatsappSettingMaxVideoSize)
+	config.WhatsappSettingMaxDownloadSize = positiveInt64Setting("whatsapp_max_download_size", config.WhatsappSettingMaxDownloadSize)
 	if viper.IsSet("auto_delete_media") {
 		config.AutoDeleteMedia = viper.GetBool("auto_delete_media")
 	}
@@ -152,6 +212,9 @@ func initEnvConfig() {
 		events := strings.Split(envWebhookEvents, ",")
 		config.WhatsappWebhookEvents = events
 	}
+	if viper.IsSet("whatsapp_webhook_include_outgoing") {
+		config.WhatsappWebhookIncludeOutgoing = viper.GetBool("whatsapp_webhook_include_outgoing")
+	}
 	if viper.IsSet("whatsapp_account_validation") {
 		config.WhatsappAccountValidation = viper.GetBool("whatsapp_account_validation")
 	}
@@ -173,6 +236,10 @@ func initEnvConfig() {
 		if duration := viper.GetDuration("whatsapp_presence_pulse_duration"); duration > 0 {
 			config.WhatsappPresencePulseDuration = duration
 		}
+	}
+
+	if viper.IsSet("whatsapp_chat_storage") {
+		config.ChatStorageEnabled = viper.GetBool("whatsapp_chat_storage")
 	}
 
 	// Chatwoot settings
@@ -201,6 +268,7 @@ func initEnvConfig() {
 	if viper.IsSet("chatwoot_days_limit_import_messages") {
 		config.ChatwootDaysLimitImportMessages = viper.GetInt("chatwoot_days_limit_import_messages")
 	}
+	normalizeRequestLimits()
 }
 
 func initFlags() {
@@ -390,7 +458,14 @@ func initFlags() {
 }
 
 func initChatStorage() (*sql.DB, error) {
-	connStr := sqlite.FormatChatStorageURI(config.ChatStorageURI, config.ChatStorageEnableWAL, config.ChatStorageEnableForeignKeys)
+	chatStorageURI := normalizeDatabaseURI(config.ChatStorageURI)
+	enableWAL := config.ChatStorageEnableWAL
+	if !config.ChatStorageEnabled {
+		chatStorageURI = "file:wca-chatstorage-disabled?mode=memory&cache=shared"
+		enableWAL = false
+		logrus.Warn("WHATSAPP_CHAT_STORAGE=false: chats, messages and device registry are temporary and will be lost on restart")
+	}
+	connStr := sqlite.FormatChatStorageURI(chatStorageURI, enableWAL, config.ChatStorageEnableForeignKeys)
 
 	db, err := sql.Open(sqlite.DriverName, connStr)
 	if err != nil {

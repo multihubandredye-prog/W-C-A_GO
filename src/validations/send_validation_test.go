@@ -104,7 +104,7 @@ func TestValidateSendImage(t *testing.T) {
 				},
 				Image: nil,
 			}},
-			err: pkgError.ValidationError("either Image or ImageURL must be provided"),
+			err: pkgError.ValidationError("either Image (file), ImageURL, or ImagePath (base64) must be provided"),
 		},
 		{
 			name: "should error with invalid image type",
@@ -173,7 +173,7 @@ func TestValidateSendFile(t *testing.T) {
 				},
 				File: nil,
 			}},
-			err: pkgError.ValidationError("either File or FileURL must be provided"),
+			err: pkgError.ValidationError("either File (multipart), FileURL, or FilePath (base64) must be provided"),
 		},
 	}
 
@@ -237,7 +237,7 @@ func TestValidateSendVideo(t *testing.T) {
 				ViewOnce: false,
 				Compress: false,
 			}},
-			err: pkgError.ValidationError("either Video or VideoURL must be provided"),
+			err: pkgError.ValidationError("either Video (file), VideoURL, or VideoPath (base64) must be provided"),
 		},
 		{
 			name: "should error with invalid format video",
@@ -270,7 +270,7 @@ func TestValidateSendVideo(t *testing.T) {
 				ViewOnce: false,
 				Compress: false,
 			}},
-			err: pkgError.ValidationError("either Video or VideoURL must be provided"),
+			err: pkgError.ValidationError("either Video (file), VideoURL, or VideoPath (base64) must be provided"),
 		},
 		{
 			name: "should success with video_url provided",
@@ -670,7 +670,7 @@ func TestValidateSendAudio(t *testing.T) {
 				},
 				Audio: nil,
 			}},
-			err: pkgError.ValidationError("either Audio or AudioURL must be provided"),
+			err: pkgError.ValidationError("either Audio (file), AudioURL, or AudioPath (base64) must be provided"),
 		},
 		{
 			name: "should error with invalid audio type",
@@ -1007,7 +1007,7 @@ func TestValidateSendImage_WithImageURL(t *testing.T) {
 				Caption:  "Hello this is testing",
 				ImageURL: func() *string { s := ""; return &s }(),
 			}},
-			err: pkgError.ValidationError("either Image or ImageURL must be provided"),
+			err: pkgError.ValidationError("either Image (file), ImageURL, or ImagePath (base64) must be provided"),
 		},
 	}
 

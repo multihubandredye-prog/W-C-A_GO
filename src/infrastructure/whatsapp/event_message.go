@@ -80,6 +80,10 @@ func TriggerWebhookForSentMessage(ctx context.Context, client *whatsmeow.Client,
 
 // forwardMessageToWebhook is a helper function to forward message event to webhook url
 func forwardMessageToWebhook(ctx context.Context, client *whatsmeow.Client, evt *events.Message) error {
+	if evt != nil && evt.Info.IsFromMe && !config.WhatsappWebhookIncludeOutgoing {
+		logrus.Debugf("Skipping outgoing webhook for message %s", evt.Info.ID)
+		return nil
+	}
 	webhookEvent, err := createWebhookEvent(ctx, client, evt)
 	if err != nil {
 		return err

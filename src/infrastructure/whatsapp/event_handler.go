@@ -45,6 +45,8 @@ func handler(ctx context.Context, instance *DeviceInstance, rawEvt any) {
 		handleStreamReplaced(ctx)
 	case *events.Message:
 		handleMessage(ctx, evt, chatStorageRepo, client)
+	case *events.MediaRetry:
+		handleMediaRetry(ctx, client, evt)
 	case *events.Receipt:
 		handleReceipt(ctx, evt, instance.JID(), client)
 	case *events.Archive:
