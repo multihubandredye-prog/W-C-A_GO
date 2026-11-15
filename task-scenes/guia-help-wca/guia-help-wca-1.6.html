@@ -1108,8 +1108,6 @@ body.video-aberto { overflow: hidden; }
 .video-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; border-radius: 0; overflow: hidden; background: #000; box-shadow: none; }
 .video-player-content .modal-header { position: absolute; inset: 0 0 auto 0; min-height: 7rem; margin: 0; padding: 1.4rem 1.6rem; border: 0; z-index: 10002; background: linear-gradient(180deg, rgba(0,0,0,.88), rgba(0,0,0,0)); pointer-events: none; }
 .video-player-content .modal-header h2 { max-width: calc(100vw - 8rem); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 .2rem .6rem #000; }
-.video-player-content .modal-close { pointer-events: auto; flex: 0 0 auto; background: rgba(220,53,69,.92); color: #fff; width: auto; min-width: 4.8rem; height: 4.4rem; padding: 0 1.3rem; border-radius: 99rem; font-size: 1.5rem; }
-.video-player-content .modal-close:active { transform: scale(.96); background: #dc3545; }
 .video-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; border-radius: 0; overflow: hidden; }
 .video-player-container video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: contain; background: #000; }
 .video-thumb-size { display: block; margin: -.3rem .8rem .8rem; color: var(--text-dim); font-size: 1.15rem; text-align: center; }
@@ -1707,9 +1705,6 @@ body.video-aberto { overflow: hidden; }
         <div class="modal-content video-player-content">
             <div class="modal-header">
                 <h2 id="videoPlayerTitle"><i class="fas fa-play-circle"></i> <span id="videoPlayerTitleText">Assistindo vídeo</span></h2>
-                <button type="button" class="modal-close" onclick="closeVideoPlayer()" aria-label="Fechar vídeo">
-                    <i class="fas fa-times"></i> FECHAR
-                </button>
             </div>
             <div id="videoPlayerContainer" class="video-player-container"></div>
         </div>
@@ -2644,31 +2639,21 @@ function closeVideoModal() {
     publicarModalAtual();
 }
 
-const VIDEO_STATE_KEY = 'wca_help_video_state';
+const VIDEO_STATE_KEY = 'wca_help_video_local';
 const VIDEO_STATE_MAX_AGE = 600000;
 let videoAtualDados = null;
 let videoFechando = false;
+let videoRestaurando = false;
+let videoDeveContinuar = false;
+let pausaVideoTimer = null;
 let ultimaPersistenciaVideo = 0;
-
-function textoDoBridge(valor, profundidade) {
-    if (typeof valor === 'string') return valor;
-    if (!valor || typeof valor !== 'object' || profundidade > 5) return '';
-    const chaves = ['value', 'result', 'text', 'contents', 'data', 'variables'];
-    for (let i = 0; i < chaves.length; i++) {
-        const interno = textoDoBridge(valor[chaves[i]], profundidade + 1);
-        if (interno) return interno;
-    }
-    return '';
-}
 
 function gravarEstadoVideo(texto) {
     try { localStorage.setItem(VIDEO_STATE_KEY, texto); } catch (eLocal) {}
-    wcaSetVariable('help_video_state', texto);
 }
 
 function limparEstadoVideo() {
     try { localStorage.removeItem(VIDEO_STATE_KEY); } catch (eLocal) {}
-    wcaSetVariable('help_video_state', '');
 }
 
 function salvarEstadoVideo(forcar) {
@@ -2682,7 +2667,7 @@ function salvarEstadoVideo(forcar) {
         title: videoAtualDados.title,
         url: videoAtualDados.url,
         time: Number.isFinite(video.currentTime) ? video.currentTime : 0,
-        playing: !video.paused && !video.ended,
+        playing: videoDeveContinuar && !video.ended,
         updatedAt: agora
     };
     gravarEstadoVideo(JSON.stringify(estado));
@@ -2691,13 +2676,6 @@ function salvarEstadoVideo(forcar) {
 async function lerEstadoVideo() {
     let texto = '';
     try { texto = localStorage.getItem(VIDEO_STATE_KEY) || ''; } catch (eLocal) {}
-    if (!texto) {
-        try {
-            let bruto = Tasker.getVariable('help_video_state');
-            if (bruto && typeof bruto.then === 'function') bruto = await bruto;
-            texto = textoDoBridge(bruto, 0);
-        } catch (eTasker) {}
-    }
     if (!texto) return null;
     try {
         const estado = JSON.parse(texto);
@@ -2727,11 +2705,13 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     container.innerHTML = '';
     videoAtualDados = { title: title || 'Assistindo vídeo', url: url };
     videoFechando = false;
+    videoRestaurando = !!estadoRestaurado;
+    videoDeveContinuar = !!(estadoRestaurado && estadoRestaurado.playing === true);
     const video = document.createElement('video');
     video.id = 'videoAtivo';
     video.src = url;
     video.controls = true;
-    video.autoplay = true;
+    video.autoplay = videoDeveContinuar;
     video.playsInline = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
@@ -2742,28 +2722,50 @@ function openVideoPlayer(title, url, estadoRestaurado) {
         if (tempo > 0 && Number.isFinite(tempo)) {
             try { video.currentTime = tempo; } catch (eTempo) {}
         }
-        const deveTocar = !estadoRestaurado || estadoRestaurado.playing !== false;
-        if (deveTocar) {
+        if (videoDeveContinuar) {
             const inicioRestaurado = video.play();
-            if (inicioRestaurado && typeof inicioRestaurado.catch === 'function') inicioRestaurado.catch(function () {});
+            if (inicioRestaurado && typeof inicioRestaurado.then === 'function') {
+                inicioRestaurado.then(function () {
+                    videoRestaurando = false;
+                    salvarEstadoVideo(true);
+                }).catch(function () {
+                    videoRestaurando = false;
+                });
+            } else {
+                videoRestaurando = false;
+                salvarEstadoVideo(true);
+            }
+        } else {
+            videoRestaurando = false;
+            salvarEstadoVideo(true);
         }
     });
     video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
-    video.addEventListener('play', function () { salvarEstadoVideo(true); });
-    video.addEventListener('pause', function () { salvarEstadoVideo(true); });
-    video.addEventListener('ended', function () { limparEstadoVideo(); });
-    if (!estadoRestaurado) {
-        const inicio = video.play();
-        if (inicio && typeof inicio.catch === 'function') inicio.catch(function () {});
-    }
+    video.addEventListener('play', function () {
+        videoDeveContinuar = true;
+        if (!videoRestaurando) salvarEstadoVideo(true);
+    });
+    video.addEventListener('pause', function () {
+        clearTimeout(pausaVideoTimer);
+        pausaVideoTimer = setTimeout(function () {
+            if (videoFechando || videoRestaurando || document.hidden || !modalAberto('videoPlayerModal')) return;
+            videoDeveContinuar = false;
+            salvarEstadoVideo(true);
+        }, 180);
+    });
+    video.addEventListener('ended', function () {
+        videoDeveContinuar = false;
+        limparEstadoVideo();
+    });
     document.body.classList.add('video-aberto');
     modal.classList.add('show');
     publicarModalAtual();
-    salvarEstadoVideo(true);
+    if (!estadoRestaurado) salvarEstadoVideo(true);
 }
 
 function closeVideoPlayer() {
     videoFechando = true;
+    clearTimeout(pausaVideoTimer);
     const modal = document.getElementById('videoPlayerModal');
     const container = document.getElementById('videoPlayerContainer');
     const video = container ? container.querySelector('video') : null;
@@ -2776,6 +2778,8 @@ function closeVideoPlayer() {
     document.body.classList.remove('video-aberto');
     if (modal) modal.classList.remove('show');
     videoAtualDados = null;
+    videoRestaurando = false;
+    videoDeveContinuar = false;
     limparEstadoVideo();
     publicarModalAtual();
     videoFechando = false;

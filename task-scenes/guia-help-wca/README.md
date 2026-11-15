@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.5**
-Arquivo: `guia-help-wca-1.5.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.6**
+Arquivo: `guia-help-wca-1.6.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -22,11 +22,11 @@ Arquivo: `guia-help-wca-1.5.html` — arquivo único, com HTML + CSS + JavaScrip
 - Tocar em um vídeo usa o `download_url` retornado pelo GitHub e abre o elemento `<video>` nativo dentro de um segundo modal, sem tarefa auxiliar e sem fechar a cena;
 - A lista é consultada novamente sempre que o modal é aberto, permitindo adicionar ou remover vídeos sem atualizar o HTML;
 - Tocar no vídeo abre imediatamente um overlay de reprodução que ocupa `100vw × 100dvh` de toda a área da cena, sem depender de `requestFullscreen()` do WebView;
-- O player usa `object-fit: contain`, controles nativos, `playsinline`/`webkit-playsinline` e botão **FECHAR** sobre o vídeo;
+- O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo;
 - A lista também exibe o tamanho de cada arquivo retornado pelo GitHub;
-- Fechar o player interrompe e elimina a mídia carregada;
-- Durante a reprodução, URL, título, posição e estado são persistidos em `localStorage` e na variável local `help_video_state`; se a rotação recriar o WebView, o player é reaberto automaticamente no mesmo ponto aproximado;
-- O estado de restauração expira após 10 minutos sem atualização e é apagado imediatamente ao tocar em **FECHAR**;
+- Ao abrir, o vídeo permanece pausado até o usuário tocar em Play; voltar interrompe e elimina a mídia carregada;
+- Durante a reprodução, URL, título, posição e intenção de reprodução são persistidos somente em `localStorage`; nenhuma variável Tasker é usada para o vídeo;
+- Se a rotação recriar o WebView, o player volta ao mesmo ponto: continua reproduzindo se estava em reprodução e permanece pausado se o usuário havia pausado; o estado expira após 10 minutos e é apagado ao voltar;
 - Voltar no player retorna à lista de vídeos; voltar na lista fecha o modal.
 
 ## Telegram
