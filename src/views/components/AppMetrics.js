@@ -95,155 +95,107 @@ export default {
             <div class="content">
                 <a class="ui blue right ribbon label">System</a>
                 <div class="header">System Metrics</div>
-                <div class="description">
-                    View API uptime, devices, memory, storage and disk capacity.
-                </div>
+                <div class="description">View API uptime, devices, memory, storage and disk capacity.</div>
             </div>
         </div>
 
-        <div class="ui large modal" id="modalAppMetrics">
+        <div class="ui large modal metrics-modal" id="modalAppMetrics">
             <i class="close icon"></i>
-            <div class="header">
+            <div class="header metrics-modal-header">
                 <i class="chart line icon"></i>
                 System Metrics
             </div>
 
-            <div class="scrolling content">
-                <div v-if="loading && !metrics" class="ui active centered inline loader"></div>
+            <div class="scrolling content metrics-modal-content">
+                <div v-if="loading && !metrics" class="metrics-loading">
+                    <div class="ui active centered inline loader"></div>
+                    <span>Loading system information...</span>
+                </div>
 
-                <div v-if="error" class="ui negative message">
-                    <div class="header">Metrics unavailable</div>
-                    <p>[[ error ]]</p>
+                <div v-if="error" class="metrics-error">
+                    <strong>Metrics unavailable</strong>
+                    <span>{{ error }}</span>
                 </div>
 
                 <template v-if="metrics">
-                    <div class="ui three stackable cards">
-                        <div class="card">
-                            <div class="content">
-                                <div class="header">API</div>
-                                <div class="meta">Version and uptime</div>
-                                <div class="description">
-                                    <div class="ui relaxed list">
-                                        <div class="item"><strong>Version:</strong> [[ results.version || 'Unknown' ]]</div>
-                                        <div class="item"><strong>Uptime:</strong> [[ formatDuration(system.uptime_seconds) ]]</div>
-                                        <div class="item"><strong>Started:</strong> [[ formatDate(system.started_at) ]]</div>
-                                        <div class="item"><strong>Go:</strong> [[ system.go_version || 'Unknown' ]]</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="metrics-overview">
+                        <section class="metrics-panel">
+                            <div class="metrics-panel-title"><i class="server icon"></i> API</div>
+                            <div class="metrics-row"><span>Version</span><strong>{{ results.version || 'Unknown' }}</strong></div>
+                            <div class="metrics-row"><span>Uptime</span><strong>{{ formatDuration(system.uptime_seconds) }}</strong></div>
+                            <div class="metrics-row"><span>Started</span><strong>{{ formatDate(system.started_at) }}</strong></div>
+                            <div class="metrics-row"><span>Go version</span><strong>{{ system.go_version || 'Unknown' }}</strong></div>
+                        </section>
 
-                        <div class="card">
-                            <div class="content">
-                                <div class="header">Devices</div>
-                                <div class="meta">Current device manager</div>
-                                <div class="description">
-                                    <div class="ui three mini statistics">
-                                        <div class="statistic">
-                                            <div class="value">[[ devices.total || 0 ]]</div>
-                                            <div class="label">Total</div>
-                                        </div>
-                                        <div class="statistic">
-                                            <div class="value">[[ devices.logged_in || 0 ]]</div>
-                                            <div class="label">Logged in</div>
-                                        </div>
-                                        <div class="statistic">
-                                            <div class="value">[[ devices.connected || 0 ]]</div>
-                                            <div class="label">Connected</div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <section class="metrics-panel">
+                            <div class="metrics-panel-title"><i class="mobile alternate icon"></i> Devices</div>
+                            <div class="metrics-device-grid">
+                                <div><strong>{{ devices.total || 0 }}</strong><span>Total</span></div>
+                                <div><strong>{{ devices.logged_in || 0 }}</strong><span>Logged in</span></div>
+                                <div><strong>{{ devices.connected || 0 }}</strong><span>Connected</span></div>
                             </div>
-                        </div>
+                        </section>
 
-                        <div class="card">
-                            <div class="content">
-                                <div class="header">Storage mode</div>
-                                <div class="meta">Database persistence</div>
-                                <div class="description">
-                                    <div class="ui relaxed list">
-                                        <div class="item"><strong>Session store:</strong> [[ results.session_store || 'Unknown' ]]</div>
-                                        <div class="item">
-                                            <strong>Chat storage:</strong>
-                                            <span class="ui tiny label" :class="results.chat_storage_persistent ? 'green' : 'red'">
-                                                [[ results.chat_storage_persistent ? 'Persistent' : 'Temporary' ]]
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <section class="metrics-panel">
+                            <div class="metrics-panel-title"><i class="database icon"></i> Storage mode</div>
+                            <div class="metrics-row"><span>Session store</span><strong>{{ results.session_store || 'Unknown' }}</strong></div>
+                            <div class="metrics-row">
+                                <span>Chat storage</span>
+                                <strong class="metrics-status" :class="results.chat_storage_persistent ? 'is-persistent' : 'is-temporary'">
+                                    {{ results.chat_storage_persistent ? 'Persistent' : 'Temporary' }}
+                                </strong>
                             </div>
+                        </section>
+                    </div>
+
+                    <div class="metrics-section-title"><i class="memory icon"></i> Memory and runtime</div>
+                    <div class="metrics-tiles">
+                        <div class="metrics-tile"><span>Heap allocated</span><strong>{{ formatBytes(memory.heap_alloc_bytes) }}</strong></div>
+                        <div class="metrics-tile"><span>Runtime reserved</span><strong>{{ formatBytes(memory.runtime_sys_bytes) }}</strong></div>
+                        <div class="metrics-tile"><span>Process RSS</span><strong>{{ formatBytes(memory.process_rss_bytes) }}</strong></div>
+                        <div class="metrics-tile"><span>Container usage</span><strong>{{ formatBytes(memory.container_bytes) }}</strong></div>
+                        <div class="metrics-tile"><span>Container limit</span><strong>{{ formatBytes(memory.container_limit_bytes) }}</strong></div>
+                        <div class="metrics-tile"><span>CPU time</span><strong>{{ formatNumber(system.cpu_seconds, 2) }} s</strong></div>
+                        <div class="metrics-tile"><span>Goroutines</span><strong>{{ formatNumber(memory.goroutines) }}</strong></div>
+                        <div class="metrics-tile"><span>GC cycles</span><strong>{{ formatNumber(memory.gc_cycles) }}</strong></div>
+                    </div>
+
+                    <div class="metrics-section-title"><i class="hdd icon"></i> Disk and folders</div>
+                    <div class="metrics-storage-list">
+                        <div class="metrics-storage-row">
+                            <div><i class="images outline icon"></i><strong>Media</strong></div>
+                            <span>{{ formatBytes(folders.media?.bytes) }}</span>
+                            <small>{{ formatNumber(folders.media?.files) }} files</small>
+                        </div>
+                        <div class="metrics-storage-row">
+                            <div><i class="folder outline icon"></i><strong>Storages</strong></div>
+                            <span>{{ formatBytes(folders.storages?.bytes) }}</span>
+                            <small>{{ formatNumber(folders.storages?.files) }} files</small>
+                        </div>
+                        <div class="metrics-storage-row">
+                            <div><i class="hdd outline icon"></i><strong>Filesystem total</strong></div>
+                            <span>{{ formatBytes(filesystem.total_bytes) }}</span>
+                            <small>Capacity</small>
+                        </div>
+                        <div class="metrics-storage-row">
+                            <div><i class="check circle outline icon"></i><strong>Filesystem free</strong></div>
+                            <span>{{ formatBytes(filesystem.free_bytes) }}</span>
+                            <small>Available</small>
                         </div>
                     </div>
 
-                    <h4 class="ui dividing header"><i class="memory icon"></i> Memory and runtime</h4>
-                    <div class="ui two column stackable grid">
-                        <div class="column">
-                            <table class="ui compact celled table">
-                                <tbody>
-                                    <tr><td>Heap allocated</td><td class="right aligned">[[ formatBytes(memory.heap_alloc_bytes) ]]</td></tr>
-                                    <tr><td>Runtime reserved</td><td class="right aligned">[[ formatBytes(memory.runtime_sys_bytes) ]]</td></tr>
-                                    <tr><td>Process RSS</td><td class="right aligned">[[ formatBytes(memory.process_rss_bytes) ]]</td></tr>
-                                    <tr><td>Container usage</td><td class="right aligned">[[ formatBytes(memory.container_bytes) ]]</td></tr>
-                                    <tr><td>Container limit</td><td class="right aligned">[[ formatBytes(memory.container_limit_bytes) ]]</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="column">
-                            <table class="ui compact celled table">
-                                <tbody>
-                                    <tr><td>CPU time</td><td class="right aligned">[[ formatNumber(system.cpu_seconds, 2) ]] s</td></tr>
-                                    <tr><td>Goroutines</td><td class="right aligned">[[ formatNumber(memory.goroutines) ]]</td></tr>
-                                    <tr><td>GC cycles</td><td class="right aligned">[[ formatNumber(memory.gc_cycles) ]]</td></tr>
-                                    <tr><td>Go version</td><td class="right aligned">[[ system.go_version || 'Unknown' ]]</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <h4 class="ui dividing header"><i class="hdd icon"></i> Disk and folders</h4>
-                    <table class="ui compact celled table">
-                        <thead>
-                            <tr><th>Location</th><th class="right aligned">Size</th><th class="right aligned">Files</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Media</td>
-                                <td class="right aligned">[[ formatBytes(folders.media?.bytes) ]]</td>
-                                <td class="right aligned">[[ formatNumber(folders.media?.files) ]]</td>
-                            </tr>
-                            <tr>
-                                <td>Storages</td>
-                                <td class="right aligned">[[ formatBytes(folders.storages?.bytes) ]]</td>
-                                <td class="right aligned">[[ formatNumber(folders.storages?.files) ]]</td>
-                            </tr>
-                            <tr>
-                                <td>Filesystem total</td>
-                                <td class="right aligned">[[ formatBytes(filesystem.total_bytes) ]]</td>
-                                <td class="right aligned">—</td>
-                            </tr>
-                            <tr>
-                                <td>Filesystem free</td>
-                                <td class="right aligned">[[ formatBytes(filesystem.free_bytes) ]]</td>
-                                <td class="right aligned">—</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div v-if="refreshedAt" class="ui tiny grey message">
-                        Last refreshed: [[ refreshedAt.toLocaleString() ]]
+                    <div v-if="refreshedAt" class="metrics-refreshed">
+                        <i class="clock outline icon"></i>
+                        Last refreshed: {{ refreshedAt.toLocaleString() }}
                     </div>
                 </template>
             </div>
 
-            <div class="actions">
+            <div class="actions metrics-actions">
                 <button class="ui button" @click="loadMetrics" :class="{loading: loading}" :disabled="loading">
-                    <i class="sync alternate icon"></i>
-                    Refresh
+                    <i class="sync alternate icon"></i> Refresh
                 </button>
-                <button class="ui positive button">
-                    <i class="check icon"></i>
-                    Close
-                </button>
+                <button class="ui positive button"><i class="check icon"></i> Close</button>
             </div>
         </div>
     `

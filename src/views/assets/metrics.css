@@ -1,0 +1,299 @@
+#modalAppMetrics.metrics-modal {
+    max-width: 980px;
+}
+
+#modalAppMetrics > .close {
+    color: var(--text-bright) !important;
+    opacity: 0.9 !important;
+    top: 1.15rem !important;
+    right: 1.15rem !important;
+}
+
+#modalAppMetrics .metrics-modal-content {
+    padding: 1.25rem !important;
+}
+
+#modalAppMetrics .metrics-loading,
+#modalAppMetrics .metrics-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    color: var(--text-bright);
+    text-align: center;
+}
+
+#modalAppMetrics .metrics-error {
+    align-items: flex-start;
+    background: rgba(255, 56, 96, 0.08);
+    border: 1px solid rgba(255, 56, 96, 0.45);
+    border-radius: 10px;
+    color: #ffdce4;
+}
+
+#modalAppMetrics .metrics-overview {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+#modalAppMetrics .metrics-panel {
+    min-width: 0;
+    padding: 1rem;
+    background: linear-gradient(145deg, rgba(13, 29, 46, 0.96), rgba(6, 12, 18, 0.96));
+    border: 1px solid var(--border-hot);
+    border-radius: 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+#modalAppMetrics .metrics-panel-title,
+#modalAppMetrics .metrics-section-title {
+    color: var(--text-bright) !important;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+#modalAppMetrics .metrics-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.05rem;
+}
+
+#modalAppMetrics .metrics-panel-title i,
+#modalAppMetrics .metrics-section-title i {
+    color: var(--cyan);
+}
+
+#modalAppMetrics .metrics-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--border);
+}
+
+#modalAppMetrics .metrics-row span {
+    flex: 0 0 auto;
+    color: var(--text-muted) !important;
+}
+
+#modalAppMetrics .metrics-row strong {
+    min-width: 0;
+    color: var(--text-bright) !important;
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+#modalAppMetrics .metrics-device-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+#modalAppMetrics .metrics-device-grid > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 0.25rem;
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+#modalAppMetrics .metrics-device-grid strong {
+    color: var(--cyan) !important;
+    font-family: 'Space Mono', monospace;
+    font-size: 1.35rem;
+}
+
+#modalAppMetrics .metrics-device-grid span {
+    margin-top: 0.3rem;
+    color: var(--text) !important;
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+#modalAppMetrics .metrics-status {
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+}
+
+#modalAppMetrics .metrics-status.is-persistent {
+    color: #8dffc7 !important;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.35);
+}
+
+#modalAppMetrics .metrics-status.is-temporary {
+    color: #ffd36a !important;
+    background: rgba(255, 184, 0, 0.1);
+    border: 1px solid rgba(255, 184, 0, 0.35);
+}
+
+#modalAppMetrics .metrics-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 0.75rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--border-hot);
+    font-size: 1.05rem;
+}
+
+#modalAppMetrics .metrics-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+#modalAppMetrics .metrics-tile {
+    display: flex;
+    min-width: 0;
+    min-height: 86px;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+#modalAppMetrics .metrics-tile span {
+    color: var(--text-muted) !important;
+    font-size: 0.82rem;
+}
+
+#modalAppMetrics .metrics-tile strong {
+    color: var(--text-bright) !important;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+}
+
+#modalAppMetrics .metrics-storage-list {
+    display: grid;
+    gap: 0.65rem;
+}
+
+#modalAppMetrics .metrics-storage-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(100px, auto) minmax(90px, auto);
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+#modalAppMetrics .metrics-storage-row > div {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--text-bright) !important;
+}
+
+#modalAppMetrics .metrics-storage-row i {
+    color: var(--cyan);
+}
+
+#modalAppMetrics .metrics-storage-row > span {
+    color: var(--text-bright) !important;
+    font-family: 'Space Mono', monospace;
+    text-align: right;
+}
+
+#modalAppMetrics .metrics-storage-row small {
+    color: var(--text-muted) !important;
+    text-align: right;
+}
+
+#modalAppMetrics .metrics-refreshed {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 212, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text) !important;
+    font-size: 0.82rem;
+}
+
+#modalAppMetrics .metrics-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+}
+
+@media (max-width: 900px) {
+    #modalAppMetrics .metrics-overview {
+        grid-template-columns: 1fr;
+    }
+
+    #modalAppMetrics .metrics-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    #modalAppMetrics.metrics-modal {
+        width: calc(100% - 20px) !important;
+        margin: 16px 10px 32px !important;
+    }
+
+    #modalAppMetrics .metrics-modal-header {
+        padding: 1rem 2.8rem 1rem 1rem !important;
+        font-size: 1.2rem !important;
+    }
+
+    #modalAppMetrics .metrics-modal-content {
+        padding: 0.75rem !important;
+    }
+
+    #modalAppMetrics .metrics-panel {
+        padding: 0.85rem;
+    }
+
+    #modalAppMetrics .metrics-row {
+        align-items: center;
+    }
+
+    #modalAppMetrics .metrics-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.55rem;
+    }
+
+    #modalAppMetrics .metrics-tile {
+        min-height: 78px;
+        padding: 0.7rem;
+    }
+
+    #modalAppMetrics .metrics-storage-row {
+        grid-template-columns: 1fr auto;
+        gap: 0.35rem 0.75rem;
+        padding: 0.75rem;
+    }
+
+    #modalAppMetrics .metrics-storage-row small {
+        grid-column: 2;
+    }
+
+    #modalAppMetrics .metrics-actions {
+        justify-content: stretch;
+        padding: 0.75rem !important;
+    }
+
+    #modalAppMetrics .metrics-actions .button {
+        flex: 1;
+        margin: 0 !important;
+    }
+}

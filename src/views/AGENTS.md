@@ -30,7 +30,7 @@ views/
 
 - Components export default Vue option objects from plain `.js` files.
 - Templates are inline backtick strings in component modules.
-- Vue delimiters are `[[` and `]]` to avoid conflict with Go templates.
+- The Go-rendered `index.html` uses Vue delimiters `[[` and `]]`; inline templates inside standalone component `.js` files use Vue's standard `{{` and `}}` delimiters.
 - API calls go through `window.http`, whose base URL includes `AppBasePath`.
 - The selected device is sent as encoded `X-Device-Id`; websockets use `?device_id=`.
 - Use `showSuccessInfo` and `showErrorInfo` for user feedback.
