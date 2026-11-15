@@ -512,14 +512,31 @@ body {
     overflow: hidden;
 }
 
-.video-thumb-image img {
+.video-thumb-image img,
+.video-thumb-image video {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
 }
+
+.video-thumb-image img {
+    object-fit: contain;
+    background: #000;
+    transition: opacity 0.2s ease;
+}
+
+.video-thumb-image video {
+    object-fit: cover;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.video-thumb-image.has-video-frame img { opacity: 0; }
+.video-thumb-image.has-video-frame video { opacity: 1; }
 
 .video-thumb-play {
     position: absolute;
@@ -2602,6 +2619,26 @@ async function carregarVideosTutoriais() {
     });
 }
 
+function prepararMiniaturaVideo(elemento, url) {
+    if (!elemento || !url) return;
+    const area = elemento.parentElement;
+    let quadroPronto = false;
+    function exibirQuadro() {
+        if (quadroPronto || elemento.readyState < 2) return;
+        quadroPronto = true;
+        if (area) area.classList.add('has-video-frame');
+    }
+    elemento.addEventListener('loadedmetadata', function () {
+        const duracao = Number(elemento.duration || 0);
+        const ponto = Number.isFinite(duracao) && duracao > 1 ? Math.min(1, duracao / 20) : 0;
+        try { elemento.currentTime = ponto; } catch (eTempoMiniatura) {}
+    });
+    elemento.addEventListener('loadeddata', exibirQuadro);
+    elemento.addEventListener('seeked', exibirQuadro);
+    elemento.src = url;
+    try { elemento.load(); } catch (eCargaMiniatura) {}
+}
+
 async function openVideoModal() {
     const videoListModal = document.getElementById('videoModal');
     const thumbnailsContainer = document.getElementById('videoThumbnails');
@@ -2622,11 +2659,12 @@ async function openVideoModal() {
             thumbnailElement.type = 'button';
             thumbnailElement.className = 'video-thumb';
             thumbnailElement.addEventListener('click', function () { openVideoPlayer(title, url); });
-            thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="file://' + DEFAULT_THUMBNAIL_PATH + '" alt=""><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div><span class="video-thumb-size"></span>';
+            thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="file://' + DEFAULT_THUMBNAIL_PATH + '" alt=""><video muted playsinline preload="metadata" aria-hidden="true"></video><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div><span class="video-thumb-size"></span>';
             thumbnailElement.querySelector('.video-thumb-title').textContent = title;
             thumbnailElement.querySelector('.video-thumb-size').textContent = formatarTamanhoVideo(arquivo.size);
             thumbnailElement.querySelector('img').alt = title;
             thumbnailsContainer.appendChild(thumbnailElement);
+            prepararMiniaturaVideo(thumbnailElement.querySelector('video'), url);
         });
     } catch (erroVideos) {
         thumbnailsContainer.innerHTML = '<p style="color:var(--danger);font-style:italic;text-align:center;padding:2rem"><i class="fas fa-exclamation-triangle"></i> Não foi possível carregar os vídeos. Verifique a conexão e tente novamente.</p>';
@@ -2649,8 +2687,6 @@ let videoRestaurando = false;
 let videoDeveContinuar = false;
 let pausaVideoTimer = null;
 let tituloVideoTimer = null;
-let retomadaVideoPendente = false;
-let ultimoToqueVideo = 0;
 let manipuladorToqueVideo = null;
 let ultimaPersistenciaVideo = 0;
 
@@ -2737,30 +2773,8 @@ function mostrarTituloVideo() {
     tituloVideoTimer = setTimeout(ocultarTituloVideo, 3200);
 }
 
-function retomarVideoNoToque(video) {
-    if (!retomadaVideoPendente || !videoDeveContinuar || !video || !video.paused) return;
-    video.muted = false;
-    const tentativa = video.play();
-    if (tentativa && typeof tentativa.then === 'function') {
-        tentativa.then(function () {
-            retomadaVideoPendente = false;
-            salvarEstadoVideo(true);
-        }).catch(function () {});
-    } else {
-        retomadaVideoPendente = false;
-        salvarEstadoVideo(true);
-    }
-}
-
-function registrarToqueNoPlayer(video, evento) {
-    ultimoToqueVideo = Date.now();
+function registrarToqueNoPlayer() {
     mostrarTituloVideo();
-    const precisaRetomar = retomadaVideoPendente && videoDeveContinuar && video && video.paused;
-    if (precisaRetomar && evento) {
-        evento.preventDefault();
-        evento.stopPropagation();
-    }
-    retomarVideoNoToque(video);
 }
 
 function openVideoPlayer(title, url, estadoRestaurado) {
@@ -2772,66 +2786,39 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     videoAtualDados = { title: title || 'Assistindo vídeo', url: url };
     videoFechando = false;
     videoRestaurando = !!estadoRestaurado;
-    videoDeveContinuar = !!(estadoRestaurado && estadoRestaurado.playing === true);
-    retomadaVideoPendente = videoDeveContinuar;
-    ultimoToqueVideo = 0;
+    videoDeveContinuar = false;
     ocultarTituloVideo();
     const video = document.createElement('video');
     video.id = 'videoAtivo';
     video.src = url;
     video.controls = true;
-    video.autoplay = videoDeveContinuar;
+    video.autoplay = false;
     video.playsInline = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
     video.preload = 'metadata';
+    video.poster = 'file://' + DEFAULT_THUMBNAIL_PATH;
     container.appendChild(video);
-    manipuladorToqueVideo = function (evento) { registrarToqueNoPlayer(video, evento); };
-    container.addEventListener('touchstart', manipuladorToqueVideo, { capture: true, passive: false });
+    manipuladorToqueVideo = registrarToqueNoPlayer;
+    container.addEventListener('touchstart', manipuladorToqueVideo, { capture: true, passive: true });
     video.addEventListener('loadedmetadata', function () {
         const tempo = estadoRestaurado ? Number(estadoRestaurado.time || 0) : 0;
         if (tempo > 0 && Number.isFinite(tempo)) {
             try { video.currentTime = tempo; } catch (eTempo) {}
         }
-        if (videoDeveContinuar) {
-            retomadaVideoPendente = true;
-            const inicioRestaurado = video.play();
-            if (inicioRestaurado && typeof inicioRestaurado.then === 'function') {
-                inicioRestaurado.then(function () {
-                    retomadaVideoPendente = false;
-                    videoRestaurando = false;
-                    salvarEstadoVideo(true);
-                }).catch(function () {
-                    retomadaVideoPendente = true;
-                    videoRestaurando = false;
-                });
-            } else {
-                retomadaVideoPendente = false;
-                videoRestaurando = false;
-                salvarEstadoVideo(true);
-            }
-        } else {
-            videoRestaurando = false;
-            salvarEstadoVideo(true);
-        }
+        videoRestaurando = false;
+        salvarEstadoVideo(true);
     });
+    video.addEventListener('loadeddata', function () { video.removeAttribute('poster'); });
     video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
     video.addEventListener('play', function () {
         videoDeveContinuar = true;
-        retomadaVideoPendente = false;
         if (!videoRestaurando) salvarEstadoVideo(true);
     });
     video.addEventListener('pause', function () {
         clearTimeout(pausaVideoTimer);
         pausaVideoTimer = setTimeout(function () {
             if (videoFechando || videoRestaurando || document.hidden || !modalAberto('videoPlayerModal')) return;
-            const pausaManual = Date.now() - ultimoToqueVideo < 1600;
-            if (!pausaManual) {
-                if (videoDeveContinuar) retomadaVideoPendente = true;
-                salvarEstadoVideo(true);
-                return;
-            }
-            retomadaVideoPendente = false;
             videoDeveContinuar = false;
             salvarEstadoVideo(true);
         }, 180);
@@ -2869,8 +2856,6 @@ function closeVideoPlayer() {
     videoAtualDados = null;
     videoRestaurando = false;
     videoDeveContinuar = false;
-    retomadaVideoPendente = false;
-    ultimoToqueVideo = 0;
     manipuladorToqueVideo = null;
     ocultarTituloVideo();
     limparEstadoVideo();

@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.10**
-Arquivo: `guia-help-wca-1.10.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.11**
+Arquivo: `guia-help-wca-1.11.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -22,12 +22,13 @@ Arquivo: `guia-help-wca-1.10.html` — arquivo único, com HTML + CSS + JavaScri
 - Tocar em um vídeo usa o `download_url` retornado pelo GitHub e abre o elemento `<video>` nativo dentro de um segundo modal, sem tarefa auxiliar e sem fechar a cena;
 - A lista é consultada novamente sempre que o modal é aberto, permitindo adicionar ou remover vídeos sem atualizar o HTML;
 - Tocar no vídeo abre imediatamente um overlay de reprodução que ocupa `100vw × 100dvh` de toda a área da cena, sem depender de `requestFullscreen()` do WebView;
-- O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo;
+- O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo; durante o carregamento, usa a arte WCA como poster sobre fundo preto;
 - O título completo fica oculto acima dos controles inferiores, em faixa preta com texto branco e fonte normal; aceita várias linhas, captura o toque antes dos controles nativos e some automaticamente após 3,2 segundos;
+- Cada card carrega o primeiro quadro do próprio vídeo como thumbnail; a arte WCA permanece como placeholder até o quadro estar pronto, evitando áreas cinzas;
 - A lista também exibe o tamanho de cada arquivo retornado pelo GitHub;
 - Ao abrir, o vídeo permanece pausado até o usuário tocar em Play; voltar interrompe e elimina a mídia carregada;
 - Durante a reprodução, URL, título, posição e intenção de reprodução são persistidos em `localStorage` e, automaticamente, na variável local interna `video_rotation_state`; esse fallback é necessário quando a rotação recria o WebView com outro armazenamento;
-- Se a rotação recriar o WebView, o player volta ao mesmo ponto e preserva a intenção de reprodução, distinguindo a pausa automática da pausa manual; faz somente uma tentativa automática e, se o WebView bloquear, intercepta o primeiro toque para executar um único Play sem o controle nativo pausar novamente; o estado expira após 10 minutos e é apagado ao voltar;
+- Se a rotação recriar o WebView, o player volta ao mesmo vídeo e ponto aproximado, sempre pausado; não há tentativa de Play automático nem clique simulado, e o usuário inicia novamente pelo controle nativo; o estado expira após 10 minutos e é apagado ao voltar;
 - Voltar no player retorna à lista de vídeos; voltar na lista fecha o modal.
 
 ## Telegram
