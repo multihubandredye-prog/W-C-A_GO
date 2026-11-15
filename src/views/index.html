@@ -72,6 +72,12 @@
         @devices-updated="handleDevicesUpdated">
     </device-manager>
 
+    <div class="ui horizontal divider section-divider">▸ Sistema</div>
+
+    <div class="ui three column stackable centered grid cards">
+        <app-metrics></app-metrics>
+    </div>
+
     <div class="ui horizontal divider section-divider">▸ Aplicativo</div>
 
     <div class="ui warning message" v-if="!selectedDeviceId">
@@ -244,6 +250,7 @@
     import AppLoginWithCode from "{{ .AppBasePath }}/components/AppLoginWithCode.js";
     import AppLogout from "{{ .AppBasePath }}/components/AppLogout.js";
     import AppReconnect from "{{ .AppBasePath }}/components/AppReconnect.js";
+    import AppMetrics from "{{ .AppBasePath }}/components/AppMetrics.js";
     import SendMessage from "{{ .AppBasePath }}/components/SendMessage.js";
     import SendImage from "{{ .AppBasePath }}/components/SendImage.js";
     import SendFile from "{{ .AppBasePath }}/components/SendFile.js";
@@ -312,7 +319,7 @@
 
     Vue.createApp({
         components: {
-            AppLogin, AppLoginWithCode, AppLogout, AppReconnect,
+            AppLogin, AppLoginWithCode, AppLogout, AppReconnect, AppMetrics,
             SendMessage, SendImage, SendFile, SendVideo, SendSticker, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendButtons, SendList, SendCall, SendPresence, SendChatPresence,
             MessageDelete, MessageUpdate, MessageReact, MessageRevoke, MessageRead,
             GroupList, GroupCreate, GroupJoinWithLink, GroupInfoFromLink, GroupAddParticipants, GroupSetPhoto, GroupSetName, GroupSetLocked, GroupSetAnnounce, GroupSetTopic, GroupGetInviteLink, GroupInfo,

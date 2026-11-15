@@ -93,9 +93,9 @@ O serviço fica disponível em `http://localhost:3000`.
 As opções são lidas de variáveis de ambiente ou de um arquivo `.env` na raiz
 do projeto.
 
-A rota autenticada `GET /app/metrics` informa versão, uptime, memória, disco e quantidade de dispositivos sem exigir `X-Device-Id`.
+A rota autenticada `GET /app/metrics` informa versão, uptime, memória, disco e quantidade de dispositivos sem exigir `X-Device-Id`. Na interface web integrada, o cartão **System Metrics** abre um painel com essas informações e permite atualizá-las sem selecionar um dispositivo.
 
-Quando `GET /message/:message_id/download` encontra mídia expirada no CDN do WhatsApp, a API solicita ao telefone conectado um novo upload, aguarda até 30 segundos e refaz o download. Os endpoints e cabeçalhos usados pelo Tasker não mudam.
+Quando `GET /message/:message_id/download` encontra mídia expirada no CDN do WhatsApp, a API solicita ao telefone conectado um novo upload, aguarda até 30 segundos e refaz o download. A interface de conversas utiliza essa rota automaticamente para exibir as mídias do histórico. Os endpoints e cabeçalhos usados pelo Tasker não mudam.
 
 #### Aplicação
 
