@@ -6869,10 +6869,19 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     wcaSyncModalStack();
 
+    function wcaReabrirModalPaiAoCancelar(id){
+        if (!id || wcaModalVisivel(id)) return;
+        const pai = WCA_MODAL_PAI[id];
+        if (pai && !wcaModalVisivel(pai)) {
+            openModal(pai);
+        }
+    }
+
     function dismissModal(id){
-        if(id === 'zoomModal'){ closeZoom(); return; }
-        if(id === 'pairCodeModal'){ closePairCode(); return; }
-        closeModal(id);
+        if(id === 'zoomModal') closeZoom();
+        else if(id === 'pairCodeModal') closePairCode();
+        else closeModal(id);
+        wcaReabrirModalPaiAoCancelar(id);
     }
 
     document.addEventListener('click', e => {

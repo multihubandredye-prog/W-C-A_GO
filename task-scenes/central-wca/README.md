@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.64**
+Versão atual: **1.65**
 
-Arquivo atual: `central-wca-1.64.html`
+Arquivo atual: `central-wca-1.65.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -52,6 +52,7 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - quebras de linha são preservadas;
 - o banner compacto possui rolagem interna e abre o texto completo em modal;
 - todos os modais entram e saem com transição de foco, combinando ampliação e desfoque, incluindo confirmações, menu e telas modais;
+- cancelar ou fechar um modal aberto pelo menu restaura automaticamente o menu de origem;
 - o modal superior bloqueia a interação com o conteúdo de trás;
 - a interface móvel usa feedback `:active`;
 - o rodapé exibe somente o nome do desenvolvedor.
@@ -187,7 +188,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.64.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.65.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
