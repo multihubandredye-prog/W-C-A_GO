@@ -24,6 +24,7 @@
     --danger: #ff4d4d;
     --header-h: 11rem;
     --tabs-h: 5.6rem;
+    --search-h: 6.2rem;
     --quicknav-h: 4.8rem;
     --footer-h: 5.5rem;
     --z-header: 100;
@@ -50,7 +51,7 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     font-size: 1.6rem;
-    padding-top: calc(var(--header-h) + var(--tabs-h) + var(--quicknav-h));
+    padding-top: calc(var(--header-h) + var(--tabs-h) + var(--search-h) + var(--quicknav-h));
     padding-bottom: var(--footer-h);
     overflow-x: hidden;
 }
@@ -190,15 +191,117 @@ body {
     z-index: 1;
 }
 
-.quick-nav {
+.search-bar {
     position: fixed;
     top: calc(var(--header-h) + var(--tabs-h));
+    left: 0;
+    width: 100%;
+    height: var(--search-h);
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background: #04181e;
+    border-bottom: 0.1rem solid var(--border-soft);
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+    max-width: 110rem;
+    margin: 0 auto;
+}
+
+.search-box > i {
+    position: absolute;
+    left: 1.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 1.5rem;
+    pointer-events: none;
+}
+
+.global-search {
+    width: 100%;
+    height: 4.4rem;
+    padding: 0 4.3rem;
+    border: 0.1rem solid var(--border);
+    border-radius: 1.2rem;
+    outline: none;
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    font-size: 1.45rem;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.global-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(181, 251, 42, .14);
+}
+
+.global-search::placeholder { color: var(--text-dim); opacity: 1; }
+
+.search-clear {
+    position: absolute;
+    right: .7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.2rem;
+    height: 3.2rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 1.8rem;
+    cursor: pointer;
+    display: none;
+}
+
+.search-clear.show { display: block; }
+.search-clear:active { background: rgba(15, 157, 203, .2); color: var(--accent); }
+
+.search-results {
+    position: fixed;
+    top: calc(var(--header-h) + var(--tabs-h) + var(--search-h));
+    left: 1rem;
+    right: 1rem;
+    max-width: 110rem;
+    max-height: min(52rem, calc(100vh - var(--header-h) - var(--tabs-h) - var(--search-h) - 2rem));
+    margin: 0 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: none;
+    z-index: 1100;
+    background: #031419;
+    border: 0.1rem solid var(--border);
+    border-radius: 0 0 1.2rem 1.2rem;
+    box-shadow: 0 1.5rem 3rem rgba(0,0,0,.7);
+}
+
+.search-results.show { display: block; }
+.search-summary { padding: 1rem 1.2rem; color: var(--text-dim); font-size: 1.2rem; border-bottom: 0.1rem solid var(--border-soft); }
+.search-result { width: 100%; padding: 1.1rem 1.2rem; border: 0; border-bottom: 0.1rem solid var(--border-soft); background: transparent; color: var(--text-main); text-align: left; font-family: 'Inter', sans-serif; cursor: pointer; }
+.search-result:last-child { border-bottom: 0; }
+.search-result:active { background: rgba(15, 157, 203, .18); }
+.search-result-top { display: flex; align-items: center; gap: .7rem; margin-bottom: .35rem; }
+.search-result-type { flex: 0 0 auto; padding: .15rem .55rem; border-radius: 99.9rem; background: rgba(15, 157, 203, .18); color: var(--primary); font-size: 1.05rem; font-weight: 600; text-transform: uppercase; }
+.search-result-title { color: var(--accent); font-size: 1.35rem; font-weight: 600; overflow-wrap: anywhere; }
+.search-result-desc { color: var(--text-dim); font-size: 1.2rem; line-height: 1.45; }
+.search-empty { padding: 2.2rem 1.4rem; color: var(--text-dim); text-align: center; }
+.search-focus { animation: searchFocus 1.8s ease; }
+@keyframes searchFocus { 0%, 45% { box-shadow: 0 0 0 .25rem var(--accent), 0 0 2.4rem rgba(181, 251, 42, .5); } 100% { box-shadow: none; } }
+
+.quick-nav {
+    position: fixed;
+    top: calc(var(--header-h) + var(--tabs-h) + var(--search-h));
     left: 0;
     width: 100%;
     height: var(--quicknav-h);
     background: var(--bg-elevated);
     border-bottom: 0.1rem solid var(--border-soft);
-    z-index: 998;
+    z-index: 997;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -282,7 +385,7 @@ body {
     box-shadow: 0 1rem 3rem rgba(0,0,0,0.6);
     border: 0.1rem solid var(--border);
     transition: border-color 0.2s ease;
-    scroll-margin-top: calc(var(--header-h) + var(--tabs-h) + var(--quicknav-h) + 1rem);
+    scroll-margin-top: calc(var(--header-h) + var(--tabs-h) + var(--search-h) + var(--quicknav-h) + 1rem);
 }
 
 .section:active {
@@ -1187,6 +1290,15 @@ body.video-aberto { overflow: hidden; }
         </div>
     </nav>
 
+    <div class="search-bar">
+        <div class="search-box">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input id="globalSearch" class="global-search" type="search" inputmode="search" autocomplete="off" placeholder="Pesquisar variáveis, tarefas e informações" aria-label="Pesquisar em todo o guia" aria-controls="searchResults">
+            <button id="searchClear" class="search-clear" type="button" aria-label="Limpar pesquisa"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    <div id="searchResults" class="search-results" role="listbox" aria-label="Resultados da pesquisa"></div>
+
     <div class="quick-nav" id="quickNav"></div>
 
     <main class="tab-panels" id="tabPanels">
@@ -1380,6 +1492,26 @@ body.video-aberto { overflow: hidden; }
                     </ul>
                     <p>Esses botões servem apenas para <strong>forçar uma reinstalação por cima</strong> — não trazem uma nova atualização nem novidades: eles reinstalam tudo do jeito que já está. São úteis quando algo no sistema parou de funcionar corretamente e é preciso reinstalar por cima.</p>
                     <p>Ao tocar em um dos botões, o painel pede confirmação antes de executar a reinstalação.</p>
+                </div>
+            </section>
+
+            <section id="recursos-recentes" class="section">
+                <div class="section-header">
+                    <i class="fas fa-layer-group"></i>
+                    <h2>Recursos Recentes</h2>
+                </div>
+                <div class="section-content">
+                    <p>O sistema recebeu melhorias que ajudam no acompanhamento da API, na recuperação de mídias e no controle do histórico:</p>
+                    <ul>
+                        <li><strong>Métricas do sistema:</strong> o cartão <strong>System Metrics</strong> do painel mostra versão, tempo em funcionamento, memória, disco e quantidade de dispositivos. Ele funciona sem selecionar um aparelho.</li>
+                        <li><strong>Recuperação de mídia expirada:</strong> ao abrir uma mídia antiga pelo histórico, o sistema tenta renová-la automaticamente pelo telefone conectado e refaz o download. A tentativa pode levar até 30 segundos.</li>
+                        <li><strong>Mensagens enviadas no Receiver:</strong> a configuração <code>WHATSAPP_WEBHOOK_INCLUDE_OUTGOING</code> permite incluir ou ocultar no webhook as mensagens enviadas pelo próprio usuário. Quando desativada, somente esses eventos de saída são suprimidos.</li>
+                        <li><strong>Armazenamento de conversas:</strong> a configuração <code>WHATSAPP_CHAT_STORAGE</code> controla a persistência de chats, mensagens e dispositivos. Ativada, mantém o histórico; desativada, usa memória temporária e os dados são perdidos ao reiniciar a API.</li>
+                    </ul>
+                    <div class="alert info">
+                        <i class="fas fa-info-circle"></i>
+                        <div><strong>Compatibilidade:</strong> essas melhorias não alteram os endpoints, cabeçalhos ou tarefas de envio já utilizadas pelo Tasker.</div>
+                    </div>
                 </div>
             </section>
 
@@ -2371,7 +2503,23 @@ const receiverVars = {
         ['\u0025event', 'Tipo de evento que acionou a ação (ex: mensagem recebida, chamada, mensagem apagada).'],
         ['\u0025type_message', 'Categoria da mensagem (texto, imagem, vídeo, enquete etc).'],
         ['\u0025message_id', 'Código único de cada mensagem, essencial para identificar, responder ou apagar uma mensagem específica.'],
-        ['\u0025message_text', 'Conteúdo de texto puro da mensagem.']
+        ['\u0025message_text', 'Conteúdo de texto puro da mensagem.'],
+        ['\u0025recebido_em', 'Data e hora em que a requisição chegou ao Receiver.'],
+        ['\u0025origem', 'Origem informada pela requisição recebida.'],
+        ['\u0025metodo', 'Método HTTP utilizado na requisição.'],
+        ['\u0025url_original', 'Endereço original que recebeu a requisição.'],
+        ['\u0025porta_origem', 'Porta de origem informada pelo Receiver.'],
+        ['\u0025porta_destino', 'Porta de destino utilizada pelo Receiver.'],
+        ['\u0025timestamp_body', 'Data e hora informada no corpo principal do evento.'],
+        ['\u0025timestamp_payload', 'Data e hora informada dentro dos dados do evento.'],
+        ['\u0025ids_json', 'Lista de IDs recebidos no evento, em formato JSON.'],
+        ['\u0025ids_count', 'Quantidade de IDs recebidos no evento.'],
+        ['\u0025json_raw_input', 'Trecho do conteúdo bruto recebido, útil para diagnóstico.'],
+        ['\u0025parse_success', 'Verdadeiro/falso: informa se o conteúdo recebido foi interpretado corretamente.'],
+        ['\u0025parse_error', 'Descrição do erro de leitura quando o conteúdo recebido não é um objeto JSON válido.'],
+        ['\u0025context_info', 'Informações de contexto da mensagem em formato JSON.'],
+        ['\u0025expiration', 'Tempo de expiração configurado para mensagem temporária.'],
+        ['\u0025ephemeral_timestamp', 'Data e hora da configuração de mensagens temporárias.']
     ],
     "2. REMETENTE / DESTINATÁRIO / CHAT": [
         ['\u0025from_lid', 'ID interno de identificação do remetente no sistema.'],
@@ -2455,7 +2603,12 @@ const receiverVars = {
     ],
     "15. MENSAGEM DE PRESENÇA": [
         ['\u0025state', 'Situação do contato (online, offline, escrevendo etc).'],
-        ['\u0025media_type', 'Tipo de mídia do status de presença.']
+        ['\u0025media_type', 'Tipo de mídia da presença; o valor <code>audio</code> indica gravação de áudio.'],
+        ['\u0025is_chat_presence', 'Verdadeiro/falso: se o evento recebido é uma atualização de presença da conversa.'],
+        ['\u0025is_typing', 'Verdadeiro/falso: se o contato está digitando.'],
+        ['\u0025is_recording_audio', 'Verdadeiro/falso: se o contato está gravando áudio.'],
+        ['\u0025is_presence_paused', 'Verdadeiro/falso: se a presença foi pausada.'],
+        ['\u0025presence_status', 'Estado simplificado da presença: <code>typing</code>, <code>recording_audio</code>, <code>paused</code> ou o estado original recebido.']
     ],
     "16. MENSAGEM DE RESPOSTA A STATUS": [
         ['\u0025quoted_status_id', 'Código do status que foi respondido.'],
@@ -2526,6 +2679,7 @@ const quickNavData = {
         { id: 'recomendacoes', label: 'Recomendações', icon: 'fa-thumbs-up' },
         { id: 'foto-perfil', label: 'Foto de Perfil', icon: 'fa-user-circle' },
         { id: 'reinstalacao', label: 'Reinstalação', icon: 'fa-sync-alt' },
+        { id: 'recursos-recentes', label: 'Recursos Recentes', icon: 'fa-layer-group' },
         { id: 'futuras-implementacoes', label: 'Futuro', icon: 'fa-rocket' },
         { id: 'novidades', label: 'Últimas Novidades', icon: 'fa-bullhorn' },
         { id: 'agradecimentos', label: 'Agradecimentos', icon: 'fa-handshake' }
@@ -3028,6 +3182,139 @@ function buildReceiverList() {
     container.innerHTML = html;
 }
 
+
+let searchIndex = [];
+let searchFocusTimer = null;
+
+function normalizarPesquisa(valor) {
+    return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function textoCurto(valor, limite) {
+    const texto = String(valor || '').replace(/\s+/g, ' ').trim();
+    return texto.length > limite ? texto.slice(0, limite - 1).trim() + '…' : texto;
+}
+
+function nomeAbaDoElemento(elemento) {
+    const painel = elemento ? elemento.closest('.tab-panel') : null;
+    return painel ? painel.getAttribute('data-panel') : 'introducao';
+}
+
+function adicionarIndice(tipo, titulo, descricao, elemento, detalhes) {
+    if (!elemento || !titulo) return;
+    const aba = nomeAbaDoElemento(elemento);
+    const busca = normalizarPesquisa(titulo + ' ' + descricao + ' ' + tipo + ' ' + aba);
+    searchIndex.push({ tipo, titulo, descricao: textoCurto(descricao, 190), elemento, detalhes, aba, busca });
+}
+
+function construirIndicePesquisa() {
+    searchIndex = [];
+    document.querySelectorAll('.variables-list dt').forEach(dt => {
+        const dd = dt.nextElementSibling;
+        adicionarIndice('Variável', dt.textContent.trim(), dd ? dd.textContent : '', dt, dt.closest('details.variables-details'));
+    });
+    document.querySelectorAll('.tasker-item').forEach(item => {
+        const titulo = item.querySelector('.tasker-name');
+        const descricao = titulo ? titulo.nextElementSibling : null;
+        adicionarIndice('Tarefa', titulo ? titulo.textContent : '', descricao ? descricao.textContent : '', item, null);
+    });
+    document.querySelectorAll('.section').forEach(section => {
+        if (section.querySelector('#envioList, #receiverList')) return;
+        const titulo = section.querySelector(':scope > .section-header h2');
+        const conteudo = section.querySelector(':scope > .section-content');
+        adicionarIndice('Informação', titulo ? titulo.textContent : '', conteudo ? conteudo.textContent : '', section, null);
+    });
+}
+
+function pontuarResultado(item, termos, consulta) {
+    const titulo = normalizarPesquisa(item.titulo);
+    let pontos = 0;
+    if (titulo === consulta) pontos += 120;
+    else if (titulo.startsWith(consulta)) pontos += 80;
+    else if (titulo.includes(consulta)) pontos += 55;
+    if (item.tipo === 'Variável') pontos += 12;
+    termos.forEach(termo => {
+        if (titulo.includes(termo)) pontos += 18;
+        if (item.busca.includes(termo)) pontos += 5;
+    });
+    return pontos;
+}
+
+function escaparPesquisa(valor) {
+    return String(valor || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderizarPesquisa(valor) {
+    const painel = document.getElementById('searchResults');
+    const limpar = document.getElementById('searchClear');
+    const consulta = normalizarPesquisa(valor);
+    limpar.classList.toggle('show', consulta.length > 0);
+    if (!consulta) {
+        painel.classList.remove('show');
+        painel.innerHTML = '';
+        return;
+    }
+    const termos = consulta.split(' ').filter(Boolean);
+    const resultados = searchIndex.filter(item => termos.every(termo => item.busca.includes(termo)))
+        .map(item => ({ item, pontos: pontuarResultado(item, termos, consulta) }))
+        .sort((a, b) => b.pontos - a.pontos || a.item.titulo.localeCompare(b.item.titulo, 'pt-BR'))
+        .slice(0, 50);
+    if (!resultados.length) {
+        painel.innerHTML = '<div class="search-empty"><i class="fas fa-search"></i><br>Nenhum resultado encontrado em todo o guia.</div>';
+        painel.classList.add('show');
+        return;
+    }
+    painel.innerHTML = `<div class="search-summary">${resultados.length} resultado${resultados.length === 1 ? '' : 's'} exibido${resultados.length === 1 ? '' : 's'}</div>` + resultados.map((resultado, indice) => {
+        const item = resultado.item;
+        return `<button class="search-result" type="button" role="option" data-search-index="${indice}"><span class="search-result-top"><span class="search-result-type">${escaparPesquisa(item.tipo)}</span><span class="search-result-title">${escaparPesquisa(item.titulo)}</span></span><span class="search-result-desc">${escaparPesquisa(item.descricao)}</span></button>`;
+    }).join('');
+    painel.querySelectorAll('.search-result').forEach(botao => {
+        botao.addEventListener('click', () => navegarResultado(resultados[Number(botao.dataset.searchIndex)].item));
+    });
+    painel.classList.add('show');
+}
+
+function alturaTopoFixo() {
+    const estilos = getComputedStyle(document.documentElement);
+    const nomes = ['--header-h', '--tabs-h', '--search-h', '--quicknav-h'];
+    return nomes.reduce((total, nome) => total + parseFloat(estilos.getPropertyValue(nome) || 0) * parseFloat(estilos.fontSize || 10), 0);
+}
+
+function navegarResultado(item) {
+    switchTab(item.aba, true);
+    if (item.detalhes) item.detalhes.open = true;
+    document.getElementById('searchResults').classList.remove('show');
+    setTimeout(() => {
+        const topo = item.elemento.getBoundingClientRect().top + window.pageYOffset - alturaTopoFixo() - 14;
+        window.scrollTo({ top: Math.max(0, topo), behavior: 'smooth' });
+        document.querySelectorAll('.search-focus').forEach(el => el.classList.remove('search-focus'));
+        item.elemento.classList.add('search-focus');
+        clearTimeout(searchFocusTimer);
+        searchFocusTimer = setTimeout(() => item.elemento.classList.remove('search-focus'), 1900);
+    }, 80);
+}
+
+function initGlobalSearch() {
+    const campo = document.getElementById('globalSearch');
+    const limpar = document.getElementById('searchClear');
+    const painel = document.getElementById('searchResults');
+    if (!campo || !limpar || !painel) return;
+    construirIndicePesquisa();
+    campo.addEventListener('input', () => renderizarPesquisa(campo.value));
+    campo.addEventListener('focus', () => { if (campo.value.trim()) renderizarPesquisa(campo.value); });
+    limpar.addEventListener('click', () => {
+        campo.value = '';
+        renderizarPesquisa('');
+        campo.focus();
+    });
+    document.addEventListener('click', evento => {
+        if (!evento.target.closest('.search-bar, .search-results')) painel.classList.remove('show');
+    });
+    document.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape' && painel.classList.contains('show')) painel.classList.remove('show');
+    });
+}
+
 function buildQuickNav(tabName) {
     const nav = document.getElementById('quickNav');
     const items = quickNavData[tabName] || [];
@@ -3061,9 +3348,8 @@ function buildQuickNav(tabName) {
                 }, 750);
 
                 nav.querySelectorAll('.quick-nav-chip').forEach(c => c.classList.toggle('active', c === chip));
-                const headerOffset = 220;
                 const elementPosition = targetEl.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                const offsetPosition = elementPosition + window.pageYOffset - alturaTopoFixo() - 14;
                 window.scrollTo({
                     top: Math.max(0, offsetPosition),
                     behavior: 'smooth'
@@ -3256,6 +3542,7 @@ document.addEventListener('DOMContentLoaded', () => {
     buildEnvioList();
     buildReceiverList();
     initTabs();
+    initGlobalSearch();
     initSwipe();
     initClickOutside();
     loadNovidades();
