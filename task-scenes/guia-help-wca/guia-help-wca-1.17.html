@@ -586,69 +586,6 @@ body {
     transform: rotate(90deg);
 }
 
-.video-thumbnails {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
-    gap: 1.2rem;
-}
-
-.video-thumb {
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 1.2rem;
-    overflow: hidden;
-    border: 0.2rem solid var(--border);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.video-thumb:active {
-    transform: translateY(-0.5rem);
-    border-color: var(--primary);
-    box-shadow: 0 0.8rem 2.5rem rgba(15, 157, 203, 0.4);
-}
-
-.video-thumb-image {
-    position: relative;
-    width: 100%;
-    padding-top: 56.25%;
-    background: linear-gradient(135deg, rgba(15, 157, 203, 0.3), rgba(181, 251, 42, 0.2));
-    overflow: hidden;
-}
-
-.video-thumb-image img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #000;
-}
-
-.video-thumb-play {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 4.5rem;
-    height: 4.5rem;
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent);
-    font-size: 1.8rem;
-}
-
-.video-thumb-title {
-    padding: 0.8rem;
-    color: var(--text-main);
-    font-size: 1.4rem;
-    font-weight: 600;
-    text-align: center;
-}
-
 .btn-open-videos {
     display: inline-flex;
     align-items: center;
@@ -1241,12 +1178,8 @@ body.video-aberto { overflow: hidden; }
 #videoPlayerModal { background: #000; align-items: stretch; justify-content: stretch; }
 #videoPlayerModal.show { display: block; }
 .video-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; border-radius: 0; overflow: hidden; background: #000; box-shadow: none; }
-.video-player-content .modal-header { position: absolute; inset: auto 0 5.8rem 0; min-height: 7rem; margin: 0; padding: 3.5rem 1.6rem 1.4rem; border: 0; z-index: 10002; background: linear-gradient(0deg, rgba(0,0,0,.92), rgba(0,0,0,0)); pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(1.2rem); transition: opacity .22s ease, transform .22s ease, visibility 0s linear .22s; }
-.video-player-content .modal-header.title-visible { opacity: 1; visibility: visible; transform: translateY(0); transition-delay: 0s; }
-.video-player-content .modal-header h2 { width: 100%; max-width: none; margin: 0; padding: 1rem 1.2rem; overflow: visible; white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.35; color: #fff; background: rgba(0,0,0,.9); border-radius: .5rem; font-family: Arial, sans-serif; font-size: 1.6rem; font-weight: 400; letter-spacing: 0; text-transform: none; text-shadow: none; }
 .video-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; border-radius: 0; overflow: hidden; }
-.video-player-container video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: contain; background: #000; }
-.video-thumb-size { display: block; margin: -.3rem .8rem .8rem; color: var(--text-dim); font-size: 1.15rem; text-align: center; }
+.video-player-container iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
 .telegram-link { touch-action: manipulation; }
     </style>
 </head>
@@ -1310,10 +1243,10 @@ body.video-aberto { overflow: hidden; }
                     <h2>Vídeos de Ajuda</h2>
                 </div>
                 <div class="section-content">
-                    <p>Assista aos tutoriais em vídeo para facilitar o uso do sistema. Clique no botão abaixo para visualizar todos os vídeos disponíveis:</p>
+                    <p>Assista aos tutoriais diretamente pela playlist oficial no YouTube, sem baixar os vídeos do repositório:</p>
                     <button class="btn-open-videos" onclick="openVideoModal()">
                         <i class="fas fa-play-circle"></i>
-                        Ver Vídeos Tutoriais
+                        Abrir Playlist de Tutoriais
                     </button>
                 </div>
             </section>
@@ -1854,33 +1787,15 @@ body.video-aberto { overflow: hidden; }
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <div id="videoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-video"></i> Vídeos Tutoriais</h2>
-                <button class="modal-close" onclick="closeVideoModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="videoThumbnails" class="video-thumbnails"></div>
-        </div>
-    </div>
-
     <div id="videoPlayerModal" class="modal">
         <div class="modal-content video-player-content">
-            <div class="modal-header">
-                <h2 id="videoPlayerTitle"><span id="videoPlayerTitleText">Assistindo vídeo</span></h2>
-            </div>
             <div id="videoPlayerContainer" class="video-player-container"></div>
         </div>
     </div>
 
     <script>
-const VIDEOS_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/contents/wca-resources/media/videos-tutoriais';
-const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.ogv', '.m4v'];
-
-const DEFAULT_THUMBNAIL_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/icon-system.png';
-const VIDEO_LOADING_POSTER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjgwIDcyMCI+PHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjMDAwIi8+PC9zdmc+';
+const YOUTUBE_PLAYLIST_ID = 'PLEgPa9Eoqrdc';
+const YOUTUBE_PLAYLIST_URL = 'https://youtube.com/playlist?list=' + YOUTUBE_PLAYLIST_ID;
 
 const LID_DESC = '<strong>true-false</strong> — Quando o número do usuário for um LID, defina o campo como <code>true</code>; caso contrário, defina-o como <code>false</code>. Esta distinção refere-se a números comuns em comparação com LIDs.';
 
@@ -2750,45 +2665,8 @@ function modalAberto(id) {
 function publicarModalAtual() {
     let atual = '';
     if (modalAberto('videoPlayerModal')) atual = 'videoPlayerModal';
-    else if (modalAberto('videoModal')) atual = 'videoModal';
     wcaSetVariable(WCA_MODAL_STATE_VAR, atual);
 }
-
-function formatarTamanhoVideo(bytes) {
-    const tamanho = Number(bytes || 0);
-    if (!Number.isFinite(tamanho) || tamanho <= 0) return '';
-    const mb = tamanho / 1048576;
-    return mb >= 1 ? mb.toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(tamanho / 1024)) + ' KB';
-}
-
-function nomeVideoParaTitulo(nome) {
-    return String(nome || '')
-        .replace(/\.[^.]+$/, '')
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-function arquivoVideoValido(item) {
-    if (!item || item.type !== 'file' || !item.download_url) return false;
-    const nome = String(item.name || '').toLowerCase();
-    return VIDEO_EXTENSIONS.some(function (extensao) { return nome.endsWith(extensao); });
-}
-
-async function carregarVideosTutoriais() {
-    const resposta = await fetch(VIDEOS_API_URL + '?ref=main&t=' + Date.now(), {
-        method: 'GET',
-        headers: { 'Accept': 'application/vnd.github+json' },
-        cache: 'no-store'
-    });
-    if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
-    const itens = await resposta.json();
-    if (!Array.isArray(itens)) return [];
-    return itens.filter(arquivoVideoValido).sort(function (a, b) {
-        return String(a.name).localeCompare(String(b.name), 'pt-BR', { numeric: true, sensitivity: 'base' });
-    });
-}
-
 
 const WCA_MODAL_FOCUS_EXIT_MS = 360;
 function abrirModalComFoco(modal) {
@@ -2814,232 +2692,49 @@ function fecharModalComFoco(modal) {
     }, WCA_MODAL_FOCUS_EXIT_MS);
 }
 
-async function openVideoModal() {
-    const videoListModal = document.getElementById('videoModal');
-    const thumbnailsContainer = document.getElementById('videoThumbnails');
-    thumbnailsContainer.innerHTML = '<p style="color:var(--text-dim);font-style:italic;text-align:center;padding:2rem"><i class="fas fa-spinner fa-spin"></i> Carregando vídeos...</p>';
-    abrirModalComFoco(videoListModal);
-    publicarModalAtual();
-    try {
-        const videos = await carregarVideosTutoriais();
-        thumbnailsContainer.innerHTML = '';
-        if (!videos.length) {
-            thumbnailsContainer.innerHTML = '<p style="color:var(--text-dim);font-style:italic;text-align:center;padding:2rem">Nenhum vídeo disponível no momento.</p>';
-            return;
-        }
-        videos.forEach(function (arquivo) {
-            const title = nomeVideoParaTitulo(arquivo.name) || arquivo.name;
-            const url = arquivo.download_url;
-            const thumbnailElement = document.createElement('button');
-            thumbnailElement.type = 'button';
-            thumbnailElement.className = 'video-thumb';
-            thumbnailElement.addEventListener('click', function () { openVideoPlayer(title, url); });
-            thumbnailElement.innerHTML = '<div class="video-thumb-image"><img src="file://' + DEFAULT_THUMBNAIL_PATH + '" alt=""><div class="video-thumb-play"><i class="fas fa-play"></i></div></div><div class="video-thumb-title"></div><span class="video-thumb-size"></span>';
-            thumbnailElement.querySelector('.video-thumb-title').textContent = title;
-            thumbnailElement.querySelector('.video-thumb-size').textContent = formatarTamanhoVideo(arquivo.size);
-            thumbnailElement.querySelector('img').alt = title;
-            thumbnailsContainer.appendChild(thumbnailElement);
-        });
-    } catch (erroVideos) {
-        thumbnailsContainer.innerHTML = '<p style="color:var(--danger);font-style:italic;text-align:center;padding:2rem"><i class="fas fa-exclamation-triangle"></i> Não foi possível carregar os vídeos. Verifique a conexão e tente novamente.</p>';
-    }
-}
-
-function closeVideoModal() {
-    if (modalAberto('videoPlayerModal')) closeVideoPlayer();
-    const modal = document.getElementById('videoModal');
-    fecharModalComFoco(modal);
-    publicarModalAtual();
-}
-
-const VIDEO_STATE_KEY = 'wca_help_video_local';
-const VIDEO_TASKER_STATE_VAR = 'video_rotation_state';
-const VIDEO_STATE_MAX_AGE = 600000;
-let videoAtualDados = null;
-let videoFechando = false;
-let videoRestaurando = false;
-let videoDeveContinuar = false;
-let pausaVideoTimer = null;
-let tituloVideoTimer = null;
-let manipuladorToqueVideo = null;
-let ultimaPersistenciaVideo = 0;
-
-function textoEstadoDoBridge(valor, profundidade) {
-    if (typeof valor === 'string') return valor;
-    if (!valor || typeof valor !== 'object' || profundidade > 5) return '';
-    const chaves = ['value', 'result', 'text', 'contents', 'data', 'variables'];
-    for (let i = 0; i < chaves.length; i++) {
-        const interno = textoEstadoDoBridge(valor[chaves[i]], profundidade + 1);
-        if (interno) return interno;
-    }
-    return '';
-}
-
-function gravarEstadoVideo(texto) {
-    try { localStorage.setItem(VIDEO_STATE_KEY, texto); } catch (eLocal) {}
-    wcaSetVariable(VIDEO_TASKER_STATE_VAR, texto);
-}
-
-function limparEstadoVideo() {
-    try { localStorage.removeItem(VIDEO_STATE_KEY); } catch (eLocal) {}
-    wcaSetVariable(VIDEO_TASKER_STATE_VAR, '');
-}
-
-function salvarEstadoVideo(forcar) {
-    if (videoFechando || !videoAtualDados || !modalAberto('videoPlayerModal')) return;
-    const agora = Date.now();
-    if (!forcar && agora - ultimaPersistenciaVideo < 800) return;
-    const video = document.getElementById('videoAtivo');
-    if (!video) return;
-    ultimaPersistenciaVideo = agora;
-    const estado = {
-        title: videoAtualDados.title,
-        url: videoAtualDados.url,
-        time: Number.isFinite(video.currentTime) ? video.currentTime : 0,
-        playing: videoDeveContinuar && !video.ended,
-        updatedAt: agora
-    };
-    gravarEstadoVideo(JSON.stringify(estado));
-}
-
-async function lerEstadoVideo() {
-    let texto = '';
-    try { texto = localStorage.getItem(VIDEO_STATE_KEY) || ''; } catch (eLocal) {}
-    if (!texto) {
-        try {
-            let bruto = Tasker.getVariable(VIDEO_TASKER_STATE_VAR);
-            if (bruto && typeof bruto.then === 'function') bruto = await bruto;
-            texto = textoEstadoDoBridge(bruto, 0);
-        } catch (eTasker) {}
-    }
-    if (!texto) return null;
-    try {
-        const estado = JSON.parse(texto);
-        if (!estado || !estado.url || !estado.updatedAt) return null;
-        if (Date.now() - Number(estado.updatedAt) > VIDEO_STATE_MAX_AGE) {
-            limparEstadoVideo();
-            return null;
-        }
-        return estado;
-    } catch (eJson) {
-        limparEstadoVideo();
-        return null;
-    }
-}
-
-async function restaurarVideoAposRotacao() {
-    const estado = await lerEstadoVideo();
-    if (!estado || modalAberto('videoPlayerModal')) return;
-    openVideoPlayer(estado.title, estado.url, estado);
-}
-
-function ocultarTituloVideo() {
-    clearTimeout(tituloVideoTimer);
-    const cabecalho = document.querySelector('#videoPlayerModal .modal-header');
-    if (cabecalho) cabecalho.classList.remove('title-visible');
-}
-
-function mostrarTituloVideo() {
-    const cabecalho = document.querySelector('#videoPlayerModal .modal-header');
-    if (!cabecalho) return;
-    cabecalho.classList.add('title-visible');
-    clearTimeout(tituloVideoTimer);
-    tituloVideoTimer = setTimeout(ocultarTituloVideo, 3200);
-}
-
-function registrarToqueNoPlayer() {
-    mostrarTituloVideo();
-}
-
-function openVideoPlayer(title, url, estadoRestaurado) {
+function openVideoModal() {
     const modal = document.getElementById('videoPlayerModal');
-    const titulo = document.getElementById('videoPlayerTitleText');
     const container = document.getElementById('videoPlayerContainer');
-    titulo.textContent = title || 'Assistindo vídeo';
+    if (!modal || !container) return;
     container.innerHTML = '';
-    videoAtualDados = { title: title || 'Assistindo vídeo', url: url };
-    videoFechando = false;
-    videoRestaurando = !!estadoRestaurado;
-    videoDeveContinuar = false;
-    ocultarTituloVideo();
-    const video = document.createElement('video');
-    video.id = 'videoAtivo';
-    video.src = url;
-    video.controls = true;
-    video.autoplay = false;
-    video.playsInline = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-    video.preload = 'auto';
-    video.poster = VIDEO_LOADING_POSTER;
-    container.appendChild(video);
-    try { video.load(); } catch (eCargaVideo) {}
-    manipuladorToqueVideo = registrarToqueNoPlayer;
-    container.addEventListener('touchstart', manipuladorToqueVideo, { capture: true, passive: true });
-    video.addEventListener('loadedmetadata', function () {
-        const tempo = estadoRestaurado ? Number(estadoRestaurado.time || 0) : 0;
-        if (tempo > 0 && Number.isFinite(tempo)) {
-            try { video.currentTime = tempo; } catch (eTempo) {}
-        }
-        videoRestaurando = false;
-        salvarEstadoVideo(true);
+    const iframe = document.createElement('iframe');
+    iframe.id = 'videoAtivo';
+    const parametros = new URLSearchParams({
+        list: YOUTUBE_PLAYLIST_ID,
+        autoplay: '0',
+        playsinline: '1',
+        rel: '0',
+        origin: 'https://github.com',
+        widget_referrer: 'https://github.com/multihubandredye-prog/W-C-A_GO'
     });
-    video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
-    video.addEventListener('play', function () {
-        videoDeveContinuar = true;
-        if (!videoRestaurando) salvarEstadoVideo(true);
-    });
-    video.addEventListener('pause', function () {
-        clearTimeout(pausaVideoTimer);
-        pausaVideoTimer = setTimeout(function () {
-            if (videoFechando || videoRestaurando || document.hidden || !modalAberto('videoPlayerModal')) return;
-            videoDeveContinuar = false;
-            salvarEstadoVideo(true);
-        }, 180);
-    });
-    video.addEventListener('ended', function () {
-        videoDeveContinuar = false;
-        limparEstadoVideo();
-    });
+    iframe.src = 'https://www.youtube-nocookie.com/embed/videoseries?' + parametros.toString();
+    iframe.title = 'Playlist de vídeos tutoriais WCA';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+    iframe.setAttribute('allowfullscreen', '');
+    container.appendChild(iframe);
     document.body.classList.add('video-aberto');
     abrirModalComFoco(modal);
     publicarModalAtual();
-    if (!estadoRestaurado) salvarEstadoVideo(true);
 }
 
 function closeVideoPlayer() {
-    videoFechando = true;
-    clearTimeout(pausaVideoTimer);
-    clearTimeout(tituloVideoTimer);
     const modal = document.getElementById('videoPlayerModal');
     const container = document.getElementById('videoPlayerContainer');
-    const video = container ? container.querySelector('video') : null;
-    if (video) {
-        try { video.pause(); } catch (e) {}
-        video.removeAttribute('src');
-        try { video.load(); } catch (e) {}
-    }
-    if (container) {
-        if (manipuladorToqueVideo) {
-            container.removeEventListener('touchstart', manipuladorToqueVideo, true);
-        }
-        container.innerHTML = '';
-    }
+    const iframe = container ? container.querySelector('iframe') : null;
+    if (iframe) iframe.src = 'about:blank';
+    if (container) container.innerHTML = '';
     document.body.classList.remove('video-aberto');
     fecharModalComFoco(modal);
-    videoAtualDados = null;
-    videoRestaurando = false;
-    videoDeveContinuar = false;
-    manipuladorToqueVideo = null;
-    ocultarTituloVideo();
-    limparEstadoVideo();
     publicarModalAtual();
-    videoFechando = false;
+}
+
+function closeVideoModal() {
+    closeVideoPlayer();
 }
 
 function fecharModalDoTopo() {
     if (modalAberto('videoPlayerModal')) closeVideoPlayer();
-    else if (modalAberto('videoModal')) closeVideoModal();
 }
 
 function iniciarVoltarV2() {
@@ -3052,10 +2747,8 @@ function iniciarVoltarV2() {
         }
     } catch (e) {}
     const observador = new MutationObserver(function () { publicarModalAtual(); });
-    ['videoModal', 'videoPlayerModal'].forEach(function (id) {
-        const el = document.getElementById(id);
-        if (el) observador.observe(el, { attributes: true, attributeFilter: ['class'] });
-    });
+    const player = document.getElementById('videoPlayerModal');
+    if (player) observador.observe(player, { attributes: true, attributeFilter: ['class'] });
 }
 
 function getTelegramLink(username) {
@@ -3110,8 +2803,6 @@ function initClickOutside() {
     document.addEventListener('click', (e) => {
         const insideDetail = e.target.closest('details.variables-details');
         if (insideDetail) return;
-        const inVideoModal = e.target.closest('#videoModal');
-        if (inVideoModal) return;
         const inCreditsModal = e.target.closest('#creditsModal');
         if (inCreditsModal) return;
         document.querySelectorAll('details.variables-details[open]').forEach(d => {
@@ -3543,10 +3234,6 @@ function initSwipe() {
     }, { passive: true });
 }
 
-window.addEventListener('pagehide', function () { salvarEstadoVideo(true); });
-window.addEventListener('beforeunload', function () { salvarEstadoVideo(true); });
-document.addEventListener('visibilitychange', function () { if (document.hidden) salvarEstadoVideo(true); });
-
 document.addEventListener('DOMContentLoaded', () => {
     buildEnvioList();
     buildReceiverList();
@@ -3556,7 +3243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initClickOutside();
     loadNovidades();
     iniciarVoltarV2();
-    setTimeout(restaurarVideoAposRotacao, 150);
 
     const scrollTopButton = document.getElementById('scrollTop');
     window.addEventListener('scroll', () => {
@@ -3572,13 +3258,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.onclick = function(event) {
         if (event.target === document.getElementById('videoPlayerModal')) closeVideoPlayer();
-        else if (event.target === document.getElementById('videoModal')) closeVideoModal();
     };
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             if (modalAberto('videoPlayerModal')) closeVideoPlayer();
-            else closeVideoModal();
         }
     });
 

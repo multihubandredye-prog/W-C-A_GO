@@ -4,7 +4,7 @@
 ➪ Melhorada a compatibilidade das configurações da API, incluindo limites de mídia, exclusão automática, armazenamento de conversas e controle das mensagens enviadas ao Receiver.
 ➪ A tela de atualizações agora mostra o progresso dos arquivos, reconhece corretamente versões de teste e só inicia a instalação ao terminar a contagem regressiva ou ao tocar em INSTALAR AGORA.
 ➪ O Guia de Ajuda recebeu pesquisa global instantânea para localizar variáveis, tarefas e informações em todas as abas, além de documentação atualizada do Receiver e dos recursos recentes.
-➪ Os vídeos tutoriais do Guia passaram a abrir dentro da própria cena, com carregamento otimizado, tela cheia, título completo e restauração segura após a rotação do aparelho.
+➪ Os vídeos tutoriais do Guia passaram para uma playlist oficial do YouTube, reproduzida dentro da própria cena, reduzindo o tamanho do repositório e facilitando a inclusão de novos conteúdos.
 ➪ Os modais das cenas receberam uma transição de foco mais suave; ao cancelar ou fechar uma opção iniciada pelo menu, o usuário retorna ao próprio menu.
 ➪ A interface web da API recebeu uma ferramenta de diagnóstico para facilitar a identificação de problemas quando necessário.
 
