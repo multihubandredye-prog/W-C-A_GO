@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.6**
-Arquivo: `guia-help-wca-1.6.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.7**
+Arquivo: `guia-help-wca-1.7.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -25,7 +25,7 @@ Arquivo: `guia-help-wca-1.6.html` — arquivo único, com HTML + CSS + JavaScrip
 - O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo;
 - A lista também exibe o tamanho de cada arquivo retornado pelo GitHub;
 - Ao abrir, o vídeo permanece pausado até o usuário tocar em Play; voltar interrompe e elimina a mídia carregada;
-- Durante a reprodução, URL, título, posição e intenção de reprodução são persistidos somente em `localStorage`; nenhuma variável Tasker é usada para o vídeo;
+- Durante a reprodução, URL, título, posição e intenção de reprodução são persistidos em `localStorage` e, automaticamente, na variável local interna `video_rotation_state`; esse fallback é necessário quando a rotação recria o WebView com outro armazenamento;
 - Se a rotação recriar o WebView, o player volta ao mesmo ponto: continua reproduzindo se estava em reprodução e permanece pausado se o usuário havia pausado; o estado expira após 10 minutos e é apagado ao voltar;
 - Voltar no player retorna à lista de vídeos; voltar na lista fecha o modal.
 

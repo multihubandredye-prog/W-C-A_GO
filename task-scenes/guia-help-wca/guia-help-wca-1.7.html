@@ -2640,6 +2640,7 @@ function closeVideoModal() {
 }
 
 const VIDEO_STATE_KEY = 'wca_help_video_local';
+const VIDEO_TASKER_STATE_VAR = 'video_rotation_state';
 const VIDEO_STATE_MAX_AGE = 600000;
 let videoAtualDados = null;
 let videoFechando = false;
@@ -2648,12 +2649,25 @@ let videoDeveContinuar = false;
 let pausaVideoTimer = null;
 let ultimaPersistenciaVideo = 0;
 
+function textoEstadoDoBridge(valor, profundidade) {
+    if (typeof valor === 'string') return valor;
+    if (!valor || typeof valor !== 'object' || profundidade > 5) return '';
+    const chaves = ['value', 'result', 'text', 'contents', 'data', 'variables'];
+    for (let i = 0; i < chaves.length; i++) {
+        const interno = textoEstadoDoBridge(valor[chaves[i]], profundidade + 1);
+        if (interno) return interno;
+    }
+    return '';
+}
+
 function gravarEstadoVideo(texto) {
     try { localStorage.setItem(VIDEO_STATE_KEY, texto); } catch (eLocal) {}
+    wcaSetVariable(VIDEO_TASKER_STATE_VAR, texto);
 }
 
 function limparEstadoVideo() {
     try { localStorage.removeItem(VIDEO_STATE_KEY); } catch (eLocal) {}
+    wcaSetVariable(VIDEO_TASKER_STATE_VAR, '');
 }
 
 function salvarEstadoVideo(forcar) {
@@ -2676,6 +2690,13 @@ function salvarEstadoVideo(forcar) {
 async function lerEstadoVideo() {
     let texto = '';
     try { texto = localStorage.getItem(VIDEO_STATE_KEY) || ''; } catch (eLocal) {}
+    if (!texto) {
+        try {
+            let bruto = Tasker.getVariable(VIDEO_TASKER_STATE_VAR);
+            if (bruto && typeof bruto.then === 'function') bruto = await bruto;
+            texto = textoEstadoDoBridge(bruto, 0);
+        } catch (eTasker) {}
+    }
     if (!texto) return null;
     try {
         const estado = JSON.parse(texto);
