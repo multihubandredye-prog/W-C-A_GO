@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.11**
-Arquivo: `guia-help-wca-1.11.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.12**
+Arquivo: `guia-help-wca-1.12.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -22,7 +22,7 @@ Arquivo: `guia-help-wca-1.11.html` — arquivo único, com HTML + CSS + JavaScri
 - Tocar em um vídeo usa o `download_url` retornado pelo GitHub e abre o elemento `<video>` nativo dentro de um segundo modal, sem tarefa auxiliar e sem fechar a cena;
 - A lista é consultada novamente sempre que o modal é aberto, permitindo adicionar ou remover vídeos sem atualizar o HTML;
 - Tocar no vídeo abre imediatamente um overlay de reprodução que ocupa `100vw × 100dvh` de toda a área da cena, sem depender de `requestFullscreen()` do WebView;
-- O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo; durante o carregamento, usa a arte WCA como poster sobre fundo preto;
+- O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo; durante o carregamento, mantém um poster preto embutido até a reprodução começar, sem revelar antecipadamente o primeiro quadro do vídeo;
 - O título completo fica oculto acima dos controles inferiores, em faixa preta com texto branco e fonte normal; aceita várias linhas, captura o toque antes dos controles nativos e some automaticamente após 3,2 segundos;
 - Cada card carrega o primeiro quadro do próprio vídeo como thumbnail; a arte WCA permanece como placeholder até o quadro estar pronto, evitando áreas cinzas;
 - A lista também exibe o tamanho de cada arquivo retornado pelo GitHub;

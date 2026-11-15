@@ -1733,6 +1733,7 @@ const VIDEOS_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A
 const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.ogv', '.m4v'];
 
 const DEFAULT_THUMBNAIL_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/icon-system.png';
+const VIDEO_LOADING_POSTER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjgwIDcyMCI+PHJlY3Qgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIiBmaWxsPSIjMDAwIi8+PC9zdmc+';
 
 const LID_DESC = '<strong>true-false</strong> — Quando o número do usuário for um LID, defina o campo como <code>true</code>; caso contrário, defina-o como <code>false</code>. Esta distinção refere-se a números comuns em comparação com LIDs.';
 
@@ -2797,7 +2798,7 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
     video.preload = 'metadata';
-    video.poster = 'file://' + DEFAULT_THUMBNAIL_PATH;
+    video.poster = VIDEO_LOADING_POSTER;
     container.appendChild(video);
     manipuladorToqueVideo = registrarToqueNoPlayer;
     container.addEventListener('touchstart', manipuladorToqueVideo, { capture: true, passive: true });
@@ -2809,7 +2810,6 @@ function openVideoPlayer(title, url, estadoRestaurado) {
         videoRestaurando = false;
         salvarEstadoVideo(true);
     });
-    video.addEventListener('loadeddata', function () { video.removeAttribute('poster'); });
     video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
     video.addEventListener('play', function () {
         videoDeveContinuar = true;
