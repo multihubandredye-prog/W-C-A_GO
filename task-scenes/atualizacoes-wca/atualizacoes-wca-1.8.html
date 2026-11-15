@@ -271,6 +271,11 @@ h2 {
 .update-progress { display: flex; align-items: center; justify-content: center; gap: 0.65rem; margin-top: 0.75rem; }
 .update-counter { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--accent); color: #000; font-weight: 800; box-shadow: 0 0 0.75rem rgba(181,251,42,0.4); }
 .btn-now:disabled { opacity: 0.58; transform: none; box-shadow: none; }
+.download-file-name { display: block; margin-bottom: 0.55rem; color: var(--text-main); font-weight: 700; overflow-wrap: anywhere; }
+.download-progress { display: block; width: 100%; height: 0.8rem; margin: 0.45rem 0; border: 0; border-radius: 999px; overflow: hidden; accent-color: var(--accent); background: rgba(255,255,255,0.1); }
+.download-progress::-webkit-progress-bar { background: rgba(255,255,255,0.1); border-radius: 999px; }
+.download-progress::-webkit-progress-value { background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 999px; }
+.download-progress-text { display: block; color: var(--text-main); font-size: 0.9rem; }
 </style>
   </head>
   <body>
@@ -310,7 +315,7 @@ h2 {
       </div>
     </div>
     <script>
-// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.7)
+// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.8)
 // A cena identifica a release real mais recente e executa a atualizacao sem
 // encaminhar para a cena de instalacao. CORE substitui os dois binarios; UI
 // baixa o projeto Tasker; FULL executa as duas etapas. Projeto e FULL publicam
@@ -557,13 +562,67 @@ async function executarShellSeguro(cmd, timeout){
     return resultado;
 }
 
-async function baixarArquivoAtomico(nomeAsset, destino, executavel){
+function formatarBytes(bytes){
+    const valor = Math.max(0, Number(bytes || 0));
+    if (valor >= 1048576) return (valor / 1048576).toFixed(1).replace('.', ',') + ' MB';
+    if (valor >= 1024) return (valor / 1024).toFixed(1).replace('.', ',') + ' KB';
+    return String(Math.floor(valor)) + ' B';
+}
+
+function mostrarProgressoDownload(nome, baixado, total, indice, quantidade){
+    const status = document.getElementById('updateStatus');
+    if (!status) return;
+    const atual = Math.max(0, Number(baixado || 0));
+    const maximo = Math.max(0, Number(total || 0));
+    const progresso = maximo > 0 ? Math.max(0, Math.min(100, Math.floor(atual * 100 / maximo))) : 0;
+    const atributoValor = maximo > 0 ? ' value="' + String(progresso) + '"' : '';
+    const medida = maximo > 0 ? formatarBytes(atual) + ' de ' + formatarBytes(maximo) + ' • ' + String(progresso) + ' de 100' : formatarBytes(atual);
+    status.className = 'update-status show';
+    status.innerHTML = '<span class="download-file-name">Arquivo ' + String(indice) + ' de ' + String(quantidade) + ': ' + nome + '</span><progress class="download-progress" max="100"' + atributoValor + '></progress><span class="download-progress-text">' + medida + '</span>';
+}
+
+async function tamanhoArquivoTemporario(path){
+    try {
+        const resultado = await taskerCall('runShell', {
+            cmd: 'if [ -f ' + shellQuote(path) + ' ]; then wc -c < ' + shellQuote(path) + "; else printf '0'; fi",
+            root: false,
+            timeout: 20
+        });
+        const tamanho = Number(String((resultado && resultado.stdout) || '0').trim());
+        return Number.isFinite(tamanho) && tamanho > 0 ? tamanho : 0;
+    } catch (eTamanho) {
+        return 0;
+    }
+}
+
+async function acompanharDownload(promessa, temporario, nome, total, indice, quantidade){
+    let finalizado = false;
+    let erroDownload = null;
+    const controlada = Promise.resolve(promessa).then(function () {
+        finalizado = true;
+    }).catch(function (erro) {
+        erroDownload = erro;
+        finalizado = true;
+    });
+    mostrarProgressoDownload(nome, 0, total, indice, quantidade);
+    while (!finalizado) {
+        await bridgeTimeout(450);
+        const tamanho = await tamanhoArquivoTemporario(temporario);
+        mostrarProgressoDownload(nome, tamanho, total, indice, quantidade);
+    }
+    await controlada;
+    if (erroDownload) throw erroDownload;
+    const tamanhoFinal = await tamanhoArquivoTemporario(temporario);
+    mostrarProgressoDownload(nome, tamanhoFinal, total, indice, quantidade);
+}
+
+async function baixarArquivoAtomico(nomeAsset, destino, executavel, indice, quantidade){
     const asset = assetDaRelease(nomeAsset);
     const temporario = destino + '.update';
     const pasta = parentPath(destino);
     await executarShellSeguro('mkdir -p ' + shellQuote(pasta) + ' && rm -f ' + shellQuote(temporario), 30);
     try {
-        await taskerCall('httpRequest', {
+        const requisicao = taskerCall('httpRequest', {
             method: 'GET',
             url: asset.url,
             headers: 'User-Agent: Tasker\nAccept: application/octet-stream',
@@ -571,6 +630,7 @@ async function baixarArquivoAtomico(nomeAsset, destino, executavel){
             timeout: 600,
             autoRedirect: true
         });
+        await acompanharDownload(requisicao, temporario, nomeAsset, asset.size, indice, quantidade);
         let validar = 'test -s ' + shellQuote(temporario);
         if (asset.size > 0) validar += ' && test "$(wc -c < ' + shellQuote(temporario) + ')" -eq ' + String(Math.floor(asset.size));
         if (!executavel) validar += " && grep -q '<TaskerData' " + shellQuote(temporario);
@@ -657,15 +717,17 @@ async function executarAtualizacao(tipo){
         const atualizarCore = tipo === 'core' || tipo === 'full';
         const atualizarProjeto = tipo === 'ui' || tipo === 'project' || tipo === 'full';
         if (!atualizarCore && !atualizarProjeto) throw new Error('Tipo de atualização desconhecido.');
+        const quantidadeArquivos = atualizarCore && atualizarProjeto ? 3 : (atualizarCore ? 2 : 1);
+        let indiceArquivo = 0;
         if (atualizarCore) {
-            mostrarStatus('Baixando whatsapp-wca...', '');
-            await baixarArquivoAtomico(UPDATE_FILES.whatsapp.name, UPDATE_FILES.whatsapp.path, true);
-            mostrarStatus('Baixando ffmpeg-wca...', '');
-            await baixarArquivoAtomico(UPDATE_FILES.ffmpeg.name, UPDATE_FILES.ffmpeg.path, true);
+            indiceArquivo += 1;
+            await baixarArquivoAtomico(UPDATE_FILES.whatsapp.name, UPDATE_FILES.whatsapp.path, true, indiceArquivo, quantidadeArquivos);
+            indiceArquivo += 1;
+            await baixarArquivoAtomico(UPDATE_FILES.ffmpeg.name, UPDATE_FILES.ffmpeg.path, true, indiceArquivo, quantidadeArquivos);
         }
         if (atualizarProjeto) {
-            mostrarStatus('Baixando o projeto W_C_A_API...', '');
-            await baixarArquivoAtomico(UPDATE_FILES.project.name, UPDATE_FILES.project.path, false);
+            indiceArquivo += 1;
+            await baixarArquivoAtomico(UPDATE_FILES.project.name, UPDATE_FILES.project.path, false, indiceArquivo, quantidadeArquivos);
         }
         if (currentUpdateVersion) {
             await taskerCall('writeFile', { path: VERSION_FILE_PATH, text: currentUpdateVersion, append: false });

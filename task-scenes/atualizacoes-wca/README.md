@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.7**
-Arquivo: `atualizacoes-wca-1.7.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.8**
+Arquivo: `atualizacoes-wca-1.8.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação. Temporariamente, uma release cujo título seja exatamente `Teste` também é aceita, exibida como atualização de teste e executada no modo full.
 
@@ -24,6 +24,16 @@ Painel de atualização direta do WCA. A cena identifica a release real mais rec
 | `W_C_A_API.prj.xml` | `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/tasks-send/W_C_A_API.prj.xml` |
 
 Os downloads usam os assets da própria release detectada. Cada arquivo é baixado primeiro com o sufixo `.update`, validado e movido para o destino final. Os binários recebem permissão `700`; o projeto precisa conter `<TaskerData`. Quando o tamanho do asset está disponível na API, ele também é conferido antes da substituição.
+
+Durante cada download, a cena consulta periodicamente o tamanho físico do arquivo `.update` e compara com `asset.size`. A interface mostra:
+
+- posição do arquivo na sequência, como `Arquivo 1 de 3`;
+- nome do arquivo atual;
+- barra de progresso;
+- quantidade baixada e tamanho total;
+- avanço numérico de 0 a 100.
+
+A barra utiliza bytes reais gravados no armazenamento. Dependendo de como o bridge do Tasker agenda chamadas simultâneas, o avanço pode ocorrer em saltos.
 
 A versão instalada é gravada em:
 
