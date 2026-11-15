@@ -1,10 +1,10 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.6**
-Arquivo: `atualizacoes-wca-1.6.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.7**
+Arquivo: `atualizacoes-wca-1.7.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
-Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação.
+Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação. Temporariamente, uma release cujo título seja exatamente `Teste` também é aceita, exibida como atualização de teste e executada no modo full.
 
 ## Modos
 
@@ -13,6 +13,7 @@ Painel de atualização direta do WCA. A cena identifica a release real mais rec
 | `[CORE]` | `core` | Baixa e substitui os dois binários; usa `type_project = project-api` |
 | `[UI]` | `ui` / projeto | Baixa `W_C_A_API.prj.xml`; usa `type_project = project-task` |
 | `[FULL]` | `full` | Atualiza os dois binários e baixa `W_C_A_API.prj.xml`; usa `type_project = project-full` |
+| `Teste` | `full` temporário | Mesmo fluxo full, apenas para validar releases de teste |
 
 ## Destinos
 

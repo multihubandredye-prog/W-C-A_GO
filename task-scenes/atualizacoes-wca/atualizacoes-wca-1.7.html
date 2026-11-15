@@ -310,7 +310,7 @@ h2 {
       </div>
     </div>
     <script>
-// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.6)
+// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.7)
 // A cena identifica a release real mais recente e executa a atualizacao sem
 // encaminhar para a cena de instalacao. CORE substitui os dois binarios; UI
 // baixa o projeto Tasker; FULL executa as duas etapas. Projeto e FULL publicam
@@ -336,10 +336,12 @@ const UPDATE_TASK_NAME = '006-CONFIGURAR_SISTEMA [wca]';
 const WCA_SCENE_SCREEN_ID = '1';
 const COUNTDOWN_SECONDS = 10;
 const PADRAO_TITULO_RELEASE = /\[\s*(ui|core|full)\s*\]/i;
+const PADRAO_TITULO_TESTE = /^\s*teste\s*$/i;
 
 let versaoLocal = '';
 let currentUpdateType = '';
 let currentUpdateVersion = '';
+let currentUpdateIsTest = false;
 let currentReleaseAssets = {};
 let updateRunning = false;
 let closeTimer = null;
@@ -474,7 +476,8 @@ async function obterUltimaReleaseReal(){
         for (let i = 0; i < lista.length; i++) {
             const titulo = String((lista[i] && lista[i].name) || '');
             const correspondencia = titulo.match(PADRAO_TITULO_RELEASE);
-            if (!correspondencia) continue;
+            const releaseTeste = PADRAO_TITULO_TESTE.test(titulo);
+            if (!correspondencia && !releaseTeste) continue;
             const tag = String((lista[i] && lista[i].tag_name) || '').trim().replace(/^[vV]/, '').trim();
             if (!/^\d[\d.]*$/.test(tag)) continue;
             const assets = {};
@@ -484,7 +487,7 @@ async function obterUltimaReleaseReal(){
                 const nomeAsset = String(item.name || '');
                 if (nomeAsset) assets[nomeAsset] = { url: String(item.browser_download_url || ''), size: Number(item.size || 0) };
             }
-            return { tag: tag, tipo: correspondencia[1].toLowerCase(), assets: assets };
+            return { tag: tag, tipo: releaseTeste ? 'full' : correspondencia[1].toLowerCase(), teste: releaseTeste, assets: assets };
         }
     } catch (e) {
     }
@@ -507,7 +510,8 @@ async function fetchChangelogData(){
     contentElement.textContent = 'Não foi possível carregar as novidades.';
 }
 
-function textoBadgeParaTipo(tipo, tag){
+function textoBadgeParaTipo(tipo, tag, teste){
+    if (teste) return 'ATUALIZAÇÃO DE TESTE • ' + tag;
     if (tipo === 'core') return 'ATUALIZAÇÃO DA API • ' + tag;
     if (tipo === 'ui') return 'ATUALIZAÇÃO DO TASKER • ' + tag;
     return 'ATUALIZAÇÃO COMPLETA • ' + tag;
@@ -519,14 +523,16 @@ async function checkReleaseUpdate(versionBadge, updateCard, noUpdateCard){
     if (temNova) {
         currentUpdateType = release.tipo;
         currentUpdateVersion = release.tag;
+        currentUpdateIsTest = release.teste === true;
         currentReleaseAssets = release.assets || {};
-        if (versionBadge) versionBadge.textContent = textoBadgeParaTipo(currentUpdateType, currentUpdateVersion);
+        if (versionBadge) versionBadge.textContent = textoBadgeParaTipo(currentUpdateType, currentUpdateVersion, currentUpdateIsTest);
         fetchChangelogData();
         if (updateCard) updateCard.style.display = 'block';
         if (noUpdateCard) noUpdateCard.style.display = 'none';
     } else {
         currentUpdateType = '';
         currentUpdateVersion = '';
+        currentUpdateIsTest = false;
         currentReleaseAssets = {};
         if (updateCard) updateCard.style.display = 'none';
         if (noUpdateCard) noUpdateCard.style.display = 'block';
