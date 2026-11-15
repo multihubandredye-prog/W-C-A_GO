@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>WCA YouTube Player</title>
+<style>
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#000}#player{position:fixed;inset:0;width:100%;height:100%;border:0;background:#000}.error{height:100%;display:flex;align-items:center;justify-content:center;padding:2rem;box-sizing:border-box;color:#ddd;font:16px Arial,sans-serif;text-align:center}
+</style>
+</head>
+<body>
+<script>
+(function(){
+var params=new URLSearchParams(location.search);
+var video=String(params.get('video')||'');
+var list=String(params.get('list')||'');
+if(!/^[A-Za-z0-9_-]{11}$/.test(video)){
+ document.body.innerHTML='<div class="error">Vídeo inválido.</div>';
+ return;
+}
+var query=new URLSearchParams({autoplay:'1',playsinline:'1',rel:'0',origin:location.origin,widget_referrer:location.href});
+if(/^[A-Za-z0-9_-]{10,80}$/.test(list)) query.set('list',list);
+var iframe=document.createElement('iframe');
+iframe.id='player';
+iframe.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(video)+'?'+query.toString();
+iframe.title='Vídeo tutorial WCA';
+iframe.referrerPolicy='strict-origin-when-cross-origin';
+iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+iframe.setAttribute('allowfullscreen','');
+document.body.appendChild(iframe);
+})();
+</script>
+</body>
+</html>

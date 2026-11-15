@@ -1197,6 +1197,14 @@ body {
 }
 .youtube-playlist-link { width: 100%; min-height: 4.4rem; margin-top: 1.4rem; border: .1rem solid var(--primary); border-radius: 1rem; background: linear-gradient(135deg, rgba(15,157,203,.22), rgba(181,251,42,.18)); color: var(--accent); font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 600; cursor: pointer; }
 .youtube-playlist-link:active { transform: scale(.98); background: rgba(181,251,42,.22); }
+body.video-aberto { overflow: hidden; }
+#videoPlayerModal { z-index: 12000; background: #000; align-items: stretch; justify-content: stretch; }
+#videoPlayerModal.show { display: flex; }
+.youtube-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 0; background: #000; }
+.youtube-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
+.youtube-player-container iframe { display: block; width: 100%; height: 100%; border: 0; background: #000; }
+.youtube-player-close { position: fixed; top: 1.2rem; right: 1.2rem; z-index: 12010; width: 4.4rem; height: 4.4rem; display: flex; align-items: center; justify-content: center; border: .1rem solid rgba(255,255,255,.45); border-radius: 50%; background: rgba(0,0,0,.78); color: #fff; font-size: 2.2rem; cursor: pointer; }
+.youtube-player-close:active { transform: scale(.94); background: rgba(255,77,77,.88); }
 .telegram-link { touch-action: manipulation; }
     </style>
 </head>
@@ -1816,10 +1824,18 @@ body {
         </div>
     </div>
 
+    <div id="videoPlayerModal" class="modal">
+        <div class="modal-content youtube-player-content">
+            <button id="videoPlayerClose" class="youtube-player-close" type="button" aria-label="Fechar vídeo"><i class="fas fa-times"></i></button>
+            <div id="youtubePlayerContainer" class="youtube-player-container"></div>
+        </div>
+    </div>
+
     <script>
 const YOUTUBE_PLAYLIST_ID = 'PLEgPa9Eoqrdc';
 const YOUTUBE_PLAYLIST_URL = 'https://www.youtube.com/playlist?list=' + YOUTUBE_PLAYLIST_ID;
 const YOUTUBE_PLAYLIST_FEED = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + YOUTUBE_PLAYLIST_ID;
+const YOUTUBE_PLAYER_WRAPPER = 'https://raw.githack.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/youtube-player.html';
 
 const LID_DESC = '<strong>true-false</strong> — Quando o número do usuário for um LID, defina o campo como <code>true</code>; caso contrário, defina-o como <code>false</code>. Esta distinção refere-se a números comuns em comparação com LIDs.';
 
@@ -2682,8 +2698,12 @@ const WCA_MODAL_STATE_VAR = 'cache_modal';
 const WCA_RETURN_MODAL_VAR = 'return_modal';
 
 function publicarModalAtual() {
-    const modal = document.getElementById('videoModal');
-    wcaSetVariable(WCA_MODAL_STATE_VAR, modal && modal.classList.contains('show') ? 'videoModal' : '');
+    const player = document.getElementById('videoPlayerModal');
+    const lista = document.getElementById('videoModal');
+    let atual = '';
+    if (player && player.classList.contains('show')) atual = 'videoPlayerModal';
+    else if (lista && lista.classList.contains('show')) atual = 'videoModal';
+    wcaSetVariable(WCA_MODAL_STATE_VAR, atual);
 }
 
 function abrirNoYoutube(url) {
@@ -2870,10 +2890,7 @@ function renderizarVideosYoutube(videos) {
         card.appendChild(thumb);
         card.appendChild(info);
         card.addEventListener('click', function () {
-            const destino = video.tipo === 'short'
-                ? 'https://www.youtube.com/shorts/' + encodeURIComponent(video.id) + '?list=' + encodeURIComponent(YOUTUBE_PLAYLIST_ID)
-                : 'https://www.youtube.com/watch?v=' + encodeURIComponent(video.id) + '&list=' + encodeURIComponent(YOUTUBE_PLAYLIST_ID);
-            abrirNoYoutube(destino);
+            openVideoPlayer(video);
         });
         lista.appendChild(card);
     });
@@ -2918,27 +2935,62 @@ async function openVideoModal() {
 }
 
 function closeVideoModal() {
+    if (document.getElementById('videoPlayerModal').classList.contains('show')) closeVideoPlayer();
     fecharModalComFoco(document.getElementById('videoModal'));
+    publicarModalAtual();
+}
+
+function openVideoPlayer(video) {
+    const modal = document.getElementById('videoPlayerModal');
+    const container = document.getElementById('youtubePlayerContainer');
+    container.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    const parametros = new URLSearchParams({ video: video.id, list: YOUTUBE_PLAYLIST_ID });
+    iframe.src = YOUTUBE_PLAYER_WRAPPER + '?' + parametros.toString();
+    iframe.title = video.titulo || 'Vídeo tutorial WCA';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+    iframe.setAttribute('allowfullscreen', '');
+    container.appendChild(iframe);
+    document.body.classList.add('video-aberto');
+    abrirModalComFoco(modal);
+    publicarModalAtual();
+}
+
+function closeVideoPlayer() {
+    const modal = document.getElementById('videoPlayerModal');
+    const container = document.getElementById('youtubePlayerContainer');
+    const iframe = container.querySelector('iframe');
+    if (iframe) iframe.src = 'about:blank';
+    container.innerHTML = '';
+    document.body.classList.remove('video-aberto');
+    fecharModalComFoco(modal);
     publicarModalAtual();
 }
 
 function iniciarVoltarV2() {
     publicarModalAtual();
+    const lista = document.getElementById('videoModal');
+    const player = document.getElementById('videoPlayerModal');
     try {
         if (window.Tasker && typeof Tasker.onVariableChanged === 'function') {
             Tasker.onVariableChanged(WCA_RETURN_MODAL_VAR, function (nome, valor) {
-                if (document.getElementById('videoModal').classList.contains('show')) closeVideoModal();
+                if (player.classList.contains('show')) closeVideoPlayer();
+                else if (lista.classList.contains('show')) closeVideoModal();
             });
         }
     } catch (erroVoltar) {}
-    const modal = document.getElementById('videoModal');
     const observador = new MutationObserver(function () { publicarModalAtual(); });
-    observador.observe(modal, { attributes: true, attributeFilter: ['class'] });
+    observador.observe(lista, { attributes: true, attributeFilter: ['class'] });
+    observador.observe(player, { attributes: true, attributeFilter: ['class'] });
     document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
+    document.getElementById('videoPlayerClose').addEventListener('click', closeVideoPlayer);
     document.getElementById('openFullPlaylist').addEventListener('click', function () { abrirNoYoutube(YOUTUBE_PLAYLIST_URL); });
-    modal.addEventListener('click', function (evento) { if (evento.target === modal) closeVideoModal(); });
+    lista.addEventListener('click', function (evento) { if (evento.target === lista) closeVideoModal(); });
     document.addEventListener('keydown', function (evento) {
-        if (evento.key === 'Escape' && modal.classList.contains('show')) closeVideoModal();
+        if (evento.key !== 'Escape') return;
+        if (player.classList.contains('show')) closeVideoPlayer();
+        else if (lista.classList.contains('show')) closeVideoModal();
     });
 }
 

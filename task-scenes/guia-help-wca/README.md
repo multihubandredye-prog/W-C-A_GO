@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.21**
-Arquivo: `guia-help-wca-1.21.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.22**
+Arquivo: `guia-help-wca-1.22.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -26,11 +26,12 @@ Arquivo: `guia-help-wca-1.21.html` — arquivo único, com HTML + CSS + JavaScri
 - Essa combinação preserva a ordem da página da playlist e inclui vídeos comuns, Shorts e itens não listados que estejam visíveis na playlist pública; o feed complementa data, título e identificação dos Shorts públicos;
 - As consultas priorizam `Tasker.httpRequest`, evitando o bloqueio CORS do WebView, e usam `fetch` somente como fallback;
 - Os vídeos aparecem em uma lista vertical compacta; cada linha mostra numeração ou indicação **SHORT**, miniatura pequena, título real e informação de publicação;
-- Tocar em uma linha abre o endereço adequado daquele conteúdo no YouTube: `/watch` para vídeo comum ou `/shorts` para Short;
-- O modal também possui o botão **ABRIR PLAYLIST COMPLETA NO YOUTUBE**;
-- O player incorporado não voltou: a reprodução continua no próprio YouTube, evitando o erro 153;
-- O botão voltar do Android fecha primeiro a lista e retorna ao Guia;
-- Não há dependência da pasta `wca-resources/media/videos-tutoriais`, arquivos de vídeo locais, iframe ou chave da YouTube Data API.
+- Tocar em uma linha abre o vídeo em tela cheia dentro do próprio WebView do Guia;
+- Para evitar o erro 153 das páginas locais, o Guia carrega um intermediário HTTPS mínimo hospedado pelo GitHack a partir de `wca-resources/youtube-player.html`; esse intermediário fornece a referência HTTP exigida pelo player incorporado do YouTube;
+- O player usa `youtube-nocookie.com`, mantém controles, tela cheia e suporte à playlist, sem sair para a página ou aplicativo do YouTube;
+- O modal também possui o botão **ABRIR PLAYLIST COMPLETA NO YOUTUBE** como alternativa externa;
+- O botão voltar do Android fecha primeiro o player e retorna à lista; um segundo voltar fecha a lista e retorna ao Guia;
+- Não há dependência da pasta `wca-resources/media/videos-tutoriais`, arquivos de vídeo locais ou chave da YouTube Data API.
 
 ## Telegram
 
