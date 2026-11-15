@@ -1,0 +1,3306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>VIP Access Manager V2</title>
+<style>
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --gold:       #D4A843;
+  --gold-light: #F0C96B;
+  --gold-dark:  #A07820;
+  --bg:         #0A0A0F;
+  --surface:    #12121A;
+  --surface2:   #1A1A28;
+  --surface3:   #20202F;
+  --border:     #2A2A3F;
+  --text:       #E8E8F0;
+  --muted:      #6B6B8A;
+  --success:    #2ECC71;
+  --warning:    #F39C12;
+  --danger:     #E74C3C;
+  --radius:     .75rem;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90vw 70vh at 10% 5%,  rgba(212,168,67,.08) 0%, transparent 55%),
+    radial-gradient(ellipse 70vw 60vh at 90% 90%, rgba(212,168,67,.06) 0%, transparent 55%),
+    radial-gradient(ellipse 50vw 40vh at 55% 45%, rgba(212,168,67,.03) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(212,168,67,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,67,.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+  animation: gridShift 20s linear infinite;
+}
+
+@keyframes gridShift {
+  100% {
+    background-position: 48px 48px;
+  }
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.06) 3px, rgba(0,0,0,.06) 4px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  background: var(--gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatUp var(--dur, 9s) var(--delay, 0s) ease-in-out infinite;
+}
+
+@keyframes floatUp {
+  0%   { transform: translateY(105vh); opacity: 0; }
+  10%  { opacity: .55; }
+  90%  { opacity: .2; }
+  100% { transform: translateY(-10vh) translateX(var(--drift, 40px)); opacity: 0; }
+}
+
+.login-screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.app-screen {
+  position: relative;
+  z-index: 1;
+}
+
+.login-scene {
+  width: 100%;
+  max-width: 28rem;
+  animation: sceneIn .9s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes sceneIn {
+  from { opacity: 0; transform: translateY(28px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.accent-bar {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-dark) 20%, var(--gold) 50%, var(--gold-dark) 80%, transparent);
+  border-radius: 2px 2px 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.accent-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+  animation: shimmer 2.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 1.25rem 1.25rem;
+  padding: 2.5rem 2.25rem 2.25rem;
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 4px 6px rgba(0,0,0,.3), 0 20px 60px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,168,67,.15), transparent);
+  pointer-events: none;
+}
+
+.login-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 130px;
+  height: 130px;
+  background: radial-gradient(circle at 100% 100%, rgba(212,168,67,.07) 0%, transparent 70%);
+  pointer-events: none;
+  border-radius: 0 0 1.25rem 0;
+}
+
+.corner-deco {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  opacity: .3;
+}
+.corner-deco.tl {
+  top: .75rem;
+  left: .75rem;
+  border-top: 1.5px solid var(--gold);
+  border-left:  1.5px solid var(--gold);
+}
+.corner-deco.tr {
+  top: .75rem;
+  right: .75rem;
+  border-top: 1.5px solid var(--gold);
+  border-right: 1.5px solid var(--gold);
+}
+.corner-deco.bl {
+  bottom: .75rem;
+  left: .75rem;
+  border-bottom: 1.5px solid var(--gold);
+  border-left:  1.5px solid var(--gold);
+}
+.corner-deco.br {
+  bottom: .75rem;
+  right: .75rem;
+  border-bottom: 1.5px solid var(--gold);
+  border-right: 1.5px solid var(--gold);
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .3rem .85rem;
+  background: rgba(212,168,67,.1);
+  border: 1px solid rgba(212,168,67,.25);
+  border-radius: 2rem;
+  font-size: .6rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1.1rem;
+  animation: fadeUp .6s .3s cubic-bezier(.16,1,.3,1) both;
+}
+
+.brand-badge-dot {
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.65); }
+}
+
+.brand-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -.02em;
+  animation: fadeUp .7s .35s cubic-bezier(.16,1,.3,1) both;
+}
+
+.brand-title span {
+  color: var(--gold);
+}
+
+.brand-sub {
+  margin-top: .5rem;
+  font-size: .72rem;
+  color: var(--muted);
+  letter-spacing: .05em;
+  animation: fadeUp .7s .42s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin-bottom: 1.75rem;
+  animation: fadeUp .5s .48s both;
+}
+
+.lfield {
+  margin-bottom: 1.25rem;
+  animation: slideField .6s cubic-bezier(.16,1,.3,1) both;
+}
+.lfield:nth-child(1) { animation-delay: .5s; }
+.lfield:nth-child(2) { animation-delay: .57s; }
+
+@keyframes slideField {
+  from { opacity: 0; transform: translateX(-14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.lfield-label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .6rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: .5rem;
+  transition: color .2s;
+}
+
+.lfield-label i {
+  font-size: .7rem;
+  opacity: .7;
+}
+.lfield:focus-within .lfield-label {
+  color: var(--gold);
+}
+
+.linput-wrap {
+  position: relative;
+}
+
+.linput-icon {
+  position: absolute;
+  left: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: .82rem;
+  pointer-events: none;
+  transition: color .2s;
+}
+
+.lfield:focus-within .linput-icon {
+  color: var(--gold);
+}
+
+.linput-wrap input[type="text"],
+.linput-wrap input[type="password"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .82rem 2.8rem .82rem 2.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .88rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .25s, box-shadow .25s, background .25s;
+  letter-spacing: .02em;
+}
+
+.linput-wrap input::placeholder {
+  color: var(--muted);
+  opacity: .6;
+}
+
+.linput-wrap input:focus {
+  border-color: var(--gold);
+  background: var(--surface3);
+  box-shadow: 0 0 0 3px rgba(212,168,67,.12), 0 2px 12px rgba(212,168,67,.08);
+}
+
+.toggle-pass {
+  position: absolute;
+  right: .9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .82rem;
+  padding: .25rem;
+  transition: color .2s;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-pass:active {
+  color: var(--text);
+}
+
+.focus-line {
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-dark));
+  transform: scaleX(0);
+  transition: transform .3s cubic-bezier(.16,1,.3,1);
+  border-radius: 0 0 var(--radius) var(--radius);
+  margin-top: -2px;
+}
+
+.lfield:focus-within .focus-line {
+  transform: scaleX(1);
+}
+
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  background: rgba(231,76,60,.1);
+  border: 1px solid rgba(231,76,60,.28);
+  border-radius: .5rem;
+  padding: 0 .9rem;
+  font-size: .75rem;
+  color: var(--danger);
+  margin-bottom: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .35s ease, opacity .3s ease, margin .3s ease, padding .3s ease;
+}
+
+.error-box.show {
+  max-height: 4rem;
+  opacity: 1;
+  padding: .65rem .9rem;
+  margin-bottom: 1.1rem;
+}
+.error-box i {
+  flex-shrink: 0;
+  font-size: .85rem;
+}
+
+.remember-row {
+  margin-bottom: 1.1rem;
+  animation: slideField .6s .62s cubic-bezier(.16,1,.3,1) both;
+}
+
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: .78rem;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color .2s;
+}
+
+.remember-label:active {
+  color: var(--text);
+}
+.remember-check-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.remember-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.remember-box {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1.5px solid var(--border);
+  border-radius: .3rem;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s, border-color .2s;
+}
+
+.remember-input:checked ~ .remember-box {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.remember-tick {
+  font-size: .6rem;
+  color: #0A0A0F;
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity .15s, transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+
+.remember-input:checked ~ .remember-box .remember-tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: .9rem 1.5rem;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: #0A0A0F;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Syne', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: block;
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+  animation: slideField .6s .65s cubic-bezier(.16,1,.3,1) both;
+}
+
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  opacity: 0;
+  transition: opacity .25s;
+}
+
+.btn-submit:active:not(:disabled)::before {
+  opacity: 1;
+}
+.btn-submit:active:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212,168,67,.35);
+}
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.btn-submit:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.btn-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-height: 1.3rem;
+  line-height: 1.3rem;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  transform: scale(0);
+  animation: rippleOut .55s ease-out;
+  pointer-events: none;
+}
+
+@keyframes rippleOut {
+  to { transform: scale(4); opacity: 0; }
+}
+
+.login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: .65rem;
+  color: var(--muted);
+  letter-spacing: .05em;
+  animation: slideField .6s .72s cubic-bezier(.16,1,.3,1) both;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+}
+
+.login-footer::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border));
+}
+.login-footer::after  {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.success-state {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  border-radius: 0 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s ease;
+  z-index: 150;
+}
+
+.success-state.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.success-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: rgba(46,204,113,.12);
+  border: 1.5px solid rgba(46,204,113,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--success);
+  font-size: 1.4rem;
+  animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.success-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+}
+.success-sub   {
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+.version-tag {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.5rem;
+  font-size: .58rem;
+  color: var(--border);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+  font-size: .65rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: .35rem;
+}
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+h1 span {
+  color: var(--gold);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .6rem 1.2rem;
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all .2s ease;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: #0A0A0F;
+}
+.btn-primary:active {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+}
+.btn-primary:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.btn-danger {
+  background: rgba(231,76,60,.15);
+  color: var(--danger);
+  border: 1px solid rgba(231,76,60,.3);
+}
+.btn-danger:active {
+  background: rgba(231,76,60,.25);
+}
+.btn-danger:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.btn-warning {
+  background: rgba(243,156,18,.13);
+  color: var(--warning);
+  border: 1px solid rgba(243,156,18,.32);
+}
+.btn-warning:active {
+  background: rgba(243,156,18,.24);
+}
+.btn-warning:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: .4rem .85rem;
+  font-size: .72rem;
+}
+
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--gold);
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.stat-card:active {
+  border-color: var(--gold);
+}
+.stat-card:active::before {
+  opacity: 1;
+}
+
+.stat-label {
+  font-size: .62rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: .4rem;
+}
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.stat-value.gold    { color: var(--gold); }
+.stat-value.success { color: var(--success); }
+.stat-value.danger  { color: var(--danger); }
+.stat-value.warning { color: var(--warning); }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 12rem;
+}
+.search-wrap svg {
+  position: absolute;
+  left: .85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .65rem 1rem .65rem 2.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .82rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+.search-input:focus {
+  border-color: var(--gold);
+}
+
+.filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .6rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: .78rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.filter-trigger:active, .filter-trigger.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.filter-badge {
+  background: var(--gold);
+  color: #0A0A0F;
+  font-size: .58rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: .1rem .4rem;
+  display: none;
+}
+
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead tr {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  padding: .85rem 1.1rem;
+  text-align: left;
+  font-size: .62rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+  cursor: pointer;
+  position: relative;
+}
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+.data-table tbody tr:active {
+  background: var(--surface2);
+}
+
+.data-table td {
+  padding: .95rem 1.1rem;
+  font-size: .82rem;
+  vertical-align: middle;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.avatar {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #0A0A0F;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.user-name  {
+  font-weight: 500;
+}
+.phone-mono {
+  font-size: .8rem;
+  color: var(--muted);
+  letter-spacing: .05em;
+}
+.date-text  {
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.days-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .65rem;
+  border-radius: 2rem;
+  font-size: .72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.days-badge.active  {
+  background: rgba(46,204,113,.12);
+  color: var(--success);
+  border: 1px solid rgba(46,204,113,.25);
+}
+.days-badge.warning {
+  background: rgba(243,156,18,.12);
+  color: var(--warning);
+  border: 1px solid rgba(243,156,18,.25);
+}
+.days-badge.expired {
+  background: rgba(231,76,60,.12);
+  color: var(--danger);
+  border: 1px solid rgba(231,76,60,.25);
+}
+.days-badge.today {
+  background: rgba(212,168,67,.12);
+  color: var(--gold);
+  border: 1px solid rgba(212,168,67,.25);
+}
+.days-badge.pending,
+.days-badge.pending_renewal {
+  background: rgba(243,156,18,.12);
+  color: var(--warning);
+  border: 1px solid rgba(243,156,18,.25);
+}
+.days-badge.cancelled,
+.days-badge.muted {
+  background: rgba(107,107,138,.12);
+  color: var(--muted);
+  border: 1px solid rgba(107,107,138,.25);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .25rem .6rem;
+  border-radius: 2rem;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.status-pill::before {
+  content: '';
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-pill.active  {
+  color: var(--success);
+  background: rgba(46,204,113,.1);
+}
+.status-pill.expired {
+  color: var(--danger);
+  background: rgba(231,76,60,.1);
+}
+.status-pill.pending {
+  color: var(--warning);
+  background: rgba(243,156,18,.1);
+}
+.status-pill.cancelled,
+.status-pill.muted {
+  color: var(--muted);
+  background: rgba(107,107,138,.1);
+}
+
+.progress-wrap {
+  width: 7rem;
+}
+.progress-bar-bg {
+  background: var(--surface2);
+  border-radius: 2rem;
+  height: .3rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 2rem;
+  transition: width .4s ease;
+}
+.action-cell {
+  display: flex;
+  gap: .4rem;
+}
+
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1rem;
+  gap: 1rem;
+  text-align: center;
+}
+
+.state-icon  {
+  font-size: 2.5rem;
+  opacity: .4;
+}
+.state-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  opacity: .6;
+}
+.state-sub   {
+  font-size: .78rem;
+  color: var(--muted);
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+.spinner-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+.btn-submit .spinner-sm {
+  border-top-color: #0A0A0F;
+  border-color: rgba(10,10,15,.3);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.mobile-cards {
+  display: none;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.card-header  {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.card-row     {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .78rem;
+}
+.card-label   {
+  font-size: .62rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.card-actions {
+  display: flex;
+  gap: .5rem;
+  padding-top: .25rem;
+  flex-wrap: wrap;
+}
+
+.user-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  animation: fadeUp .3s ease both;
+  cursor: pointer;
+  position: relative;
+  border: none;
+}
+
+.user-card::after {
+  content: '';
+  position: absolute;
+  inset: 1.5px;
+  border-radius: calc(var(--radius) - 1px);
+  background: var(--surface);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.user-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: conic-gradient(from var(--g-spin-angle, 0deg), transparent 0deg, var(--sc, #2A2A3F) 50deg, transparent 110deg);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.user-card:not(.status-active):not(.status-warning):not(.status-today):not(.status-expired):not(.status-pending):not(.status-pending_renewal):not(.status-cancelled):not(.status-muted)::before {
+  background: conic-gradient(var(--border) 0deg, var(--border) 360deg);
+}
+
+.user-card.status-active    { --sc: #2ECC71; }
+.user-card.status-warning   { --sc: #F39C12; }
+.user-card.status-today     { --sc: #D4A843; }
+.user-card.status-expired   { --sc: #E74C3C; }
+.user-card.status-pending   { --sc: #F39C12; }
+.user-card.status-pending_renewal { --sc: #F39C12; }
+.user-card.status-cancelled { --sc: #6B6B8A; }
+.user-card.status-muted     { --sc: #6B6B8A; }
+
+.user-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.data-table tbody tr.status-active    { box-shadow: inset 3px 0 0 #2ECC71; }
+.data-table tbody tr.status-warning   { box-shadow: inset 3px 0 0 #F39C12; }
+.data-table tbody tr.status-today     { box-shadow: inset 3px 0 0 #D4A843; }
+.data-table tbody tr.status-expired   { box-shadow: inset 3px 0 0 #E74C3C; }
+.data-table tbody tr.status-pending   { box-shadow: inset 3px 0 0 #F39C12; }
+.data-table tbody tr.status-pending_renewal { box-shadow: inset 3px 0 0 #F39C12; }
+.data-table tbody tr.status-cancelled { box-shadow: inset 3px 0 0 #6B6B8A; }
+.data-table tbody tr.status-muted     { box-shadow: inset 3px 0 0 #6B6B8A; }
+
+.data-table tbody tr.status-active::after,
+.data-table tbody tr.status-warning::after,
+.data-table tbody tr.status-today::after,
+.data-table tbody tr.status-expired::after,
+.data-table tbody tr.status-pending::after,
+.data-table tbody tr.status-pending_renewal::after,
+.data-table tbody tr.status-cancelled::after,
+.data-table tbody tr.status-muted::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  animation: rowGlow 2.5s ease-in-out infinite;
+}
+
+.data-table tbody tr.status-active::after    { background: #2ECC71; }
+.data-table tbody tr.status-warning::after   { background: #F39C12; }
+.data-table tbody tr.status-today::after     { background: #D4A843; }
+.data-table tbody tr.status-expired::after   { background: #E74C3C; }
+.data-table tbody tr.status-pending::after   { background: #F39C12; }
+.data-table tbody tr.status-pending_renewal::after { background: #F39C12; }
+.data-table tbody tr.status-cancelled::after { background: #6B6B8A; }
+.data-table tbody tr.status-muted::after     { background: #6B6B8A; }
+
+@keyframes rowGlow {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; filter: blur(.5px) brightness(1.4); }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+
+.overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transform: translateY(1.5rem) scale(.97);
+  transition: transform .25s ease;
+  box-shadow: 0 2rem 4rem rgba(0,0,0,.6);
+}
+
+.overlay.open .modal {
+  transform: translateY(0) scale(1);
+}
+.modal-sm {
+  max-width: 22rem;
+}
+.modal-lg {
+  max-width: 58rem;
+  max-height: 88vh;
+}
+.detail-modal {
+  overflow: hidden;
+}
+
+.modal-header  {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title   {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.modal-title span {
+  color: var(--gold);
+}
+.modal-close   {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: .25rem;
+  border-radius: .4rem;
+  transition: color .2s;
+  display: flex;
+}
+.modal-close:active {
+  color: var(--text);
+}
+.modal-divider {
+  height: 1px;
+  background: var(--border);
+  margin: -.25rem 0;
+}
+.modal-actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: flex-end;
+  margin-top: .25rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.field-label {
+  font-size: .65rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .65rem .9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: .84rem;
+  color: var(--text);
+  outline: none;
+  width: 100%;
+  transition: border-color .2s;
+}
+
+.field-input:focus {
+  border-color: var(--gold);
+}
+.field-input::placeholder {
+  color: var(--muted);
+}
+.field-input[type="date"] {
+  color-scheme: dark;
+}
+
+.phone-error {
+  font-size: .72rem;
+  color: var(--danger);
+  min-height: 1rem;
+  display: block;
+  margin-top: .15rem;
+  transition: opacity .2s;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .7rem .9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .2s;
+  font-size: .82rem;
+  user-select: none;
+}
+
+.filter-option:active    {
+  border-color: var(--gold);
+  background: rgba(212,168,67,.04);
+}
+.filter-option.selected {
+  border-color: var(--gold);
+  background: rgba(212,168,67,.08);
+  color: var(--gold);
+}
+.filter-option-left     {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.filter-dot             {
+  width: .55rem;
+  height: .55rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.filter-check           {
+  opacity: 0;
+  transition: opacity .15s;
+  flex-shrink: 0;
+}
+.filter-option.selected .filter-check {
+  opacity: 1;
+}
+
+.confirm-body {
+  font-size: .84rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.confirm-body strong {
+  color: var(--text);
+}
+
+
+.detail-content {
+  overflow: auto;
+  padding-right: .25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.detail-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+.detail-user {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+}
+.detail-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.detail-phone {
+  color: var(--muted);
+  font-size: .78rem;
+  margin-top: .15rem;
+}
+.detail-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: .75rem;
+}
+.detail-kpi,
+.detail-section {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.detail-kpi {
+  padding: .9rem;
+}
+.detail-kpi-label,
+.detail-label {
+  color: var(--muted);
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.detail-kpi-value {
+  margin-top: .35rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--text);
+}
+.detail-section {
+  padding: 1rem;
+}
+.detail-section-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  margin-bottom: .85rem;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .75rem;
+}
+.detail-item {
+  background: rgba(0,0,0,.12);
+  border: 1px solid rgba(255,255,255,.04);
+  border-radius: .6rem;
+  padding: .75rem;
+  min-width: 0;
+}
+.detail-value {
+  margin-top: .35rem;
+  color: var(--text);
+  font-size: .8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.payment-list {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+.payment-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .75rem;
+  align-items: start;
+  background: rgba(0,0,0,.14);
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  padding: .8rem;
+}
+.payment-index {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: rgba(212,168,67,.14);
+  border: 1px solid rgba(212,168,67,.28);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: .75rem;
+}
+.payment-title {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+  font-size: .82rem;
+}
+.payment-meta {
+  margin-top: .35rem;
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.55;
+}
+.detail-header {
+  justify-content: flex-start;
+  gap: .75rem;
+}
+.detail-header .modal-title {
+  flex: 1;
+}
+.detail-back {
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: .65rem;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.detail-back:active {
+  border-color: var(--gold);
+  background: rgba(212,168,67,.08);
+}
+.detail-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  align-items: stretch;
+}
+.detail-actions .btn {
+  width: 100%;
+  min-height: 2.55rem;
+  justify-content: center;
+  white-space: nowrap;
+}
+@media (max-width: 680px) {
+  .detail-actions {
+    grid-template-columns: 1fr;
+  }
+  .payment-item {
+    grid-template-columns: 1fr;
+  }
+}
+
+#toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .75rem 1.1rem;
+  font-size: .8rem;
+  color: var(--text);
+  z-index: 999;
+  transform: translateY(5rem);
+  opacity: 0;
+  transition: all .3s ease;
+  max-width: 20rem;
+  box-shadow: 0 1rem 2rem rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+#toast.show    { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: var(--success); }
+#toast.error   { border-color: var(--danger); }
+#toast.info    { border-color: var(--gold); }
+
+@keyframes shake {
+  10%, 90%      { transform: translateX(-2px); }
+  20%, 80%      { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-5px); }
+  40%, 60%      { transform: translateX(5px); }
+  100%          { transform: translateX(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 48rem) {
+  .table-wrap { display: none; }
+  .mobile-cards { display: flex; }
+}
+@media (max-width: 36rem) {
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .login-card { padding: 2rem 1.5rem 1.75rem; }
+  .brand-title { font-size: 1.65rem; }
+}
+
+.progress-bar-fill{width:calc(var(--progress,0) * 1%)}
+.request-sequence{display:block;color:var(--warning);font-size:.63rem;margin-top:.2rem;font-weight:600}
+.request-actions{flex-wrap:wrap}.request-actions .btn{white-space:nowrap}
+.status-rejected,.status-duplicate{opacity:.72}
+.status-pill.rejected{color:var(--danger)}.status-pill.duplicate{color:var(--muted)}
+
+</style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    <div class="scanlines"></div>
+    <div class="particles" id="particles"></div>
+
+    <div id="appScreen" class="app-screen">
+        <div class="wrapper">
+            <header>
+                <div>
+                    <p class="eyebrow">Gestão de Acessos</p>
+                    <h1>VIP Access <span>Manager</span></h1>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-ghost" id="refreshBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        Atualizar
+                    </button>
+                    <button class="btn btn-ghost" id="exportBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Exportar
+                    </button>
+                    <button class="btn btn-primary" id="addBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Novo usuário
+                    </button>
+                </div>
+            </header>
+
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <p class="stat-label">Total VIPs</p>
+                    <p class="stat-value gold" id="statTotal">—</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Ativos</p>
+                    <p class="stat-value success" id="statActive">—</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Vencidos</p>
+                    <p class="stat-value danger" id="statExpired">—</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Vencem hoje</p>
+                    <p class="stat-value gold" id="statToday">—</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Pendentes</p>
+                    <p class="stat-value warning" id="statPending">—</p>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nome ou número…"/>
+                </div>
+                <button class="filter-trigger" id="filterTrigger">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    Filtrar <span class="filter-badge" id="filterBadge">1</span>
+                </button>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Telefone</th>
+                            <th>Vencimento</th>
+                            <th>Dias restantes</th>
+                            <th>Progresso</th>
+                            <th>Status</th>
+                            <th>Adicionado em</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="mobile-cards" id="mobileCards"></div>
+        </div>
+
+        <div class="overlay" id="filterOverlay">
+            <div class="modal modal-sm">
+                <div class="modal-header">
+                    <p class="modal-title">Filtrar <span>Status</span></p>
+                    <button class="modal-close" id="filterClose">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-divider"></div>
+                <div class="filter-options" id="filterOptions"></div>
+            </div>
+        </div>
+
+        <div class="overlay" id="userOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <p class="modal-title" id="userModalTitle">Novo <span>VIP</span></p>
+                    <button class="modal-close" id="userClose">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-divider"></div>
+                <div class="field-group">
+                    <label class="field-label">Nome completo</label>
+                    <input type="text" class="field-input" id="fieldName" placeholder="Ex: João Silva"/>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Telefone</label>
+                    <input type="text" class="field-input" id="fieldPhone" placeholder="Ex: 558199999999" inputmode="numeric" pattern="[0-9]*" maxlength="13"/>
+                    <span class="phone-error" id="phoneError"></span>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Data de vencimento</label>
+                    <input type="date" class="field-input" id="fieldExpiry"/>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" id="userCancel">Cancelar</button>
+                    <button class="btn btn-primary" id="userSave">Criar usuário</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="overlay" id="detailOverlay">
+            <div class="modal modal-lg detail-modal">
+                <div class="modal-header detail-header">
+                    <button class="modal-close detail-back" id="detailClose" aria-label="Voltar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5"/>
+                            <path d="M12 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <p class="modal-title" id="detailTitle">Detalhes do <span>Usuário</span></p>
+                </div>
+                <div class="modal-divider"></div>
+                <div class="detail-content" id="detailContent"></div>
+                <div class="modal-actions detail-actions">
+                    <button class="btn btn-ghost" id="detailEdit">Editar</button>
+                    <button class="btn btn-warning" id="detailCancelSub">Cancelar assinatura</button>
+                    <button class="btn btn-danger" id="detailDelete">Remover definitivo</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="overlay" id="confirmOverlay">
+            <div class="modal modal-sm">
+                <div class="modal-header">
+                    <p class="modal-title" id="confirmTitle">Remover <span>VIP</span></p>
+                    <button class="modal-close" id="confirmClose">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-divider"></div>
+                <p class="confirm-body" id="confirmBody"></p>
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" id="confirmCancel">Cancelar</button>
+                    <button class="btn btn-danger" id="confirmOk">Remover</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast"></div>
+    </div>
+
+    <script>
+/* ========================= CONFIG v1.9 ========================= */
+const CONFIG = {
+  VERSION: '1.10',
+
+  // API administrativa do repositório VERCEL-API.
+  // Endpoints usados:
+  // - POST /api/premium/activate  -> adicionar/renovar/editar VIP
+  // - POST /api/premium/delete    -> remover VIP definitivamente
+  // - POST /api/premium/cancel    -> cancelar assinatura sem apagar histórico
+  // - GET  /api/premium/user      -> consultar um VIP específico com dados completos
+  ADMIN_API_BASE_URL: 'https://wca-api-three-alpha.vercel.app',
+  ADMIN_API_KEY: '9Gk3vQf2XbR7sY1mT8pZc4LwH6nD0Ju',
+  PANEL_SOURCE: 'vip-access-manager',
+
+  // Usado somente para carregar a lista completa, porque o repositório atual expõe
+  // /api/premium/pending, /activate, /delete e /user, mas não expõe /list geral.
+  // Sem token Firebase, leitura local ou gravação local.
+  FIRESTORE: {
+    API_KEY: 'AIzaSyBFvVxQLOX2eoKo6DXA5om3ErkX0aZ-5qA',
+    USERS_COLLECTION_BASE: 'https://firestore.googleapis.com/v1/projects/projects-general-fed41/databases/(default)/documents/users'
+  }
+};
+
+function isAdmin() {
+  return true;
+}
+
+function normalizePhone(raw) {
+  return String(raw || '').replace(/\D/g, '');
+}
+
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/* ========================= Particles / UI effects ========================= */
+(function spawnParticles() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 2.5 + 1;
+    p.style.left = String(Math.random() * window.innerWidth) + 'px';
+    p.style.width = String(size) + 'px';
+    p.style.height = String(size) + 'px';
+    p.style.setProperty('--dur', String(6 + Math.random() * 10) + 's');
+    p.style.setProperty('--delay', String(Math.random() * 14) + 's');
+    p.style.setProperty('--drift', String((Math.random() - .5) * 100) + 'px');
+    container.appendChild(p);
+  }
+})();
+
+let _spinAngle = 0;
+(function spinLoop() {
+  _spinAngle += 0.55;
+  if (_spinAngle >= 360) _spinAngle -= 360;
+  document.documentElement.style.setProperty('--g-spin-angle', _spinAngle + 'deg');
+  requestAnimationFrame(spinLoop);
+})();
+
+/* ========================= MAIN APP - automático ========================= */
+function initApp() {
+  const API_BASE = CONFIG.ADMIN_API_BASE_URL.replace(/\/$/, '');
+  const ADMIN_KEY = CONFIG.ADMIN_API_KEY;
+  const FIRESTORE_LIST_URL = `${CONFIG.FIRESTORE.USERS_COLLECTION_BASE}?key=${encodeURIComponent(CONFIG.FIRESTORE.API_KEY)}`;
+  let allUsers = [], activeFilter = 'all', editingId = null, selectedDetailId = null, confirmAction = null, confirmId = null;
+
+  const addBtn = document.getElementById('addBtn');
+  addBtn.style.display = 'inline-flex';
+
+  const FILTERS = [
+    { value: 'all', label: 'Todos', color: 'var(--muted)' },
+    { value: 'active', label: 'Ativos', color: 'var(--success)' },
+    { value: 'pending', label: 'Pendentes', color: 'var(--warning)' },
+    { value: 'warning', label: 'Próximos do vencimento', color: 'var(--warning)' },
+    { value: 'today', label: 'Vencem hoje', color: 'var(--gold)' },
+    { value: 'expired', label: 'Vencidos', color: 'var(--danger)' },
+    { value: 'cancelled', label: 'Cancelados', color: 'var(--muted)' },
+    { value: 'rejected', label: 'Solicitações rejeitadas', color: 'var(--danger)' },
+    { value: 'duplicate', label: 'Solicitações duplicadas', color: 'var(--muted)' },
+    { value: 'muted', label: 'Sem vencimento', color: 'var(--muted)' },
+  ];
+
+  async function adminApi(path, options = {}) {
+    const method = options.method || 'GET';
+    const headers = {
+      'x-admin-key': ADMIN_KEY,
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      cache: 'no-store'
+    });
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (_) { data = { raw: text }; }
+    if (!res.ok || data?.success === false) {
+      const err = new Error(data?.error || data?.message || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  async function setPanelSource(phone) {
+    const normalized = normalizePhone(phone);
+    if (!normalized) return;
+    const url = `${CONFIG.FIRESTORE.USERS_COLLECTION_BASE}/${normalized}?key=${encodeURIComponent(CONFIG.FIRESTORE.API_KEY)}&updateMask.fieldPaths=source`;
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          source: { stringValue: CONFIG.PANEL_SOURCE }
+        }
+      })
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || data?.error) {
+      throw new Error(data?.error?.message || `Falha ao gravar origem HTTP ${res.status}`);
+    }
+  }
+
+  function maskPhone(phone) {
+    const p = normalizePhone(phone);
+    if (p.length <= 4) return p;
+    return `${p.slice(0, 4)}${'*'.repeat(Math.max(3, p.length - 8))}${p.slice(-4)}`;
+  }
+
+  async function patchFirestoreUserDoc(documentId, payload, deleteFields = []) {
+    const id = String(documentId || '').trim();
+    if (!id) throw new Error('Documento do usuário não encontrado para edição.');
+    const maskList = Array.from(new Set([...Object.keys(payload || {}), ...deleteFields]));
+    const masks = maskList.map(k => `updateMask.fieldPaths=${encodeURIComponent(k)}`).join('&');
+    const url = `${CONFIG.FIRESTORE.USERS_COLLECTION_BASE}/${encodeURIComponent(id)}?key=${encodeURIComponent(CONFIG.FIRESTORE.API_KEY)}${masks ? '&' + masks : ''}`;
+    const fields = {};
+    Object.keys(payload || {}).forEach(k => { fields[k] = toFirestoreValue(payload[k]); });
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || data?.error) {
+      throw new Error(data?.error?.message || `Falha ao editar usuário HTTP ${res.status}`);
+    }
+    return data;
+  }
+
+  async function deleteFirestoreUserDoc(documentId) {
+    const id = String(documentId || '').trim();
+    if (!id) throw new Error('Documento do usuário não encontrado para remoção.');
+    const url = `${CONFIG.FIRESTORE.USERS_COLLECTION_BASE}/${encodeURIComponent(id)}?key=${encodeURIComponent(CONFIG.FIRESTORE.API_KEY)}`;
+    const res = await fetch(url, { method: 'DELETE' });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || data?.error) {
+      throw new Error(data?.error?.message || `Falha ao remover usuário HTTP ${res.status}`);
+    }
+    return data;
+  }
+
+  function fromFirestoreValue(v) {
+    if (!v) return undefined;
+    if ('stringValue' in v) return v.stringValue;
+    if ('integerValue' in v) return Number(v.integerValue);
+    if ('doubleValue' in v) return Number(v.doubleValue);
+    if ('booleanValue' in v) return v.booleanValue;
+    if ('timestampValue' in v) return v.timestampValue;
+    if ('arrayValue' in v) return (v.arrayValue.values || []).map(fromFirestoreValue);
+    if ('mapValue' in v) return fromFirestoreFields(v.mapValue.fields || {});
+    return undefined;
+  }
+
+  function fromFirestoreFields(fields) {
+    const out = {};
+    Object.keys(fields || {}).forEach(k => { out[k] = fromFirestoreValue(fields[k]); });
+    return out;
+  }
+
+  function toFirestoreValue(value) {
+    if (typeof value === 'boolean') return { booleanValue: value };
+    if (typeof value === 'number' && Number.isInteger(value)) return { integerValue: String(value) };
+    if (typeof value === 'number') return { doubleValue: value };
+    if (Array.isArray(value)) return { arrayValue: { values: value.map(toFirestoreValue) } };
+    if (value && typeof value === 'object') {
+      const fields = {};
+      Object.keys(value).forEach(k => { fields[k] = toFirestoreValue(value[k]); });
+      return { mapValue: { fields } };
+    }
+    return { stringValue: String(value == null ? '' : value) };
+  }
+
+  function apiUserToDoc(user) {
+    const payload = user?.user || user || {};
+    const phone = normalizePhone(payload.phone || payload.telefone || '');
+    const fields = {};
+    Object.keys(payload).forEach(k => { fields[k] = toFirestoreValue(payload[k]); });
+    if (phone && !fields.phone) fields.phone = { stringValue: phone };
+    return {
+      name: `${CONFIG.FIRESTORE.USERS_COLLECTION_BASE}/${phone || Date.now()}`,
+      fields
+    };
+  }
+
+  function normalizeDate(value) {
+    const s = String(value || '').trim();
+    if (!s) return '';
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : s;
+  }
+
+  function todayYmd() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function isFutureOrTodayYmd(ymd) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(ymd || '')) && String(ymd) >= todayYmd();
+  }
+
+  function addMonthsYmd(ymd, months) {
+    const [y, m, d] = String(ymd || todayYmd()).split('-').map(Number);
+    const date = new Date(y, (m || 1) - 1, d || 1);
+    date.setMonth(date.getMonth() + Number(months || 1));
+    const yy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  function daysBetweenYmd(startYmd, endYmd) {
+    if (!startYmd || !endYmd) return 0;
+    const start = new Date(`${startYmd}T00:00:00`);
+    const end = new Date(`${endYmd}T00:00:00`);
+    if (isNaN(start) || isNaN(end)) return 0;
+    return Math.round((end - start) / 86400000);
+  }
+
+  function pendingRequestOf(user) {
+    const raw = user?.raw || user || {};
+    const pending = raw.pendingRequest || user?.pendingRequest || null;
+    if (pending && String(pending.status || '').toLowerCase() === 'pending_activation') return pending;
+    return null;
+  }
+
+  function requestDataOf(user) {
+    return pendingRequestOf(user) || user?.raw || user || {};
+  }
+
+  function hasPendingRequest(user) {
+    return Boolean(pendingRequestOf(user));
+  }
+
+  function requestedMonthsOf(user) {
+    const req = requestDataOf(user);
+    const raw = user?.raw || user || {};
+    const n = Number(req.requestedMonths || req.months || req.meses || raw.requestedMonths || user?.requestedMonths);
+    if (Number.isFinite(n) && n > 0) return Math.round(n);
+    const plan = String(req.requestedPlan || req.plan || raw.requestedPlan || raw.plan || '').toLowerCase();
+    if (plan.includes('ano') || plan.includes('12')) return 12;
+    if (plan.includes('6')) return 6;
+    if (plan.includes('3')) return 3;
+    if (plan.includes('1')) return 1;
+    return 0;
+  }
+
+  function requestedAmountOf(user) {
+    const req = requestDataOf(user);
+    const raw = user?.raw || user || {};
+    return req.requestedAmount || req.amount || req.valor || raw.requestedAmount || user?.requestedAmount || '';
+  }
+
+  function requestedPlanOf(user) {
+    const req = requestDataOf(user);
+    const raw = user?.raw || user || {};
+    return req.requestedPlan || req.plan || req.plano || raw.requestedPlan || user?.requestedPlan || raw.plan || raw.plano || '';
+  }
+
+  function activationBaseDate(user) {
+    // Se o usuário ainda está premium e pediu renovação antecipada,
+    // a renovação começa no vencimento atual, não em hoje.
+    return isFutureOrTodayYmd(user?.expiry) ? user.expiry : todayYmd();
+  }
+
+  function renewalSourceFor(requestUser) {
+    if (!requestUser || !isRequestPending(requestUser)) return requestUser;
+    const key = customerKey(requestUser);
+    const active = allUsers
+      .filter(user => user.id !== requestUser.id && customerKey(user) === key && isActivePlanType(getDaysInfo(user).type))
+      .sort((a, b) => String(b.expiry || '').localeCompare(String(a.expiry || '')))[0];
+    if (!active) return requestUser;
+    return {
+      ...active,
+      requestedPlan: requestedPlanOf(requestUser),
+      requestedMonths: requestedMonthsOf(requestUser),
+      requestedAmount: requestedAmountOf(requestUser),
+      pendingRequest: pendingRequestOf(requestUser) || requestUser.raw,
+      requestDocumentId: requestUser.baseDocumentId || requestUser.id,
+      requestId: requestUser.requestId || '',
+      baseDocumentId: requestUser.baseDocumentId || requestUser.id,
+      baseStatus: requestUser.baseStatus || active.status,
+      raw: { ...active.raw, pendingRequest: pendingRequestOf(requestUser) || requestUser.raw }
+    };
+  }
+
+  function defaultActivationExpiry(user) {
+    if (!user) return '';
+    const months = requestedMonthsOf(user);
+    if (months > 0 && (!isActivePlanType(getDaysInfo(user).type) || hasPendingRequest(user))) {
+      return addMonthsYmd(activationBaseDate(user), months);
+    }
+    return user.expiry || (months > 0 ? addMonthsYmd(todayYmd(), months) : '');
+  }
+
+  function normalizeUser(raw = {}) {
+    const id = String(raw.id || raw.docId || raw.documentId || raw.phone || '').trim();
+    const idLooksLikeHash = /^[a-f0-9]{40,}$/i.test(id);
+    const phone = normalizePhone(raw.phone || raw.telefone || raw.whatsapp || (!idLooksLikeHash && normalizePhone(id).length >= 8 ? id : ''));
+    const status = String(raw.status || '').toLowerCase();
+    const expiry = normalizeDate(raw.project_expiration || raw.expiration || raw.expiracao || raw.expiry || '');
+    return {
+      id: id || phone,
+      name: raw.name || raw.nome || raw.displayName || '',
+      phone,
+      expiry,
+      vip: raw.vip === true || status === 'premium',
+      status,
+      requestedPlan: raw.requestedPlan || raw.plan || raw.plano || '',
+      requestedMonths: raw.requestedMonths || raw.months || raw.meses || '',
+      requestedAmount: raw.requestedAmount || raw.amount || raw.valor || '',
+      pendingRequest: raw.pendingRequest && typeof raw.pendingRequest === 'object' ? raw.pendingRequest : null,
+      pendingRequests: Array.isArray(raw.pendingRequests) ? raw.pendingRequests : [],
+      requestId: raw.requestId || '',
+      baseDocumentId: raw.baseDocumentId || '',
+      baseStatus: raw.baseStatus || status,
+      phoneMasked: raw.phoneMasked || '',
+      payments: Array.isArray(raw.payments) ? raw.payments : [],
+      createdAt: raw.createdAt || raw.created_at || raw.lastPaymentAt || raw.lastRequestAt || raw.updatedAt || '',
+      updatedAt: raw.updatedAt || raw.lastPaymentAt || raw.lastRequestAt || raw.createdAt || raw.created_at || '',
+      raw: { ...raw, phone, status, project_expiration: expiry }
+    };
+  }
+
+  function parseDoc(doc) {
+    const docId = String(doc.name || '').split('/').pop();
+    const fields = fromFirestoreFields(doc.fields || {});
+    return normalizeUser({ id: docId, ...fields });
+  }
+
+  function expandUserRequests(documents) {
+    return documents.flatMap(document => {
+      const base = parseDoc(document);
+      const queue = Array.isArray(base.raw.pendingRequests) ? base.raw.pendingRequests : [];
+      if (!queue.length) return [base];
+      const activeBase = normalizeUser({ ...base.raw, id: base.id, pendingRequest: null, pendingRequests: [] });
+      const requestRows = queue.map((request, index) => normalizeUser({
+        ...base.raw,
+        ...request,
+        id: `${base.id}::${request.requestId || index + 1}`,
+        baseDocumentId: base.id,
+        baseStatus: base.status,
+        requestId: request.requestId || `legacy-${index + 1}`,
+        status: 'pending_activation',
+        pendingRequest: request,
+        pendingRequests: queue,
+        project_expiration: base.expiry,
+        createdAt: request.lastRequestAt || base.createdAt,
+        updatedAt: request.lastRequestAt || base.updatedAt
+      }));
+      return base.status === 'premium' || base.status === 'expired' || base.status === 'cancelled'
+        ? [activeBase, ...requestRows]
+        : requestRows;
+    });
+  }
+
+  function userScore(u) {
+    const canonical = u.phone && u.id === u.phone ? 10000000000000 : 0;
+    const premium = u.status === 'premium' || u.vip ? 1000000000000 : 0;
+    const t = Date.parse(u.updatedAt || u.createdAt || '') || 0;
+    return canonical + premium + t;
+  }
+
+  function customerKey(user) {
+    return normalizePhone(user?.phone) || String(user?.phoneMasked || '').trim() || String(user?.name || user?.id || '').trim().toLowerCase();
+  }
+
+  function isRequestPending(user) {
+    const status = String(user?.status || user?.raw?.status || '').toLowerCase();
+    return status === 'pending_activation' || Boolean(pendingRequestOf(user));
+  }
+
+  function organizeUsers(users) {
+    const pendingGroups = new Map();
+    users.forEach(user => {
+      if (!isRequestPending(user)) return;
+      const key = customerKey(user);
+      if (!pendingGroups.has(key)) pendingGroups.set(key, []);
+      pendingGroups.get(key).push(user);
+    });
+    pendingGroups.forEach(group => {
+      group.sort((a, b) => String(a.createdAt || a.updatedAt || '').localeCompare(String(b.createdAt || b.updatedAt || '')));
+      group.forEach((user, index) => {
+        user.requestIndex = index + 1;
+        user.requestCount = group.length;
+      });
+    });
+    return users.sort((a, b) => {
+      const ka = customerKey(a);
+      const kb = customerKey(b);
+      if (ka !== kb) return ka.localeCompare(kb);
+      if (isRequestPending(a) !== isRequestPending(b)) return isRequestPending(a) ? 1 : -1;
+      return String(a.createdAt || a.updatedAt || '').localeCompare(String(b.createdAt || b.updatedAt || ''));
+    });
+  }
+
+  async function fetchUsers() {
+    showLoading();
+    try {
+      const docs = [];
+      let pageToken = '';
+      do {
+        const url = pageToken ? `${FIRESTORE_LIST_URL}&pageToken=${encodeURIComponent(pageToken)}` : FIRESTORE_LIST_URL;
+        const r = await fetch(url, { cache: 'no-store' });
+        const d = await r.json();
+        if (!r.ok || d?.error) {
+          throw new Error(d?.error?.message || `HTTP ${r.status}`);
+        }
+        docs.push(...(d.documents || []));
+        pageToken = d.nextPageToken || '';
+      } while (pageToken);
+
+      allUsers = organizeUsers(expandUserRequests(docs));
+      applyFilters();
+      updateStats();
+    } catch (err) {
+      showError(err.message || 'Falha ao consultar a API.');
+    }
+  }
+
+  function buildActivationPayload(data, sourceUser, note) {
+    const phone = normalizePhone(data.phone);
+    const requestedPlan = requestedPlanOf(sourceUser);
+    const requestedMonths = requestedMonthsOf(sourceUser);
+    const requestedAmount = requestedAmountOf(sourceUser);
+    const baseDate = activationBaseDate(sourceUser || {});
+    const days = daysBetweenYmd(baseDate, data.expiry);
+
+    const payload = {
+      name: data.name,
+      phone,
+      plan: requestedPlan || data.plan || 'Painel VIP',
+      expiration: data.expiry,
+      amount: requestedAmount || data.amount || '0',
+      method: 'painel',
+      source: CONFIG.PANEL_SOURCE,
+      note: note || `Gerenciado automaticamente pelo painel v${CONFIG.VERSION}`
+    };
+
+    // Mantém a solicitação original do usuário na requisição administrativa.
+    if (requestedMonths > 0) payload.months = requestedMonths;
+
+    // Mesmo usando campo de data na interface, enviamos days calculado para a API
+    // registrar o período real no histórico de pagamentos/ativações.
+    if (days > 0) payload.days = days;
+
+    const pending = pendingRequestOf(sourceUser);
+    if (sourceUser?.requestId) payload.requestId = sourceUser.requestId;
+    if (pending) {
+      payload.renewal = true;
+      payload.activatePendingRequest = true;
+      payload.clearPendingRequest = true;
+      payload.fromRequest = {
+        requestedPlan: pending.requestedPlan || '',
+        requestedMonths: pending.requestedMonths || '',
+        requestedAmount: pending.requestedAmount || '',
+        lastRequestAt: pending.lastRequestAt || '',
+        lastRequestAtBR: pending.lastRequestAtBR || ''
+      };
+    }
+
+    return payload;
+  }
+
+  function buildDirectActivationPayload(data, existing, note) {
+    const raw = existing?.raw || {};
+    const requestPayload = buildActivationPayload({ ...data, phone: data.phone || raw.phone || '' }, existing, note);
+    const now = new Date().toISOString();
+    const baseDate = activationBaseDate(existing || {});
+    const expiration = data.expiry;
+    const days = daysBetweenYmd(baseDate, expiration);
+    const pending = pendingRequestOf(existing);
+    const pendingQueue = Array.isArray(raw.pendingRequests) ? JSON.parse(JSON.stringify(raw.pendingRequests)) : [];
+    const remainingQueue = existing?.requestId
+      ? pendingQueue.filter(request => String(request.requestId || '') !== String(existing.requestId))
+      : pendingQueue;
+    const payments = Array.isArray(raw.payments) ? JSON.parse(JSON.stringify(raw.payments)) : [];
+    const payment = {
+      date: now,
+      periodStart: baseDate,
+      periodEnd: expiration,
+      days: days > 0 ? days : 0,
+      months: requestPayload.months && !days ? Number(requestPayload.months) : 0,
+      amount: requestPayload.amount,
+      method: 'painel',
+      note: note || `Gerenciado automaticamente pelo painel v${CONFIG.VERSION}`,
+      fromRequest: pending ? {
+        requestedPlan: pending.requestedPlan || '',
+        requestedMonths: pending.requestedMonths || '',
+        requestedAmount: pending.requestedAmount || '',
+        lastRequestAt: pending.lastRequestAt || '',
+        lastRequestAtBR: pending.lastRequestAtBR || ''
+      } : {}
+    };
+    payments.push(payment);
+
+    const payload = {
+      ...raw,
+      name: data.name || raw.name || 'Premium',
+      phoneMasked: raw.phoneMasked || data.phoneMasked || '',
+      status: 'premium',
+      plan: requestPayload.plan,
+      lastActivatedDays: payment.days,
+      project_expiration: expiration,
+      lastPaymentAt: now,
+      updatedAt: now,
+      createdAt: raw.createdAt || now,
+      payments,
+      source: CONFIG.PANEL_SOURCE,
+      pendingRequests: remainingQueue
+    };
+    delete payload.phone;
+    delete payload.pendingRequest;
+    return {
+      payload,
+      deleteFields: ['phone', 'pendingRequest', 'nome', 'created_at', 'pendingStatus', 'expiration', 'expiracao', 'plano']
+    };
+  }
+
+  async function activateUserDirect(data, note, existing) {
+    const built = buildDirectActivationPayload(data, existing, note);
+    await patchFirestoreUserDoc(existing.id, built.payload, built.deleteFields);
+    return apiUserToDoc({ ...built.payload, id: existing.id });
+  }
+
+  async function activateUser(data, note, sourceUser = null) {
+    const phone = normalizePhone(data.phone);
+    if (!phone && sourceUser?.id) {
+      return activateUserDirect(data, note, sourceUser);
+    }
+    if (!phone || phone.length < 8) throw new Error('Número de telefone inválido.');
+    const payload = buildActivationPayload(data, sourceUser, note);
+    const response = await adminApi('/api/premium/activate', {
+      method: 'POST',
+      body: payload
+    });
+    await setPanelSource(phone);
+    const doc = apiUserToDoc(response.user || response);
+    if (doc.fields) doc.fields.source = { stringValue: CONFIG.PANEL_SOURCE };
+    return doc;
+  }
+
+  async function createUser(data) {
+    return activateUser(data, 'Usuário criado pelo painel automático.', null);
+  }
+
+  function buildEditedPayments(existing, data) {
+    const raw = existing?.raw || {};
+    const payments = Array.isArray(raw.payments)
+      ? JSON.parse(JSON.stringify(raw.payments))
+      : [];
+    if (!payments.length) return payments;
+
+    const idx = payments.length - 1;
+    const current = payments[idx] || {};
+    const start = normalizeDate(current.periodStart || raw.lastPaymentAt || raw.createdAt) || activationBaseDate(existing);
+    const editedDays = daysBetweenYmd(start, data.expiry);
+    const currentMonths = current.months !== undefined && current.months !== null
+      ? Number(current.months)
+      : Number(current.fromRequest?.requestedMonths || requestedMonthsOf(existing) || 0);
+
+    payments[idx] = {
+      ...current,
+      periodStart: current.periodStart || start,
+      periodEnd: data.expiry,
+      days: editedDays > 0 ? editedDays : (Number(current.days || 0) || 0),
+      months: Number.isFinite(currentMonths) ? currentMonths : 0,
+      amount: current.amount || requestedAmountOf(existing) || '0',
+      editedAt: new Date().toISOString(),
+      editSource: CONFIG.PANEL_SOURCE
+    };
+    return payments;
+  }
+
+  async function editActiveUserWithoutNewPayment(id, data, existing) {
+    const phone = normalizePhone(data.phone || existing?.phone || '');
+    const raw = existing?.raw || {};
+    const payload = {
+      name: data.name,
+      phoneMasked: phone ? maskPhone(phone) : (raw.phoneMasked || existing?.phoneMasked || ''),
+      status: 'premium',
+      project_expiration: data.expiry,
+      updatedAt: new Date().toISOString(),
+      source: CONFIG.PANEL_SOURCE
+    };
+    if (phone) payload.phone = phone;
+    const payments = buildEditedPayments(existing, data);
+    if (payments.length) {
+      payload.payments = payments;
+      const lastPayment = payments[payments.length - 1] || {};
+      const lastDays = Number(lastPayment.days || 0);
+      if (Number.isFinite(lastDays) && lastDays > 0) payload.lastActivatedDays = lastDays;
+    }
+
+    await patchFirestoreUserDoc(existing.id || id || existing.phone, payload, phone ? [] : ['phone']);
+    return apiUserToDoc({ ...raw, ...payload, id: existing.id });
+  }
+
+  async function updateUser(id, data) {
+    const existing = allUsers.find(x => x.id === id || x.phone === id) || null;
+    const isEditingActive = existing && isActivePlanType(getDaysInfo(existing).type);
+
+    // Editar usuário ativo não deve criar novo pagamento/renovação.
+    // Aqui apenas atualizamos o cadastro e ajustamos o último pagamento existente.
+    if (isEditingActive) {
+      return editActiveUserWithoutNewPayment(id, data, existing);
+    }
+
+    // Pendentes, vencidos, cancelados e sem plano ativo usam /activate, porque aí sim é ativação/renovação real.
+    const oldPhone = normalizePhone(existing?.phone || '');
+    const newPhone = normalizePhone(data.phone);
+    const activationSource = renewalSourceFor(existing);
+    const doc = await activateUser(data, 'Plano ativado pelo painel automático conforme solicitação do usuário.', activationSource);
+    await closeApprovedRequest(existing, activationSource);
+    if (oldPhone && newPhone && oldPhone !== newPhone) {
+      await deleteByPhone(oldPhone);
+    }
+    return doc;
+  }
+
+  async function deleteByPhone(phone) {
+    const normalized = normalizePhone(phone);
+    if (!normalized || normalized.length < 8) throw new Error('Número de telefone inválido.');
+    let last = null;
+    let deletedAny = false;
+    for (let i = 0; i < 6; i++) {
+      try {
+        last = await adminApi('/api/premium/delete', {
+          method: 'POST',
+          body: { phone: normalized }
+        });
+        deletedAny = true;
+        await delay(120);
+      } catch (err) {
+        if (err.status === 404 && deletedAny) return last;
+        throw err;
+      }
+    }
+    return last;
+  }
+
+  async function deleteUser(idOrPhone) {
+    const target = allUsers.find(x => x.id === idOrPhone || x.phone === idOrPhone);
+    if (target?.phone) return deleteByPhone(target.phone);
+    if (target?.id) return deleteFirestoreUserDoc(target.id);
+    return deleteByPhone(idOrPhone);
+  }
+
+  async function resolveRequest(id, resolution, note) {
+    const target = allUsers.find(user => user.id === id);
+    if (!target) throw new Error('Solicitação não encontrada.');
+    const now = new Date().toISOString();
+    const raw = target.raw || {};
+    const decisions = Array.isArray(raw.requestDecisions) ? JSON.parse(JSON.stringify(raw.requestDecisions)) : [];
+    decisions.push({
+      requestId: target.requestId || '',
+      resolution,
+      note: note || '',
+      resolvedAt: now,
+      requestedPlan: requestedPlanOf(target),
+      requestedMonths: requestedMonthsOf(target),
+      requestedAmount: requestedAmountOf(target)
+    });
+    const queue = Array.isArray(raw.pendingRequests) ? raw.pendingRequests : [];
+    const remaining = target.requestId
+      ? queue.filter(request => String(request.requestId || '') !== String(target.requestId))
+      : [];
+    const baseStatus = String(target.baseStatus || target.status || '').toLowerCase();
+    const keepsPlan = ['premium', 'expired', 'cancelled'].includes(baseStatus);
+    const nextStatus = keepsPlan ? baseStatus : (remaining.length ? 'pending_activation' : `request_${resolution}`);
+    await patchFirestoreUserDoc(target.baseDocumentId || target.id, {
+      status: nextStatus,
+      pendingRequests: remaining,
+      requestResolution: resolution,
+      requestResolvedAt: now,
+      requestDecisions: decisions,
+      updatedAt: now,
+      source: CONFIG.PANEL_SOURCE
+    }, ['pendingRequest']);
+  }
+
+  async function closeApprovedRequest(requestUser, activatedUser) {
+    if (!requestUser || !requestUser.requestId) return;
+    if (!requestUser.phone) {
+      await resolveRequest(requestUser.id, 'approved', 'Solicitação aprovada individualmente pelo painel.');
+    }
+  }
+
+  async function cancelSubscription(idOrPhone) {
+    const target = allUsers.find(x => x.id === idOrPhone || x.phone === idOrPhone);
+    const phone = normalizePhone(target?.phone || '');
+    if (phone && phone.length >= 8) {
+      return adminApi('/api/premium/cancel', {
+        method: 'POST',
+        body: { phone }
+      });
+    }
+    if (!target?.id) throw new Error('Documento do usuário não encontrado para cancelar.');
+    const now = new Date().toISOString();
+    return patchFirestoreUserDoc(target.id, {
+      name: target.name || target.raw?.name || '',
+      phoneMasked: target.phoneMasked || target.raw?.phoneMasked || '',
+      payments: Array.isArray(target.raw?.payments) ? target.raw.payments : [],
+      status: 'cancelled',
+      cancelledAt: now,
+      updatedAt: now,
+      createdAt: target.createdAt || target.raw?.createdAt || now,
+      project_expiration: todayYmd(),
+      source: CONFIG.PANEL_SOURCE
+    }, ['phone', 'pendingRequest']);
+  }
+
+  function userKind(user) {
+    const status = String(user?.status || user?.raw?.status || '').toLowerCase();
+    if (hasPendingRequest(user) && status === 'premium') return 'pending_renewal';
+    if (status === 'pending_activation') return 'pending';
+    if (status === 'request_rejected') return 'rejected';
+    if (status === 'request_duplicate') return 'duplicate';
+    if (status === 'request_approved') return 'approved_request';
+    if (status === 'cancelled') return 'cancelled';
+    if (status === 'expired') return 'expired';
+    const expiry = user?.expiry || user;
+    if (!expiry) return 'muted';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exp = new Date(String(expiry) + 'T00:00:00');
+    if (isNaN(exp)) return 'muted';
+    const diff = Math.round((exp - today) / 86400000);
+    if (diff < 0) return 'expired';
+    if (diff === 0) return 'today';
+    if (diff <= 3) return 'warning';
+    return 'active';
+  }
+
+  // Renderização e lógicas complementares
+  function getDaysInfo(userOrExpiry) {
+    const user = typeof userOrExpiry === 'object' ? userOrExpiry : null;
+    const expiry = user ? user.expiry : userOrExpiry;
+    const kind = user ? userKind(user) : userKind(expiry);
+    if (kind === 'pending_renewal') return { label: 'Renovação pendente', type: 'pending_renewal', pct: 0 };
+    if (kind === 'pending') return { label: 'Pendente', type: 'pending', pct: 0 };
+    if (kind === 'cancelled') return { label: 'Cancelado', type: 'cancelled', pct: 0 };
+    if (kind === 'muted') return { label: 'Sem data', type: 'muted', pct: 0 };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exp = new Date(String(expiry) + 'T00:00:00');
+    const diff = Math.round((exp - today) / 86400000);
+    if (diff < 0) return { label: `Vencido há ${Math.abs(diff)}d`, type: 'expired', pct: 0 };
+    if (diff === 0) return { label: 'Vence hoje!', type: 'today', pct: 100 };
+    if (diff <= 3) return { label: `${diff} dia${diff > 1 ? 's' : ''}`, type: 'warning', pct: Math.min(100, (diff / 30) * 100) };
+    return { label: `${diff} dias`, type: 'active', pct: Math.min(100, (diff / 30) * 100) };
+  }
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    const [y, m, d] = String(s).split('-');
+    if (!y || !m || !d) return s;
+    return `${d}/${m}/${y}`;
+  }
+
+  function fmtCreated(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (isNaN(d)) return '—';
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function fmtPhone(p) {
+    if (!p) return '—';
+    const n = p.replace(/\D/g, '');
+    if (n.length >= 12) {
+      const cc = n.slice(0, 2), dd = n.slice(2, 4), rest = n.slice(4);
+      return `+${cc} (${dd}) ${rest.slice(0, -4)}-${rest.slice(-4)}`;
+    }
+    return p;
+  }
+
+  function displayPhone(user) {
+    return user?.phone ? fmtPhone(user.phone) : (user?.phoneMasked || 'Protegido');
+  }
+
+  function searchablePhone(user) {
+    return `${user?.phone || ''} ${user?.phoneMasked || ''} ${user?.id || ''}`.toLowerCase();
+  }
+
+  function initials(name) {
+    if (!name) return '?';
+    const p = name.trim().split(' ');
+    return (p[0][0] + (p[1]?.[0] || '')).toUpperCase();
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function pColor(t) {
+    if (t === 'active') return 'var(--success)';
+    if (t === 'warning' || t === 'pending' || t === 'pending_renewal') return 'var(--warning)';
+    if (t === 'today') return 'var(--gold)';
+    if (t === 'expired') return 'var(--danger)';
+    return 'var(--muted)';
+  }
+
+  function sPill(t) {
+    if (t === 'pending_renewal') return 'pending';
+    if (['expired', 'pending', 'cancelled', 'muted', 'rejected', 'duplicate'].includes(t)) return t;
+    return 'active';
+  }
+
+  function sLabel(t) {
+    if (t === 'rejected') return 'Rejeitada';
+    if (t === 'duplicate') return 'Duplicada';
+    if (t === 'approved_request') return 'Aprovada';
+    if (t === 'expired') return 'Vencido';
+    if (t === 'pending_renewal') return 'Renovação pendente';
+    if (t === 'pending') return 'Pendente';
+    if (t === 'cancelled') return 'Cancelado';
+    if (t === 'muted') return 'Sem data';
+    return 'Ativo';
+  }
+
+  function isActivePlanType(type) {
+    return ['active', 'warning', 'today'].includes(type);
+  }
+
+  function primaryPlanActionLabel(user) {
+    const type = getDaysInfo(user).type;
+    if (type === 'pending_renewal') return 'Ativar renovação';
+    return isActivePlanType(type) ? 'Editar' : 'Ativar plano';
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = allUsers.length;
+    document.getElementById('statActive').textContent = allUsers.filter(u => ['active', 'warning', 'today'].includes(getDaysInfo(u).type)).length;
+    document.getElementById('statExpired').textContent = allUsers.filter(u => getDaysInfo(u).type === 'expired').length;
+    document.getElementById('statToday').textContent = allUsers.filter(u => getDaysInfo(u).type === 'today').length;
+    const pendingEl = document.getElementById('statPending');
+    if (pendingEl) pendingEl.textContent = allUsers.filter(u => ['pending', 'pending_renewal'].includes(getDaysInfo(u).type)).length;
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allUsers.filter(u => {
+      const ms = !q || u.name.toLowerCase().includes(q) || searchablePhone(u).includes(q);
+      const di = getDaysInfo(u);
+      let mf;
+      switch (activeFilter) {
+        case 'active': mf = ['active', 'warning', 'today'].includes(di.type); break;
+        case 'warning': mf = di.type === 'warning'; break;
+        case 'today': mf = di.type === 'today'; break;
+        case 'expired': mf = di.type === 'expired'; break;
+        case 'pending': mf = ['pending', 'pending_renewal'].includes(di.type); break;
+        case 'cancelled': mf = di.type === 'cancelled'; break;
+        case 'rejected': mf = di.type === 'rejected'; break;
+        case 'duplicate': mf = di.type === 'duplicate'; break;
+        case 'muted': mf = di.type === 'muted'; break;
+        default: mf = true;
+      }
+      return ms && mf;
+    });
+    renderTable(filtered);
+    renderCards(filtered);
+  }
+
+  const EDIT_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const DEL_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+  const CANCEL_ICON = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>`;
+
+  function requestSequenceLabel(user) {
+    return isRequestPending(user) && Number(user.requestCount || 0) > 1
+      ? `Solicitação ${user.requestIndex} de ${user.requestCount}`
+      : '';
+  }
+
+  function actionButtons(user, mobile) {
+    const di = getDaysInfo(user);
+    if (isRequestPending(user)) {
+      return `<div class="${mobile ? 'card-actions' : 'action-cell'} request-actions">
+        <button class="btn btn-primary btn-sm edit-btn" data-id="${user.id}">${EDIT_ICON} Aprovar</button>
+        <button class="btn btn-warning btn-sm reject-btn" data-id="${user.id}">Rejeitar</button>
+        <button class="btn btn-ghost btn-sm duplicate-btn" data-id="${user.id}">Duplicada</button>
+      </div>`;
+    }
+    const canCancel = !['cancelled', 'pending', 'muted', 'rejected', 'duplicate', 'approved_request'].includes(di.type);
+    const planAction = primaryPlanActionLabel(user);
+    return `<div class="${mobile ? 'card-actions' : 'action-cell'}">
+      <button class="btn btn-ghost btn-sm edit-btn" data-id="${user.id}">${EDIT_ICON} ${planAction}</button>
+      <button class="btn btn-warning btn-sm cancel-btn" data-id="${user.id}" ${canCancel ? '' : 'disabled'}>${CANCEL_ICON}${mobile ? ' Cancelar' : ''}</button>
+      <button class="btn btn-danger btn-sm del-btn" data-id="${user.id}">${DEL_ICON}${mobile ? ' Remover' : ''}</button>
+    </div>`;
+  }
+
+  function bindRowActions(container) {
+    container.querySelectorAll('.edit-btn').forEach(button => button.addEventListener('click', event => {
+      event.stopPropagation();
+      openEdit(button.dataset.id);
+    }));
+    container.querySelectorAll('.cancel-btn').forEach(button => button.addEventListener('click', event => {
+      event.stopPropagation();
+      if (!button.disabled) openConfirmCancel(button.dataset.id);
+    }));
+    container.querySelectorAll('.del-btn').forEach(button => button.addEventListener('click', event => {
+      event.stopPropagation();
+      openConfirmDelete(button.dataset.id);
+    }));
+    container.querySelectorAll('.reject-btn').forEach(button => button.addEventListener('click', event => {
+      event.stopPropagation();
+      openConfirmRequestResolution(button.dataset.id, 'rejected');
+    }));
+    container.querySelectorAll('.duplicate-btn').forEach(button => button.addEventListener('click', event => {
+      event.stopPropagation();
+      openConfirmRequestResolution(button.dataset.id, 'duplicate');
+    }));
+  }
+
+  function renderTable(users) {
+    const tbody = document.getElementById('tableBody');
+    if (!users.length) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="state-container"><span class="state-icon">🔍</span><p class="state-title">Nenhum usuário encontrado</p><p class="state-sub">Tente ajustar os filtros ou a busca</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = users.map(u => {
+      const di = getDaysInfo(u);
+      const actions = isAdmin() ? actionButtons(u, false) : '';
+      return `<tr data-id="${u.id}" class="status-${di.type}"> <td><div class="user-cell"><div class="avatar">${initials(u.name)}</div><span class="user-name">${esc(u.name)||'—'}<small class="request-sequence">${esc(requestSequenceLabel(u))}</small></span></div></td> <td><span class="phone-mono">${displayPhone(u)}</span></td> <td><span class="date-text">${fmtDate(u.expiry)}</span></td> <td><span class="days-badge ${di.type}">${di.label}</span></td> <td><div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" style="--progress:${di.pct};background:${pColor(di.type)}"></div></div></div></td> <td><span class="status-pill ${sPill(di.type)}">${sLabel(di.type)}</span></td> <td><span class="date-text">${fmtCreated(u.createdAt)}</span></td> <td>${actions}</td> </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('tr[data-id]').forEach(row => row.addEventListener('click', () => openDetails(row.dataset.id)));
+    if (isAdmin()) bindRowActions(tbody);
+  }
+
+  function renderCards(users) {
+    const c = document.getElementById('mobileCards');
+    if (!users.length) {
+      c.innerHTML = `<div class="state-container"><span class="state-icon">🔍</span><p class="state-title">Nenhum usuário encontrado</p></div>`;
+      return;
+    }
+    c.innerHTML = users.map((u, i) => {
+      const di = getDaysInfo(u);
+      const actions = isAdmin() ? actionButtons(u, true) : '';
+      return `<div class="user-card status-${di.type}" data-id="${u.id}" style="animation-delay:${i*.05}s"> <div class="card-header"> <div class="user-cell"><div class="avatar">${initials(u.name)}</div><span class="user-name">${esc(u.name)||'—'}<small class="request-sequence">${esc(requestSequenceLabel(u))}</small></span></div> <span class="status-pill ${sPill(di.type)}">${sLabel(di.type)}</span> </div> <div class="card-row"><span class="card-label">Telefone</span><span class="phone-mono">${displayPhone(u)}</span></div> <div class="card-row"><span class="card-label">Vencimento</span><span class="date-text">${fmtDate(u.expiry)}</span></div> <div class="card-row"><span class="card-label">Dias restantes</span><span class="days-badge ${di.type}">${di.label}</span></div> <div class="card-row"><span class="card-label">Adicionado em</span><span class="date-text">${fmtCreated(u.createdAt)}</span></div> ${actions} </div>`;
+    }).join('');
+
+    c.querySelectorAll('.user-card[data-id]').forEach(card => card.addEventListener('click', () => openDetails(card.dataset.id)));
+    if (isAdmin()) bindRowActions(c);
+  }
+
+  function showLoading() {
+    const html = `<div class="state-container"><div class="spinner"></div><p class="state-title">Carregando usuários…</p></div>`;
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="8">${html}</td></tr>`;
+    document.getElementById('mobileCards').innerHTML = html;
+  }
+
+  function showError(msg) {
+    const html = `<div class="state-container"><span class="state-icon">⚠️</span><p class="state-title">Erro ao carregar dados</p><p class="state-sub">${esc(msg)}</p></div>`;
+    document.getElementById('tableBody').innerHTML = `<tr><td colspan="8">${html}</td></tr>`;
+    document.getElementById('mobileCards').innerHTML = html;
+    showToast('Falha na API: ' + msg, 'error');
+  }
+
+  function fieldLabel(key) {
+    const labels = {
+      id: 'ID do documento', name: 'Nome', nome: 'Nome', phone: 'Telefone', phoneMasked: 'Telefone mascarado',
+      status: 'Status', plan: 'Plano atual', requestedPlan: 'Plano solicitado', requestedMonths: 'Meses solicitados',
+      requestedAmount: 'Valor solicitado', project_expiration: 'Vencimento', expiration: 'Vencimento', expiracao: 'Vencimento',
+      createdAt: 'Criado em', created_at: 'Criado em', updatedAt: 'Atualizado em', lastRequestAt: 'Última solicitação',
+      lastRequestAtBR: 'Última solicitação BR', lastPaymentAt: 'Último pagamento', cancelledAt: 'Cancelado em',
+      lastActivatedDays: 'Últimos dias ativados', source: 'Origem', vip: 'VIP'
+    };
+    return labels[key] || key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+  }
+
+  function detailValue(value) {
+    if (value === undefined || value === null || value === '') return '—';
+    if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+    if (Array.isArray(value) || typeof value === 'object') return JSON.stringify(value, null, 2);
+    const s = String(value);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return fmtDate(s);
+    if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return fmtCreated(s);
+    return s;
+  }
+
+  function detailItem(label, value) {
+    return `<div class="detail-item"><div class="detail-label">${esc(label)}</div><div class="detail-value">${esc(detailValue(value))}</div></div>`;
+  }
+
+  function renderPaymentHistory(payments) {
+    if (!payments.length) {
+      return `<div class="state-container" style="padding:2rem 1rem"><span class="state-icon">🧾</span><p class="state-title">Nenhum histórico de ativação registrado</p><p class="state-sub">Quando a API receber ativações/renovações, elas aparecem aqui.</p></div>`;
+    }
+    return `<div class="payment-list">${payments.map((p, idx) => {
+      const title = idx === 0 ? 'Ativação inicial' : `Renovação #${idx}`;
+      const dur = Number(p.days || 0) > 0 ? `${p.days} dia(s)` : Number(p.months || 0) > 0 ? `${p.months} mês(es)` : 'Período não informado';
+      return `<div class="payment-item">
+        <div class="payment-index">${idx + 1}</div>
+        <div>
+          <div class="payment-title"><strong>${esc(title)}</strong><span class="date-text">${esc(detailValue(p.date || p.createdAt || ''))}</span></div>
+          <div class="payment-meta">
+            Duração: ${esc(dur)} · Valor: ${esc(p.amount || '—')} · Método: ${esc(p.method || '—')}
+            ${p.note ? `<br/>Obs: ${esc(p.note)}` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function renderDetail(u, loading = false, publicStatus = null) {
+    if (!u) return;
+    const raw = { ...(u.raw || {}) };
+    if (!raw.name && u.name) raw.name = u.name;
+    if (!raw.phone && u.phone) raw.phone = u.phone;
+    const payments = Array.isArray(raw.payments) ? raw.payments : Array.isArray(u.payments) ? u.payments : [];
+    const di = getDaysInfo(u);
+    const activationCount = payments.length;
+    const renewals = Math.max(0, activationCount - 1);
+    const fields = Object.keys(raw)
+      .filter(k => !['payments', 'raw'].includes(k))
+      .sort((a, b) => fieldLabel(a).localeCompare(fieldLabel(b), 'pt-BR'));
+
+    const planAction = primaryPlanActionLabel(u);
+    const detailEditBtn = document.getElementById('detailEdit');
+    detailEditBtn.textContent = planAction;
+    detailEditBtn.title = planAction === 'Editar' ? 'Editar usuário ativo' : 'Ativar plano do usuário';
+    document.getElementById('detailTitle').innerHTML = `Detalhes de <span>${esc(u.name || u.phone || 'Usuário')}</span>`;
+    document.getElementById('detailCancelSub').disabled = ['cancelled', 'pending', 'muted'].includes(di.type);
+    document.getElementById('detailContent').innerHTML = `
+      <div class="detail-hero">
+        <div class="detail-user">
+          <div class="avatar">${initials(u.name)}</div>
+          <div>
+            <div class="detail-name">${esc(u.name || '—')}</div>
+            <div class="detail-phone">${esc(displayPhone(u))}</div>
+          </div>
+        </div>
+        <span class="status-pill ${sPill(di.type)}">${esc(sLabel(di.type))}</span>
+      </div>
+
+      ${loading ? `<div class="state-container" style="padding:1.5rem 1rem"><div class="spinner"></div><p class="state-title">Consultando dados completos na API…</p></div>` : ''}
+
+      <div class="detail-kpi-grid">
+        <div class="detail-kpi"><div class="detail-kpi-label">Ativações</div><div class="detail-kpi-value">${activationCount}</div></div>
+        <div class="detail-kpi"><div class="detail-kpi-label">Renovações</div><div class="detail-kpi-value">${renewals}</div></div>
+        <div class="detail-kpi"><div class="detail-kpi-label">Vencimento</div><div class="detail-kpi-value">${esc(fmtDate(u.expiry))}</div></div>
+        <div class="detail-kpi"><div class="detail-kpi-label">Dias/estado</div><div class="detail-kpi-value">${esc(di.label)}</div></div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Resumo administrativo</div>
+        <div class="detail-grid">
+          ${detailItem('Plano atual', raw.plan || raw.plano || '—')}
+          ${detailItem(hasPendingRequest(u) ? 'Plano da renovação pendente' : 'Plano solicitado', requestedPlanOf(u) || '—')}
+          ${detailItem(hasPendingRequest(u) ? 'Meses da renovação pendente' : 'Meses solicitados', requestedMonthsOf(u) || '—')}
+          ${detailItem(hasPendingRequest(u) ? 'Valor da renovação pendente' : 'Valor solicitado', requestedAmountOf(u) || '—')}
+          ${detailItem(hasPendingRequest(u) ? 'Data da renovação pendente' : 'Última solicitação', (pendingRequestOf(u)?.lastRequestAtBR || pendingRequestOf(u)?.lastRequestAt || raw.lastRequestAtBR || raw.lastRequestAt || '—'))}
+          ${detailItem('Último pagamento', raw.lastPaymentAt || '—')}
+          ${detailItem('Origem', raw.source || '—')}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Histórico de ativações e renovações</div>
+        ${renderPaymentHistory(payments)}
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Todas as informações existentes</div>
+        <div class="detail-grid">
+          ${fields.map(k => detailItem(fieldLabel(k), raw[k])).join('') || detailItem('Sem campos', '—')}
+        </div>
+      </div>
+    `;
+  }
+
+  async function openDetails(id) {
+    const local = allUsers.find(x => x.id === id || x.phone === id);
+    if (!local) return;
+    selectedDetailId = local.id;
+    renderDetail(local, true);
+    openOverlay('detailOverlay');
+    if (!local.phone) {
+      renderDetail(local, false);
+      return;
+    }
+    try {
+      const data = await adminApi(`/api/premium/user?phone=${encodeURIComponent(local.phone)}`);
+      if (selectedDetailId !== local.id) return;
+      const full = normalizeUser({ id: local.id, ...(data.user || {}) });
+      const idx = allUsers.findIndex(x => x.id === local.id || x.phone === local.phone);
+      if (idx > -1) allUsers[idx] = full;
+      renderDetail(full, false, data.publicStatus);
+    } catch (err) {
+      renderDetail(local, false);
+      showToast('Não foi possível consultar detalhes completos: ' + err.message, 'error');
+    }
+  }
+
+  const MODAL_STATE_VAR = 'cache_modal';
+  const MODAL_RETURN_VAR = 'return_modal';
+  let overlayStack = [];
+  let lastReturnSignal = '';
+
+  function syncOverlayState() {
+    overlayStack = overlayStack.filter(id => document.getElementById(id)?.classList.contains('open'));
+    const top = overlayStack.length ? overlayStack[overlayStack.length - 1] : '';
+    try {
+      if (typeof Tasker !== 'undefined' && typeof Tasker.setVariable === 'function') Tasker.setVariable(MODAL_STATE_VAR, top);
+    } catch (_) { }
+  }
+
+  function openOverlay(id) {
+    document.getElementById(id).classList.add('open');
+    overlayStack = overlayStack.filter(item => item !== id);
+    overlayStack.push(id);
+    syncOverlayState();
+  }
+
+  function closeOverlay(id) {
+    document.getElementById(id).classList.remove('open');
+    overlayStack = overlayStack.filter(item => item !== id);
+    syncOverlayState();
+  }
+
+  function closeTopOverlay() {
+    overlayStack = overlayStack.filter(id => document.getElementById(id)?.classList.contains('open'));
+    const top = overlayStack[overlayStack.length - 1];
+    if (top) closeOverlay(top);
+  }
+
+  function consumeReturnSignal(value) {
+    const signal = String(value == null ? '' : value);
+    if (!signal || signal === lastReturnSignal) return;
+    lastReturnSignal = signal;
+    closeTopOverlay();
+    try {
+      if (typeof Tasker !== 'undefined' && typeof Tasker.setVariable === 'function') Tasker.setVariable(MODAL_RETURN_VAR, '');
+    } catch (_) { }
+    setTimeout(() => { lastReturnSignal = ''; }, 250);
+  }
+
+  try {
+    if (typeof Tasker !== 'undefined' && typeof Tasker.onVariableChanged === 'function') {
+      Tasker.onVariableChanged(MODAL_RETURN_VAR, function (nome, valor) { consumeReturnSignal(valor); });
+    }
+  } catch (_) { }
+
+  setInterval(function () {
+    try {
+      if (typeof Tasker === 'undefined' || typeof Tasker.getVariable !== 'function') return;
+      Promise.resolve(Tasker.getVariable(MODAL_RETURN_VAR)).then(consumeReturnSignal).catch(function () { });
+    } catch (_) { }
+  }, 450);
+  setTimeout(syncOverlayState, 100);
+
+  const phoneErrorEl = document.getElementById('phoneError');
+  const fieldPhone = document.getElementById('fieldPhone');
+
+  fieldPhone.addEventListener('input', () => {
+    fieldPhone.value = fieldPhone.value.replace(/\D/g, '').slice(0, 13);
+    validatePhone();
+  });
+
+  function validatePhone() {
+    const digits = fieldPhone.value.replace(/\D/g, '');
+    if (!digits.length) {
+      phoneErrorEl.textContent = '';
+      return false;
+    }
+    if (digits.length < 12) {
+      phoneErrorEl.style.color = 'var(--warning)';
+      phoneErrorEl.textContent = `Número curto (${digits.length}/12 mín) `;
+      return false;
+    }
+    phoneErrorEl.style.color = 'var(--success)';
+    phoneErrorEl.textContent = '✓ Número válido';
+    return true;
+  }
+
+  function validatePhoneStrict() {
+    const digits = fieldPhone.value.replace(/\D/g, '');
+    const existing = editingId ? allUsers.find(x => x.id === editingId || x.phone === editingId) : null;
+    if (!digits && existing && !existing.phone) return true;
+    if (digits.length < 12 || digits.length > 13) {
+      phoneErrorEl.style.color = 'var(--danger)';
+      phoneErrorEl.textContent = `Informe 12 ou 13 dígitos (atual: ${digits.length}).`;
+      return false;
+    }
+    return true;
+  }
+
+  function openCreate() {
+    if (!isAdmin()) return;
+    editingId = null;
+    document.getElementById('userModalTitle').innerHTML = 'Novo <span>usuário</span>';
+    document.getElementById('userSave').textContent = 'Criar usuário';
+    document.getElementById('fieldName').value = '';
+    fieldPhone.value = '';
+    fieldPhone.placeholder = 'Ex: 558199999999';
+    document.getElementById('fieldExpiry').value = '';
+    phoneErrorEl.textContent = '';
+    openOverlay('userOverlay');
+    setTimeout(() => document.getElementById('fieldName').focus(), 120);
+  }
+
+  function openEdit(id) {
+    if (!isAdmin()) return;
+    const u = allUsers.find(x => x.id === id);
+    if (!u) return;
+    editingId = id;
+    const planAction = primaryPlanActionLabel(u);
+    document.getElementById('userModalTitle').innerHTML = planAction === 'Editar' ? 'Editar <span>usuário</span>' : planAction === 'Ativar renovação' ? 'Ativar <span>renovação</span>' : 'Ativar <span>plano</span>';
+    document.getElementById('userSave').textContent = planAction === 'Editar' ? 'Salvar alterações' : planAction;
+    document.getElementById('fieldName').value = u.name;
+    fieldPhone.value = (u.phone || '').replace(/\D/g, '');
+    fieldPhone.placeholder = u.phone ? 'Ex: 558199999999' : (u.phoneMasked ? `Protegido: ${u.phoneMasked}` : 'Número protegido');
+    document.getElementById('fieldExpiry').value = defaultActivationExpiry(renewalSourceFor(u));
+    phoneErrorEl.textContent = u.phone ? '' : 'Número protegido pela API; ações serão feitas pelo documento seguro.';
+    validatePhone();
+    closeOverlay('detailOverlay');
+    openOverlay('userOverlay');
+    setTimeout(() => document.getElementById('fieldName').focus(), 120);
+  }
+
+  async function saveUser() {
+    if (!isAdmin()) return;
+    const name = document.getElementById('fieldName').value.trim();
+    const phone = fieldPhone.value.replace(/\D/g, '');
+    const expiry = document.getElementById('fieldExpiry').value;
+    const currentEditing = editingId ? allUsers.find(x => x.id === editingId || x.phone === editingId) : null;
+    const canUseProtectedDoc = Boolean(editingId && currentEditing && !currentEditing.phone);
+
+    if (!name || !expiry || (!phone && !canUseProtectedDoc)) {
+      showToast('Preencha todos os campos.', 'error');
+      return;
+    }
+    if (!validatePhoneStrict()) {
+      showToast('Número de telefone inválido.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('userSave');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner spinner-sm"></div>';
+
+    const currentActionLabel = currentEditing ? primaryPlanActionLabel(currentEditing) : '';
+    const isEditingActive = currentEditing ? currentActionLabel === 'Editar' : false;
+
+    try {
+      if (editingId) {
+        await updateUser(editingId, { name, phone, expiry });
+        showToast(isEditingActive ? 'Usuário atualizado pela API!' : 'Plano ativado pela API!', 'success');
+      } else {
+        await createUser({ name, phone, expiry });
+        showToast('Usuário criado e plano ativado pela API!', 'success');
+      }
+      closeOverlay('userOverlay');
+      await fetchUsers();
+    } catch (err) {
+      showToast('Erro: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = editingId ? (isEditingActive ? 'Salvar alterações' : currentActionLabel || 'Ativar plano') : 'Criar usuário';
+    }
+  }
+
+  function setConfirmButton(kind, text) {
+    const btn = document.getElementById('confirmOk');
+    btn.textContent = text;
+    btn.classList.toggle('btn-danger', kind === 'danger');
+    btn.classList.toggle('btn-warning', kind === 'warning');
+  }
+
+  function openConfirmDelete(id) {
+    if (!isAdmin()) return;
+    const u = allUsers.find(x => x.id === id || x.phone === id);
+    if (!u) return;
+    confirmAction = 'delete';
+    confirmId = id;
+    document.getElementById('confirmTitle').innerHTML = 'Remover <span>definitivo</span>';
+    document.getElementById('confirmBody').innerHTML = `Deseja remover definitivamente o usuário <strong>${esc(u.name || u.phoneMasked || u.phone || u.id)}</strong>? Esta ação apaga o documento e o histórico.`;
+    setConfirmButton('danger', 'Remover');
+    openOverlay('confirmOverlay');
+  }
+
+  function openConfirmCancel(id) {
+    if (!isAdmin()) return;
+    const u = allUsers.find(x => x.id === id || x.phone === id);
+    if (!u) return;
+    confirmAction = 'cancel';
+    confirmId = id;
+    document.getElementById('confirmTitle').innerHTML = 'Cancelar <span>assinatura</span>';
+    document.getElementById('confirmBody').innerHTML = `Deseja cancelar a assinatura de <strong>${esc(u.name || u.phoneMasked || u.phone || u.id)}</strong>? O cadastro e o histórico serão mantidos, mas o status muda para <strong>cancelled</strong>.`;
+    setConfirmButton('warning', 'Cancelar assinatura');
+    openOverlay('confirmOverlay');
+  }
+
+  function openConfirmRequestResolution(id, resolution) {
+    const user = allUsers.find(item => item.id === id);
+    if (!user) return;
+    confirmAction = resolution;
+    confirmId = id;
+    const duplicate = resolution === 'duplicate';
+    document.getElementById('confirmTitle').innerHTML = duplicate ? 'Marcar como <span>duplicada</span>' : 'Rejeitar <span>solicitação</span>';
+    document.getElementById('confirmBody').innerHTML = duplicate
+      ? `A solicitação de <strong>${esc(user.name || displayPhone(user))}</strong> será encerrada como duplicada. As outras solicitações continuarão pendentes.`
+      : `A solicitação de <strong>${esc(user.name || displayPhone(user))}</strong> será rejeitada sem apagar o cadastro ou o histórico.`;
+    setConfirmButton(duplicate ? 'warning' : 'danger', duplicate ? 'Marcar duplicada' : 'Rejeitar');
+    openOverlay('confirmOverlay');
+  }
+
+  async function confirmDelete() {
+    if (!isAdmin()) return;
+    if (!confirmAction || !confirmId) return;
+    const btn = document.getElementById('confirmOk');
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner spinner-sm"></div>';
+
+    try {
+      if (confirmAction === 'delete') {
+        await deleteUser(confirmId);
+        showToast('Usuário removido definitivamente pela API.', 'info');
+      } else if (confirmAction === 'cancel') {
+        await cancelSubscription(confirmId);
+        showToast('Assinatura cancelada pela API.', 'info');
+      } else if (confirmAction === 'rejected' || confirmAction === 'duplicate') {
+        await resolveRequest(confirmId, confirmAction);
+        showToast(confirmAction === 'duplicate' ? 'Solicitação marcada como duplicada.' : 'Solicitação rejeitada.', 'info');
+      }
+      closeOverlay('detailOverlay');
+      closeOverlay('confirmOverlay');
+      await fetchUsers();
+    } catch (err) {
+      showToast('Erro na ação: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+      confirmAction = null;
+      confirmId = null;
+    }
+  }
+
+  function buildFilterModal() {
+    const c = document.getElementById('filterOptions');
+    c.innerHTML = FILTERS.map(f => ` <div class="filter-option${activeFilter === f.value ? ' selected' : ''}" data-value="${f.value}"> <div class="filter-option-left"><div class="filter-dot" style="background:${f.color}"></div><span>${f.label}</span></div> <svg class="filter-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${f.color}" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> </div>`).join('');
+
+    c.querySelectorAll('.filter-option').forEach(el => {
+      el.addEventListener('click', () => {
+        c.querySelectorAll('.filter-option').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        activeFilter = el.dataset.value;
+        updateFilterBadge();
+        closeOverlay('filterOverlay');
+        applyFilters();
+      });
+    });
+  }
+
+  function updateFilterBadge() {
+    const badge = document.getElementById('filterBadge');
+    const trigger = document.getElementById('filterTrigger');
+    badge.style.display = activeFilter !== 'all' ? 'inline-block' : 'none';
+    trigger.classList.toggle('active', activeFilter !== 'all');
+  }
+
+  function exportData() {
+    if (!allUsers.length) {
+      showToast('Sem dados para exportar.', 'error');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(allUsers, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vip-users-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`${allUsers.length} usuário(s) exportados!`, 'success');
+  }
+
+  function showToast(msg, type = 'success') {
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    const t = document.getElementById('toast');
+    t.innerHTML = `<span>${icons[type]||'•'}</span> ${esc(msg)}`;
+    t.className = `show ${type}`;
+    clearTimeout(t._t);
+    t._t = setTimeout(() => {
+      t.className = '';
+    }, 3500);
+  }
+
+  // binds
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    fetchUsers();
+    showToast('Atualizando…', 'info');
+  });
+  document.getElementById('exportBtn').addEventListener('click', exportData);
+  document.getElementById('addBtn').addEventListener('click', openCreate);
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+  document.getElementById('filterTrigger').addEventListener('click', () => {
+    buildFilterModal();
+    openOverlay('filterOverlay');
+  });
+
+  document.getElementById('filterClose').addEventListener('click', () => closeOverlay('filterOverlay'));
+  document.getElementById('userClose').addEventListener('click', () => closeOverlay('userOverlay'));
+  document.getElementById('userCancel').addEventListener('click', () => closeOverlay('userOverlay'));
+  document.getElementById('userSave').addEventListener('click', saveUser);
+  document.getElementById('detailClose').addEventListener('click', () => closeOverlay('detailOverlay'));
+  document.getElementById('detailEdit').addEventListener('click', () => selectedDetailId && openEdit(selectedDetailId));
+  document.getElementById('detailCancelSub').addEventListener('click', () => selectedDetailId && openConfirmCancel(selectedDetailId));
+  document.getElementById('detailDelete').addEventListener('click', () => selectedDetailId && openConfirmDelete(selectedDetailId));
+  document.getElementById('confirmClose').addEventListener('click', () => closeOverlay('confirmOverlay'));
+  document.getElementById('confirmCancel').addEventListener('click', () => closeOverlay('confirmOverlay'));
+  document.getElementById('confirmOk').addEventListener('click', confirmDelete);
+
+  ['filterOverlay', 'userOverlay', 'detailOverlay', 'confirmOverlay'].forEach(id =>
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target.id === id) closeOverlay(id);
+    })
+  );
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') ['filterOverlay', 'userOverlay', 'detailOverlay', 'confirmOverlay'].forEach(closeOverlay);
+  });
+
+  fetchUsers();
+}
+
+initApp();
+
+    </script>
+</body>
+</html>

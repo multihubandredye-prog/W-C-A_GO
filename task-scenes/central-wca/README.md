@@ -1,10 +1,17 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.55**
-Arquivo: `central-wca-1.55.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.56**
+Arquivo: `central-wca-1.56.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 ---
+
+## Fila de solicitações Premium
+
+- A Central reconhece `pendingRequests` e mostra a solicitação mais recente ao cliente;
+- edição e cancelamento enviam o `requestId` exato, sem alterar as demais solicitações;
+- quando houver mais de uma pendente, a interface informa a quantidade;
+- o formato legado `pendingRequest` continua compatível.
 
 ## Gravação confirmada antes de reiniciar a API
 
