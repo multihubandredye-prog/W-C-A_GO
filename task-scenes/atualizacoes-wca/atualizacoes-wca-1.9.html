@@ -315,7 +315,7 @@ h2 {
       </div>
     </div>
     <script>
-// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.8)
+// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.9)
 // A cena identifica a release real mais recente e executa a atualizacao sem
 // encaminhar para a cena de instalacao. CORE substitui os dois binarios; UI
 // baixa o projeto Tasker; FULL executa as duas etapas. Projeto e FULL publicam
@@ -350,6 +350,7 @@ let currentUpdateIsTest = false;
 let currentReleaseAssets = {};
 let updateRunning = false;
 let closeTimer = null;
+let continuationStarted = false;
 
 function getTaskerBridge(){
     if (typeof Tasker !== 'undefined') return Tasker;
@@ -669,24 +670,58 @@ async function fecharPropriaCena(){
     return algumOk;
 }
 
-function iniciarContagemFinal(precisaProjeto){
+async function continuarFluxoAtualizacao(typeProject){
+    if (continuationStarted) return;
+    continuationStarted = true;
+    if (closeTimer !== null) {
+        clearInterval(closeTimer);
+        closeTimer = null;
+    }
+    const botao = document.getElementById('updateNowButton');
+    if (botao) {
+        botao.disabled = true;
+        botao.textContent = 'CONTINUANDO...';
+    }
+    try {
+        const api = getTaskerBridge();
+        if (!api || typeof api.setVariable !== 'function') throw new Error('Tasker.setVariable indisponível.');
+        await api.setVariable('type_project', typeProject);
+        const chamada = dispararConfiguracao(typeProject);
+        let falhaDisparo = null;
+        const protegida = Promise.resolve(chamada).catch(function (erro) { falhaDisparo = erro; });
+        await Promise.race([protegida, bridgeTimeout(1200)]);
+        if (falhaDisparo) throw falhaDisparo;
+        fecharPropriaCena();
+    } catch (erroFluxo) {
+        continuationStarted = false;
+        mostrarStatus('Não foi possível continuar: ' + String((erroFluxo && erroFluxo.message) || erroFluxo), 'error');
+        if (botao) {
+            botao.disabled = false;
+            botao.textContent = typeProject === 'project-api' ? 'ATUALIZAR AGORA' : 'INSTALAR AGORA';
+            botao.onclick = function () { continuarFluxoAtualizacao(typeProject); };
+        }
+    }
+}
+
+function iniciarContagemFinal(precisaProjeto, typeProject){
+    continuationStarted = false;
     let restante = COUNTDOWN_SECONDS;
     const status = document.getElementById('updateStatus');
     const botao = document.getElementById('updateNowButton');
     function desenhar(){
         if (!status) return;
         status.className = 'update-status show success';
-        status.innerHTML = '<strong>Atualização concluída.</strong><div class="update-progress"><span>' + (precisaProjeto ? 'Iniciando a instalação do projeto' : 'Encerrando a atualização') + '</span><span class="update-counter">' + String(restante) + '</span></div>';
+        status.innerHTML = '<strong>Atualização concluída.</strong><div class="update-progress"><span>' + (precisaProjeto ? 'Iniciando a instalação do projeto' : 'Continuando a atualização do sistema') + '</span><span class="update-counter">' + String(restante) + '</span></div>';
     }
     if (botao) {
         botao.disabled = false;
-        botao.textContent = precisaProjeto ? 'INSTALAR AGORA' : 'FECHAR AGORA';
-        botao.onclick = function () { fecharPropriaCena(); };
+        botao.textContent = precisaProjeto ? 'INSTALAR AGORA' : 'ATUALIZAR AGORA';
+        botao.onclick = function () { continuarFluxoAtualizacao(typeProject); };
     }
     desenhar();
     closeTimer = setInterval(function () {
         restante -= 1;
-        if (restante <= 0) fecharPropriaCena();
+        if (restante <= 0) continuarFluxoAtualizacao(typeProject);
         else desenhar();
     }, 1000);
 }
@@ -734,11 +769,7 @@ async function executarAtualizacao(tipo){
         }
         const typeProject = typeProjectParaAtualizacao(tipo);
         if (!typeProject) throw new Error('Tipo de projeto da atualização não identificado.');
-        const api = getTaskerBridge();
-        if (!api || typeof api.setVariable !== 'function') throw new Error('Tasker.setVariable indisponível.');
-        await api.setVariable('type_project', typeProject);
-        dispararConfiguracao(typeProject).catch(function () { });
-        iniciarContagemFinal(atualizarProjeto);
+        iniciarContagemFinal(atualizarProjeto, typeProject);
     } catch (erroAtualizacao) {
         updateRunning = false;
         mostrarStatus('Não foi possível concluir: ' + String((erroAtualizacao && erroAtualizacao.message) || erroAtualizacao), 'error');

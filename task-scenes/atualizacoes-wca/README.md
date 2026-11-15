@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.8**
-Arquivo: `atualizacoes-wca-1.8.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.9**
+Arquivo: `atualizacoes-wca-1.9.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação. Temporariamente, uma release cujo título seja exatamente `Teste` também é aceita, exibida como atualização de teste e executada no modo full.
 
@@ -43,13 +43,11 @@ A versão instalada é gravada em:
 
 ## Encerramento e continuidade no Tasker
 
-Após a conclusão, a cena mostra uma contagem regressiva de 10 segundos. O botão permite encerrar imediatamente.
+Após a conclusão, a cena mostra uma contagem regressiva de 10 segundos. Projeto/full usam **INSTALAR AGORA** e core usa **ATUALIZAR AGORA**. O botão antecipa a continuação; não apenas fecha a cena.
 
-Após os downloads, antes do encerramento, a cena define a variável local `type_project` e executa:
+Depois dos downloads, a cena apenas inicia a contagem regressiva. Nesse momento, `type_project` ainda não é definido e nenhuma tarefa é executada.
 
-```text
-006-CONFIGURAR_SISTEMA [wca]
-```
+A continuação acontece somente quando a contagem chega a zero ou quando o usuário toca em **INSTALAR AGORA** / **ATUALIZAR AGORA**. Nesse instante, a cena define `type_project`, executa `006-CONFIGURAR_SISTEMA [wca]` e encerra.
 
 A tarefa recebe:
 
@@ -65,7 +63,7 @@ O valor de `type_project` segue o modo:
 | Core | `project-api` |
 | Full | `project-full` |
 
-A tarefa é disparada antes da contagem regressiva e do encerramento da cena.
+Uma trava garante que botão e contador não possam disparar a tarefa duas vezes.
 
 ## Tratamento de falhas
 
