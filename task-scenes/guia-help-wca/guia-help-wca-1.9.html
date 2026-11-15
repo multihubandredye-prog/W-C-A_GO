@@ -1106,7 +1106,7 @@ body.video-aberto { overflow: hidden; }
 #videoPlayerModal { background: #000; align-items: stretch; justify-content: stretch; }
 #videoPlayerModal.show { display: block; }
 .video-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; border-radius: 0; overflow: hidden; background: #000; box-shadow: none; }
-.video-player-content .modal-header { position: absolute; inset: auto 0 0 0; min-height: 7rem; margin: 0; padding: 3.5rem 1.6rem max(1.6rem, env(safe-area-inset-bottom)); border: 0; z-index: 10002; background: linear-gradient(0deg, rgba(0,0,0,.92), rgba(0,0,0,0)); pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(1.2rem); transition: opacity .22s ease, transform .22s ease, visibility 0s linear .22s; }
+.video-player-content .modal-header { position: absolute; inset: auto 0 5.8rem 0; min-height: 7rem; margin: 0; padding: 3.5rem 1.6rem 1.4rem; border: 0; z-index: 10002; background: linear-gradient(0deg, rgba(0,0,0,.92), rgba(0,0,0,0)); pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(1.2rem); transition: opacity .22s ease, transform .22s ease, visibility 0s linear .22s; }
 .video-player-content .modal-header.title-visible { opacity: 1; visibility: visible; transform: translateY(0); transition-delay: 0s; }
 .video-player-content .modal-header h2 { width: 100%; max-width: none; margin: 0; overflow: visible; white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.35; text-shadow: 0 .2rem .6rem #000; }
 .video-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; border-radius: 0; overflow: hidden; }
@@ -2650,6 +2650,8 @@ let videoDeveContinuar = false;
 let pausaVideoTimer = null;
 let tituloVideoTimer = null;
 let retomadaVideoPendente = false;
+let ultimoToqueVideo = 0;
+let manipuladorToqueVideo = null;
 let ultimaPersistenciaVideo = 0;
 
 function textoEstadoDoBridge(valor, profundidade) {
@@ -2735,8 +2737,16 @@ function mostrarTituloVideo() {
     tituloVideoTimer = setTimeout(ocultarTituloVideo, 3200);
 }
 
+function restaurarAudioVideo(video) {
+    setTimeout(function () {
+        if (!video || videoFechando) return;
+        video.muted = false;
+    }, 240);
+}
+
 function retomarVideoNoToque(video) {
     if (!retomadaVideoPendente || !videoDeveContinuar || !video || !video.paused) return;
+    video.muted = false;
     const tentativa = video.play();
     if (tentativa && typeof tentativa.then === 'function') {
         tentativa.then(function () {
@@ -2747,6 +2757,12 @@ function retomarVideoNoToque(video) {
         retomadaVideoPendente = false;
         salvarEstadoVideo(true);
     }
+}
+
+function registrarToqueNoPlayer(video) {
+    ultimoToqueVideo = Date.now();
+    mostrarTituloVideo();
+    retomarVideoNoToque(video);
 }
 
 function openVideoPlayer(title, url, estadoRestaurado) {
@@ -2760,21 +2776,22 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     videoRestaurando = !!estadoRestaurado;
     videoDeveContinuar = !!(estadoRestaurado && estadoRestaurado.playing === true);
     retomadaVideoPendente = videoDeveContinuar;
+    ultimoToqueVideo = 0;
     ocultarTituloVideo();
     const video = document.createElement('video');
     video.id = 'videoAtivo';
     video.src = url;
     video.controls = true;
     video.autoplay = videoDeveContinuar;
+    video.muted = videoDeveContinuar;
     video.playsInline = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
     video.preload = 'metadata';
     container.appendChild(video);
-    container.onclick = function () {
-        mostrarTituloVideo();
-        retomarVideoNoToque(video);
-    };
+    manipuladorToqueVideo = function () { registrarToqueNoPlayer(video); };
+    container.addEventListener('touchstart', manipuladorToqueVideo, true);
+    container.addEventListener('pointerdown', manipuladorToqueVideo, true);
     video.addEventListener('loadedmetadata', function () {
         const tempo = estadoRestaurado ? Number(estadoRestaurado.time || 0) : 0;
         if (tempo > 0 && Number.isFinite(tempo)) {
@@ -2785,17 +2802,23 @@ function openVideoPlayer(title, url, estadoRestaurado) {
             const inicioRestaurado = video.play();
             if (inicioRestaurado && typeof inicioRestaurado.then === 'function') {
                 inicioRestaurado.then(function () {
-                    retomadaVideoPendente = false;
                     videoRestaurando = false;
-                    salvarEstadoVideo(true);
+                    restaurarAudioVideo(video);
+                    setTimeout(function () {
+                        if (!video.paused) retomadaVideoPendente = false;
+                        salvarEstadoVideo(true);
+                    }, 420);
                 }).catch(function () {
                     retomadaVideoPendente = true;
                     videoRestaurando = false;
                 });
             } else {
-                retomadaVideoPendente = false;
                 videoRestaurando = false;
-                salvarEstadoVideo(true);
+                restaurarAudioVideo(video);
+                setTimeout(function () {
+                    if (!video.paused) retomadaVideoPendente = false;
+                    salvarEstadoVideo(true);
+                }, 420);
             }
         } else {
             videoRestaurando = false;
@@ -2805,13 +2828,20 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
     video.addEventListener('play', function () {
         videoDeveContinuar = true;
-        retomadaVideoPendente = false;
+        if (!video.muted) retomadaVideoPendente = false;
         if (!videoRestaurando) salvarEstadoVideo(true);
     });
     video.addEventListener('pause', function () {
         clearTimeout(pausaVideoTimer);
         pausaVideoTimer = setTimeout(function () {
-            if (videoFechando || videoRestaurando || retomadaVideoPendente || document.hidden || !modalAberto('videoPlayerModal')) return;
+            if (videoFechando || videoRestaurando || document.hidden || !modalAberto('videoPlayerModal')) return;
+            const pausaManual = Date.now() - ultimoToqueVideo < 1600;
+            if (!pausaManual) {
+                if (videoDeveContinuar) retomadaVideoPendente = true;
+                salvarEstadoVideo(true);
+                return;
+            }
+            retomadaVideoPendente = false;
             videoDeveContinuar = false;
             salvarEstadoVideo(true);
         }, 180);
@@ -2838,13 +2868,21 @@ function closeVideoPlayer() {
         video.removeAttribute('src');
         try { video.load(); } catch (e) {}
     }
-    if (container) { container.onclick = null; container.innerHTML = ''; }
+    if (container) {
+        if (manipuladorToqueVideo) {
+            container.removeEventListener('touchstart', manipuladorToqueVideo, true);
+            container.removeEventListener('pointerdown', manipuladorToqueVideo, true);
+        }
+        container.innerHTML = '';
+    }
     document.body.classList.remove('video-aberto');
     if (modal) modal.classList.remove('show');
     videoAtualDados = null;
     videoRestaurando = false;
     videoDeveContinuar = false;
     retomadaVideoPendente = false;
+    ultimoToqueVideo = 0;
+    manipuladorToqueVideo = null;
     ocultarTituloVideo();
     limparEstadoVideo();
     publicarModalAtual();

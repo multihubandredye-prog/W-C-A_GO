@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.8**
-Arquivo: `guia-help-wca-1.8.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.9**
+Arquivo: `guia-help-wca-1.9.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -23,11 +23,11 @@ Arquivo: `guia-help-wca-1.8.html` — arquivo único, com HTML + CSS + JavaScrip
 - A lista é consultada novamente sempre que o modal é aberto, permitindo adicionar ou remover vídeos sem atualizar o HTML;
 - Tocar no vídeo abre imediatamente um overlay de reprodução que ocupa `100vw × 100dvh` de toda a área da cena, sem depender de `requestFullscreen()` do WebView;
 - O player usa `object-fit: contain`, controles nativos e `playsinline`/`webkit-playsinline`; não há botão FECHAR — o botão voltar do Android encerra o vídeo;
-- O título completo fica oculto na parte inferior, aceita várias linhas, aparece ao tocar no player e some automaticamente após 3,2 segundos;
+- O título completo fica oculto acima dos controles inferiores, aceita várias linhas, captura o toque antes dos controles nativos e some automaticamente após 3,2 segundos;
 - A lista também exibe o tamanho de cada arquivo retornado pelo GitHub;
 - Ao abrir, o vídeo permanece pausado até o usuário tocar em Play; voltar interrompe e elimina a mídia carregada;
 - Durante a reprodução, URL, título, posição e intenção de reprodução são persistidos em `localStorage` e, automaticamente, na variável local interna `video_rotation_state`; esse fallback é necessário quando a rotação recria o WebView com outro armazenamento;
-- Se a rotação recriar o WebView, o player volta ao mesmo ponto e tenta continuar se estava reproduzindo; quando o WebView bloquear o autoplay com áudio, o primeiro toque no player retoma a reprodução; se o usuário havia pausado, permanece pausado; o estado expira após 10 minutos e é apagado ao voltar;
+- Se a rotação recriar o WebView, o player volta ao mesmo ponto e preserva a intenção de reprodução, distinguindo a pausa automática da pausa manual; a retomada tenta iniciar temporariamente sem áudio e restaurá-lo em seguida, mantendo o primeiro toque como fallback quando o WebView bloquear; o estado expira após 10 minutos e é apagado ao voltar;
 - Voltar no player retorna à lista de vídeos; voltar na lista fecha o modal.
 
 ## Telegram
