@@ -1106,8 +1106,9 @@ body.video-aberto { overflow: hidden; }
 #videoPlayerModal { background: #000; align-items: stretch; justify-content: stretch; }
 #videoPlayerModal.show { display: block; }
 .video-player-content { width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; padding: 0; margin: 0; border: 0; border-radius: 0; overflow: hidden; background: #000; box-shadow: none; }
-.video-player-content .modal-header { position: absolute; inset: 0 0 auto 0; min-height: 7rem; margin: 0; padding: 1.4rem 1.6rem; border: 0; z-index: 10002; background: linear-gradient(180deg, rgba(0,0,0,.88), rgba(0,0,0,0)); pointer-events: none; }
-.video-player-content .modal-header h2 { max-width: calc(100vw - 8rem); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 .2rem .6rem #000; }
+.video-player-content .modal-header { position: absolute; inset: auto 0 0 0; min-height: 7rem; margin: 0; padding: 3.5rem 1.6rem max(1.6rem, env(safe-area-inset-bottom)); border: 0; z-index: 10002; background: linear-gradient(0deg, rgba(0,0,0,.92), rgba(0,0,0,0)); pointer-events: none; opacity: 0; visibility: hidden; transform: translateY(1.2rem); transition: opacity .22s ease, transform .22s ease, visibility 0s linear .22s; }
+.video-player-content .modal-header.title-visible { opacity: 1; visibility: visible; transform: translateY(0); transition-delay: 0s; }
+.video-player-content .modal-header h2 { width: 100%; max-width: none; margin: 0; overflow: visible; white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.35; text-shadow: 0 .2rem .6rem #000; }
 .video-player-container { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; border-radius: 0; overflow: hidden; }
 .video-player-container video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: contain; background: #000; }
 .video-thumb-size { display: block; margin: -.3rem .8rem .8rem; color: var(--text-dim); font-size: 1.15rem; text-align: center; }
@@ -2647,6 +2648,8 @@ let videoFechando = false;
 let videoRestaurando = false;
 let videoDeveContinuar = false;
 let pausaVideoTimer = null;
+let tituloVideoTimer = null;
+let retomadaVideoPendente = false;
 let ultimaPersistenciaVideo = 0;
 
 function textoEstadoDoBridge(valor, profundidade) {
@@ -2718,6 +2721,34 @@ async function restaurarVideoAposRotacao() {
     openVideoPlayer(estado.title, estado.url, estado);
 }
 
+function ocultarTituloVideo() {
+    clearTimeout(tituloVideoTimer);
+    const cabecalho = document.querySelector('#videoPlayerModal .modal-header');
+    if (cabecalho) cabecalho.classList.remove('title-visible');
+}
+
+function mostrarTituloVideo() {
+    const cabecalho = document.querySelector('#videoPlayerModal .modal-header');
+    if (!cabecalho) return;
+    cabecalho.classList.add('title-visible');
+    clearTimeout(tituloVideoTimer);
+    tituloVideoTimer = setTimeout(ocultarTituloVideo, 3200);
+}
+
+function retomarVideoNoToque(video) {
+    if (!retomadaVideoPendente || !videoDeveContinuar || !video || !video.paused) return;
+    const tentativa = video.play();
+    if (tentativa && typeof tentativa.then === 'function') {
+        tentativa.then(function () {
+            retomadaVideoPendente = false;
+            salvarEstadoVideo(true);
+        }).catch(function () {});
+    } else {
+        retomadaVideoPendente = false;
+        salvarEstadoVideo(true);
+    }
+}
+
 function openVideoPlayer(title, url, estadoRestaurado) {
     const modal = document.getElementById('videoPlayerModal');
     const titulo = document.getElementById('videoPlayerTitleText');
@@ -2728,6 +2759,8 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     videoFechando = false;
     videoRestaurando = !!estadoRestaurado;
     videoDeveContinuar = !!(estadoRestaurado && estadoRestaurado.playing === true);
+    retomadaVideoPendente = videoDeveContinuar;
+    ocultarTituloVideo();
     const video = document.createElement('video');
     video.id = 'videoAtivo';
     video.src = url;
@@ -2738,21 +2771,29 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     video.setAttribute('webkit-playsinline', '');
     video.preload = 'metadata';
     container.appendChild(video);
+    container.onclick = function () {
+        mostrarTituloVideo();
+        retomarVideoNoToque(video);
+    };
     video.addEventListener('loadedmetadata', function () {
         const tempo = estadoRestaurado ? Number(estadoRestaurado.time || 0) : 0;
         if (tempo > 0 && Number.isFinite(tempo)) {
             try { video.currentTime = tempo; } catch (eTempo) {}
         }
         if (videoDeveContinuar) {
+            retomadaVideoPendente = true;
             const inicioRestaurado = video.play();
             if (inicioRestaurado && typeof inicioRestaurado.then === 'function') {
                 inicioRestaurado.then(function () {
+                    retomadaVideoPendente = false;
                     videoRestaurando = false;
                     salvarEstadoVideo(true);
                 }).catch(function () {
+                    retomadaVideoPendente = true;
                     videoRestaurando = false;
                 });
             } else {
+                retomadaVideoPendente = false;
                 videoRestaurando = false;
                 salvarEstadoVideo(true);
             }
@@ -2764,12 +2805,13 @@ function openVideoPlayer(title, url, estadoRestaurado) {
     video.addEventListener('timeupdate', function () { salvarEstadoVideo(false); });
     video.addEventListener('play', function () {
         videoDeveContinuar = true;
+        retomadaVideoPendente = false;
         if (!videoRestaurando) salvarEstadoVideo(true);
     });
     video.addEventListener('pause', function () {
         clearTimeout(pausaVideoTimer);
         pausaVideoTimer = setTimeout(function () {
-            if (videoFechando || videoRestaurando || document.hidden || !modalAberto('videoPlayerModal')) return;
+            if (videoFechando || videoRestaurando || retomadaVideoPendente || document.hidden || !modalAberto('videoPlayerModal')) return;
             videoDeveContinuar = false;
             salvarEstadoVideo(true);
         }, 180);
@@ -2787,6 +2829,7 @@ function openVideoPlayer(title, url, estadoRestaurado) {
 function closeVideoPlayer() {
     videoFechando = true;
     clearTimeout(pausaVideoTimer);
+    clearTimeout(tituloVideoTimer);
     const modal = document.getElementById('videoPlayerModal');
     const container = document.getElementById('videoPlayerContainer');
     const video = container ? container.querySelector('video') : null;
@@ -2795,12 +2838,14 @@ function closeVideoPlayer() {
         video.removeAttribute('src');
         try { video.load(); } catch (e) {}
     }
-    if (container) container.innerHTML = '';
+    if (container) { container.onclick = null; container.innerHTML = ''; }
     document.body.classList.remove('video-aberto');
     if (modal) modal.classList.remove('show');
     videoAtualDados = null;
     videoRestaurando = false;
     videoDeveContinuar = false;
+    retomadaVideoPendente = false;
+    ocultarTituloVideo();
     limparEstadoVideo();
     publicarModalAtual();
     videoFechando = false;
