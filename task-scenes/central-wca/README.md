@@ -1,203 +1,196 @@
 # Central WCA — Cena V2 (WebView)
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
-Versão atual: **1.56**
-Arquivo: `central-wca-1.56.html` — **único arquivo**, com HTML + CSS + JS inline.
 
----
+Versão atual: **1.63**
 
-## Fila de solicitações Premium
+Arquivo atual: `central-wca-1.63.html`
 
-- A Central reconhece `pendingRequests` e mostra a solicitação mais recente ao cliente;
-- edição e cancelamento enviam o `requestId` exato, sem alterar as demais solicitações;
-- quando houver mais de uma pendente, a interface informa a quantidade;
-- o formato legado `pendingRequest` continua compatível.
+A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
-## Gravação confirmada antes de reiniciar a API
+## Requisitos
 
-- **SALVAR E REINICIAR** grava o conteúdo completo do `.env`, lê novamente o arquivo e confirma que o conteúdo persistido é exatamente o conteúdo configurado;
-- A tarefa `006-CONFIGURAR_SISTEMA [wca]` com `restart-wca` só é executada depois dessa confirmação e de uma pequena margem para sincronização do armazenamento;
-- Se a gravação não puder ser confirmada, a API **não é reiniciada** e o painel informa a falha;
-- O botão **SALVAR** usa a mesma confirmação de persistência, sem executar o reinício.
+- Tasker 6.7 ou superior, com Scenes V2;
+- JavaScript Bridge habilitado no componente WebView;
+- **Allow Phone Access** habilitado no elemento Web;
+- arquivo completo da versão atual inserido no WebView da cena.
 
-## Feedback de toque em vez de hover (1.54)
-
-- Todo o CSS usa **`:active`** no lugar de `:hover` (47 regras) — a cena é usada só em celular, então o feedback visual acontece **no toque**, não ao passar o cursor;
-- Vale para botões, itens de menu, cartões, tooltip de status e barras de rolagem;
-
-## Textos da tela inicial e rodapé (1.53)
-
-- O selo de status exibe **API ONLINE** (antes "whats connect api conectado");
-- A tela de boas-vindas Premium **não exibe mais** o subtítulo "Sua assinatura Premium do WCA está ativa";
-- O rodapé exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:") — vale para todas as cenas do projeto;
-
-## Avisos do desenvolvedor acima do footer (1.47–1.52)
-
-- **Banner destacado acima do footer** (fixo, com pulso e ícone de alerta) que lê o arquivo `wca-resources/updates/avisos` no repositório — mesmo padrão de fontes da cena Atualizações (API do GitHub primeiro, raw como fallback);
-- O banner **só aparece quando há texto** no arquivo: arquivo vazio ou falha de rede = banner oculto, sem erro na tela;
-- As **quebras de linha do arquivo são respeitadas** na exibição (`white-space: pre-line`, 1.48) — parágrafos e linhas em branco aparecem como escritos;
-- **Tamanho fixo (1.49)**: o banner mostra **4 linhas** e o texto **rola por dentro** dele (rolagem interna com barra fina); quando há conteúdo cortado, aparece um **botão de expandir** (seta no canto superior direito);
-- **Modal centralizado (1.52)**: a seta **não expande o banner no lugar** — abre um **modal centralizado** (`avisoModal`, sistema de modais da Central) com o texto completo e rolagem interna; fecha por **FECHAR**, **clicar fora**, **Escape** ou **botão voltar** (publicado no `cache_modal`); o banner continua compacto acima do footer;
-- Com o banner visível, o corpo ganha **respiro embaixo** (`body.com-aviso`, padding 15rem) — o cartão sobe e o banner **nunca cobre** as informações;
-- Para publicar um aviso, basta escrever o texto no arquivo `wca-resources/updates/avisos` do repositório — a Central exibe na próxima abertura.
-
-## Chips de eventos: clique em qualquer lugar e +15% (1.46)
-
-- **O chip INTEIRO do evento alterna** (antes só a caixinha): clique no fundo, no texto ou em qualquer área marca/desmarca; a caixinha alterna nativamente (sem dupla alternância) e o botão `?` **não desmarca** — só abre a explicação;
-- Chips **~15% maiores**: texto 0.66→0.76rem, caixinha 13→15px, `?` 0.72→0.82rem, padding 8px 9px.
-
-## Espaçamento interno dos inputs corrigido de vez (1.45)
-
-- **Causa raiz** do espaçamento à esquerda dentro das caixas (visível desde as primeiras versões): a regra global `input[type="text"]` do painel tem `padding: .78rem .78rem .78rem 2.5rem` (espaço para o ícone dos campos do painel principal) e especificidade MAIOR que `.dev-input` — todos os inputs do painel dev herdavam o **padding esquerdo de ~40px**;
-- Com o `text-align: center` dos campos numéricos, o texto centrava dentro do content box (que começa após esse padding) e ficava deslocado para a direita;
-- **Correção**: as regras dos inputs do painel agora são `#devSettingsModal .dev-input` e `#devSettingsModal .dev-input-num` (especificidade maior que a global) — padding simétrico real (9px 12px no geral; 9px 6px no numérico) e o número centra de verdade na caixinha.
-
-## Refinamento do design dos campos numéricos e do resultado (1.44)
-
-- Os 3 campos numéricos (`AUTO_DELETE_MEDIA_DURATION`, `WHATSAPP_WEBHOOK_DELAY_MS`, `WHATSAPP_WEBHOOK_MAX_ATTEMPTS`) agora ficam em **uma única linha** (rótulo à esquerda + botão `?` + caixinha à direita);
-- A caixinha numérica é **compacta** (110px) com o número **centralizado** dentro (placeholder do delay encurtado para `500` — a explicação completa continua no `?`);
-- O modal de resultado do Verificar Premium ganhou **respiro entre a informação e o botão FECHAR** (`margin-top: 20px` nos botões).
-
-## UX do premium check, Configurações da API e design (desde a 1.43)
-
-- **Verificar Premium SEM toasts**: ao confirmar o SIM, abre um modal de **progresso** ("VERIFICANDO ASSINATURA" com spinner) e, ao concluir, o resultado aparece em um **modal pequeno** (ícone/título conforme o tipo, nome do usuário e "Vence em dd/mm/yyyy · N dias restantes / VENCE HOJE / ASSINATURA EXPIRADA") com botão FECHAR;
-- **Fechar por qualquer via volta ao MENU** (nunca para a tela inicial): botão voltar (modais registrados no mapa de pais `WCA_MODAL_PAI`), clicar fora ou FECHAR — durante a verificação inclusive, o voltar reabre o menu e o resultado aparece quando a consulta terminar;
-- **Configurações da API**: o item antes chamado "Configurações do desenvolvedor" agora se chama **"Configurações da API — Editar o arquivo .env do WCA"**, foi **movido para cima do item Ajuda** e, ao ser clicado, exibe um **modal de alerta formal** ("alterações incorretas podem afetar o funcionamento do WCA") antes de abrir o painel (CANCELAR/CONTINUAR); o título do painel também virou "CONFIGURAÇÕES DA API";
-- **Voltar corrigido nos dois fluxos**: o painel de Configurações da API e os novos modais fecham para o MENU (o painel não estava registrado no mapa de pais e o voltar caía na tela inicial);
-- **Design do painel**: inputs com texto **alinhado à esquerda** (o texto herdava o centralizado do modal — o "espaçamento esquisito") e os 3 campos numéricos (`AUTO_DELETE_MEDIA_DURATION`, `WHATSAPP_WEBHOOK_DELAY_MS`, `WHATSAPP_WEBHOOK_MAX_ATTEMPTS`) com **largura compacta** (max 170px) em vez da caixa gigante;
-
-## Verificação Premium direta (desde a 1.42 — sem tarefa do Tasker)
-
-- O botão **Verificar Premium** (menu → "Verificar Premium — Sincronizar assinatura") **não dispara mais tarefa nenhuma** (o antigo `task`=`5`/`task_exit`=`status_premium` foi extinto) — a verificação acontece **dentro da cena**, direto no link da Vercel;
-- Fluxo replicado do código Java original: telefone do dispositivo **is_principal** do devices.json → **aquecimento** (5s) + pausa (2s) + **consulta real** (15s) em `https://wca-api-three-alpha.vercel.app?phone=...` → interpreta `nome`/`expiracao`/`status`;
-- `status` **premium**/**expired** → PREMIUM com a expiração da resposta; qualquer outro (teste, `pending_activation`, cancelled) → **MODO TESTE** com a expiração guardada no `.sys_config.txt` ou +7 dias; **sem telefone/sem resposta** → repete o último estado guardado (nome ≠ "Teste" → PREMIUM);
-- Grava **`.mode-system.log`** (linha no formato original: `[HH:mm:ss] TIPO | Usuário: NOME | Data de Expiração: dd/MM/yyyy | N dias restantes` / `VENCE HOJE` / `ASSINATURA EXPIRADA`) e **`.sys_config.txt`** (`{"nome","expiration","dias","lastCheck"}`) e **recarrega o log pelo pipeline oficial** (selo, nome, boas-vindas, foto);
-- Feedback com toasts ("Sincronizando..." no início; PREMIUM ATIVO / MODO TESTE ATIVO / ASSINATURA EXPIRADA no fim). Nenhuma variável do Tasker é gravada.
-
-## Desinstalação (desde a 1.41 — tudo dentro da cena)
-
-- **Menu → Desinstalar WCA** abre a confirmação e, ao confirmar, roda um **assistente dentro da cena** (overlay dedicado, acima de tudo) com **barra de progresso e passo a passo**:
-  1. **Etapa 1/3 — Desconectar os usuários**: consulta `GET /devices` da API (prazo de 3s); se a API **não estiver em execução**, a etapa é **pulada** com aviso; para cada dispositivo, o mesmo fluxo da lixeira (`/app/logout` + `DELETE /devices/{id}`) e limpeza do devices.json;
-  2. **Etapa 2/3 — Eliminar os arquivos**: enumera os arquivos de `/data/data/net.dinglisch.android.taskerm/files/WCA` e `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api` via `find`, exibe **nome por nome** ("Eliminando (n de total): arquivo...") e apaga um a um com **100ms** de alternância; no fim, `rm -rf` nas duas pastas;
-  3. **Etapa 3/3 — Concluído**: "Desinstalação concluída" e as **cenas se encerram em cascata** (`001-CENTRAL_WHATS_CONNECT_API [wca]V2` → `[wca]` → ID 1 → dismissLayout → cancelScreen);
-- **Não usa mais a tarefa 006** (`uninstall-wca`) — a cena V2 executa tudo por conta própria (shell + API);
-- **Configurações do desenvolvedor**: o botão saiu de junto ao menu e agora é um **item do próprio menu** ("Configurações do desenvolvedor — Parâmetros avançados (.env)") que abre o mesmo painel;
-
-## Regras permanentes
-
-1. **Versão do painel**: SEMPRE lida do arquivo `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version` (sem extensão) — nunca de variável do Tasker e nunca fictícia (`loadVersionFile`, ativa no `initialize`). Se o arquivo EXISTE porém vem **vazio/inválido**, a cena busca a versão da **última release REAL do repositório** na API do GitHub (lista `/releases` — o rótulo do tipo vem ENTRE COLCHETES no título: `[UI]`, `[CORE]` ou `[FULL]`, com ou sem espaços/emoji; a lista chega da mais recente para a mais antiga e a primeira com rótulo válido define a versão; releases sem o rótulo no título — ex.: testes — são IGNORADAS; remove um eventual `v` inicial e valida com o mesmo formato do arquivo), exibe nos badges e **GRAVA de volta no arquivo** (`writeFile`) — a requisição só acontece nesse caso; se nada for obtido (sem internet, por exemplo, ou nenhuma release com rótulo), a cena mantém o padrão. Sem token embutido (API pública; o fallback é raro e o limite de 60 requisições/hora por IP é suficiente) — **nunca** colocar o token dentro do HTML da cena;
-2. **Conexões/dispositivos**: SEMPRE no arquivo `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/connections/devices.json` (leitura com cache em memória, escrita com cache + arquivo);
-3. **Lógica e requisições**: manter a lógica e as 31 chamadas à API intactas — alterações de métodos se restringem à camada de cena;
-4. **Premium/licença**: SEMPRE lido do arquivo `/storage/emulated/0/.system_cache/.mode-system.log` (`loadModeSystemLog`).
-
-Valores fictícios existem **apenas** em `USER_NAME` e `SHOW_WELCOME_MESSAGE` enquanto durar o combinado — a leitura real via `Tasker.getVariable` está pronta e desligada. `Premium_LOG_DATA` é REAL (arquivo `.mode-system.log`), e o **nome real do usuário** também é extraído do próprio `.mode-system.log` (campo `Usuário: ...`), substituindo o fictício sempre que o arquivo existir.
-
-## Requisitos da cena V2
-
-- Tasker 6.7 ou superior (Scenes V2 / "Modern (V2)")
-- Componente **WebView** na cena com o **JavaScript bridge** habilitado (padrão ativo)
-- **Allow Phone Access** habilitado no elemento Web — obrigatório para arquivos e tarefas. Atenção: em algumas versões essa opção pode desmarcar sozinha ao reeditar a cena; confira antes de testar
-
-## Mapa de cliques
-
-Todos os botões de sistema despacham `006-CONFIGURAR_SISTEMA [wca]` com o comando embutido em `par1` (`Tasker.runTask`):
-
-| Função da cena | Ação | Valor |
-|---|---|---|
-| `taskOpenFaq` | `runTask` → 006 | `par1 = open-faq` |
-| `taskTalkToDeveloper` | `runTask` → 006 | `par1 = talk-developer` |
-| `taskSendPurchaseWhatsApp` | `runTask` → 006 | `par1 = buy-vip` |
-| `taskUninstallWca` | `runTask` → 006 | `par1 = uninstall-wca` |
-| `taskDeactivateWca` | `runTask` → 006 | `par1 = stop-wca` |
-| `taskRestartWca` (também usado por `taskReactivateWca`) | `runTask` → 006 | `par1 = restart-wca` |
-| `taskCheckUpdates` | `runTask` → 006 | `par1 = check_updates` |
-| `taskReinstallApi` | `runTask` → 006 | `par1 = force-reinstall-api` |
-| `alertReinstallTask` | `runTask` → 006 | `par1 = force-reinstall-task` |
-| `taskEditProfilePicture` | `runTask` → 006 | `par1 = profile-picture` |
-| `taskInstall(data)` | `runTask` → 006 | `par1 = install-project` + `exit_data` (JSON number/session) |
-
-Exceções que **não** executam tarefa — apenas gravam variáveis na cena (`Tasker.setVariable`):
-
-| Função | Variáveis gravadas |
-|---|---|
-| `taskPremiumNotFound()` | `task = 5` e `task_exit = status_premium` |
-
-As variáveis gravadas com `setVariable` são variáveis **da tela**: quando a cena for fechada (Dismiss Scene v2), elas são devolvidas à tarefa que a exibiu.
-
-## Variáveis do Tasker consumidas pela cena
-
-A cena V2 **não substitui variáveis dentro do JavaScript**, então nenhuma
-`%variável` fica embutida no código. **A cena usa VALORES
-FICTÍCIOS fixos no CONFIG** (`USER_NAME`, `SHOW_WELCOME_MESSAGE`); a leitura real em runtime via `Tasker.getVariable` está
-pronta em `loadTaskerVars` (com prazo de 4s), porém **desligada** (chamada
-comentada no `initialize`) — para religar, basta descomentar essa linha:
-
-`user_name`, `name_exist`, `photo_profile`, `mode_system`, `open_tab`
-
-**`open_tab` (aba inicial):** define a aba inicial da cena. **A PRIMEIRA aba (Instalação) é o padrão IMEDIATO do arranque** — sem variável, vazia, não definida ou com valor desconhecido, a cena SEMPRE abre nela, sem depender do bridge. A variável só PROMOVE: `two` = aba **Conexões** quando o valor chegar. **Como o valor chega (padrão do projeto de instalação):** (1) **LISTENER** `Tasker.onVariableChanged('open_tab')` — captura o valor definido/trocado COM a cena aberta (recomendado: colocar a ação *Definir variável %open_tab* DEPOIS da ação *Cena v2 Mostrar* — igual ao `progress_install` da Instalação, publicado com a cena aberta; se redefinir com o MESMO valor, o evento pode não disparar — o `return_modal` usa `%TIMES` por isso); (2) **SONDAGEM inicial de 8s** (16 tentativas de 500ms com prazo individual) — cobre o valor definido ANTES de abrir, sem evento. `one` não muda nada (a cena já está nela). Nunca sobrescreve a escolha do usuário (flag `__wcaUserTouchedTab`). **Atenção ao escopo:** variáveis com nome todo minúsculo (como `open_tab`) são **LOCAIS da tarefa** no Tasker — invisíveis para a cena antes/depois se a leitura do bridge não as alcançar; a receita garantida é definir DEPOIS do Show Scene v2 (listener). **Verificação da versão no aparelho:** procure `1.31` no HTML da cena (comentário do bloco da versão do painel)
-
-## Arquivos que a cena lê/escreve
+## Fontes de dados
 
 | Arquivo | Uso |
 |---|---|
-| `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/connections/devices.json` | Lido no início (cache em memória); escrito a cada alteração de dispositivos |
-| `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version` | **Versão do painel** (sem extensão): lida no início e exibida nos badges de versão. Se encontrado vazio: busca no repositório a última release com título real (`UI`/`CORE`/`FULL` entre colchetes; releases de teste sem o rótulo são ignoradas), exibe e grava de volta no arquivo |
-| `/storage/emulated/0/.system_cache/.mode-system.log` | **Premium/licença** (status, expiração): lido no início e aplicado em `processLicense`/`setWelcome` |
-| `icons/video-system.mp4` (vídeo do cabeçalho) | Cascata com reinício controlado e vigia por polling: `file:///storage/…/icons/video-system.mp4` → `icons/video-system.mp4` → `icons/video-system.webm` (o erro do primeiro src pode disparar antes do script; por isso o load é reiniciado com os listeners já anexados) |
-| Histórico de modais (`MODAL_HISTORY_PATH`) | Escrito a cada modal aberto |
-| `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/user-profile-picture/` | Reset de foto: lista (`listFiles`) e apaga todos os arquivos (`deleteFile`) |
+| `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/connections/devices.json` | Lista e estado dos dispositivos, com cache em memória |
+| `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version` | Versão exibida no painel |
+| `/storage/emulated/0/.system_cache/.mode-system.log` | Estado Premium, nome e expiração |
+| `/storage/emulated/0/.system_cache/.sys_config.txt` | Último estado sincronizado da assinatura |
+| `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` | Configuração da API editada pela Central |
+| `wca-resources/updates/avisos` | Aviso do desenvolvedor exibido acima do rodapé |
 
-## API do bridge utilizada
+Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consulta as releases públicas do repositório e usa a release real mais recente com `[UI]`, `[CORE]` ou `[FULL]` no título. Releases sem um desses rótulos são ignoradas. Nenhum token fica embutido na cena.
 
-`Tasker.runTask` · `Tasker.setVariable` · `Tasker.getVariable` · `Tasker.readFile` · `Tasker.writeFile` · `Tasker.listFiles` · `Tasker.deleteFile`
+## Abas, dispositivos e instalação
 
-Referência oficial: tasker.joaoapps.com/userguide/en/scenes_v2/webview-actions.html (e seção *JavaScript Bridge* do manual Scenes V2).
+- A aba **Instalação** é aberta imediatamente por padrão;
+- `open_tab=two` promove a aba **Conexões** por listener e sondagem inicial;
+- o listener recebe a variável depois da exibição da cena, preservando a compatibilidade com variáveis locais do Tasker;
+- a escolha manual do usuário não é sobrescrita pela sondagem;
+- dispositivos são lidos e gravados em `devices.json`;
+- o fluxo de QR Code renova o código quando o contador chega a zero e libera o cartão ao fechar o modal;
+- a desinstalação desconecta usuários, remove os arquivos do WCA e encerra as cenas em cascata.
 
-Observação: o `listFiles` do bridge retorna objeto de variáveis de saída da ação (conteúdo da lista na chave `files`, separado por linha).
+## Premium
 
-## Botão voltar do Android (Back Pressed)
+- A verificação é feita diretamente pela cena, usando o telefone do dispositivo principal;
+- o resultado atualiza `.mode-system.log` e `.sys_config.txt`;
+- solicitações Premium pendentes permanecem individualizadas pelo `requestId`;
+- edição ou cancelamento de uma solicitação não altera as demais;
+- os modais de progresso e resultado retornam ao menu ao serem fechados.
 
-Mecanismo: a cena publica em `cache_modal` o id do modal aberto no topo (vazio = nenhum) e escuta `return_modal`; ao receber, fecha APENAS o modal do topo (e reabre o modal de origem quando o fechado foi aberto a partir dele — Menu → confirmações, Premium, Avaliações etc.).
+## Avisos e interface
 
-**Montagem validada no aparelho (evento Back Pressed da tela):**
-1. **Cancelar Evento: Dinâmico** com a expressão **`"%cache_modal" != ""`** (COM as aspas — sem elas a avaliação falha com valor preenchido e a cena fecha junto);
-2. Ação **Definir Variável**: `return_modal` = `%TIMES` (valor diferente a cada press garante o disparo).
+- O banner de avisos só aparece quando há conteúdo;
+- quebras de linha são preservadas;
+- o banner compacto possui rolagem interna e abre o texto completo em modal;
+- todos os modais entram e saem com rotação vertical no eixo Y, incluindo confirmações, menu e telas modais;
+- o modal superior bloqueia a interação com o conteúdo de trás;
+- a interface móvel usa feedback `:active`;
+- o rodapé exibe somente o nome do desenvolvedor.
 
-**Os nomes das variáveis ficam no JavaScript da cena** (constantes `WCA_MODAL_STATE_VAR` = `cache_modal` e `WCA_RETURN_MODAL_VAR` = `return_modal`, no bloco "Botao voltar do Android"). Podem ser renomeados para qualquer nome (letras/números/_, sem `%`), desde que o MESMO nome seja usado nos dois lados: na constante do HTML e na expressão/ação do handler do Tasker. **Nomes padronizados (12/11/2026, para replicar em qualquer cena):** `cache_modal` (estado — qual modal está no topo, vazio = nenhum) + `return_modal` (comando do voltar). **Regras do `%`:** OBRIGATÓRIO na expressão do Cancelar Evento (`"%cache_modal" != ""`) e no valor `%TIMES` (são referências a variáveis); OPCIONAL no campo da variável da ação Definir Variável (com ou sem `%` funcionam — os exemplos do próprio Tasker usam sem). Fechamento da cena continua sendo SEMPRE pelo Tasker (o JS nunca faz dismiss).
+## Configurações da API
 
-## Tela do QR Code / código de pareamento
+O item **Configurações da API — Editar o arquivo .env do WCA** abre um alerta e, após confirmação, apresenta o editor de tela cheia.
 
-- O QR gira sozinho enquanto o modal está aberto: quando o contador chega a zero (30 segundos), um novo QR é buscado automaticamente (`qr_duration` da API);
-- **Sair da tela do QR por QUALQUER caminho (X, CANCELAR, tocar fora, Esc ou o botão voltar) desbloqueia o dispositivo**: o card deixa de mostrar "AGUARDANDO" e os botões **QR Code** e **Com código** voltam imediatamente, permitindo gerar um novo QR — antes, sair pelo voltar travava o card em "Aguardando conexão" sem os botões;
-- Se o QR for pedido de novo enquanto a sessão de pareamento anterior ainda está viva na API (janela de alguns minutos), a API pode não gerar na hora — o modal mostra a mensagem "Não foi possível gerar o QR Code. Aguarde alguns segundos e toque em QR Code de novo." em vez de ficar carregando para sempre; passada a janela, o novo QR sai de primeira;
-- Fechar o modal do QR **sem** ter conectado também cancela o pareamento do lado da cena (o dispositivo criado volta ao estado normal; se ele já estava conectado, segue conectado — nada é deslogado nessa situação).
+O painel usa nomes amigáveis para pessoas, sem expor as chaves técnicas como rótulos. Os eventos do webhook também aparecem com descrições legíveis, enquanto os nomes técnicos continuam sendo gravados corretamente no `.env`.
 
-## Configurações de desenvolvedor (arquivo .env da API)
+O painel permite editar:
 
-O ícone de **controles (sliders)** na barra de status, ao lado do menu, abre o painel que edita o arquivo `/data/data/net.dinglisch.android.taskerm/files/WCA/.env` — as configurações da API no dispositivo. O painel ocupa **a tela inteira** (cabeçalho no topo, lista de opções ocupando todo o espaço com rolagem, botões fixos no pé):
+- nome do dispositivo conectado (`APP_OS`);
+- limite geral das requisições em MB (`APP_BODY_LIMIT`);
+- resposta automática;
+- marcação automática de leitura;
+- rejeição automática de chamadas;
+- download automático de mídia;
+- duração de retenção da mídia;
+- tamanhos máximos, em MB, para imagem, arquivo, vídeo e download;
+- atraso e tentativas do webhook;
+- eventos enviados pelo webhook;
+- inclusão de eventos de saída;
+- validação da conta;
+- presença inicial e pulso de presença.
 
-- **Aplicação**: **APP_OS** — o nome do app que o WhatsApp mostra como aparelho conectado. **Na instalação é gravado automaticamente** com o nome da sessão que você definir (o arquivo é criado na instalação com o padrão completo; sem nome definido, fica `WhatsConnectApi - Tasker`);
-- **Mensagens**: resposta automática (texto), marcar como lida, recusar chamadas; **Mídia**: download automático e segundos antes de apagar; **Webhook**: atraso, tentativas de entrega, **ECO** de mensagens enviadas (`INCLUDE_OUTGOING`) e eventos; **Conta e presença**: validação, presença ao conectar e pulso de presença;
-- Cada opção **ATIVADO/DESATIVADO** funciona como seleção (uma das duas); a **presença ao conectar** (available/unavailable/none) e os **tempos do pulso** são botões-chip com opções padrão (intervalo: 30m/1h/6h/12h/24h/48h; duração: 1m/5m/15m/30m/1h) — sem menus nativos do sistema;
-- **Todos os ? do sistema abrem a mesma bolha flutuante** junto ao ícone, com título e explicação: as linhas do painel de desenvolvedor, cada evento do webhook (fecha com novo toque, toque fora, ao rolar a lista ou ao fechar o painel) e o ? do **nome da sessão** na instalação. A bolha fica em camada **acima do painel** e os toques nos ? são tratados por **delegação no documento** (um único listener), além de a bolha ser recriada sozinha se necessário;
-- Os **eventos do webhook** são caixas de seleção com **todas as 19 opções** que a API emite, com botões **MARCAR TODAS / DESMARCAR TODAS** (todas desmarcadas = a API volta a enviar todos os eventos). **Cada evento tem o seu ?**: a explicação curta aparece numa **bolha flutuante** junto ao botão (fecha com novo toque, toque fora, ao rolar a lista ou ao fechar o painel). Destaques: `message` (mensagens enviadas e recebidas — o **ECO** controla se as enviadas entram), `chat_presence` (usuário digitando/gravando áudio), `message.ack` (mensagem **entregue/lida**), `status.response`;
-- **Salvar pede confirmação**: SALVAR e SALVAR E REINICIAR abrem um modal de confirmação antes de gravar (o texto indica se a API será reiniciada); CANCELAR desiste;
-- **Ícone "?" em cada item** abre um comentário curto explicando o que aquela configuração faz;
-- **Cada salvamento regenera o arquivo inteiro** no formato padrão: as chaves fixas (porta, host, credenciais de acesso, banco de dados, endereço e segredo do webhook, `INSECURE_SKIP_VERIFY=false`, armazenamento de conversas) ficam sempre no padrão do sistema e não aparecem no painel;
-- **Aplicar**: as mudanças valem **depois de reiniciar a API** — use **SALVAR E REINICIAR** (dispara o mesmo reinício do menu) ou **SALVAR** e reinicie depois;
-- Validações impedem salvar valores inválidos (ex.: tentativas menores que 1, segundos não numéricos);
-- O modal participa do botão voltar como os demais (fecha pelo voltar, X, tocar fora ou Esc).
+Os 19 eventos de webhook podem ser selecionados individualmente. Cada opção e cada evento possui ajuda contextual. Deixar todos os eventos desmarcados mantém o comportamento da API de enviar todos.
 
-**Arquivo inexistente**: sem o `.env`, a API sobe com os valores internos dela (que NÃO são o padrão do WCA — inclusive sem credenciais de acesso definidas). Por isso a instalação passa a **criar o arquivo automaticamente** com o padrão completo (e o `APP_OS` do nome da sessão — sem nome, `WhatsConnectApi - Tasker`). Antes da primeira instalação, o painel abre com os valores padrão sem ler nada.
+### Padrão gerado
 
-## Como atualizar no Tasker
+Cada salvamento regenera o `.env` inteiro. Os cinco limites abaixo são editáveis em MB na interface e convertidos automaticamente para bytes ao gravar. O padrão inicial recomendado é:
 
-1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` (V2) no editor
-2. No componente **WebView**, substitua o HTML pelo conteúdo integral do arquivo da versão atual
-3. Confirme que **Allow Phone Access** continua habilitado no elemento Web
-4. Teste os botões e acompanhe os Flash/log do `006-CONFIGURAR_SISTEMA`
+```dotenv
+APP_PORT=3000
+APP_HOST=0.0.0.0
+APP_DEBUG=true
+APP_BASIC_AUTH=user1:pass1,user2:pass2
+APP_BASE_PATH=
+APP_TRUSTED_PROXIES=0.0.0.0/0
+APP_BODY_LIMIT=135000000
+DB_URI=file:storages/whatsapp.db?_foreign_keys=on
+DB_KEYS_URI=file::memory:?cache=shared&_foreign_keys=on
+WHATSAPP_MAX_IMAGE_SIZE=20000000
+WHATSAPP_MAX_FILE_SIZE=50000000
+WHATSAPP_MAX_VIDEO_SIZE=100000000
+WHATSAPP_MAX_DOWNLOAD_SIZE=500000000
+WHATSAPP_WEBHOOK=http://localhost:3129/Tasker
+WHATSAPP_WEBHOOK_SECRET=tasker12345
+WHATSAPP_WEBHOOK_INSECURE_SKIP_VERIFY=false
+WHATSAPP_WEBHOOK_INCLUDE_OUTGOING=true
+WHATSAPP_ACCOUNT_VALIDATION=true
+WHATSAPP_CHAT_STORAGE=true
+```
 
-## Política de versões
+Por exemplo, digitar `100` no campo de vídeo grava `WHATSAPP_MAX_VIDEO_SIZE=100000000`. Ao abrir um `.env` existente, a Central converte os bytes de volta para MB na interface.
 
-A partir da **1.29** as versões são **mantidas nesta pasta** — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda. As versões **1.0 a 1.28 foram removidas** (autorizações do usuário em 12/11/2026); o detalhamento de cada versão está nos **commits do repositório** (`git log task-scenes/central-wca`).
+`AUTO_DELETE_MEDIA_DURATION` define apenas a duração de retenção. A chave não ativa a exclusão automática por si só; a API também precisa estar configurada para habilitar essa função.
 
+`WHATSAPP_WEBHOOK_DELAY_MS` pode permanecer vazio. As mudanças entram em vigor após o reinício da API.
+
+### Gravação e reinício
+
+- **SALVAR** e **SALVAR E REINICIAR** pedem confirmação;
+- depois da escrita, a Central relê o `.env` e exige igualdade exata com o conteúdo gerado;
+- o reinício só é executado depois da confirmação da persistência;
+- em caso de falha, a API não é reiniciada e o painel informa o erro;
+- valores numéricos inválidos são bloqueados antes da gravação.
+
+
+## Dependência do evento de digitação e gravação
+
+Ao marcar **Digitando ou gravando áudio**, a Central abre uma confirmação explicando que o WhatsApp precisa manter o dispositivo WCA online. Se o usuário confirmar, a interface aplica automaticamente:
+
+- **Presença ao conectar: ONLINE**;
+- **Manter presença atualizada: DESATIVADO**.
+
+O evento permanece marcado e o usuário deve salvar e reiniciar a API. Se cancelar ou fechar o aviso por qualquer caminho, o evento é desmarcado. A validação de salvamento também impede gravar `chat_presence` com uma combinação incompatível. O aviso informa que a visibilidade do status online depende das configurações de privacidade do WhatsApp.
+
+Como `chat_presence` exige que a sessão permaneça online, ele começa desmarcado em novos arquivos `.env`; os outros 18 eventos permanecem selecionados. Ao abrir um `.env` antigo que tenha `chat_presence` marcado com presença incompatível, a Central também apresenta a confirmação para corrigir a configuração.
+
+Ao desmarcar **Digitando ou gravando áudio**, a Central restaura automaticamente o comportamento padrão anterior: presença ao conectar em **OFFLINE**, pulso ativado, intervalo de `24h` e duração de `5m`. A mesma restauração ocorre ao cancelar ou fechar a confirmação sem ativar o evento.
+
+## Reinstalação direta
+
+As opções **Reinstalar API** e **Reinstalar Tasker/Projeto** fazem os downloads dentro da própria Central, usando os assets da release válida mais recente.
+
+### Reinstalar API
+
+1. localiza uma release válida que contenha `whatsapp-wca-aarch64.bin` e `ffmpeg-wca-aarch64.bin`;
+2. baixa cada binário para um arquivo temporário `.update`;
+3. acompanha o tamanho físico e mostra o progresso;
+4. valida o tamanho, move o arquivo para o destino final e aplica permissão `700`;
+5. depois dos dois downloads, executa o reinício existente com `par1 = restart-wca`.
+
+A Central não usa mais `force-reinstall-api` para baixar os binários.
+
+### Reinstalar Tasker/Projeto
+
+1. localiza uma release válida com `W_C_A_API.prj.xml`;
+2. baixa para `W_C_A_API.prj.xml.update`;
+3. valida o tamanho e a presença de `<TaskerData` antes de substituir o XML atual;
+4. depois da validação, exibe uma contagem regressiva de 10 até 0 e o botão **INSTALAR AGORA**;
+5. somente quando o contador chega a zero ou o usuário toca no botão, executa `006-CONFIGURAR_SISTEMA [wca]` com `par1 = force-reinstall-task`;
+6. uma trava impede disparos duplicados pelo botão e pelo contador.
+
+Em caso de falha, o temporário é removido e a Central oferece **TENTAR NOVAMENTE**. O modal não pode ser fechado enquanto um download está em andamento.
+
+## Botão voltar do Android
+
+A cena publica o modal superior em `cache_modal` e escuta `return_modal`. O handler do evento **Back Pressed** deve:
+
+1. cancelar dinamicamente o evento quando `"%cache_modal" != ""`;
+2. definir `return_modal` como `%TIMES`.
+
+O fechamento atinge somente o modal superior e restaura o modal de origem quando necessário.
+
+## Integração com o Tasker
+
+A cena utiliza:
+
+- `Tasker.runTask`;
+- `Tasker.setVariable`;
+- `Tasker.getVariable`;
+- `Tasker.readFile`;
+- `Tasker.writeFile`;
+- `Tasker.listFiles`;
+- `Tasker.deleteFile`;
+- `Tasker.runShell`;
+- `Tasker.dismissSceneV2`.
+
+Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SISTEMA [wca]`, incluindo reinício, parada, atualização, reinstalação, suporte e instalação de projeto.
+
+## Atualização no Tasker
+
+1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.63.html`;
+3. confirme que **Allow Phone Access** continua habilitado;
+4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
+
+## Política de arquivos
+
+O workspace mantém as versões históricas a partir da 1.29. O repositório publicado mantém somente o arquivo da versão atual. O histórico das alterações permanece no Git.

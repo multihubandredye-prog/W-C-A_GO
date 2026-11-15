@@ -2073,7 +2073,32 @@ body.com-aviso { padding-bottom: 15rem; }
 @keyframes statusLinePulse { 0%,100%{opacity:.52;} 50%{opacity:1;} }
 @keyframes badgeDot { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.55);opacity:.62;} }
 @keyframes modalIn { from{transform:scale(.9) translateY(14px); opacity:0;} to{transform:scale(1) translateY(0); opacity:1;} }
+@keyframes modalFlipIn { from{transform:rotateY(-180deg); opacity:.18;} to{transform:rotateY(0deg); opacity:1;} }
+@keyframes modalFlipOut { from{transform:rotateY(0deg); opacity:1;} to{transform:rotateY(180deg); opacity:.12;} }
 @keyframes modalTopLine { 0%,100%{opacity:.42;} 50%{opacity:1;} }
+.modal-overlay { perspective: 1200px; }
+.modal-overlay > .modal-content,
+.modal-overlay > .menu-modal-wrap,
+.modal-overlay > .reviews-modal-shell,
+#uninstallOverlay > .uninstall-card {
+    transform-origin: center center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+.modal-overlay.modal-flip-enter > .modal-content,
+.modal-overlay.modal-flip-enter > .menu-modal-wrap,
+.modal-overlay.modal-flip-enter > .reviews-modal-shell,
+#uninstallOverlay.open > .uninstall-card {
+    animation: modalFlipIn .52s cubic-bezier(.22,.75,.2,1) both;
+}
+.modal-overlay.modal-flip-exit { display: flex; }
+.modal-overlay.modal-flip-exit > .modal-content,
+.modal-overlay.modal-flip-exit > .menu-modal-wrap,
+.modal-overlay.modal-flip-exit > .reviews-modal-shell {
+    animation: modalFlipOut .42s cubic-bezier(.55,.06,.68,.19) both;
+    pointer-events: none;
+}
 @keyframes codeGlow { 0%,100%{text-shadow:0 0 8px rgba(181,251,42,0.32);} 50%{text-shadow:0 0 20px rgba(181,251,42,0.58);} }
 @keyframes toastIn { from{opacity:0; transform: translateX(16px) scale(.97);} to{opacity:1; transform: translateX(0) scale(1);} }
 @keyframes toastOut { to{opacity:0; transform: translateX(14px) scale(.97);} }
@@ -3227,6 +3252,18 @@ input.first-install-attention {
 .prem-res-teste { color: var(--primary); }
 .prem-res-nome { margin-top: 10px; font-size: 0.86rem; font-weight: 600; color: var(--text-main); }
 .prem-res-detalhe { margin-top: 4px; font-size: 0.78rem; color: var(--text-muted); }
+
+.reinstall-status { margin-top: 14px; padding: 13px; border: 1px solid rgba(118,255,3,0.18); border-radius: 14px; background: rgba(2,10,18,0.78); color: var(--text-muted); font-size: 0.78rem; line-height: 1.5; text-align: left; }
+.reinstall-status.success { color: #b9ff6a; border-color: rgba(118,255,3,0.34); }
+.reinstall-status.error { color: #ff8ca0; border-color: rgba(255,64,96,0.38); }
+.reinstall-file-name { display: block; margin-bottom: 9px; color: var(--text-main); font-weight: 700; overflow-wrap: anywhere; }
+.reinstall-progress { display: block; width: 100%; height: 12px; margin: 7px 0; border: 0; border-radius: 999px; overflow: hidden; accent-color: var(--accent); background: rgba(255,255,255,0.1); }
+.reinstall-progress::-webkit-progress-bar { background: rgba(255,255,255,0.1); border-radius: 999px; }
+.reinstall-progress::-webkit-progress-value { background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 999px; }
+.reinstall-progress-text { display: block; color: var(--text-main); font-size: 0.76rem; }
+.reinstall-actions { margin-top: 16px; }
+.reinstall-countdown { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; color: var(--text-main); }
+.reinstall-counter { display: inline-flex; min-width: 34px; height: 34px; align-items: center; justify-content: center; border: 1px solid rgba(118,255,3,0.4); border-radius: 50%; color: var(--accent); font-size: 0.92rem; font-weight: 800; }
 </style>
 
 
@@ -3419,16 +3456,22 @@ input.first-install-attention {
                 <div class="dev-group-title">Aplicação</div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">APP_OS</span>
+                        <span class="dev-key">Nome do dispositivo conectado</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Nome do app que o WhatsApp mostra como aparelho conectado. Na instalação é gravado automaticamente com o nome da sessão que você definir (sem nome, fica WhatsConnectApi - Tasker); depois pode ajustar aqui.</div>
-                    <input type="text" id="devInAppOs" class="dev-input" placeholder="app_os">
+                    <input type="text" id="devInAppOs" class="dev-input" placeholder="Nome exibido nos aparelhos conectados">
+                </div>
+                <div class="dev-row dev-row-inline">
+                    <span class="dev-key">Limite geral das requisições (MB)</span>
+                    <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                    <div class="dev-help">Tamanho máximo aceito no corpo de uma requisição enviada à API. Digite o valor em MB; ao salvar, a Central converte automaticamente para bytes. Padrão: 135 MB.</div>
+                    <input type="text" id="devInBodyLimit" class="dev-input dev-input-num" inputmode="numeric" placeholder="135">
                 </div>
                 <div class="dev-group-title">Mensagens</div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_AUTO_REPLY</span>
+                        <span class="dev-key">Resposta automática</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Resposta automática: quando preenchido, o WhatsApp responde sozinho com esse texto às mensagens recebidas. Vazio = desativado.</div>
@@ -3436,7 +3479,7 @@ input.first-install-attention {
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_AUTO_MARK_READ</span>
+                        <span class="dev-key">Marcar mensagens como lidas</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Marca automaticamente as mensagens recebidas como lidas no WhatsApp.</div>
@@ -3447,7 +3490,7 @@ input.first-install-attention {
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_AUTO_REJECT_CALL</span>
+                        <span class="dev-key">Recusar chamadas automaticamente</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Recusa automaticamente as chamadas recebidas.</div>
@@ -3459,7 +3502,7 @@ input.first-install-attention {
                 <div class="dev-group-title">Mídia</div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_AUTO_DOWNLOAD_MEDIA</span>
+                        <span class="dev-key">Baixar mídias automaticamente</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Baixa automaticamente as mídias (fotos, vídeos, áudios e documentos) das conversas.</div>
@@ -3470,29 +3513,53 @@ input.first-install-attention {
                 </div>
 
 <div class="dev-row dev-row-inline">
-                        <span class="dev-key">AUTO_DELETE_MEDIA_DURATION</span>
+                        <span class="dev-key">Tempo para excluir mídias (segundos)</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
-                        <div class="dev-help">Segundos que cada mídia baixada fica guardada antes de ser apagada do dispositivo. Ex.: 30.</div>
+                        <div class="dev-help">Define por quantos segundos a mídia baixada deve ser mantida. Esta duração só é aplicada quando a exclusão automática de mídia estiver ativada na API; sozinha, ela não ativa a exclusão. Ex.: 30.</div>
                         <input type="text" id="devInDelMedia" class="dev-input dev-input-num" inputmode="numeric" placeholder="30">
                     </div>
+                <div class="dev-row dev-row-inline">
+                    <span class="dev-key">Tamanho máximo de imagem (MB)</span>
+                    <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                    <div class="dev-help">Maior tamanho aceito para imagens enviadas pela API. Digite o valor em MB; a Central salva o equivalente em bytes. Padrão: 20 MB.</div>
+                    <input type="text" id="devInMaxImage" class="dev-input dev-input-num" inputmode="numeric" placeholder="20">
+                </div>
+                <div class="dev-row dev-row-inline">
+                    <span class="dev-key">Tamanho máximo de arquivo (MB)</span>
+                    <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                    <div class="dev-help">Maior tamanho aceito para documentos e arquivos enviados pela API. Digite o valor em MB; a Central salva o equivalente em bytes. Padrão: 50 MB.</div>
+                    <input type="text" id="devInMaxFile" class="dev-input dev-input-num" inputmode="numeric" placeholder="50">
+                </div>
+                <div class="dev-row dev-row-inline">
+                    <span class="dev-key">Tamanho máximo de vídeo (MB)</span>
+                    <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                    <div class="dev-help">Maior tamanho aceito para vídeos enviados pela API. Digite o valor em MB; a Central salva o equivalente em bytes. Padrão: 100 MB.</div>
+                    <input type="text" id="devInMaxVideo" class="dev-input dev-input-num" inputmode="numeric" placeholder="100">
+                </div>
+                <div class="dev-row dev-row-inline">
+                    <span class="dev-key">Tamanho máximo de download (MB)</span>
+                    <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
+                    <div class="dev-help">Maior tamanho que a API pode baixar ao buscar uma mídia. Digite o valor em MB; a Central salva o equivalente em bytes. Padrão: 500 MB.</div>
+                    <input type="text" id="devInMaxDownload" class="dev-input dev-input-num" inputmode="numeric" placeholder="500">
+                </div>
                 <div class="dev-group-title">Webhook</div>
 
 <div class="dev-row dev-row-inline">
-                        <span class="dev-key">WHATSAPP_WEBHOOK_DELAY_MS</span>
+                        <span class="dev-key">Atraso do webhook (milissegundos)</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                         <div class="dev-help">Atraso em milissegundos antes de entregar cada evento no webhook. Vazio = sem atraso.</div>
                         <input type="text" id="devInDelay" class="dev-input dev-input-num" inputmode="numeric" placeholder="500">
                     </div>
 
 <div class="dev-row dev-row-inline">
-                        <span class="dev-key">WHATSAPP_WEBHOOK_MAX_ATTEMPTS</span>
+                        <span class="dev-key">Tentativas de envio do webhook</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                         <div class="dev-help">Tentativas de entrega por evento: 1 envia uma única vez, sem reenvio (recomendado para o Tasker — evita eventos duplicados). Valores maiores reenviam em caso de falha, esperando 1s, 2s, 4s, 8s (ex.: 5).</div>
                         <input type="text" id="devInMaxAttempts" class="dev-input dev-input-num" inputmode="numeric" placeholder="1">
                     </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_WEBHOOK_INCLUDE_OUTGOING</span>
+                        <span class="dev-key">Incluir mensagens enviadas</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">O eco: envia também os eventos das mensagens que VOCÊ envia. Desativado, o webhook recebe apenas mensagens recebidas e ações das outras pessoas.</div>
@@ -3503,7 +3570,7 @@ input.first-install-attention {
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_WEBHOOK_EVENTS</span>
+                        <span class="dev-key">Eventos enviados ao webhook</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Eventos que o webhook recebe; desmarcados não são enviados. Se deixar TODOS desmarcados, a API volta a enviar todos os eventos. Toque no ? de cada evento para ver o que ele faz.</div>
@@ -3516,7 +3583,7 @@ input.first-install-attention {
                 <div class="dev-group-title">Conta e presença</div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_ACCOUNT_VALIDATION</span>
+                        <span class="dev-key">Validar conta do WhatsApp</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Valida a conta/número antes de aceitar ações na API.</div>
@@ -3527,19 +3594,19 @@ input.first-install-attention {
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_PRESENCE_ON_CONNECT</span>
+                        <span class="dev-key">Presença ao conectar</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
-                    <div class="dev-help">Presença ao conectar: available (fica online), unavailable (padrão, sem marcar presença) ou none (não envia presença nenhuma).</div>
+                    <div class="dev-help">Define como o WhatsApp aparece ao conectar: ONLINE informa que está disponível; OFFLINE é o padrão e não mantém o status online; NÃO ENVIAR desativa o envio da presença inicial.</div>
                     <div class="dev-toggle dev-choices" data-key="presence">
-                        <button type="button" class="dev-opt" data-val="available">AVAILABLE</button>
-                        <button type="button" class="dev-opt active" data-val="unavailable">UNAVAILABLE</button>
-                        <button type="button" class="dev-opt" data-val="none">NONE</button>
+                        <button type="button" class="dev-opt" data-val="available">ONLINE</button>
+                        <button type="button" class="dev-opt active" data-val="unavailable">OFFLINE</button>
+                        <button type="button" class="dev-opt" data-val="none">NÃO ENVIAR</button>
                     </div>
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_PRESENCE_PULSE_ENABLED</span>
+                        <span class="dev-key">Manter presença atualizada</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Pulso de presença: renova a presença periodicamente para manter o status do WhatsApp atualizado.</div>
@@ -3550,7 +3617,7 @@ input.first-install-attention {
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_PRESENCE_PULSE_INTERVAL</span>
+                        <span class="dev-key">Intervalo de atualização da presença</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Intervalo entre os pulsos de presença. Formato número + s/m/h (ex.: 24h).</div>
@@ -3565,7 +3632,7 @@ input.first-install-attention {
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row">
-                        <span class="dev-key">WHATSAPP_PRESENCE_PULSE_DURATION</span>
+                        <span class="dev-key">Duração da presença</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                     </div>
                     <div class="dev-help">Duração de cada pulso de presença. Formato número + s/m/h (ex.: 5m).</div>
@@ -3578,12 +3645,26 @@ input.first-install-attention {
                     </div>
                 </div>
             </div>
-            <p class="dev-note">As demais chaves (porta, credenciais de acesso, banco de dados e webhook) ficam sempre no padrão do sistema.</p>
+            <p class="dev-note">As configurações essenciais de porta, credenciais, banco de dados e endereço do webhook permanecem protegidas no padrão do sistema.</p>
             <div class="dev-actions">
                 <button type="button" id="devSaveBtn" class="btn-action btn-flex btn-primary"><i class="fa-solid fa-floppy-disk"></i> SALVAR</button>
                 <button type="button" id="devSaveRestartBtn" class="btn-action btn-flex btn-border"><i class="fa-solid fa-rotate-right"></i> SALVAR E REINICIAR</button>
             </div>
             <button class="btn-action btn-full btn-danger dev-cancel" data-close="devSettingsModal">CANCELAR</button>
+        </div>
+    </div>
+
+
+    <div id="devChatPresenceModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="dev-icon-wrap"><i class="fa-solid fa-keyboard"></i></div>
+            <h3 class="modal-title default-title">ATIVAR DIGITAÇÃO E GRAVAÇÃO?</h3>
+            <p class="delete-review-text">Para receber quando alguém está digitando ou gravando áudio, o dispositivo WCA precisa permanecer ONLINE. A Central ajustará automaticamente a presença ao conectar para ONLINE e desativará o pulso de presença, evitando que a API volte ao estado offline.</p>
+            <p class="delete-review-text">Conforme a privacidade configurada no WhatsApp, seus contatos poderão visualizar você online enquanto o WCA estiver conectado.</p>
+            <div class="confirm-actions">
+                <button id="devChatPresenceCancelBtn" class="btn-action btn-flex btn-border">CANCELAR</button>
+                <button id="devChatPresenceConfirmBtn" class="btn-action btn-flex btn-primary">CONFIRMAR E AJUSTAR</button>
+            </div>
         </div>
     </div>
 
@@ -3654,7 +3735,7 @@ input.first-install-attention {
         <div class="modal-content">
             <div class="restart-icon-wrap"><i class="fa-solid fa-server"></i></div>
             <h3 class="modal-title default-title">Reinstalar a API?</h3>
-            <p class="delete-review-text">Tem certeza de que deseja reinstalar a API do WCA? O processo será executado imediatamente.</p>
+            <p class="delete-review-text">Os dois arquivos binários serão baixados novamente, validados e substituídos. Depois, a API será reiniciada automaticamente.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmReinstallApiModal">NÃO</button>
                 <button id="btnConfirmReinstallApi" class="btn-action btn-flex btn-border"><i class="fa-solid fa-server"></i> SIM</button>
@@ -3666,10 +3747,25 @@ input.first-install-attention {
         <div class="modal-content">
             <div class="restart-icon-wrap"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <h3 class="modal-title default-title">Reinstalar o Tasker/Projeto?</h3>
-            <p class="delete-review-text">Tem certeza de que deseja reinstalar o projeto do Tasker? O processo será executado imediatamente.</p>
+            <p class="delete-review-text">O projeto XML será baixado novamente e validado. Depois, a tarefa de reinstalação do Tasker será executada automaticamente.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmReinstallTaskModal">NÃO</button>
                 <button id="btnConfirmReinstallTask" class="btn-action btn-flex btn-border"><i class="fa-solid fa-screwdriver-wrench"></i> SIM</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="reinstallProgressModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="restart-icon-wrap"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+            <h3 class="modal-title default-title" id="reinstallProgressTitle">BAIXANDO ARQUIVOS</h3>
+            <p class="delete-review-text" id="reinstallProgressIntro">Aguarde enquanto os arquivos são baixados e validados.</p>
+            <div class="reinstall-status" id="reinstallStatus">Preparando o download...</div>
+            <div class="confirm-actions reinstall-actions">
+                <button id="reinstallRetryBtn" class="btn-action btn-flex btn-border d-none">TENTAR NOVAMENTE</button>
+                <button id="reinstallNowBtn" class="btn-action btn-flex btn-primary d-none">INSTALAR AGORA</button>
+                <button id="reinstallCloseBtn" class="btn-action btn-flex btn-primary d-none">FECHAR</button>
             </div>
         </div>
     </div>
@@ -4237,6 +4333,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // os badges exibem "v —".
     const VERSION_FILE_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/version';
     let APP_VERSION = 'v —';
+    const REINSTALL_RELEASES_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
+    const REINSTALL_BIN_DIR = '/data/data/net.dinglisch.android.taskerm/files/WCA';
+    const REINSTALL_PROJECT_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/tasks-send/W_C_A_API.prj.xml';
+    const REINSTALL_FILES = {
+        whatsapp: { name: 'whatsapp-wca-aarch64.bin', path: REINSTALL_BIN_DIR + '/whatsapp-wca-aarch64.bin' },
+        ffmpeg: { name: 'ffmpeg-wca-aarch64.bin', path: REINSTALL_BIN_DIR + '/ffmpeg-wca-aarch64.bin' },
+        project: { name: 'W_C_A_API.prj.xml', path: REINSTALL_PROJECT_PATH }
+    };
+    const REINSTALL_COUNTDOWN_SECONDS = 10;
+    let reinstallRunning = false;
+    let reinstallTipoAtual = '';
+    let reinstallCountdownTimer = null;
+    let reinstallContinuationStarted = false;
+
 
     // ---- Versão do painel via repositório (1.31) ----
 // Busca a última release REAL do repositório: o rótulo do tipo de publicação
@@ -4498,18 +4608,45 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         'newsletter.message': 'Nova publicação recebida de um canal (newsletter).',
         'newsletter.mute': 'Canal (newsletter) silenciado ou reativado.'
     };
+    const DEV_EVENTO_NOMES = {
+        'message': 'Mensagens',
+        'message.edited': 'Mensagens editadas',
+        'message.poll_vote': 'Votos em enquetes',
+        'message.reaction': 'Reações às mensagens',
+        'message.revoked': 'Mensagens apagadas para todos',
+        'message.deleted': 'Mensagens excluídas',
+        'message.ack': 'Confirmações de entrega e leitura',
+        'status.response': 'Respostas de status',
+        'chat_presence': 'Digitando ou gravando áudio',
+        'call.offer': 'Chamadas recebidas',
+        'call.terminate': 'Chamadas encerradas',
+        'group.joined': 'Entrada em grupos',
+        'group.participants': 'Alterações de participantes',
+        'label.association': 'Aplicação de etiquetas',
+        'label.edit': 'Alterações de etiquetas',
+        'newsletter.joined': 'Entrada em canais',
+        'newsletter.left': 'Saída de canais',
+        'newsletter.message': 'Publicações de canais',
+        'newsletter.mute': 'Silenciamento de canais'
+    };
     const DEV_EVENTS = ['message','message.edited','message.poll_vote','message.reaction','message.revoked','message.deleted','message.ack','status.response','chat_presence','call.offer','call.terminate','group.joined','group.participants','label.association','label.edit','newsletter.joined','newsletter.left','newsletter.message','newsletter.mute'];
+    const DEV_EVENTS_PADRAO = DEV_EVENTS.filter(function (nome) { return nome !== 'chat_presence'; });
     function devPadroes(){
         return {
             app_os: 'app_os',
+            body_limit_mb: '135',
             auto_reply: '',
             auto_mark_read: false,
             auto_reject_call: false,
             auto_download_media: true,
             del_media: '30',
+            max_image_mb: '20',
+            max_file_mb: '50',
+            max_video_mb: '100',
+            max_download_mb: '500',
             delay: '',
             max_attempts: '1',
-            eventos: DEV_EVENTS.slice(),
+            eventos: DEV_EVENTS_PADRAO.slice(),
             eco: true,
             account_validation: true,
             presence: 'unavailable',
@@ -4531,12 +4668,22 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const p = devPadroes();
         const bool = function (k) { return String(mapa[k] === undefined ? '' : mapa[k]).toLowerCase() === 'true'; };
         const inteiro = function (k, def) { const v = String(mapa[k] === undefined ? '' : mapa[k]).trim(); return /^\d+$/.test(v) ? v : def; };
+        const emMb = function (k, def) {
+            const bytes = inteiro(k, '');
+            if (!bytes || parseInt(bytes, 10) < 1) return def;
+            return String(Math.max(1, Math.round(parseInt(bytes, 10) / 1000000)));
+        };
         p.app_os = mapa.APP_OS !== undefined ? (String(mapa.APP_OS).replace(/"/g, '').trim() || 'app_os') : 'app_os';
+        p.body_limit_mb = emMb('APP_BODY_LIMIT', '135');
         p.auto_reply = mapa.WHATSAPP_AUTO_REPLY !== undefined ? mapa.WHATSAPP_AUTO_REPLY : '';
         p.auto_mark_read = bool('WHATSAPP_AUTO_MARK_READ');
         p.auto_reject_call = bool('WHATSAPP_AUTO_REJECT_CALL');
         p.auto_download_media = bool('WHATSAPP_AUTO_DOWNLOAD_MEDIA');
         p.del_media = inteiro('AUTO_DELETE_MEDIA_DURATION', '30');
+        p.max_image_mb = emMb('WHATSAPP_MAX_IMAGE_SIZE', '20');
+        p.max_file_mb = emMb('WHATSAPP_MAX_FILE_SIZE', '50');
+        p.max_video_mb = emMb('WHATSAPP_MAX_VIDEO_SIZE', '100');
+        p.max_download_mb = emMb('WHATSAPP_MAX_DOWNLOAD_SIZE', '500');
         p.delay = mapa.WHATSAPP_WEBHOOK_DELAY_MS !== undefined ? mapa.WHATSAPP_WEBHOOK_DELAY_MS : '';
         p.max_attempts = inteiro('WHATSAPP_WEBHOOK_MAX_ATTEMPTS', '1');
         if (mapa.WHATSAPP_WEBHOOK_EVENTS !== undefined) {
@@ -4555,6 +4702,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     }
     function devMontarArquivo(e){
         const boolv = function (v) { return v ? 'true' : 'false'; };
+        const bytes = function (mb) { return String(parseInt(mb, 10) * 1000000); };
         const linhas = [
             '# ============================================================',
             '#  GoWA - WhatsApp REST API',
@@ -4569,6 +4717,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             'APP_BASIC_AUTH=user1:pass1,user2:pass2',
             'APP_BASE_PATH=',
             'APP_TRUSTED_PROXIES=0.0.0.0/0',
+            'APP_BODY_LIMIT=' + bytes(e.body_limit_mb),
             '',
             '# Database Settings',
             'DB_URI=file:storages/whatsapp.db?_foreign_keys=on',
@@ -4580,6 +4729,10 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             'WHATSAPP_AUTO_REJECT_CALL=' + boolv(e.auto_reject_call),
             'WHATSAPP_AUTO_DOWNLOAD_MEDIA=' + boolv(e.auto_download_media),
             'AUTO_DELETE_MEDIA_DURATION=' + e.del_media,
+            'WHATSAPP_MAX_IMAGE_SIZE=' + bytes(e.max_image_mb),
+            'WHATSAPP_MAX_FILE_SIZE=' + bytes(e.max_file_mb),
+            'WHATSAPP_MAX_VIDEO_SIZE=' + bytes(e.max_video_mb),
+            'WHATSAPP_MAX_DOWNLOAD_SIZE=' + bytes(e.max_download_mb),
             '',
             '# Webhook Settings',
             'WHATSAPP_WEBHOOK=http://localhost:3129/Tasker',
@@ -4614,6 +4767,48 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const ativo = document.querySelector('#devSettingsModal .dev-toggle[data-key="' + key + '"] .dev-opt.active');
         return ativo ? (ativo.getAttribute('data-val') || '') : '';
     }
+    let devChatPresenceInputPendente = null;
+    let devChatPresenceConfirmado = false;
+    function devRestaurarPadraoPresenca(){
+        devSetToggle('presence', 'unavailable');
+        devSetToggle('pulse_enabled', true);
+        devSetToggle('pulse_interval', '24h');
+        devSetToggle('pulse_duration', '5m');
+        const status = document.getElementById('devStatus');
+        if (status) {
+            status.classList.remove('dev-status-erro');
+            status.textContent = 'Digitação e gravação desativadas: presença e pulso restaurados para o padrão. Salve e reinicie a API para aplicar.';
+        }
+    }
+    function devSolicitarChatPresence(input){
+        if (!input || !input.checked) return;
+        devChatPresenceInputPendente = input;
+        devChatPresenceConfirmado = false;
+        openModal('devChatPresenceModal');
+    }
+    function devConfirmarChatPresence(){
+        if (!devChatPresenceInputPendente) return;
+        devChatPresenceConfirmado = true;
+        devChatPresenceInputPendente.checked = true;
+        devSetToggle('presence', 'available');
+        devSetToggle('pulse_enabled', false);
+        closeModal('devChatPresenceModal');
+        devChatPresenceInputPendente = null;
+        devChatPresenceConfirmado = false;
+        const status = document.getElementById('devStatus');
+        if (status) {
+            status.classList.remove('dev-status-erro');
+            status.textContent = 'Digitação e gravação ativadas: presença ONLINE e pulso desativado. Salve e reinicie a API para aplicar.';
+        }
+    }
+    function devCancelarChatPresence(){
+        if (devChatPresenceInputPendente) devChatPresenceInputPendente.checked = false;
+        devRestaurarPadraoPresenca();
+        devChatPresenceInputPendente = null;
+        devChatPresenceConfirmado = false;
+        closeModal('devChatPresenceModal');
+    }
+
     function devMontarEventosGrid(){
         const grid = document.getElementById('devEventsGrid');
         if (!grid) return;
@@ -4625,7 +4820,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             inp.type = 'checkbox';
             inp.value = nome;
             const sp = document.createElement('span');
-            sp.textContent = nome;
+            sp.textContent = DEV_EVENTO_NOMES[nome] || nome;
             const helpBtn = document.createElement('button');
             helpBtn.type = 'button';
             helpBtn.className = 'dev-chip-help';
@@ -4636,11 +4831,20 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             // O CHIP INTEIRO alterna o evento: clique em qualquer area (fundo,
             // texto ou espacos) marca/desmarca; a caixinha alterna nativamente e
             // o botao de ajuda (?) nao desmarca, apenas abre a explicacao
+            inp.addEventListener('change', function () {
+                if (nome !== 'chat_presence') return;
+                if (inp.checked) devSolicitarChatPresence(inp);
+                else devRestaurarPadraoPresenca();
+            });
             lab.addEventListener('click', function (eCli) {
                 const alvo = eCli.target;
                 if (alvo === inp) return;
                 if (helpBtn && (alvo === helpBtn || (helpBtn.contains && helpBtn.contains(alvo)))) return;
                 inp.checked = !inp.checked;
+                if (nome === 'chat_presence') {
+                    if (inp.checked) devSolicitarChatPresence(inp);
+                    else devRestaurarPadraoPresenca();
+                }
             });
             lab.appendChild(inp);
             lab.appendChild(sp);
@@ -4648,10 +4852,19 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             grid.appendChild(lab);
         });
     }
-    function devSetEventos(lista){
+    function devSetEventos(lista, avisarChatPresence){
         const grid = document.getElementById('devEventsGrid');
         if (!grid) return;
-        grid.querySelectorAll('input[type="checkbox"]').forEach(function (i) { i.checked = lista.indexOf(i.value) >= 0; });
+        let chatPresenceMarcadoAgora = null;
+        let chatPresenceDesmarcadoAgora = false;
+        grid.querySelectorAll('input[type="checkbox"]').forEach(function (i) {
+            const estavaMarcado = i.checked;
+            i.checked = lista.indexOf(i.value) >= 0;
+            if (avisarChatPresence && i.value === 'chat_presence' && i.checked && !estavaMarcado) chatPresenceMarcadoAgora = i;
+            if (avisarChatPresence && i.value === 'chat_presence' && !i.checked && estavaMarcado) chatPresenceDesmarcadoAgora = true;
+        });
+        if (chatPresenceMarcadoAgora) devSolicitarChatPresence(chatPresenceMarcadoAgora);
+        else if (chatPresenceDesmarcadoAgora) devRestaurarPadraoPresenca();
     }
     function devGetEventos(){
         const grid = document.getElementById('devEventsGrid');
@@ -4664,6 +4877,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const e = devEstado;
         const inAppOs = document.getElementById('devInAppOs');
         if (inAppOs) inAppOs.value = e.app_os;
+        const inBodyLimit = document.getElementById('devInBodyLimit');
+        if (inBodyLimit) inBodyLimit.value = e.body_limit_mb;
         const inAutoReply = document.getElementById('devInAutoReply');
         if (inAutoReply) inAutoReply.value = e.auto_reply || '';
         devSetToggle('auto_mark_read', e.auto_mark_read);
@@ -4671,6 +4886,14 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         devSetToggle('auto_download_media', e.auto_download_media);
         const inDelMedia = document.getElementById('devInDelMedia');
         if (inDelMedia) inDelMedia.value = e.del_media;
+        const inMaxImage = document.getElementById('devInMaxImage');
+        if (inMaxImage) inMaxImage.value = e.max_image_mb;
+        const inMaxFile = document.getElementById('devInMaxFile');
+        if (inMaxFile) inMaxFile.value = e.max_file_mb;
+        const inMaxVideo = document.getElementById('devInMaxVideo');
+        if (inMaxVideo) inMaxVideo.value = e.max_video_mb;
+        const inMaxDownload = document.getElementById('devInMaxDownload');
+        if (inMaxDownload) inMaxDownload.value = e.max_download_mb;
         const inDelay = document.getElementById('devInDelay');
         if (inDelay) inDelay.value = e.delay || '';
         const inMax = document.getElementById('devInMaxAttempts');
@@ -4682,12 +4905,27 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         devSetToggle('pulse_enabled', e.pulse_enabled);
         devSetToggle('pulse_interval', e.pulse_interval);
         devSetToggle('pulse_duration', e.pulse_duration);
+        const grid = document.getElementById('devEventsGrid');
+        const chatPresence = grid ? Array.from(grid.querySelectorAll('input[type="checkbox"]')).find(function (i) { return i.value === 'chat_presence'; }) : null;
+        if (chatPresence && chatPresence.checked && (e.presence !== 'available' || e.pulse_enabled)) {
+            setTimeout(function () { devSolicitarChatPresence(chatPresence); }, 80);
+        }
     }
     function devColetarDosControles(){
         const status = document.getElementById('devStatus');
         const erro = function (msg) { status.textContent = msg; status.classList.add('dev-status-erro'); return null; };
         const e = devPadroes();
         e.app_os = String(document.getElementById('devInAppOs').value || '').replace(/["\r\n]/g, '').trim() || 'app_os';
+        const lerMb = function (id, nome) {
+            const valor = String(document.getElementById(id).value || '').trim();
+            if (!/^\d+$/.test(valor) || parseInt(valor, 10) < 1 || !Number.isSafeInteger(parseInt(valor, 10) * 1000000)) {
+                erro(nome + ' precisa ser um número inteiro em MB, maior que zero.');
+                return null;
+            }
+            return String(parseInt(valor, 10));
+        };
+        e.body_limit_mb = lerMb('devInBodyLimit', 'Limite geral das requisições');
+        if (e.body_limit_mb === null) return null;
         e.auto_reply = String(document.getElementById('devInAutoReply').value || '').replace(/\r?\n/g, ' ').trim();
         e.auto_mark_read = devGetToggle('auto_mark_read') === 'true';
         e.auto_reject_call = devGetToggle('auto_reject_call') === 'true';
@@ -4695,6 +4933,14 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const dm = String(document.getElementById('devInDelMedia').value || '').trim();
         if (!/^\d+$/.test(dm)) return erro('AUTO_DELETE_MEDIA_DURATION precisa ser um número em segundos (ex.: 30).');
         e.del_media = String(parseInt(dm, 10));
+        e.max_image_mb = lerMb('devInMaxImage', 'Tamanho máximo de imagem');
+        if (e.max_image_mb === null) return null;
+        e.max_file_mb = lerMb('devInMaxFile', 'Tamanho máximo de arquivo');
+        if (e.max_file_mb === null) return null;
+        e.max_video_mb = lerMb('devInMaxVideo', 'Tamanho máximo de vídeo');
+        if (e.max_video_mb === null) return null;
+        e.max_download_mb = lerMb('devInMaxDownload', 'Tamanho máximo de download');
+        if (e.max_download_mb === null) return null;
         const delay = String(document.getElementById('devInDelay').value || '').trim();
         if (delay && !/^\d+$/.test(delay)) return erro('WHATSAPP_WEBHOOK_DELAY_MS precisa ficar vazio ou receber um número em milissegundos.');
         e.delay = delay;
@@ -4707,6 +4953,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         e.presence = devGetToggle('presence');
         if (['available','unavailable','none'].indexOf(e.presence) < 0) return erro('Escolha a presença ao conectar.');
         e.pulse_enabled = devGetToggle('pulse_enabled') === 'true';
+        if (e.eventos.indexOf('chat_presence') >= 0 && (e.presence !== 'available' || e.pulse_enabled)) {
+            return erro('Para receber digitação e gravação, use Presença ao conectar ONLINE e deixe Manter presença atualizada DESATIVADO.');
+        }
         e.pulse_interval = devGetToggle('pulse_interval');
         if (DEV_INTERVALOS.indexOf(e.pulse_interval) < 0) return erro('Escolha o intervalo do pulso.');
         e.pulse_duration = devGetToggle('pulse_duration');
@@ -4860,8 +5109,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
                     const rowAj = btnAj.closest('.dev-row');
                     if (chipAj) {
                         const inpAj = chipAj.querySelector('input[type="checkbox"]');
-                        tituloAj = inpAj ? inpAj.value : 'Evento';
-                        textoAj = DEV_EVENTO_AJUDA[tituloAj] || '';
+                        const eventoAj = inpAj ? inpAj.value : '';
+                        tituloAj = DEV_EVENTO_NOMES[eventoAj] || 'Evento';
+                        textoAj = DEV_EVENTO_AJUDA[eventoAj] || '';
                     } else if (rowAj) {
                         const keyAj = rowAj.querySelector('.dev-key');
                         const helpAj = rowAj.querySelector('.dev-help');
@@ -4877,8 +5127,12 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         });
         const todas = document.getElementById('devEventsAll');
         const nenhuma = document.getElementById('devEventsNone');
-        if (todas) todas.addEventListener('click', function () { devSetEventos(DEV_EVENTS); });
+        if (todas) todas.addEventListener('click', function () { devSetEventos(DEV_EVENTS, true); });
         if (nenhuma) nenhuma.addEventListener('click', function () { devSetEventos([]); });
+        const confirmaChatPresence = document.getElementById('devChatPresenceConfirmBtn');
+        if (confirmaChatPresence) confirmaChatPresence.addEventListener('click', devConfirmarChatPresence);
+        const cancelaChatPresence = document.getElementById('devChatPresenceCancelBtn');
+        if (cancelaChatPresence) cancelaChatPresence.addEventListener('click', devCancelarChatPresence);
         const save = document.getElementById('devSaveBtn');
         if (save) save.addEventListener('click', function () { devAbrirConfirm(false); });
         const saveRestart = document.getElementById('devSaveRestartBtn');
@@ -5697,7 +5951,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
                 name: '006-CONFIGURAR_SISTEMA [wca]',
                 variables: { par1: 'restart-wca' }
             });
+            return true;
         } catch (e) {
+            return false;
         }
     }
 
@@ -5713,20 +5969,229 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
     }
 
-    // Reinstala a API do WCA
-    function taskReinstallApi() {
-
-        ///alert('API reinstalada');
-
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-api' } }).catch(function (e) { });
+    // Reinstalacao direta: baixa os assets da release para os destinos finais,
+    // valida em arquivo temporario e so depois executa a continuacao adequada.
+    function reinstallParentPath(path){
+        return path.slice(0, path.lastIndexOf('/')) || '/';
     }
 
-    // Reinstala o projeto do Tasker
+    function reinstallFormatarBytes(bytes){
+        const valor = Math.max(0, Number(bytes || 0));
+        if (valor >= 1048576) return (valor / 1048576).toFixed(1).replace('.', ',') + ' MB';
+        if (valor >= 1024) return (valor / 1024).toFixed(1).replace('.', ',') + ' KB';
+        return String(Math.floor(valor)) + ' B';
+    }
+
+    function reinstallMostrarStatus(texto, classe){
+        const status = document.getElementById('reinstallStatus');
+        if (!status) return;
+        status.className = 'reinstall-status' + (classe ? ' ' + classe : '');
+        status.textContent = texto;
+    }
+
+    function reinstallMostrarProgresso(nome, baixado, total, indice, quantidade){
+        const status = document.getElementById('reinstallStatus');
+        if (!status) return;
+        const atual = Math.max(0, Number(baixado || 0));
+        const maximo = Math.max(0, Number(total || 0));
+        const progresso = maximo > 0 ? Math.max(0, Math.min(100, Math.floor(atual * 100 / maximo))) : 0;
+        const atributo = maximo > 0 ? ' value="' + String(progresso) + '"' : '';
+        const medida = maximo > 0 ? reinstallFormatarBytes(atual) + ' de ' + reinstallFormatarBytes(maximo) + ' • ' + String(progresso) + ' de 100' : reinstallFormatarBytes(atual);
+        status.className = 'reinstall-status';
+        status.innerHTML = '<span class="reinstall-file-name">Arquivo ' + String(indice) + ' de ' + String(quantidade) + ': ' + nome + '</span><progress class="reinstall-progress" max="100"' + atributo + '></progress><span class="reinstall-progress-text">' + medida + '</span>';
+    }
+
+    async function reinstallObterPacote(tipo){
+        const resposta = await fetch(REINSTALL_RELEASES_URL, { headers: { 'User-Agent': 'WCA-Panel', 'Accept': 'application/vnd.github+json' } });
+        if (!resposta || !resposta.ok) throw new Error('Não foi possível consultar as releases do WCA.');
+        const lista = await resposta.json();
+        if (!Array.isArray(lista)) throw new Error('A resposta das releases é inválida.');
+        const padrao = /\[\s*(ui|core|full)\s*\]/i;
+        const teste = /^\s*teste\s*$/i;
+        for (let i = 0; i < lista.length; i++) {
+            const itemRelease = lista[i] || {};
+            const titulo = String(itemRelease.name || '');
+            if (!padrao.test(titulo) && !teste.test(titulo)) continue;
+            const assets = {};
+            const itens = Array.isArray(itemRelease.assets) ? itemRelease.assets : [];
+            for (let a = 0; a < itens.length; a++) {
+                const item = itens[a] || {};
+                const nome = String(item.name || '');
+                if (nome) assets[nome] = { url: String(item.browser_download_url || ''), size: Number(item.size || 0) };
+            }
+            const temApi = assets[REINSTALL_FILES.whatsapp.name] && assets[REINSTALL_FILES.whatsapp.name].url && assets[REINSTALL_FILES.ffmpeg.name] && assets[REINSTALL_FILES.ffmpeg.name].url;
+            const temProjeto = assets[REINSTALL_FILES.project.name] && assets[REINSTALL_FILES.project.name].url;
+            if ((tipo === 'api' && temApi) || (tipo === 'project' && temProjeto)) return assets;
+        }
+        throw new Error(tipo === 'api' ? 'Nenhuma release válida contém os dois arquivos da API.' : 'Nenhuma release válida contém o projeto do Tasker.');
+    }
+
+    async function reinstallExecutarShell(cmd, timeout){
+        const resultado = await taskerCall('runShell', { cmd: cmd, root: false, timeout: timeout || 60 });
+        const codigo = resultado && resultado.result !== undefined && resultado.result !== '' ? Number(resultado.result) : 0;
+        if (!resultado || codigo !== 0) throw new Error('Falha ao preparar o arquivo no armazenamento.');
+        return resultado;
+    }
+
+    async function reinstallTamanhoArquivo(path){
+        try {
+            const resultado = await taskerCall('runShell', { cmd: 'if [ -f ' + shellQuote(path) + ' ]; then wc -c < ' + shellQuote(path) + "; else printf '0'; fi", root: false, timeout: 20 });
+            const tamanho = Number(String((resultado && resultado.stdout) || '0').trim());
+            return Number.isFinite(tamanho) && tamanho > 0 ? tamanho : 0;
+        } catch (eTamanho) {
+            return 0;
+        }
+    }
+
+    async function reinstallAcompanharDownload(promessa, temporario, nome, total, indice, quantidade){
+        let finalizado = false;
+        let erroDownload = null;
+        const controlada = Promise.resolve(promessa).then(function () { finalizado = true; }).catch(function (erro) { erroDownload = erro; finalizado = true; });
+        reinstallMostrarProgresso(nome, 0, total, indice, quantidade);
+        while (!finalizado) {
+            await bridgeTimeout(450);
+            const tamanho = await reinstallTamanhoArquivo(temporario);
+            reinstallMostrarProgresso(nome, tamanho, total, indice, quantidade);
+        }
+        await controlada;
+        if (erroDownload) throw erroDownload;
+        const tamanhoFinal = await reinstallTamanhoArquivo(temporario);
+        reinstallMostrarProgresso(nome, tamanhoFinal, total, indice, quantidade);
+    }
+
+    async function reinstallBaixarArquivo(asset, nome, destino, executavel, indice, quantidade){
+        if (!asset || !asset.url) throw new Error('A release não possui o arquivo ' + nome + '.');
+        const temporario = destino + '.update';
+        await reinstallExecutarShell('mkdir -p ' + shellQuote(reinstallParentPath(destino)) + ' && rm -f ' + shellQuote(temporario), 30);
+        try {
+            const requisicao = taskerCall('httpRequest', { method: 'GET', url: asset.url, headers: 'User-Agent: Tasker\nAccept: application/octet-stream', fileToSave: temporario, timeout: 600, autoRedirect: true });
+            await reinstallAcompanharDownload(requisicao, temporario, nome, asset.size, indice, quantidade);
+            let validar = 'test -s ' + shellQuote(temporario);
+            if (asset.size > 0) validar += ' && test "$(wc -c < ' + shellQuote(temporario) + ')" -eq ' + String(Math.floor(asset.size));
+            if (!executavel) validar += " && grep -q '<TaskerData' " + shellQuote(temporario);
+            validar += ' && mv -f ' + shellQuote(temporario) + ' ' + shellQuote(destino);
+            if (executavel) validar += ' && chmod 700 ' + shellQuote(destino);
+            await reinstallExecutarShell(validar, 120);
+        } catch (erroDownload) {
+            try { await reinstallExecutarShell('rm -f ' + shellQuote(temporario), 20); } catch (eLimpeza) { }
+            throw erroDownload;
+        }
+    }
+
+    function reinstallPararContagem(){
+        if (reinstallCountdownTimer !== null) {
+            clearInterval(reinstallCountdownTimer);
+            reinstallCountdownTimer = null;
+        }
+    }
+
+    async function reinstallContinuarProjeto(){
+        if (reinstallContinuationStarted) return;
+        reinstallContinuationStarted = true;
+        reinstallPararContagem();
+        const agora = document.getElementById('reinstallNowBtn');
+        const fechar = document.getElementById('reinstallCloseBtn');
+        if (agora) {
+            agora.disabled = true;
+            agora.textContent = 'INSTALANDO...';
+        }
+        reinstallMostrarStatus('Executando a reinstalação no Tasker...', 'success');
+        try {
+            await taskerCall('runTask', { name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } });
+            reinstallRunning = false;
+            reinstallMostrarStatus('Projeto baixado e reinstalação iniciada no Tasker.', 'success');
+            if (agora) agora.classList.add('d-none');
+            if (fechar) fechar.classList.remove('d-none');
+        } catch (erroContinuacao) {
+            reinstallRunning = false;
+            reinstallContinuationStarted = false;
+            reinstallMostrarStatus('O projeto foi baixado, mas a tarefa não pôde ser executada: ' + String((erroContinuacao && erroContinuacao.message) || erroContinuacao), 'error');
+            if (agora) {
+                agora.disabled = false;
+                agora.textContent = 'TENTAR INSTALAR NOVAMENTE';
+                agora.classList.remove('d-none');
+            }
+            if (fechar) fechar.classList.remove('d-none');
+        }
+    }
+
+    function reinstallIniciarContagemProjeto(){
+        reinstallPararContagem();
+        reinstallContinuationStarted = false;
+        let restante = REINSTALL_COUNTDOWN_SECONDS;
+        const agora = document.getElementById('reinstallNowBtn');
+        const fechar = document.getElementById('reinstallCloseBtn');
+        if (fechar) fechar.classList.add('d-none');
+        if (agora) {
+            agora.disabled = false;
+            agora.textContent = 'INSTALAR AGORA';
+            agora.classList.remove('d-none');
+        }
+        const desenhar = function () {
+            const status = document.getElementById('reinstallStatus');
+            if (!status) return;
+            status.className = 'reinstall-status success';
+            status.innerHTML = '<strong>Projeto baixado e validado.</strong><div class="reinstall-countdown"><span>Instalação automática em</span><span class="reinstall-counter">' + String(restante) + '</span></div>';
+        };
+        desenhar();
+        reinstallCountdownTimer = setInterval(function () {
+            restante -= 1;
+            if (restante <= 0) reinstallContinuarProjeto();
+            else desenhar();
+        }, 1000);
+    }
+
+    async function reinstallExecutar(tipo){
+        if (reinstallRunning) return;
+        reinstallRunning = true;
+        reinstallTipoAtual = tipo;
+        const titulo = document.getElementById('reinstallProgressTitle');
+        const intro = document.getElementById('reinstallProgressIntro');
+        const retry = document.getElementById('reinstallRetryBtn');
+        const agora = document.getElementById('reinstallNowBtn');
+        const fechar = document.getElementById('reinstallCloseBtn');
+        reinstallPararContagem();
+        reinstallContinuationStarted = false;
+        if (titulo) titulo.textContent = tipo === 'api' ? 'REINSTALANDO A API' : 'REINSTALANDO O PROJETO';
+        if (intro) intro.textContent = tipo === 'api' ? 'Baixando e validando os arquivos binários da API.' : 'Baixando e validando o projeto XML do Tasker.';
+        if (retry) retry.classList.add('d-none');
+        if (agora) agora.classList.add('d-none');
+        if (fechar) fechar.classList.add('d-none');
+        reinstallMostrarStatus('Consultando a release mais recente...');
+        openModal('reinstallProgressModal');
+        try {
+            const assets = await reinstallObterPacote(tipo);
+            if (tipo === 'api') {
+                await reinstallBaixarArquivo(assets[REINSTALL_FILES.whatsapp.name], REINSTALL_FILES.whatsapp.name, REINSTALL_FILES.whatsapp.path, true, 1, 2);
+                await reinstallBaixarArquivo(assets[REINSTALL_FILES.ffmpeg.name], REINSTALL_FILES.ffmpeg.name, REINSTALL_FILES.ffmpeg.path, true, 2, 2);
+                reinstallMostrarStatus('Arquivos validados. Reiniciando a API...', 'success');
+                const reiniciado = await taskRestartWca();
+                if (!reiniciado) throw new Error('Os arquivos foram baixados, mas não foi possível solicitar o reinício da API.');
+                reinstallMostrarStatus('API reinstalada e reinício solicitado com sucesso.', 'success');
+            } else {
+                await reinstallBaixarArquivo(assets[REINSTALL_FILES.project.name], REINSTALL_FILES.project.name, REINSTALL_FILES.project.path, false, 1, 1);
+                reinstallIniciarContagemProjeto();
+                return;
+            }
+            reinstallRunning = false;
+            if (fechar) fechar.classList.remove('d-none');
+        } catch (erroReinstall) {
+            reinstallPararContagem();
+            reinstallRunning = false;
+            reinstallContinuationStarted = false;
+            if (agora) agora.classList.add('d-none');
+            reinstallMostrarStatus('Não foi possível concluir: ' + String((erroReinstall && erroReinstall.message) || erroReinstall), 'error');
+            if (retry) retry.classList.remove('d-none');
+            if (fechar) fechar.classList.remove('d-none');
+        }
+    }
+
+    function taskReinstallApi() {
+        return reinstallExecutar('api');
+    }
+
     function taskReinstallProject() {
-
-        ///alert('Tasker/Projeto reinstalado');
-
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } }).catch(function (e) { });
+        return reinstallExecutar('project');
     }
 
     // Botão de personalização de imagem (canetinha na foto de perfil)
@@ -6190,6 +6655,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         "confirmDeactivateModal": "deactivate_confirm",
         "confirmReinstallApiModal": "reinstall_api_confirm",
         "confirmReinstallTaskModal": "reinstall_task_confirm",
+        "reinstallProgressModal": "reinstall_download",
         "duplicateDeviceModal": "duplicate_device_alert",
         "helpModal": "menu", "devAlertModal": "dev_api_alert", "devSettingsModal": "dev_api_settings", "premiumProgressModal": "premium_check_progress", "premiumResultModal": "premium_check_result",
         "premiumCheckModal": "premium_check",
@@ -6210,7 +6676,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     }
 
     function updateModalHistoryFile() {
-        const openModalEl = document.querySelector('.modal-overlay.open');
+        const openModalEl = document.querySelector('.modal-overlay.open:not(.modal-flip-exit)');
         let name = "home";
         if (openModalEl && openModalEl.id) {
             name = MODAL_NAME_MAP[openModalEl.id] || openModalEl.id;
@@ -6230,6 +6696,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     function closeModal(id){
         devFecharBolha();
+        if (id === 'devChatPresenceModal' && devChatPresenceInputPendente && !devChatPresenceConfirmado) {
+            devChatPresenceInputPendente.checked = false;
+            devChatPresenceInputPendente = null;
+            devRestaurarPadraoPresenca();
+        }
         const m = document.getElementById(id);
         if(!m) return;
         m.classList.remove('open');
@@ -6279,8 +6750,10 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     // Fluxos reais da cena em que um modal fecha o anterior antes de abrir
     // (extraidos dos listeners): o "voltar" reabre o modal de origem
     const WCA_MODAL_PAI = {
+        devChatPresenceModal: 'devSettingsModal',
         confirmReinstallApiModal: 'helpModal',
         confirmReinstallTaskModal: 'helpModal',
+        reinstallProgressModal: 'helpModal',
         confirmUninstallModal: 'helpModal',
         confirmRestartModal: 'helpModal',
         confirmDeactivateModal: 'helpModal',
@@ -6296,7 +6769,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     function wcaModalVisivel(id){
         const el = document.getElementById(id);
-        return !!el && el.classList.contains('open');
+        return !!el && el.classList.contains('open') && !el.classList.contains('modal-flip-exit');
     }
 
     function wcaSyncModalStack(){
@@ -6306,7 +6779,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             wcaModalSyncAgendado = false;
             try {
                 wcaModalStack = wcaModalStack.filter(wcaModalVisivel);
-                document.querySelectorAll('.modal-overlay.open').forEach(function (el) {
+                document.querySelectorAll('.modal-overlay.open:not(.modal-flip-exit)').forEach(function (el) {
                     if (el.id && wcaModalStack.indexOf(el.id) < 0) wcaModalStack.push(el.id);
                 });
                 const topo = wcaModalStack.length ? wcaModalStack[wcaModalStack.length - 1] : '';
@@ -6331,9 +6804,22 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         } catch (e) {}
     }
 
+    const WCA_MODAL_FLIP_EXIT_MS = 420;
     const __wcaOpenModalOriginal = openModal;
     openModal = function (id){
+        const modal = id ? document.getElementById(id) : null;
+        if (modal && modal._wcaFlipTimer) {
+            clearTimeout(modal._wcaFlipTimer);
+            modal._wcaFlipTimer = null;
+        }
+        if (modal) {
+            modal.classList.remove('modal-flip-enter', 'modal-flip-exit');
+        }
         const resultado = __wcaOpenModalOriginal.apply(this, arguments);
+        if (modal) {
+            void modal.offsetWidth;
+            modal.classList.add('modal-flip-enter');
+        }
         if (id) {
             wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
             wcaModalStack.push(id);
@@ -6344,9 +6830,25 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     const __wcaCloseModalOriginal = closeModal;
     closeModal = function (id){
+        if (id === 'reinstallProgressModal' && reinstallRunning) return;
+        const modal = id ? document.getElementById(id) : null;
+        if (!modal || !modal.classList.contains('open')) {
+            const resultadoDireto = __wcaCloseModalOriginal.apply(this, arguments);
+            if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+            wcaSyncModalStack();
+            return resultadoDireto;
+        }
+        if (modal.classList.contains('modal-flip-exit')) return;
+        modal.classList.remove('modal-flip-enter');
+        void modal.offsetWidth;
+        modal.classList.add('modal-flip-exit');
         const resultado = __wcaCloseModalOriginal.apply(this, arguments);
         if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
         wcaSyncModalStack();
+        modal._wcaFlipTimer = setTimeout(function () {
+            modal._wcaFlipTimer = null;
+            modal.classList.remove('modal-flip-exit');
+        }, WCA_MODAL_FLIP_EXIT_MS);
         return resultado;
     };
 
@@ -9324,6 +9826,16 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     document.getElementById('btnConfirmReinstallTask')?.addEventListener('click', () => {
         closeModal('confirmReinstallTaskModal');
         taskReinstallProject();
+    });
+    document.getElementById('reinstallRetryBtn')?.addEventListener('click', () => {
+        reinstallExecutar(reinstallTipoAtual);
+    });
+    document.getElementById('reinstallNowBtn')?.addEventListener('click', () => {
+        reinstallContinuarProjeto();
+    });
+    document.getElementById('reinstallCloseBtn')?.addEventListener('click', () => {
+        closeModal('reinstallProgressModal');
+        openModal('helpModal');
     });
     document.getElementById('profileEditBtn')?.addEventListener('click', openEditProfilePictureModal);
     document.getElementById('btnAddProfilePhoto')?.addEventListener('click', () => {
