@@ -1,95 +1,38 @@
-[16/10/2026]
-↪ Corrigido o envio das mensagens ao Tasker: a API agora envia as mensagens recebidas direto no formato que o Tasker entende, com o conteúdo chegando completo.
+[15/11/2026]
+➪ O painel da API ganhou a seção System Metrics, com versão instalada, tempo em funcionamento, uso de memória e disco e quantidade de dispositivos conectados.
+➪ Mídias antigas ou expiradas agora têm uma nova tentativa automática de recuperação pelo telefone conectado antes de o download ser considerado indisponível.
+➪ Melhorada a compatibilidade das configurações da API, incluindo limites de mídia, exclusão automática, armazenamento de conversas e controle das mensagens enviadas ao Receiver.
+➪ A tela de atualizações agora mostra o progresso dos arquivos, reconhece corretamente versões de teste e só inicia a instalação ao terminar a contagem regressiva ou ao tocar em INSTALAR AGORA.
+➪ O Guia de Ajuda recebeu pesquisa global instantânea para localizar variáveis, tarefas e informações em todas as abas, além de documentação atualizada do Receiver e dos recursos recentes.
+➪ Os vídeos tutoriais do Guia passaram a abrir dentro da própria cena, com carregamento otimizado, tela cheia, título completo e restauração segura após a rotação do aparelho.
+➪ Os modais das cenas receberam uma transição de foco mais suave; ao cancelar ou fechar uma opção iniciada pelo menu, o usuário retorna ao próprio menu.
+➪ A interface web da API recebeu uma ferramenta de diagnóstico para facilitar a identificação de problemas quando necessário.
 
-[09/10/2026]
-↪ Após a atualização, a limpeza de cache agora é feita na cena principal do sistema (001-CENTRAL_WHATS_CONNECT_API [wca]), garantindo que nenhum dado fique em cache no momento da atualização.
+[14/11/2026]
+➪ O Gerador de Tarefas foi ampliado: agora permite escolher as tarefas de envio, gerar um projeto personalizado para o dispositivo selecionado e instalar o resultado diretamente pelo Tasker.
+➪ Corrigidas a substituição do telefone no XML, a criação do ícone personalizado e a preservação dos laços e variáveis das tarefas geradas.
+➪ A Central ganhou um banner de avisos com rolagem e visualização completa, permitindo comunicar informações importantes sem ocupar a tela principal.
+➪ O toque nos botões e cartões foi padronizado para celulares, substituindo efeitos de mouse por feedback visual imediato ao tocar.
+➪ Rodapés e textos de várias cenas foram simplificados, mantendo a interface mais limpa e uniforme.
+➪ O Guia de Ajuda passou a listar automaticamente os vídeos tutoriais disponíveis no repositório, sem exigir atualização da cena para cada novo vídeo.
 
-[08/10/2026]
-↪ Painel WCA: adicionados os botões Reinstalar API e Reinstalar Tasker/Projeto no menu do painel, que forçam a reinstalação por cima da API ou do projeto do Tasker, sem depender de uma nova atualização.
+[13/11/2026]
+➪ A Central ganhou uma área completa de Configurações da API, permitindo ajustar opções do arquivo de configuração com explicações, validações e confirmação antes de salvar ou reiniciar.
+➪ A verificação Premium passou a ser feita diretamente pela Central, com tela de progresso e resultado detalhado, sem depender de uma tarefa auxiliar.
+➪ A desinstalação completa passou a ser realizada dentro da Central, desconectando os dispositivos e removendo os arquivos do sistema com acompanhamento por etapas.
+➪ Corrigido o fluxo de QR Code para que os botões de conexão sejam restaurados corretamente ao sair ou cancelar o pareamento.
+➪ A Configuração do WebView passou a baixar, validar e extrair automaticamente o pacote das cenas e mídias, mostrando o progresso por arquivo e reiniciando a Central ao concluir.
+➪ Os pacotes das cenas foram reorganizados para substituir os arquivos antigos durante a atualização, evitando o acúmulo de várias versões no aparelho.
+➪ O Contatos Pro recebeu a aba Minha Agenda, fotos de perfil, melhor organização dos nomes e números e correções na visualização ampliada dos avatares.
 
-[03/10/2026]
-↪ Painel WCA: nova foto de perfil do usuário exibida no canto superior esquerdo da tela, exclusiva do modo Premium — sem Premium ativo a foto não é exibida. Com imagem personalizada definida, ela é exibida; sem imagem personalizada, é exibida a foto de perfil do WhatsApp do número principal. Pela canetinha de edição é possível adicionar uma foto personalizada ou resetar, eliminando a imagem personalizada e retornando à foto de perfil do WhatsApp.
+[12/11/2026]
+➪ As principais cenas do projeto foram convertidas para o novo formato V2, com HTML, estilos e funcionamento reunidos em um único arquivo.
+➪ O botão voltar do Android foi padronizado para fechar somente a janela ou etapa atual, preservando a tela anterior sempre que necessário.
+➪ O Contatos Pro foi renovado com busca, contatos, grupos, seleção múltipla, cópia em lote, consulta de LID e melhor desempenho em listas grandes.
+➪ A tela de Atualizações foi refeita para identificar a versão instalada, o tipo da nova versão e iniciar o fluxo correto de atualização.
+➪ As cenas de Instalação e Painel de Atividade foram adaptadas ao novo formato, mantendo o progresso, as respostas dos botões e o fechamento automático.
+➪ A Central passou a aceitar a abertura direta da aba desejada e ganhou melhorias no carregamento de versão, dispositivos, foto e estado Premium.
 
-[02/10/2026]
-➪ Nova tarefa adicionada ao projeto no Tasker: 061-id-number-wca-MencaoFantasmaG — envio de mensagem com menção fantasma (@todos) para grupos: todos os participantes são mencionados de forma invisível, sem o destaque azul do "@" na mensagem (comportamento esperado da menção fantasma), garantindo a notificação de todos os membros, inclusive aqueles que estão com o grupo silenciado. O guia de instruções (projeto Help WCA) foi atualizado com a documentação da tarefa e da variável %message.
-
-[01/10/2026]
-➪ Guia de instruções atualizado no projeto do Tasker (projeto Help WCA): documentadas as novas tarefas de envio 050 a 060 — realização de chamada de voz com reprodução de áudio MP3 (050), botões interativos simples (051/052), mistos com copiar e link (053/054), com imagem de cabeçalho (055/056), de pagamento com cópia de código (057/058) e lista interativa com paginação e até 30 opções (059/060), cada uma delas em versão para contato e grupo, com a descrição de todas as variáveis utilizadas. A seção de futuras implementações do guia também foi atualizada: não há novos recursos em desenvolvimento, pois todos os previstos já foram implementados e estão disponíveis na versão atual.
-
-[30/09/2026]
-➪ Correção no projeto Contatos Pro (tarefa do Tasker 010-OBTER_INFO_CONTATO/GRUPO [wca]): a janela de informações do contato era exibida por alguns segundos e desaparecia sozinha antes de permitir copiar os dados — o WebView disparava um "clique fantasma" sobre a janela logo após a abertura e ela se fechava em seguida; agora a janela permanece aberta até ser fechada de propósito (botão X ou toque fora dela) e os botões de copiar funcionam normalmente. Aproveitando a correção, a janela também ganhou a opção de copiar o LID do contato, consultado da própria API (/user/info, campo resolved_lid) no momento em que ela abre, sem nenhuma alteração no servidor; se o contato ainda não tem LID sincronizado, a janela apenas informa e não exibe o botão.
-
-[29/09/2026]
-➪ Corrigido o áudio que não reproduzia nas chamadas iniciadas pelo upload da página web: o arquivo de áudio enviado não estava chegando ao motor da chamada (o interpretador de formulários do framework ignora arquivos em requisições multipart), então a ligação era feita normalmente, mas em silêncio; agora o arquivo é capturado corretamente, da mesma forma que o envio de áudio e imagens, e o áudio toca quando a pessoa atende.
-➪ Página web: o upload de áudio da chamada de voz agora segue o mesmo padrão visual do restante do site (botão verde "Upload" com ícone, igual ao envio de áudio, imagem e arquivo), e o envio de link com imagem personalizada de pré-visualização ganhou botão de upload para escolher a imagem direto do dispositivo (a imagem é convertida automaticamente e preenche o campo Base64).
-
-[28/09/2026]
-➪ Enviar chamadas de voz com arquivo de áudio direto do navegador: no card de chamada da página web agora é possível escolher um arquivo MP3 do armazenamento (upload), além das opções já existentes de URL e Base64; o endpoint /send/call aceita multipart/form-data (campo "audio"), e apenas uma fonte de áudio por chamada é permitida.
-➪ Corrigido o problema que fazia as chamadas de voz ficarem presas em "Conectando..." quando o destinatário atendia: a intercepção de chamadas agora é registrada antes da sessão do WhatsApp conectar e a conexão de mídia é aberta já na discagem, então a chamada completa normalmente assim que o usuário atende. Importante: após atualizar, reinicie a API por completo para que a correção tenha efeito.
-
-➪ Nas chamadas com áudio (audio_url ou audio_path), o arquivo agora começa a tocar do início exatamente quando o usuário atende — e não mais a partir do meio — e a chamada é encerrada automaticamente ao fim do áudio, sem silêncio morto esperando o timer. O campo duration segue como tempo máximo da chamada (o que ocorrer primeiro: fim do áudio ou limite).
-
-➪ Chamadas sem áudio também conectam normalmente (o destinatário ouve silêncio até o limite de duration) e os eventos da chamada passam a aparecer nos logs do servidor com o prefixo [meowcaller], facilitando diagnósticos.
-
-[16/09/2026]
-➪ Corrigido o problema que fazia algumas mensagens recebidas em grupos chegarem ao webhook com o tipo "Unknown": álbuns de fotos, convites de grupo, eventos, figurinhas animadas, imagens editadas e outras variantes agora são reportadas com o tipo correto (ex.: AlbumMessage, GroupInviteMessage, EventMessage), inclusive quando a mensagem vem encapsulada nos novos formatos do WhatsApp.
-
-➪ Enquetes agora podem ser criadas com encerramento automático: informe o dia e o horário em que a enquete deve ser fechada com os campos end_date e end_time (ex.: "2026-09-20" e "18:00", interpretados no horário de Brasília) — sem precisar calcular milissegundos — ou, se preferir, envie apenas o campo end_time em milissegundos, como no formato original. Em ambos os casos o próprio WhatsApp encerra a votação no momento definido. Sem esses campos, a enquete continua aberta como antes.
-
-➪ API atualizada para a versão mais recente da biblioteca whatsmeow, responsável pela conexão com o WhatsApp Web, trazendo mais estabilidade, correções de protocolo e maior compatibilidade com as mudanças recentes do WhatsApp.
-
-➪ Suporte a menções fantasmas no envio de mensagens: agora é possível mencionar um ou vários participantes do grupo, ou todos de uma vez usando "@everyone", sem que o @número apareça no texto da mensagem.
-
-[11/08/2026]
-➪ Agora, a API respeita rigorosamente a variável WHATSAPP_PRESENCE_ON_CONNECT=unavailable, iniciando a sessão como offline/indisponível logo após a conexão.
-
-[30/07/2026]
-➪ Adicionada implementação na API para o Tasker receber as funcionalidades de envio de lista de botões e botões interativos.
-
-➪ Adicionada funcionalidade para o Tasker receber o método para realizar chamadas automaticamente via secretária eletrônica.
-
-➪ Melhorias de performance da API.
-
-[27/07/2026]
-➪ Aprimoramento na tarefa 010-OBTER_INFO_CONTATO/GRUPO [wca], com a inclusão da seleção múltipla de usuários e grupos para cópia em lote, permitindo copiar nomes, números, JIDs ou combinações de nome e número, conforme o tipo de item selecionado, com separação por quebra de linha.
-
-[24/07/2026]
-➪ Criptografia do número de telefone do usuário, visando reforçar a segurança dos dados armazenados.
-
-➪ Aprimoramento no processo de ativação do prêmio, no qual a solicitação do usuário permanecerá como pendente até a confirmação do pagamento e a posterior ativação pelo desenvolvedor.
-
-[22/07/2026]
-➪ Aprimoramento relacionado ao cache da tela principal.
-
-➪ Melhoria na usabilidade da interface para proporcionar uma experiência mais fluida ao usuário.
-
-[21/07/2026]
-➪ Aprimorado o método de identificação de atualizações.
-
-➪ Adicionado um novo botão dinâmico para desativar ou reativar a API.
-
-[20/07/2026]
-➪ Ajuste no sistema de comentários dos usuários, permitindo ao desenvolvedor visualizar, responder e interagir com avaliações, dúvidas e comentários por meio de respostas específicas para cada usuário.
-
-➪ Pequenas correções nas tarefas de envio.
-
-[17/07/2026]
-➪ Sistema independente do Termux, com binários armazenados localmente e executados e gerenciados pelo Tasker.
-
-[15/07/2026]
-➪ Aprimoramento do agendamento de conteúdos, com envio programado de mensagens de texto, documentos, atualizações de status, vídeos e imagens.
-
-[12/07/2026]
-➪ Melhoria no processo de atualização.
-
-[09/07/2026]
-➪ Verificação de atualização direta via releases do GitHub.
-
-[05/07/2026]
-➪ Na primeira instalação, é possível definir o nome da conexão web.
-
-[02/07/2026]
-➪ Usuários VIP podem enviar avaliações e comentários sobre o projeto, visíveis para todos os usuários, além de curtir comentários publicados por outros usuários.
-
-[30/06/2026]
-➪ Projeto 009-BROADCAST_MASTER [wca] em funcionamento.
+[11/11/2026]
+➪ Iniciada a modernização da Central para o formato V2, preservando as funções já existentes e melhorando a integração com os arquivos e recursos do Tasker.
+➪ O envio ao webhook ganhou quantidade de tentativas configurável, permitindo controlar reenvios quando o destino não responde.
