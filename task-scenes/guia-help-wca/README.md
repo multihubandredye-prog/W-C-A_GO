@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.24**
-Arquivo: `guia-help-wca-1.24.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.25**
+Arquivo: `guia-help-wca-1.25.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -39,9 +39,10 @@ Arquivo: `guia-help-wca-1.24.html` — arquivo único, com HTML + CSS + JavaScri
 
 ## Telegram
 
-- Os perfis em **Agradecimentos Especiais** abrem diretamente `https://t.me/usuario` com `window.open`;
-- Não usa mais os atalhos antigos `wca2`, `tk.setLocal` ou `destroyScene`;
-- Esta integração será validada no WebView do aparelho. Se o Android bloquear a abertura externa, o fluxo poderá ser substituído posteriormente por uma tarefa do Tasker.
+- Cada pessoa em **Agradecimentos Especiais** é um link HTTPS nativo completo para `https://t.me/usuario`;
+- Nome, função e identificador fazem parte da mesma área clicável, não somente o texto iniciado por `@`;
+- Os links usam `target="_blank"` e `rel="noopener noreferrer"`, permitindo que o Android encaminhe o endereço ao Telegram ou ao navegador sem depender de listeners ou `window.open` do JavaScript;
+- Não usa os atalhos antigos `wca2`, `tk.setLocal` ou `destroyScene`.
 
 ## Botão voltar
 
