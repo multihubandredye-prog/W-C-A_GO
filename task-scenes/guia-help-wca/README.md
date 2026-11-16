@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.25**
-Arquivo: `guia-help-wca-1.25.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.26**
+Arquivo: `guia-help-wca-1.26.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -39,9 +39,11 @@ Arquivo: `guia-help-wca-1.25.html` — arquivo único, com HTML + CSS + JavaScri
 
 ## Telegram
 
-- Cada pessoa em **Agradecimentos Especiais** é um link HTTPS nativo completo para `https://t.me/usuario`;
+- Cada pessoa em **Agradecimentos Especiais** mantém um link HTTPS completo para `https://t.me/usuario`;
 - Nome, função e identificador fazem parte da mesma área clicável, não somente o texto iniciado por `@`;
-- Os links usam `target="_blank"` e `rel="noopener noreferrer"`, permitindo que o Android encaminhe o endereço ao Telegram ou ao navegador sem depender de listeners ou `window.open` do JavaScript;
+- No Tasker, o toque usa `Tasker.browseUrl` para abrir o endereço fora do WebView; se essa ação não estiver disponível, usa `Tasker.sendIntent` com `android.intent.action.VIEW` e destino `activity`;
+- A navegação interna é cancelada quando a ponte externa está disponível, evitando que o WebView tente carregar o esquema `tg:resolve` e apresente `ERR_UNKNOWN_URL_SCHEME`;
+- Fora do Tasker, o link HTTPS nativo permanece como fallback;
 - Não usa os atalhos antigos `wca2`, `tk.setLocal` ou `destroyScene`.
 
 ## Botão voltar

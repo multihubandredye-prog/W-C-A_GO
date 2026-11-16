@@ -3097,6 +3097,27 @@ function iniciarVoltarV2() {
     });
 }
 
+async function abrirTelegramForaDoWebView(link) {
+    const url = String(link && link.href || '');
+    if (!url) return;
+    const bridge = typeof Tasker !== 'undefined' ? Tasker : window.Tasker;
+    if (!bridge) return;
+    if (typeof bridge.browseUrl === 'function') {
+        try {
+            await bridge.browseUrl({ url: url });
+            return;
+        } catch (erroBrowseUrl) {}
+    }
+    if (typeof bridge.sendIntent === 'function') {
+        await bridge.sendIntent({
+            action: 'android.intent.action.VIEW',
+            target: 'activity',
+            category: 'browsable',
+            data: url
+        });
+    }
+}
+
 function buildTaskerItem(task) {
     const varItems = task.vars.map(v => {
         const exampleHtml = v.example ? `<pre><code>${v.example.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>` : '';
@@ -3595,6 +3616,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     scrollTopButton.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    document.querySelectorAll('.telegram-card').forEach(link => {
+        link.addEventListener('click', evento => {
+            const bridge = typeof Tasker !== 'undefined' ? Tasker : window.Tasker;
+            const abreFora = bridge && (typeof bridge.browseUrl === 'function' || typeof bridge.sendIntent === 'function');
+            if (!abreFora) return;
+            evento.preventDefault();
+            abrirTelegramForaDoWebView(link).catch(function () {});
+        });
     });
 
 });

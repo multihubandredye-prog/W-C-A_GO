@@ -1,6 +1,6 @@
 const fs=require('fs');
 const {execFileSync}=require('child_process');
-const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.25.html';
+const ALVO='/home/user/task-scenes/guia-help-wca/guia-help-wca-1.26.html';
 const WRAPPER='/home/user/wca-resources/youtube-player.html';
 const html=fs.readFileSync(ALVO,'utf8');
 const wrapper=fs.readFileSync(WRAPPER,'utf8');
@@ -64,6 +64,7 @@ ok('T49 intermediário possui URL HTTPS imutável e política de referência',js
 ok('T50 intermediário valida ID e incorpora YouTube sem cookies',wrapper.includes("/^[A-Za-z0-9_-]{11}$/.test(video)")&&wrapper.includes("'https://www.youtube-nocookie.com/embed/'")&&wrapper.includes("iframe.setAttribute('allowfullscreen','')"));
 ok('T51 player não possui botão X próprio',!html.includes('id="videoPlayerClose"')&&!css.includes('.youtube-player-close'));
 ok('T52 intermediário informa posição e aceita início restaurado',wrapper.includes("enablejsapi:'1'")&&wrapper.includes("start:String(start)")&&wrapper.includes("func:'getCurrentTime'")&&wrapper.includes("source:'wca-youtube-player',type:'state'")&&js.includes('persistirVideoAtual(dados.time, dados.playerState)'));
-ok('T53 cartões do Telegram independem de JavaScript',!js.includes('getTelegramLink')&&!js.includes("querySelectorAll('.credits-person .handle a')")&&(html.match(/target="_blank" rel="noopener noreferrer" aria-label="Abrir/g)||[]).length===3&&css.includes('.telegram-card:active'));
+ok('T53 cartões do Telegram mantêm fallback HTTPS nativo',!js.includes('getTelegramLink')&&(html.match(/target="_blank" rel="noopener noreferrer" aria-label="Abrir/g)||[]).length===3&&css.includes('.telegram-card:active'));
+ok('T54 Telegram sai do WebView pela ponte do Tasker',js.includes("document.querySelectorAll('.telegram-card')")&&js.includes("bridge.browseUrl({ url: url })")&&js.includes("action: 'android.intent.action.VIEW'")&&js.includes("target: 'activity'")&&js.includes('evento.preventDefault()'));
 console.log('RESULTADO: '+(falhas?'FALHARAM '+falhas+' DE '+total:'TODOS PASSARAM ('+total+'/'+total+')'));
 process.exitCode=falhas?1:0;
