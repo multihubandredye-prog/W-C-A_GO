@@ -2980,6 +2980,10 @@ input.first-install-attention {
     border: 1px solid rgba(255,193,7,0.28);
     text-align: left;
 }
+.premium-home-pending { margin: 14px 20px; }
+.premium-home-pending .btn-action { margin-top: 12px; }
+.premium-home-pending .btn-action:active { filter: brightness(1.12); }
+
 .premium-pending-title {
     color: #ffc107;
     font-size: .78rem;
@@ -3345,13 +3349,13 @@ input.first-install-attention {
                 <div id="planErrorMsg" class="validation-msg center-mt-10"></div>
             </div>
             <div id="premiumPendingBox" class="premium-pending-box d-none">
-                <div class="premium-pending-title"><i class="fa-solid fa-clock"></i> Solicitação Premium pendente</div>
+                <div class="premium-pending-title"><i class="fa-solid fa-clock"></i> Pedido Premium pendente</div>
                 <div id="premiumPendingInfo" class="premium-pending-info"></div>
                 <button id="btnEditPremiumRequest" class="btn-action btn-full btn-primary premium-edit-request-btn" type="button">
                     <i class="fa-solid fa-pen"></i> EDITAR PLANO
                 </button>
                 <button id="btnCancelPremiumRequest" class="btn-action btn-full btn-danger premium-cancel-request-btn" type="button">
-                    <i class="fa-solid fa-xmark"></i> CANCELAR SOLICITAÇÃO
+                    <i class="fa-solid fa-xmark"></i> CANCELAR PEDIDO
                 </button>
                 <button id="btnAcceleratePremiumOrder" class="btn-action btn-full btn-outline premium-accelerate-btn" type="button">
                     <i class="fa-solid fa-paper-plane"></i> ACELERAR PEDIDO
@@ -3366,7 +3370,7 @@ input.first-install-attention {
         <div class="modal-content">
             <div class="confirm-icon-wrap mb-18"><i class="fa-solid fa-paper-plane gold-title"></i></div>
             <h3 class="modal-title gold-title">ACELERAR PEDIDO</h3>
-            <p class="support-contact-text">Escolha por onde deseja enviar as informações da solicitação Premium ao desenvolvedor.</p>
+            <p class="support-contact-text">Escolha por onde deseja enviar as informações do pedido Premium ao desenvolvedor.</p>
             <div class="support-contact-list">
                 <button id="premiumAccelerateWhatsAppBtn" class="support-contact-btn" type="button">
                     <span class="support-contact-icon whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
@@ -3379,7 +3383,7 @@ input.first-install-attention {
                     <span class="support-contact-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
                 </button>
             </div>
-            <button class="btn-action btn-full btn-transparent mt-15" data-close="premiumAccelerateModal">VOLTAR À SOLICITAÇÃO</button>
+            <button class="btn-action btn-full btn-transparent mt-15" data-close="premiumAccelerateModal">VOLTAR AO PEDIDO</button>
         </div>
     </div>
 
@@ -4141,8 +4145,8 @@ input.first-install-attention {
     <div id="confirmCancelPremiumRequestModal" class="modal-overlay modal-z-delete" aria-hidden="true">
         <div class="modal-content">
             <div class="delete-icon-wrap"><i class="fa-solid fa-circle-question"></i></div>
-            <h3 class="modal-title default-title">Cancelar solicitação?</h3>
-            <p class="delete-review-text">Sua solicitação Premium pendente será cancelada. Você poderá enviar uma nova solicitação depois.</p>
+            <h3 class="modal-title default-title">Cancelar pedido?</h3>
+            <p class="delete-review-text">Seu pedido Premium pendente será cancelado. Você poderá enviar um novo pedido depois.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmCancelPremiumRequestModal">NÃO</button>
                 <button id="btnConfirmCancelPremiumRequest" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-xmark"></i> SIM, CANCELAR</button>
@@ -4239,6 +4243,12 @@ input.first-install-attention {
                 </div>
                 <button id="menuBtn" class="btn-menu" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
             </div>
+
+            <section id="homePremiumPending" class="premium-pending-box premium-home-pending d-none" aria-label="Pedido Premium pendente">
+                <div class="premium-pending-title"><i class="fa-solid fa-clock"></i> Pedido Premium pendente</div>
+                <div id="homePremiumPendingInfo" class="premium-pending-info"></div>
+                <button id="homePremiumPendingOpen" type="button" class="btn-action btn-full btn-outline"><i class="fa-solid fa-arrow-up-right-from-square"></i> VER PEDIDO</button>
+            </section>
 
             <nav class="tabs-nav" role="tablist">
                 <button class="tab-btn active" data-tab="config-tab" role="tab">Instalação</button>
@@ -5426,7 +5436,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         // REGRA PERMANENTE: preenchida em runtime com o conteúdo REAL de
         // /storage/emulated/0/.system_cache/.mode-system.log (loadModeSystemLog)
         Premium_LOG_DATA: "",
-        // Endpoint público para registrar solicitação de assinatura Premium
+        // Endpoint público para registrar pedido de assinatura Premium
         PREMIUM_REQUEST_API: "https://wca-api-three-alpha.vercel.app/api/premium/request",
         PREMIUM_STATUS_API: "https://wca-api-three-alpha.vercel.app/api",
         PREMIUM_HISTORY_API: "https://wca-api-three-alpha.vercel.app/api/premium/history",
@@ -5701,6 +5711,10 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     let deleteDeviceTargetId = null;
     let selectedPlan       = { name: null, price: null };
     let currentPremiumPendingRequest = null;
+    let homePremiumPending = null;
+    let homePremiumPhone = '';
+    let homePremiumLastCheck = 0;
+    let homePremiumSequence = 0;
     let editingPremiumPendingRequest = false;
     let cancelPremiumRequestInFlight = false;
 
@@ -5881,7 +5895,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     function buildPremiumAccelerateMessage() {
         const dados = premiumAccelerateDetails || buildPremiumRequestDetailsFromPending();
-        return `*WATS-CONNECT-API*\n\nSolicito a aceleração da minha solicitação Premium.\n\n${dados}`;
+        return `*WATS-CONNECT-API*\n\nSolicito a aceleração do meu pedido Premium.\n\n${dados}`;
     }
 
     function sendPremiumAccelerateWhatsApp() {
@@ -6563,8 +6577,18 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
 
     // Solicitacao Premium via HTTP (nao e saida do Tasker)
-    // Envia os dados da solicitação de compra do plano Premium para a API.
+    // Envia os dados do pedido de compra do plano Premium para a API.
     // A API registra como pending_activation. A ativação real continua sendo feita pelo administrador após confirmar o pagamento.
+    // Ajusta somente o texto exibido, sem alterar respostas ou dados da API.
+    function textoPedido(texto){
+        return String(texto || '').replace(/sua solicitação/gi, 'seu pedido').replace(/uma solicitação/gi, 'um pedido')
+            .replace(/solicitações/gi, 'pedidos').replace(/solicitação/gi, 'pedido')
+            .replace(/pedido (enviada|registrada|cancelada|atualizada)/gi, function (trecho, acao) {
+                const formas = { enviada: 'enviado', registrada: 'registrado', cancelada: 'cancelado', atualizada: 'atualizado' };
+                return 'pedido ' + formas[acao.toLowerCase()];
+            });
+    }
+
     async function alertSendPurchase(details) {
         const name = (document.getElementById('confirmName')?.textContent || '').trim();
         const tel = normalizePhone(document.getElementById('confirmTel')?.textContent || '');
@@ -6588,8 +6612,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             if(data.alreadyPending || data.status === 'pending_activation'){
                 keepPremiumRequestScreenOpen(data);
                 showToast({
-                    title: data.alreadyPending ? 'Solicitação já existente' : (data.updated ? 'Solicitação atualizada' : 'Solicitação enviada'),
-                    message: data.message || 'Aguarde o retorno do desenvolvedor.',
+                    title: data.alreadyPending ? 'Pedido já existente' : (data.updated ? 'Pedido atualizado' : 'Pedido enviado'),
+                    message: textoPedido(data.message || 'Aguarde o retorno do desenvolvedor.'),
                     type: data.alreadyPending ? 'warning' : 'success',
                     duration: 15000
                 });
@@ -6598,8 +6622,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
             keepPremiumRequestScreenOpen(data);
             showToast({
-                title: data.updated ? 'Solicitação atualizada' : 'Solicitação enviada',
-                message: 'Sua solicitação Premium foi registrada. Aguarde o retorno do desenvolvedor.',
+                title: data.updated ? 'Pedido atualizado' : 'Pedido enviado',
+                message: 'Seu pedido Premium foi registrado. Aguarde o retorno do desenvolvedor.',
                 type: 'success',
                 duration: 15000
             });
@@ -6607,7 +6631,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             closeModal('buyConfirmModal');
             setPremiumPhoneVisibility(false);
             openModal('buyModal');
-            showToast({title: 'Erro ao solicitar Premium', message: e.message || 'Não foi possível registrar a solicitação.', type: 'error', duration: 15000});
+            showToast({title: 'Erro ao solicitar Premium', message: textoPedido(e.message || 'Não foi possível registrar o pedido.'), type: 'error', duration: 15000});
         }
     }
 
@@ -6617,7 +6641,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         closeModal('buyConfirmModal');
         setPremiumPhoneVisibility(false);
         openModal('buyModal');
-        if(data) setPremiumPendingUi(data);
+        if(data) {
+            setPremiumPendingUi(data);
+            if(normalizePremiumPendingData(data)) renderHomePremiumPending(data);
+        }
+        atualizarPedidoInicial(true);
     }
 
 
@@ -7408,9 +7436,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             });
         }
 
-        html += '<div class="premium-history-section-title">Solicitações</div>';
+        html += '<div class="premium-history-section-title">Pedidos</div>';
         if(requests.length === 0){
-            html += '<div class="reviews-empty"><i class="fa-regular fa-paper-plane"></i><p>Nenhuma solicitação registrada.</p></div>';
+            html += '<div class="reviews-empty"><i class="fa-regular fa-paper-plane"></i><p>Nenhum pedido registrado.</p></div>';
         } else {
             requests.forEach(item => {
                 html += '<div class="premium-history-card pending">';
@@ -7447,7 +7475,10 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const p = normalizePhone(phone);
         if(!p) return null;
         const res = await fetch(`${CONFIG.PREMIUM_STATUS_API}?phone=${encodeURIComponent(p)}&_=${Date.now()}`, {cache: 'no-store'});
-        return await res.json().catch(() => null);
+        if(!res.ok) throw new Error('Não foi possível consultar o pedido Premium.');
+        const data = await res.json();
+        if(!data || typeof data !== 'object' || Array.isArray(data) || data.success === false) throw new Error('Resposta inválida.');
+        return data;
     }
 
     function normalizePremiumPendingData(data){
@@ -7486,6 +7517,46 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         return null;
     }
 
+    // O resumo usa a identidade principal e nao altera a edicao do modal.
+    function renderHomePremiumPending(data){
+        homePremiumPending = normalizePremiumPendingData(data);
+        const box = document.getElementById('homePremiumPending');
+        const info = document.getElementById('homePremiumPendingInfo');
+        if(box) box.classList.toggle('d-none', !homePremiumPending);
+        if(info && homePremiumPending){
+            const p = homePremiumPending;
+            const plan = p.requestedPlan || p.plan || 'plano não informado';
+            const amount = p.requestedAmount || p.amount || '';
+            const when = p.lastRequestAtBR || 'data não informada';
+            const count = Number(p.pendingCount || 0);
+            info.innerHTML = (count > 1 ? '<strong>' + escapeHtml(count) + ' pedidos pendentes.</strong><br>Exibindo o mais recente.<br>' : '') +
+                '<strong>Plano:</strong> ' + escapeHtml(plan) + (amount ? ' • <strong>Valor:</strong> ' + escapeHtml(amount) : '') +
+                '<br><strong>Enviado em:</strong> ' + escapeHtml(when) + '<br>Aguarde o retorno do desenvolvedor.';
+        }
+    }
+
+    async function atualizarPedidoInicial(forcar){
+        const telefone = getPrincipalPhone();
+        if(telefone !== homePremiumPhone){
+            homePremiumPhone = telefone;
+            homePremiumLastCheck = 0;
+            homePremiumSequence++;
+            renderHomePremiumPending(null);
+        }
+        if(!telefone) return;
+        const agora = Date.now();
+        if(!forcar && homePremiumLastCheck && agora - homePremiumLastCheck < 60000) return;
+        homePremiumLastCheck = agora;
+        const sequencia = ++homePremiumSequence;
+        try {
+            const data = await fetchPremiumStatus(telefone);
+            if(sequencia !== homePremiumSequence || telefone !== getPrincipalPhone()) return;
+            renderHomePremiumPending(data);
+        } catch(e){
+            // Falha de rede nao apaga um resumo ja confirmado.
+        }
+    }
+
     function setPremiumPendingUi(data){
         const pendingData = normalizePremiumPendingData(data);
         currentPremiumPendingRequest = pendingData || null;
@@ -7500,7 +7571,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             const when = pendingData.lastRequestAtBR || 'data não informada';
             const plan = pendingData.requestedPlan || pendingData.plan || 'plano não informado';
             const amount = pendingData.requestedAmount || pendingData.amount || '';
-            dom.premiumPendingInfo.innerHTML = `${Number(pendingData.pendingCount || 0) > 1 ? `<strong>${escapeHtml(pendingData.pendingCount)} solicitações pendentes.</strong><br>Exibindo a mais recente.<br>` : 'Já existe uma solicitação para este número.<br>'}<strong>Plano:</strong> ${escapeHtml(plan)}${amount ? ` • <strong>Valor:</strong> ${escapeHtml(amount)}` : ''}<br><strong>Enviada em:</strong> ${escapeHtml(when)}<br>Aguarde o retorno do desenvolvedor.`;
+            dom.premiumPendingInfo.innerHTML = `${Number(pendingData.pendingCount || 0) > 1 ? `<strong>${escapeHtml(pendingData.pendingCount)} pedidos pendentes.</strong><br>Exibindo o mais recente.<br>` : 'Já existe um pedido para este número.<br>'}<strong>Plano:</strong> ${escapeHtml(plan)}${amount ? ` • <strong>Valor:</strong> ${escapeHtml(amount)}` : ''}<br><strong>Enviado em:</strong> ${escapeHtml(when)}<br>Aguarde o retorno do desenvolvedor.`;
         }
     }
 
@@ -7511,7 +7582,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const plan = data.requestedPlan || data.plan || selectedPlan.name || 'Não informado';
         const amount = data.requestedAmount || data.amount || selectedPlan.price || 'Não informado';
         const when = data.lastRequestAtBR || 'Não informado';
-        return `Nome: ${name}\nPlano: ${plan}\nTelefone: ${phone}\nValor: ${amount}\nSolicitação enviada em: ${when}`;
+        return `Nome: ${name}\nPlano: ${plan}\nTelefone: ${phone}\nValor: ${amount}\nPedido enviado em: ${when}`;
     }
 
 
@@ -7548,7 +7619,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         dom.selectedPlanValue.textContent = '';
         dom.planErrorMsg.textContent = '';
         selectedPlan = {name: null, price: null};
-        setPremiumPendingUi(null);
+        setPremiumPendingUi(homePremiumPending);
         document.querySelectorAll('.plan-button').forEach(b => b.classList.remove('selected'));
         closeModal('helpModal');
         openModal('buyModal');
@@ -7558,7 +7629,12 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             if(savedName && dom.buyNameInput && !dom.buyNameInput.value.trim()){
                 dom.buyNameInput.value = savedName;
             }
-            if(normalizePremiumPendingData(data)) setPremiumPendingUi(data);
+            if(principalPhone !== getPrincipalPhone()) return;
+            setPremiumPendingUi(data);
+            homePremiumSequence++;
+            homePremiumPhone = principalPhone;
+            homePremiumLastCheck = Date.now();
+            renderHomePremiumPending(data);
         }).catch(() => {});
     }
 
@@ -7603,16 +7679,18 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             if(!res.ok || data.success === false) throw new Error(data.error || data.message || `HTTP ${res.status}`);
             closeModal('confirmCancelPremiumRequestModal');
             setPremiumPendingUi(null);
+            renderHomePremiumPending(null);
+            atualizarPedidoInicial(true);
             currentPremiumPendingRequest = null;
             editingPremiumPendingRequest = false;
             if(dom.buySendBtn){
                 dom.buySendBtn.classList.remove('d-none');
                 dom.buySendBtn.textContent = 'ENVIAR';
             }
-            showToast({title: 'Solicitação cancelada', message: data.message || 'Sua solicitação Premium foi cancelada.', type: 'info', duration: 8000});
+            showToast({title: 'Pedido cancelado', message: textoPedido(data.message || 'Seu pedido Premium foi cancelado.'), type: 'info', duration: 8000});
         }catch(e){
             closeModal('confirmCancelPremiumRequestModal');
-            showToast({title: 'Erro ao cancelar', message: e.message || 'Não foi possível cancelar a solicitação.', type: 'error', duration: 8000});
+            showToast({title: 'Erro ao cancelar', message: textoPedido(e.message || 'Não foi possível cancelar o pedido.'), type: 'error', duration: 8000});
         } finally {
             cancelPremiumRequestInFlight = false;
             if(dom.confirmCancelPremiumRequestBtn) dom.confirmCancelPremiumRequestBtn.disabled = false;
@@ -7625,11 +7703,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         if(dom.premiumPendingBox) dom.premiumPendingBox.classList.add('d-none');
         if(dom.buySendBtn){
             dom.buySendBtn.classList.remove('d-none');
-            dom.buySendBtn.textContent = 'ATUALIZAR SOLICITAÇÃO';
+            dom.buySendBtn.textContent = 'ATUALIZAR PEDIDO';
         }
         if(dom.buyNameInput && (currentPremiumPendingRequest.nome || currentPremiumPendingRequest.name)) dom.buyNameInput.value = currentPremiumPendingRequest.nome || currentPremiumPendingRequest.name;
         selectPlanByName(currentPremiumPendingRequest.requestedPlan || currentPremiumPendingRequest.plan);
-        showToast({title: 'Editar solicitação', message: 'Altere o plano ou nome e envie novamente para atualizar sua solicitação.', type: 'info', duration: 4500});
+        showToast({title: 'Editar pedido', message: 'Altere o plano ou nome e envie novamente para atualizar seu pedido.', type: 'info', duration: 4500});
     }
 
     function sendPurchase(){
@@ -8657,6 +8735,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         currentUserPhone = getPrincipalPhone();
         updateReviewMenuAvailability();
         updatePremiumMenuAvailability();
+        atualizarPedidoInicial(false);
         // 1.21: se o check de servidor ja concluiu OFFLINE e as conexoes
         // chegaram depois, reaplica o estado (alerta correto + botao
         // HABILITAR WCA) sem esperar uma troca de aba
@@ -8670,6 +8749,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     async function writeDevicesFile(list){
         try{
             devicesCache = Array.isArray(list) ? list : [];
+            atualizarPedidoInicial(false);
             const escrita = await taskerCall('writeFile', { path: CONFIG.DEVICES_FILE_PATH, text: JSON.stringify(devicesCache, null, 2), append: false });
             if (actionFailed(escrita)) throw new Error('Tasker.writeFile sinalizou falha ao gravar devices.json');
             return true;
@@ -10085,6 +10165,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         taskCheckUpdates();
     });
     document.getElementById('btnOpenPremiumCta')?.addEventListener('click', openBuyModal);
+    document.getElementById('homePremiumPendingOpen')?.addEventListener('click', openBuyModal);
 
     document.getElementById('btnSendBuy')?.addEventListener('click', sendPurchase);
     dom.acceleratePremiumBtn?.addEventListener('click', () => openPremiumAccelerateChannels(buildPremiumRequestDetailsFromPending()));
@@ -10136,6 +10217,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         // paralelo com prazo de 4s e a UI é atualizada quando concluem
         devicesCachePromise = loadDevicesCache();
         devicesCachePromise.then(refreshDevicesDependentUi).catch(function () {});
+        setInterval(function () { atualizarPedidoInicial(false); }, 60000);
         loadVersionFile().catch(function () {});
         carregarAviso().catch(function () {});
         // Banner de avisos (1.52): a seta abre um modal centralizado com o
