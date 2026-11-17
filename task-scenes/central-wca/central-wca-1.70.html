@@ -5954,7 +5954,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     // Etapa 1: desconecta TODOS os usuarios (mesmo fluxo da lixeira de cada
     // dispositivo: logout no app + DELETE do dispositivo). API fora do ar pula
     async function desinDesconectarUsuarios(){
-        desinEtapa('Etapa 1 de 3 — Desconectando os usuários conectados');
+        desinEtapa('Etapa 1 de 4 — Desconectando os usuários conectados');
         let dispositivos = [];
         try {
             const resposta = await Promise.race([
@@ -5989,7 +5989,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     // Etapa 2: enumera os arquivos das duas pastas e elimina um a um (100ms)
     async function desinEliminarArquivos(){
-        desinEtapa('Etapa 2 de 3 — Eliminando os arquivos do WCA');
+        desinEtapa('Etapa 2 de 4 — Eliminando os arquivos do WCA');
         const listaBin = await desinListaArquivos(PASTA_BIN_WCA);
         const listaProj = await desinListaArquivos(PASTA_PROJETO_WCA);
         const arquivos = listaBin.concat(listaProj);
@@ -6007,6 +6007,32 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         desinProgresso(arquivos.length, arquivos.length);
         desinItem('Removendo as pastas do WCA...');
         try { await Promise.race([ taskerCall('runShell', { cmd: 'rm -rf ' + shellQuote(PASTA_BIN_WCA) + ' ' + shellQuote(PASTA_PROJETO_WCA), root: false, timeout: 60 }), bridgeTimeout(70000) ]); } catch (eRmDir) { }
+    }
+
+    // Etapa 3: desabilita o servico do WCA (stop-wca) DEPOIS da eliminacao
+    // dos arquivos, para nao deixar o processo antigo rodando sobre uma pasta
+    // que acabou de ser apagada. Falha aqui nao desfaz a limpeza: a cena
+    // informa o resultado e segue para o encerramento
+    async function desinDesabilitarServico(){
+        desinEtapa('Etapa 3 de 4 — Desabilitando o serviço do WCA');
+        desinItem('Enviando o comando de desativação do WCA...');
+        desinProgresso(0, 1);
+        let confirmado = true;
+        try {
+            const chamada = Tasker.runTask({
+                name: '006-CONFIGURAR_SISTEMA [wca]',
+                variables: { par1: 'stop-wca' }
+            });
+            const protegida = Promise.resolve(chamada).catch(function () { confirmado = false; });
+            await Promise.race([ protegida, desinDormir(5000) ]);
+        } catch (eStop) {
+            confirmado = false;
+        }
+        desinProgresso(1, 1);
+        desinItem(confirmado
+            ? 'Serviço do WCA desabilitado'
+            : 'O serviço não confirmou a desativação; a limpeza foi concluída');
+        await desinDormir(1200);
     }
 
     // Fecha as cenas em cascata: o Tasker pode aceitar em silencio um
@@ -6028,8 +6054,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         try {
             await desinDesconectarUsuarios();
             await desinEliminarArquivos();
+            await desinDesabilitarServico();
         } catch (eFluxo) { }
-        desinEtapa('Etapa 3 de 3 — Concluído');
+        desinEtapa('Etapa 4 de 4 — Concluído');
         desinItem('');
         desinProgresso(1, 1);
         if (desinElTitulo) desinElTitulo.textContent = 'Desinstalação concluída';
