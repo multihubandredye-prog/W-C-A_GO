@@ -398,22 +398,16 @@ const FILES = {
     ffmpeg: { name: 'ffmpeg-wca-aarch64.bin', path: BIN_DIR + '/ffmpeg-wca-aarch64.bin', executable: true, label: 'ARQUIVO 2', theme: 'theme-teal', icon: 'music', text: 'BAIXANDO FFMPEG WCA' },
     project: { name: 'W_C_A_API.prj.xml', path: PROJECT_PATH, executable: false, label: 'PROJETO', theme: 'theme-orange', icon: 'xml', text: 'BAIXANDO WCA API.PRJ.XML' }
 };
-const MODES = {
-    'project-api': [FILES.whatsapp, FILES.ffmpeg],
-    'project-task': [FILES.project],
-    'project-full': [FILES.whatsapp, FILES.ffmpeg, FILES.project],
-    'full': [FILES.whatsapp, FILES.ffmpeg, FILES.project]
-};
+const INSTALL_FILES = [FILES.whatsapp, FILES.ffmpeg, FILES.project];
 const ICONS = {
     file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
     music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
     xml: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/>'
 };
-const APP_STATE = { mode: 'project-api', files: [], startTime: Date.now(), percent: 0, running: false, completed: false, continuationStarted: false, countdownTimer: null, hasProject: false };
+const APP_STATE = { files: INSTALL_FILES, startTime: Date.now(), percent: 0, running: false, completed: false, continuationStarted: false, countdownTimer: null };
 window.WCA_INSTALL_SCENE = {
     isCompleted: function () { return APP_STATE.completed; },
-    percent: function () { return APP_STATE.percent; },
-    mode: function () { return APP_STATE.mode; }
+    percent: function () { return APP_STATE.percent; }
 };
 
 function getBridge() {
@@ -431,18 +425,6 @@ async function taskerCall(name, options) {
 function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
 function parentPath(path) { return path.slice(0, path.lastIndexOf('/')) || '/'; }
-
-function variableText(value) {
-    if (value === null || value === undefined) return '';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'object') {
-        const keys = ['value', 'contents', 'text', 'result', 'stdout'];
-        for (let i = 0; i < keys.length; i++) {
-            if (value[keys[i]] !== null && value[keys[i]] !== undefined) return String(value[keys[i]]);
-        }
-    }
-    return String(value);
-}
 
 function formatBytes(bytes) {
     const value = Math.max(0, Number(bytes || 0));
@@ -553,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (errorSize) { return 0; }
     }
 
-    async function getReleasePackage(mode) {
+    async function getReleasePackage() {
         setProgress(0, 'Consultando a release mais recente...');
         const response = await fetch(RELEASES_URL, { headers: { 'User-Agent': 'WCA-Install', 'Accept': 'application/vnd.github+json' } });
         if (!response || !response.ok) throw new Error('Não foi possível consultar as releases do WCA.');
@@ -561,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!Array.isArray(releases)) throw new Error('A resposta das releases é inválida.');
         const titlePattern = /\[\s*(ui|core|full)\s*\]/i;
         const testPattern = /^\s*teste\s*$/i;
-        const required = MODES[mode] || MODES['project-api'];
+        const required = INSTALL_FILES;
         for (let i = 0; i < releases.length; i++) {
             const release = releases[i] || {};
             const title = String(release.name || '');
@@ -638,11 +620,9 @@ document.addEventListener('DOMContentLoaded', function () {
             APP_STATE.running = false;
             APP_STATE.continuationStarted = false;
             if (statusMessage) statusMessage.textContent = 'Os arquivos foram validados, mas a tarefa não pôde ser executada: ' + String(errorTask && errorTask.message || errorTask);
-            if (APP_STATE.hasProject) {
-                installButton.disabled = false;
-                installButton.textContent = 'TENTAR INSTALAR NOVAMENTE';
-                installButton.classList.remove('d-none');
-            } else retryButton.classList.remove('d-none');
+            installButton.disabled = false;
+            installButton.textContent = 'TENTAR INSTALAR NOVAMENTE';
+            installButton.classList.remove('d-none');
             closeButton.classList.remove('d-none');
         }
     }
@@ -675,16 +655,14 @@ document.addEventListener('DOMContentLoaded', function () {
         hideActions();
         installButton.disabled = false;
         installButton.textContent = 'INSTALAR AGORA';
-        APP_STATE.files = MODES[APP_STATE.mode] || MODES['project-api'];
-        APP_STATE.hasProject = APP_STATE.files.some(function (file) { return file === FILES.project; });
+        APP_STATE.files = INSTALL_FILES;
         try {
-            const assets = await getReleasePackage(APP_STATE.mode);
+            const assets = await getReleasePackage();
             for (let i = 0; i < APP_STATE.files.length; i++) {
                 const file = APP_STATE.files[i];
                 await downloadFile(assets[file.name], file, i, APP_STATE.files.length);
             }
-            if (APP_STATE.hasProject) startCountdown();
-            else continueInstallation();
+            startCountdown();
         } catch (errorInstall) {
             APP_STATE.running = false;
             APP_STATE.continuationStarted = false;
@@ -706,29 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
     installButton.addEventListener('click', continueInstallation);
     closeButton.addEventListener('click', closeOwnScene);
 
-    try {
-        const bridge = getBridge();
-        if (bridge && typeof bridge.onVariableChanged === 'function') {
-            bridge.onVariableChanged('type_project', function (name, value) {
-                const receivedMode = variableText(value).trim();
-                if (!APP_STATE.running && MODES[receivedMode]) APP_STATE.mode = receivedMode;
-            });
-        }
-    } catch (errorListener) {}
-
-    async function initialize() {
-        try {
-            const value = await Promise.race([
-                taskerCall('getVariable', 'type_project'),
-                new Promise(function (_, reject) { setTimeout(function () { reject(new Error('Prazo da leitura excedido.')); }, 4000); })
-            ]);
-            const initialMode = variableText(value).trim();
-            if (MODES[initialMode]) APP_STATE.mode = initialMode;
-        } catch (errorInitial) {}
-        startInstallation();
-    }
-
-    initialize();
+    startInstallation();
 });
 </script>
 </body>

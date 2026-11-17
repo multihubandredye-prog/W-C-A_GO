@@ -2,11 +2,11 @@
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
 
-Versão atual: **1.8**
+Versão atual: **1.9**
 
-Arquivo atual: `instalacao-wca-1.8.html`
+Arquivo atual: `instalacao-wca-1.9.html`
 
-A cena é um único arquivo HTML com CSS e JavaScript inline. Ela consulta as releases, baixa, acompanha, valida e substitui os arquivos diretamente pelo bridge do Tasker.
+A cena é um único arquivo HTML com CSS e JavaScript inline. Ela sempre consulta a release, baixa os dois binários e o projeto XML, acompanha o progresso, valida os arquivos e inicia a continuação no Tasker.
 
 ## Requisitos
 
@@ -16,26 +16,23 @@ A cena é um único arquivo HTML com CSS e JavaScript inline. Ela consulta as re
 - ID da Tela V2 igual a `1`, ou ajuste correspondente em `SCREEN_ID`;
 - acesso à internet e permissão de gravação nos destinos do WCA.
 
-## Seleção do pacote
+## Pacote fixo
 
-A variável local `type_project` define o pacote. A cena faz uma leitura inicial com prazo de quatro segundos e também registra um listener `(nome, valor)` antes do início do download.
+A instalação não depende de `type_project`, `project-api`, `project-task`, `project-full`, `full` nem `progress_install`.
 
-| Valor | Arquivos |
-|---|---|
-| `project-api` | `whatsapp-wca-aarch64.bin` e `ffmpeg-wca-aarch64.bin` |
-| `project-task` | `W_C_A_API.prj.xml` |
-| `project-full` | os dois binários e depois o XML |
-| `full` | alias de `project-full` |
+A cena sempre baixa, nesta ordem:
 
-Quando o valor está ausente ou é inválido, o padrão é `project-api`.
+1. `whatsapp-wca-aarch64.bin`;
+2. `ffmpeg-wca-aarch64.bin`;
+3. `W_C_A_API.prj.xml`.
 
-A variável `progress_install` não é usada. O progresso é calculado pela cena a partir do tamanho físico dos arquivos temporários.
+O progresso é calculado pela própria cena a partir do tamanho físico dos arquivos temporários.
 
 ## Localização da release
 
 A cena consulta as 30 releases mais recentes do repositório e aceita publicações cujo título contenha `[UI]`, `[CORE]` ou `[FULL]`. O título exato `Teste` também é aceito.
 
-Ela percorre as releases da mais recente para a mais antiga e escolhe a primeira que contenha todos os assets exigidos pelo modo atual.
+Ela percorre as releases da mais recente para a mais antiga e escolhe a primeira que contenha os três assets obrigatórios.
 
 ## Download e progresso
 
@@ -66,28 +63,22 @@ Antes de substituir qualquer arquivo, a cena exige que o temporário:
 
 Somente depois da validação o `.update` substitui o destino final. Os binários recebem permissão `700`. Em caso de falha, o temporário é removido, o destino anterior é preservado e aparecem **TENTAR NOVAMENTE** e **FECHAR**.
 
-## Continuação no Tasker
+## Contagem e continuação no Tasker
 
-Todos os modos terminam executando:
+Como o XML sempre faz parte do pacote, depois de validar os três arquivos a cena sempre:
+
+1. inicia uma contagem de 10 até 0;
+2. exibe **INSTALAR AGORA**;
+3. executa a continuação quando a contagem chega a zero ou o botão é tocado;
+4. usa uma trava contra execução duplicada.
+
+A continuação executa:
 
 ```text
 Tarefa: 006-CONFIGURAR_SISTEMA [wca]
 par1: force-reinstall-task
 bottom: yes
 ```
-
-### Modos com XML
-
-Em `project-task`, `project-full` e `full`, depois de validar o XML a cena:
-
-1. inicia uma contagem de 10 até 0;
-2. exibe **INSTALAR AGORA**;
-3. executa a tarefa somente quando a contagem chega a zero ou o botão é tocado;
-4. usa uma trava contra execução duplicada.
-
-### Modo somente API
-
-Em `project-api`, o botão **INSTALAR AGORA** não é exibido. Depois de validar os dois binários, a tarefa é executada automaticamente com os mesmos valores.
 
 ## Conclusão e fechamento
 
@@ -103,8 +94,7 @@ A ordem de fechamento é:
 O estado pode ser consultado por:
 
 - `window.WCA_INSTALL_SCENE.isCompleted()`;
-- `window.WCA_INSTALL_SCENE.percent()`;
-- `window.WCA_INSTALL_SCENE.mode()`.
+- `window.WCA_INSTALL_SCENE.percent()`.
 
 ## Recursos visuais
 
