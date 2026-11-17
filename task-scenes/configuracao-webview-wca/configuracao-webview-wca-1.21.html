@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsConnectApi | Configuração do WebView</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+@property --spin {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+:root {
+    --bg-body:   #030508;
+    --bg-card:   #07101A;
+    --bg-card-2: #0b1825;
+    --primary:   #0F9DCB;
+    --secondary: #308B64;
+    --accent:    #B5FB2A;
+    --border:    #0F507A;
+    --text-main: #D0E8E0;
+    --text-dim:  #4A6070;
+    --text-muted:#6b7f8f;
+    --error:     #FF4D6A;
+    --gold:      #FFD700;
+    --white:     #ffffff;
+    --radius-lg: 1.5rem;
+    --radius-md: 1rem;
+    --radius-sm: 10px;
+    --shadow-soft: 0 8px 30px rgba(0,0,0,0.35);
+    --shadow-glow: 0 0 20px rgba(181,251,42,0.12);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #000 0%, #0a1929 100%);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(15, 157, 203, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(181, 251, 42, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 520px;
+    padding: 0 4vw;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+.main-container {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow:
+        0 12px 35px rgba(0,0,0,0.65),
+        0 0 0 1px rgba(15, 157, 203, 0.1) inset;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, rgba(15, 157, 203, 0.1) 0%, rgba(0,0,0,0.4) 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.panel-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.3;
+}
+
+.panel-header h2 {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--primary);
+    text-align: center;
+}
+
+.accent-text { color: var(--accent); }
+
+.panel-body {
+    padding: 20px 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-title {
+    font-size: 1.18rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.section-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 4px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(181,251,42,0.35);
+    background: rgba(181,251,42,0.08);
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    align-self: center;
+}
+
+.status-badge.padrao {
+    border-color: rgba(15,157,203,0.5);
+    background: rgba(15,157,203,0.08);
+    color: var(--primary);
+}
+
+.mini-spinner {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    border: 2px solid rgba(181,251,42,0.25);
+    border-top-color: var(--accent);
+    animation: girar 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.card {
+    position: relative;
+    border-radius: var(--radius-md);
+    border: 1.6px solid transparent;
+    padding: 14px;
+    isolation: isolate;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    border-radius: inherit;
+    background: conic-gradient(from var(--spin), var(--primary), var(--accent), var(--primary));
+    animation: spinBorder 5s linear infinite;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--bg-card-2);
+}
+
+.card > * { position: relative; z-index: 1; }
+
+@keyframes spinBorder { to { --spin: 360deg; } }
+
+.row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 2px;
+    border-bottom: 1px dashed rgba(15, 80, 122, 0.35);
+}
+
+.row:last-child { border-bottom: none; }
+
+.row-label {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.row-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-main);
+    text-align: right;
+    word-break: break-all;
+}
+
+.row-value.destaque { color: var(--accent); }
+
+.info-texto {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    text-align: center;
+}
+
+.info-texto strong { color: var(--text-main); }
+
+.btn-action {
+    border: none;
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.btn-action:active { transform: translateY(1px); }
+
+.btn-action:disabled { filter: grayscale(0.6); opacity: 0.6; cursor: not-allowed; }
+
+.btn-primario {
+    background: linear-gradient(135deg, var(--primary) 0%, #0b7fa6 100%);
+    box-shadow: 0 8px 22px rgba(15, 157, 203, 0.35);
+    width: 100%;
+}
+
+.btn-primario:active { filter: brightness(1.08); }
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.progresso-secao {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(15,80,122,0.4);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+}
+
+.progresso-secao.visivel { display: flex; }
+
+.progresso-texto {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    text-align: center;
+    line-height: 1.5;
+}
+
+.progresso-texto.ok { color: var(--accent); }
+
+.progresso-texto.erro { color: var(--error); }
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid rgba(15,80,122,0.52);
+    padding: 24px;
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    position: relative;
+    animation: modalIn 0.32s cubic-bezier(0.22,1,0.36,1) both;
+    box-shadow: var(--shadow-soft);
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes modalFocusIn {
+    from { transform: scale(1.15); filter: blur(14px); opacity: 0.24; }
+    to { transform: scale(1); filter: blur(0); opacity: 1; }
+}
+
+@keyframes modalFocusOut {
+    from { transform: scale(1); filter: blur(0); opacity: 1; }
+    to { transform: scale(1.15); filter: blur(14px); opacity: 0.16; }
+}
+
+.modal-overlay > .modal-content {
+    transform-origin: center center;
+    will-change: transform, filter, opacity;
+}
+
+.modal-overlay.modal-focus-enter > .modal-content {
+    animation: modalFocusIn 0.48s cubic-bezier(0.22,0.75,0.2,1) both;
+}
+
+.modal-overlay.modal-focus-exit { display: flex; }
+.modal-overlay.modal-focus-exit > .modal-content {
+    animation: modalFocusOut 0.36s cubic-bezier(0.55,0.06,0.68,0.19) both;
+    pointer-events: none;
+}
+
+.modal-title {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.modal-texto {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-flex { flex: 1; }
+
+.main-footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: #aaa;
+    position: relative;
+    z-index: 1;
+}
+
+.dev-name { color: var(--accent); font-weight: 600; }
+
+.toast-container {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    left: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    background: #0e1b27;
+    border: 1px solid rgba(15,157,203,0.35);
+    color: var(--text-main);
+    padding: 13px 16px;
+    border-radius: 12px;
+    box-shadow: 0 10px 34px rgba(0,0,0,0.45);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    animation: toastIn 0.32s cubic-bezier(0.22,1,0.36,1) both;
+    position: relative;
+    overflow: hidden;
+    max-width: 420px;
+}
+
+.toast.removing { animation: toastOut 0.28s ease forwards; }
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(10px); } }
+
+.toast-icon { font-size: 1.05rem; margin-top: 1px; flex-shrink: 0; }
+
+.toast-title {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.toast-message { color: var(--text-muted); }
+
+.toast-success { border-color: rgba(181,251,42,0.4); }
+.toast-success .toast-icon { color: var(--accent); }
+
+.toast-error { border-color: rgba(255,77,106,0.45); }
+.toast-error .toast-icon { color: var(--error); }
+
+.toast-info .toast-icon { color: var(--primary); }
+
+.d-none { display: none; }
+
+@media (max-width: 520px) {
+    .content-wrapper { max-width: 94vw; }
+    .panel-header h2 { font-size: 17px; }
+    .panel-body { padding: 16px 16px 20px; }
+    .section-title { font-size: 1.05rem; }
+}
+</style>
+<body>
+
+    <div class="content-wrapper">
+
+        <div class="main-container">
+            <header class="panel-header">
+                <h2><span class="accent-text">WHATS CONNECT API</span></h2>
+            </header>
+
+            <div class="panel-body">
+                <div>
+                    <div class="section-title">Configuração do WebView</div>
+                    <div class="section-sub">Cenas, mídias e binários do WCA</div>
+                </div>
+
+                <div class="status-badge" id="statusBadge"><span class="mini-spinner" id="statusSpinner"></span><span id="statusTexto">Verificando a última release...</span></div>
+
+                <div class="card" id="pacoteCard" style="display: none;">
+                    <div class="row">
+                        <span class="row-label">Release</span>
+                        <span class="row-value destaque" id="pacoteTag"></span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Arquivo</span>
+                        <span class="row-value" id="pacoteArquivo"></span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Tamanho</span>
+                        <span class="row-value" id="pacoteTamanho"></span>
+                    </div>
+                    <div class="row">
+                        <span class="row-label">Publicado</span>
+                        <span class="row-value" id="pacoteData"></span>
+                    </div>
+                </div>
+
+
+                <div class="info-texto">
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi. Também baixa os <strong>binários do WCA</strong> da mesma release.
+                </div>
+
+                <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
+
+                <div class="progresso-secao" id="progressoSecao">
+                    <span class="mini-spinner" id="progressoSpinner"></span>
+                    <span class="progresso-texto" id="progressoTexto">Enviando o pedido de download...</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <span class="dev-name">Andredye Oliveira Melo</span>
+        </footer>
+
+    </div>
+
+    <div id="confirmBaixarModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <h3 class="modal-title">Baixar o pacote?</h3>
+            <p class="modal-texto" id="confirmBaixarTexto"></p>
+            <div class="confirm-actions">
+                <button type="button" class="btn-action btn-flex btn-ghost" data-close="confirmBaixarModal">CANCELAR</button>
+                <button type="button" id="confirmBaixarOk" class="btn-action btn-flex btn-primario"><i class="fa-solid fa-check"></i> BAIXAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <template id="toastTemplate">
+        <div class="toast">
+            <div class="toast-icon"><i class="fa-solid"></i></div>
+            <div>
+                <strong class="toast-title"></strong>
+                <div class="toast-message"></div>
+            </div>
+        </div>
+    </template>
+
+<script>
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.21)
+// Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML E MEDIAS, gerado
+// automaticamente pelo GitHub Actions em cada release) e salva/descompacta
+// na pasta do WebView do dispositivo. As MEDIAS (pasta icons/ do zip) sao
+// extraidas para a pasta icons do projeto, FORA do web-view. NADA e baixado
+// direto do repositorio: tudo vem dentro do zip da release.
+// TODO O DOWNLOAD acontece DENTRO DA CENA, sem nenhuma tarefa do Tasker, em
+// uma CADEIA de tentativas: 1) bridge Tasker.httpRequest com fileToSave
+// (GET no cliente HTTP nativo, sem limitacao de CORS; header como UMA
+// STRING) e 2) o mesmo pedido no minimo de opcoes; se ambos falharem,
+// 3) fetch no WebView com conversao para base64 gravado no disco. A pasta
+// e criada via bridge e, ao
+// final, a cena VERIFICA fisicamente o arquivo gravado (existente, nao vazio
+// e com o tamanho exato esperado da release) antes de declarar sucesso,
+// exibir "Download concluido." com CONTAGEM REGRESSIVA (Reiniciando em 5 a 1),
+// EXECUTAR a tarefa 001-CENTRAL_WHATS_CONNECT_API [wca] (reinicia/reabre a Central
+// com as cenas atualizadas) e AUTO-FECHAR (nome
+// 010-DOWNLOAD_VIEW [wca]V2, ID 1 e reservas em cascata).
+// Apos baixar, o proprio zip e DESCOMPACTADO dentro da cena: leitura em
+// base64 pelo shell, parser do diretorio central do zip em JavaScript e
+// gravacao arquivo por arquivo (o build publica o zip SEM compressao
+// interna, entao cada entrada e um recorte direto dos bytes). A estrutura
+// de pastas do pacote e mantida (task-scenes/ e task-project/), nada fica
+// o zip e apagado no fim. As etapas visuais tem TEMPO MINIMO de exibicao
+// para o usuario acompanhar cada fase.
+
+const SCENE_NAME = '010-DOWNLOAD_VIEW [wca]V2';
+const SCENE_SCREEN_ID = '1';
+const CONTAGEM_REGRESSIVA_SEG = 5;
+const TEMPO_MINIMO_BAIXANDO_MS = 1800;
+const TEMPO_MINIMO_VERIFICANDO_MS = 1200;
+
+const RELEASES_API_URL = 'https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30';
+const PASTA_DESTINO = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
+const PASTA_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
+const PASTA_BINARIOS = '/data/data/net.dinglisch.android.taskerm/files/WCA';
+const BINARIOS_EXIGIDOS = ['whatsapp-wca-aarch64.bin', 'ffmpeg-wca-aarch64.bin'];
+const PACOTE_PADRAO = {
+    tag: '1.3.36',
+    arquivo: 'WCA-Tasker-Projetos-1.3.36.zip',
+    url: 'https://github.com/multihubandredye-prog/W-C-A_GO/releases/download/1.3.36/WCA-Tasker-Projetos-1.3.36.zip',
+    tamanho: 0,
+    publicado: '',
+    binarios: { }
+};
+const PREFIXO_PACOTE = 'WCA-Tasker-Projetos-';
+const HTTP_TIMEOUT_SEG = 90;
+const DOWNLOAD_PRAZO_MS = 120000;
+
+const WCA_MODAL_STATE_VAR = 'cache_modal';
+const WCA_RETURN_MODAL_VAR = 'return_modal';
+const WCA_MODAL_PAI = { };
+
+let pacoteAtual = null;
+let usandoPadrao = false;
+let baixando = false;
+let finalizado = false;
+
+function getTaskerBridge(){
+    if (typeof Tasker !== 'undefined') return Tasker;
+    if (typeof window !== 'undefined' && window.Tasker) return window.Tasker;
+    return null;
+}
+
+async function taskerCall(name, options){
+    const api = getTaskerBridge();
+    if (!api || typeof api[name] !== 'function') {
+        throw new Error('Tasker.' + name + ' indisponivel. Verifique Allow Phone Access.');
+    }
+    return await api[name](options);
+}
+
+function bridgeTimeout(ms){
+    return new Promise(function(resolve){ setTimeout(resolve, ms); });
+}
+
+function shellQuote(value){
+    return "'" + String(value).replace(/'/g, "'\\''") + "'";
+}
+
+function formatarTamanho(bytes){
+    const n = Number(bytes);
+    if (!n || n <= 0) return '\u2014';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatarData(iso){
+    const texto = String(iso || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}/.test(texto)) return '\u2014';
+    return texto.slice(8, 10) + '/' + texto.slice(5, 7) + '/' + texto.slice(0, 4);
+}
+
+// Ultima release que ja contem o pacote anexado: percorre da mais recente
+// para a mais antiga, aceita tag numerica X.Y.Z (com ou sem prefixo v) e
+// procura o asset do pacote pelo nome
+async function obterPacoteMaisRecente(){
+    const resposta = await fetch(RELEASES_API_URL, { headers: { 'User-Agent': 'WCA-WebView-Setup', 'Accept': 'application/vnd.github+json' } });
+    if (!resposta || !resposta.ok) return null;
+    const lista = await resposta.json();
+    if (!Array.isArray(lista)) return null;
+    for (let i = 0; i < lista.length; i++) {
+        const release = lista[i] || {};
+        const tag = String(release.tag_name || '').trim().replace(/^[vV]/, '');
+        if (!/^\d+(\.\d+)*$/.test(tag)) continue;
+        const assets = Array.isArray(release.assets) ? release.assets : [];
+        for (let j = 0; j < assets.length; j++) {
+            const asset = assets[j] || {};
+            const nome = String(asset.name || '');
+            if (nome.indexOf(PREFIXO_PACOTE) !== 0 || !nome.endsWith('.zip')) continue;
+            // Os binarios devem pertencer a mesma release do pacote de cenas
+            const binarios = { };
+            for (let b = 0; b < assets.length; b++) {
+                const itemBinario = assets[b] || { };
+                const nomeBinario = String(itemBinario.name || '');
+                if (BINARIOS_EXIGIDOS.indexOf(nomeBinario) < 0) continue;
+                binarios[nomeBinario] = {
+                    url: String(itemBinario.browser_download_url || ''),
+                    tamanho: Number(itemBinario.size) || 0
+                };
+            }
+            return {
+                tag: tag,
+                arquivo: nome,
+                url: String(asset.browser_download_url || ''),
+                tamanho: Number(asset.size) || 0,
+                publicado: String(asset.created_at || release.published_at || ''),
+                binarios: binarios
+            };
+        }
+    }
+    return null;
+}
+
+async function carregarPacote(){
+    let pacote = null;
+    try {
+        pacote = await Promise.race([ obterPacoteMaisRecente(), bridgeTimeout(20000) ]);
+    } catch (e) { pacote = null; }
+    if (pacote && pacote.url) {
+        pacoteAtual = pacote;
+        usandoPadrao = false;
+    } else {
+        pacoteAtual = PACOTE_PADRAO;
+        usandoPadrao = true;
+    }
+    renderizarPacote();
+}
+
+function renderizarPacote(){
+    const badge = document.getElementById('statusBadge');
+    const spinner = document.getElementById('statusSpinner');
+    const texto = document.getElementById('statusTexto');
+    const card = document.getElementById('pacoteCard');
+    if (spinner) spinner.classList.add('d-none');
+    if (usandoPadrao) {
+        badge.classList.add('padrao');
+        if (texto) texto.textContent = 'Pacote padr\u00e3o \u2022 ' + pacoteAtual.tag;
+    } else {
+        if (texto) texto.textContent = 'Pacote encontrado \u2022 release ' + pacoteAtual.tag;
+    }
+    document.getElementById('pacoteTag').textContent = pacoteAtual.tag;
+    document.getElementById('pacoteArquivo').textContent = pacoteAtual.arquivo;
+    document.getElementById('pacoteTamanho').textContent = formatarTamanho(pacoteAtual.tamanho);
+    document.getElementById('pacoteData').textContent = formatarData(pacoteAtual.publicado);
+    card.style.display = 'block';
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = false;
+}
+
+// ---- Toasts ----
+function showToast(info){
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+    const tmpl = document.getElementById('toastTemplate');
+    const el = tmpl.content.cloneNode(true).querySelector('.toast');
+    el.classList.add('toast-' + (info.type || 'info'));
+    const icone = el.querySelector('i');
+    if (icone) icone.classList.add(icons[info.type] || icons.info);
+    const titulo = el.querySelector('.toast-title');
+    if (titulo) {
+        titulo.textContent = info.title || '';
+        if (!info.title) titulo.classList.add('d-none');
+    }
+    const mensagem = el.querySelector('.toast-message');
+    if (mensagem) mensagem.textContent = info.message || '';
+    container.appendChild(el);
+    setTimeout(function () {
+        el.classList.add('removing');
+        el.addEventListener('animationend', function () { el.remove(); }, { once: true });
+    }, info.duration || 3400);
+}
+
+// ---- Modais + botao voltar do Android ----
+function openModal(id){
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.add('open');
+    m.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+}
+
+function closeModal(id){
+    const m = document.getElementById(id);
+    if (!m) return;
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+    if (!document.querySelector('.modal-overlay.open')) document.body.classList.remove('modal-open');
+}
+
+let wcaModalStack = [];
+let wcaModalSyncAgendado = false;
+
+function wcaModalVisivel(id){
+    const el = document.getElementById(id);
+    return !!el && el.classList.contains('open') && !el.classList.contains('modal-focus-exit');
+}
+
+function wcaSyncModalStack(){
+    if (wcaModalSyncAgendado) return;
+    wcaModalSyncAgendado = true;
+    setTimeout(function () {
+        wcaModalSyncAgendado = false;
+        try {
+            wcaModalStack = wcaModalStack.filter(wcaModalVisivel);
+            document.querySelectorAll('.modal-overlay.open:not(.modal-focus-exit)').forEach(function (el) {
+                if (el.id && wcaModalStack.indexOf(el.id) < 0) wcaModalStack.push(el.id);
+            });
+            const topo = wcaModalStack.length ? wcaModalStack[wcaModalStack.length - 1] : '';
+            const api = getTaskerBridge();
+            if (api && typeof api.setVariable === 'function') api.setVariable(WCA_MODAL_STATE_VAR, topo);
+        } catch (e) {}
+    }, 50);
+}
+
+function wcaFecharModalDoTopo(){
+    try {
+        wcaModalStack = wcaModalStack.filter(wcaModalVisivel);
+        const topo = wcaModalStack.pop();
+        if (topo) closeModal(topo);
+        const pai = WCA_MODAL_PAI[topo];
+        if (pai && !wcaModalVisivel(pai) && !wcaModalStack.some(wcaModalVisivel)) {
+            openModal(pai);
+        }
+        wcaSyncModalStack();
+    } catch (e) {}
+}
+
+const WCA_MODAL_FOCUS_EXIT_MS = 360;
+const __wcaOpenModalOriginal = openModal;
+openModal = function (id){
+    const modal = id ? document.getElementById(id) : null;
+    if (modal && modal._wcaFocusTimer) {
+        clearTimeout(modal._wcaFocusTimer);
+        modal._wcaFocusTimer = null;
+    }
+    if (modal) modal.classList.remove('modal-focus-enter', 'modal-focus-exit');
+    const resultado = __wcaOpenModalOriginal.apply(this, arguments);
+    if (modal) {
+        void modal.offsetWidth;
+        modal.classList.add('modal-focus-enter');
+    }
+    if (id) {
+        wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+        wcaModalStack.push(id);
+    }
+    wcaSyncModalStack();
+    return resultado;
+};
+
+const __wcaCloseModalOriginal = closeModal;
+closeModal = function (id){
+    const modal = id ? document.getElementById(id) : null;
+    if (!modal || !modal.classList.contains('open')) {
+        const resultadoDireto = __wcaCloseModalOriginal.apply(this, arguments);
+        if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+        wcaSyncModalStack();
+        return resultadoDireto;
+    }
+    if (modal.classList.contains('modal-focus-exit')) return;
+    modal.classList.remove('modal-focus-enter');
+    void modal.offsetWidth;
+    modal.classList.add('modal-focus-exit');
+    const resultado = __wcaCloseModalOriginal.apply(this, arguments);
+    if (id) wcaModalStack = wcaModalStack.filter(function (i) { return i !== id; });
+    wcaSyncModalStack();
+    modal._wcaFocusTimer = setTimeout(function () {
+        modal._wcaFocusTimer = null;
+        modal.classList.remove('modal-focus-exit');
+    }, WCA_MODAL_FOCUS_EXIT_MS);
+    return resultado;
+};
+
+// ---- Auto-fechamento da cena ----
+// Cascata validada nas outras cenas: nome e ID sao equivalentes para o dismiss
+function fecharPropriaCena(){
+    // Dispara TODOS os metodos em cascata sem parar no primeiro que nao
+    // lancar erro: o Tasker pode aceitar uma chamada em silencio com um
+    // identificador que nao corresponde a tela (nome com sufixo V2 ou ID
+    // do Show Scene v2), e so um deles efetiva o fechamento
+    let disparosOk = 0;
+    const tentativas = [
+        function () { return Tasker.dismissSceneV2(SCENE_NAME); },
+        function () { return Tasker.dismissSceneV2(SCENE_SCREEN_ID); },
+        function () { return Tasker.dismissLayout(SCENE_SCREEN_ID); },
+        function () { return Tasker.cancelScreen(''); }
+    ];
+    for (let i = 0; i < tentativas.length; i++) {
+        try { tentativas[i](); disparosOk += 1; } catch (eTentativa) { }
+    }
+    return disparosOk > 0;
+}
+// Contagem regressiva visivel antes de encerrar a cena (1 segundo por numero)
+async function contagemRegressivaFechar(){
+    for (let restante = CONTAGEM_REGRESSIVA_SEG; restante >= 1; restante--) {
+        definirProgresso('Download conclu\u00eddo. Reiniciando em ' + restante + '...', 'ok');
+        await dormir(1000);
+    }
+    // Ao terminar a contagem: executa a tarefa que reinicializa a Central e,
+    // em seguida, encerra esta cena (runTask resolve no despacho da tarefa)
+    try { await Promise.race([ taskerCall('runTask', { name: '001-CENTRAL_WHATS_CONNECT_API [wca]' }), bridgeTimeout(15000) ]); } catch (eTarefa) { }
+    fecharPropriaCena();
+}
+
+// ---- Fluxo de download (todo dentro da cena, sem tarefas) ----
+function definirProgresso(texto, classe){
+    const secao = document.getElementById('progressoSecao');
+    const linha = document.getElementById('progressoTexto');
+    if (!secao || !linha) return;
+    secao.classList.add('visivel');
+    linha.className = 'progresso-texto' + (classe ? ' ' + classe : '');
+    linha.textContent = texto;
+}
+
+function caminhoArquivo(){
+    return PASTA_DESTINO + '/' + pacoteAtual.arquivo;
+}
+
+// Limpeza SEGURA: so chama deleteFile quando o arquivo existe (o
+// deleteFile do Tasker mostra um toast nativo de erro quando o arquivo
+// nao existe, o que confundia o usuario em falhas de download onde o
+// parcial nunca chegou a ser gravado)
+async function apagarSeExistir(caminho){
+    const r = await Promise.race([ taskerCall('runShell', { cmd: "if [ -f " + shellQuote(caminho) + " ]; then printf 'SIM'; fi", root: false, timeout: 10 }), bridgeTimeout(15000) ]);
+    if (String(r && r.stdout || '').indexOf('SIM') < 0) return false;
+    try { await Promise.race([ taskerCall('deleteFile', { path: caminho }), bridgeTimeout(10000) ]); } catch (eApagar) { }
+    return true;
+}
+
+// Verificacao fisica do arquivo gravado: existe, nao vazio e, quando a
+// release informou o tamanho, EXATAMENTE aquele tamanho em bytes
+async function verificarArquivoBaixado(){
+    const comando = "if [ -d " + shellQuote(PASTA_DESTINO) + " ] && [ -f " + shellQuote(caminhoArquivo()) + " ] && [ -s " + shellQuote(caminhoArquivo()) + " ]; then wc -c < " + shellQuote(caminhoArquivo()) + "; else printf '__WCA_FAIL__'; fi";
+    const resultado = await Promise.race([ taskerCall('runShell', { cmd: comando, root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+    const saida = String(resultado && resultado.stdout || '').trim();
+    if (!saida || saida === '__WCA_FAIL__') return { ok: false, tamanho: 0 };
+    const tamanho = parseInt(saida, 10);
+    if (isNaN(tamanho) || tamanho <= 0) return { ok: false, tamanho: 0 };
+    if (pacoteAtual.tamanho > 0 && tamanho !== pacoteAtual.tamanho) return { ok: false, tamanho: tamanho };
+    return { ok: true, tamanho: tamanho };
+}
+
+function falhaDownload(titulo, texto){
+    baixando = false;
+    finalizado = false;
+    const spinner = document.getElementById('progressoSpinner');
+    if (spinner) spinner.style.display = 'none';
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = false;
+    showToast({ type: 'error', title: titulo, message: texto });
+}
+
+// Tentativa 1 e 2: acao de bridge httpRequest com fileToSave (GET no
+// cliente HTTP nativo do Tasker, fora do WebView). Na primeira o header
+// vai como UMA STRING (formato que o Tasker espera); na segunda, o minimo
+// de opcoes. Entre uma e outra o Tasker sobrescreve o arquivo anterior.
+async function tentarDownload(url, destino){
+    const opcoesBase = {
+        method: 'GET',
+        url: url,
+        fileToSave: destino,
+        timeout: HTTP_TIMEOUT_SEG,
+        autoRedirect: true
+    };
+    try {
+        await Promise.race([ taskerCall('httpRequest', Object.assign({}, opcoesBase, { headers: 'User-Agent: Tasker' })), bridgeTimeout(DOWNLOAD_PRAZO_MS) ]);
+        return { ok: true };
+    } catch (e1) { }
+    try {
+        await Promise.race([ taskerCall('httpRequest', opcoesBase), bridgeTimeout(DOWNLOAD_PRAZO_MS) ]);
+        return { ok: true };
+    } catch (e2) {
+        return { ok: false, motivo: String((e2 && e2.message) || e2 || '') };
+    }
+}
+
+// Tentativa 3 (reserva): fetch dentro do WebView convertendo os bytes em
+// base64 gravado via writeFile e decodificado no shell. Usada quando a acao
+// de bridge nao esta disponivel ou recusa as opcoes de arquivo.
+async function baixarPorFetchEBinario(){
+    const resposta = await fetch(pacoteAtual.url, { cache: 'no-store' });
+    if (!resposta || !resposta.ok) throw new Error('HTTP ' + (resposta ? resposta.status : '?'));
+    const buffer = await resposta.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    if (!bytes.length) throw new Error('resposta vazia');
+    let binario = '';
+    const bloco = 8192;
+    for (let i = 0; i < bytes.length; i += bloco) {
+        binario += String.fromCharCode.apply(null, bytes.subarray(i, i + bloco));
+    }
+    const base64 = btoa(binario);
+    const parcial = caminhoArquivo() + '.b64';
+    await Promise.race([ taskerCall('writeFile', { path: parcial, text: base64, append: false }), bridgeTimeout(60000) ]);
+    await Promise.race([ taskerCall('runShell', { cmd: 'base64 -d ' + shellQuote(parcial) + ' > ' + shellQuote(caminhoArquivo()) + ' && rm -f ' + shellQuote(parcial), root: false, timeout: 30 }), bridgeTimeout(45000) ]);
+}
+
+// Cadeia completa: httpRequest (2 formatos) e, se ambos falharem, o caminho
+// reservado via fetch. Motivo do ultimo erro volta para o painel.
+async function baixarPacote(){
+    const r1 = await tentarDownload(pacoteAtual.url, caminhoArquivo());
+    if (r1.ok) return { ok: true, via: 'httpRequest' };
+    try {
+        await baixarPorFetchEBinario();
+        return { ok: true, via: 'fetch' };
+    } catch (eFetch) {
+        await apagarSeExistir(caminhoArquivo() + '.b64');
+        return { ok: false, motivo: r1.motivo || String((eFetch && eFetch.message) || eFetch || '') };
+    }
+}
+
+function dormir(ms){
+    return new Promise(function (r) { setTimeout(r, ms); });
+}
+
+// Mantem cada etapa visivel por um tempo minimo (visualizacao das fases)
+async function garantirTempoVisivel(inicio, minimo){
+    const restante = minimo - (Date.now() - inicio);
+    if (restante > 0) await dormir(restante);
+}
+
+function bytesParaBinario(bytes){
+    let binario = '';
+    const bloco = 8192;
+    for (let i = 0; i < bytes.length; i += bloco) {
+        binario += String.fromCharCode.apply(null, bytes.subarray(i, i + bloco));
+    }
+    return binario;
+}
+
+function base64ParaBytes(b64){
+    const binario = atob(b64);
+    const bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    return bytes;
+}
+
+// Leitura do zip gravado em base64 (uma chamada de shell)
+async function lerZipComoBase64(){
+    const r = await Promise.race([ taskerCall('runShell', { cmd: 'base64 ' + shellQuote(caminhoArquivo()), root: false, timeout: 60 }), bridgeTimeout(70000) ]);
+    return String(r && r.stdout || '').replace(/\s+/g, '');
+}
+
+// Rejeita caminhos perigosos (zip-slip) antes de gravar qualquer arquivo
+function nomeSeguro(nome){
+    if (String(nome).indexOf('\\') >= 0) return null;
+    const partes = String(nome).split('/').filter(function (p) { return p !== ''; });
+    for (let i = 0; i < partes.length; i++) {
+        if (partes[i] === '..') return null;
+    }
+    if (!partes.length) return null;
+    return partes.join('/');
+}
+
+// Infla uma entrada DEFLATED do zip (quando existir); o pacote do build e
+// armazenado sem compressao, entao este caminho e defensivo
+async function inflarDeflate(bytes){
+    const ds = new DecompressionStream('deflate-raw');
+    const fluxo = new Blob([bytes]).stream().pipeThrough(ds);
+    const buffer = await new Response(fluxo).arrayBuffer();
+    return new Uint8Array(buffer);
+}
+
+// Parser do diretorio central do zip (estrutura padrao PK)
+function lerDiretorioCentral(bytes){
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let eocd = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 66000); i--) {
+        if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x05 && bytes[i + 3] === 0x06) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('assinatura-final');
+    const total = dv.getUint16(eocd + 10, true);
+    let ponteiro = dv.getUint32(eocd + 16, true);
+    const entradas = [];
+    for (let n = 0; n < total; n++) {
+        if (dv.getUint32(ponteiro, true) !== 0x02014b50) throw new Error('diretorio-central');
+        const metodo = dv.getUint16(ponteiro + 10, true);
+        const tamanho = dv.getUint32(ponteiro + 20, true);
+        const nomeLen = dv.getUint16(ponteiro + 28, true);
+        const extraLen = dv.getUint16(ponteiro + 30, true);
+        const comentarioLen = dv.getUint16(ponteiro + 32, true);
+        const offsetLocal = dv.getUint32(ponteiro + 42, true);
+        const nome = new TextDecoder().decode(bytes.subarray(ponteiro + 46, ponteiro + 46 + nomeLen));
+        ponteiro += 46 + nomeLen + extraLen + comentarioLen;
+        entradas.push({ nome: nome, metodo: metodo, tamanho: tamanho, offsetLocal: offsetLocal });
+    }
+    return entradas;
+}
+
+function bytesDaEntrada(bytes, entrada){
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (dv.getUint32(entrada.offsetLocal, true) !== 0x04034b50) throw new Error('cabecalho-local');
+    const nomeLen = dv.getUint16(entrada.offsetLocal + 26, true);
+    const extraLen = dv.getUint16(entrada.offsetLocal + 28, true);
+    const inicio = entrada.offsetLocal + 30 + nomeLen + extraLen;
+    return bytes.subarray(inicio, inicio + entrada.tamanho);
+}
+
+// ROTAS de extracao: cada pasta raiz do zip vai para um destino no
+// dispositivo. task-scenes/ entra no web-view; icons/ (as MEDIAS que vem
+// dentro do zip da release) entra na pasta de midias do projeto, FORA do
+// web-view. Pasta raiz desconhecida rejeitada.
+const ROTAS_EXTRACAO = [
+    { prefixo: 'task-scenes/', destino: PASTA_DESTINO, manter: true },
+    { prefixo: 'icons/', destino: PASTA_ICONS, manter: false }
+];
+
+// Extrai TODOS os arquivos do zip mantendo a estrutura interna de cada
+// rota (nada solto na raiz). Cada arquivo sai por base64 + shell.
+async function extrairPacote(anunciar){
+    let bytes = null;
+    const b64 = await lerZipComoBase64();
+    if (b64 && b64.length > 100) {
+        try { bytes = base64ParaBytes(b64); } catch (eConv) { bytes = null; }
+    }
+    if (!bytes) {
+        const resposta = await fetch(pacoteAtual.url, { cache: 'no-store' });
+        if (!resposta || !resposta.ok) throw new Error('fonte');
+        bytes = new Uint8Array(await resposta.arrayBuffer());
+    }
+    const entradas = lerDiretorioCentral(bytes);
+    const alvos = [];
+    for (let i = 0; i < entradas.length; i++) {
+        const e = entradas[i];
+        if (e.nome.charAt(e.nome.length - 1) === '/') continue;
+        let rota = null;
+        for (let j = 0; j < ROTAS_EXTRACAO.length; j++) {
+            if (e.nome.indexOf(ROTAS_EXTRACAO[j].prefixo) === 0) { rota = ROTAS_EXTRACAO[j]; break; }
+        }
+        if (!rota) throw new Error('entrada-sem-rota: ' + e.nome);
+        const limpo = nomeSeguro(e.nome);
+        if (!limpo) throw new Error('entrada-suspeita: ' + e.nome);
+        alvos.push({ nome: (rota.manter ? limpo : limpo.slice(rota.prefixo.length)), destino: rota.destino, metodo: e.metodo, dados: bytesDaEntrada(bytes, e) });
+    }
+    if (!alvos.length) throw new Error('vazio');
+    const pastasPorDestino = {};
+    for (let i = 0; i < alvos.length; i++) {
+        const pos = alvos[i].nome.lastIndexOf('/');
+        if (pos > 0) {
+            if (!pastasPorDestino[alvos[i].destino]) pastasPorDestino[alvos[i].destino] = {};
+            pastasPorDestino[alvos[i].destino][alvos[i].nome.slice(0, pos)] = true;
+        }
+    }
+    for (const destino in pastasPorDestino) {
+        const listaPastas = Object.keys(pastasPorDestino[destino]);
+        const cmd = 'mkdir -p ' + shellQuote(destino) + listaPastas.map(function (pasta) { return ' ' + shellQuote(destino + '/' + pasta); }).join('');
+        await Promise.race([ taskerCall('runShell', { cmd: cmd, root: false, timeout: 20 }), bridgeTimeout(30000) ]);
+    }
+    for (let i = 0; i < alvos.length; i++) {
+        const alvo = alvos[i];
+        if (anunciar) anunciar(i, alvos.length, alvo.nome);
+        let conteudo = alvo.dados;
+        if (alvo.metodo === 8) {
+            conteudo = await inflarDeflate(alvo.dados);
+        } else if (alvo.metodo !== 0) {
+            throw new Error('compressao-desconhecida');
+        }
+        const caminho = alvo.destino + '/' + alvo.nome;
+        const parcial = caminho + '.b64';
+        await Promise.race([ taskerCall('writeFile', { path: parcial, text: btoa(bytesParaBinario(conteudo)), append: false }), bridgeTimeout(60000) ]);
+        const decodificado = await Promise.race([ taskerCall('runShell', { cmd: 'base64 -d ' + shellQuote(parcial) + ' > ' + shellQuote(caminho) + ' && rm -f ' + shellQuote(parcial), root: false, timeout: 30 }), bridgeTimeout(45000) ]);
+        if (decodificado && decodificado.result !== undefined && Number(decodificado.result) !== 0) throw new Error('gravar: ' + alvo.nome);
+    }
+    // contagem POR DESTINO: cenas no web-view e midias na pasta icons
+    const esperados = {};
+    for (let i = 0; i < alvos.length; i++) esperados[alvos[i].destino] = (esperados[alvos[i].destino] || 0) + 1;
+    for (const destino in esperados) {
+        const contagem = await Promise.race([ taskerCall('runShell', { cmd: 'find ' + shellQuote(destino) + ' -type f | wc -l', root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+        const numero = parseInt(String(contagem && contagem.stdout || '0').trim(), 10);
+        if (isNaN(numero) || numero < esperados[destino]) throw new Error('contagem');
+    }
+    return { ok: true, extraidos: alvos.length };
+}
+
+// Garante uma pasta de destino (bridge createDirectory com reserva mkdir)
+async function garantirPasta(pasta){
+    try {
+        await Promise.race([ taskerCall('createDirectory', { dir: pasta, createParents: true }), bridgeTimeout(20000) ]);
+    } catch (ePasta) {
+        try { await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(pasta), root: false, timeout: 15 }), bridgeTimeout(20000) ]); } catch (eMkdir) { }
+    }
+}
+
+// Tamanho curto para rotulos de arquivo (KB/MB)
+function formatarTamanhoCurto(bytes){
+    const n = Number(bytes) || 0;
+    if (n >= 1048576) return (n / 1048576).toFixed(1) + ' MB';
+    if (n >= 1024) return Math.max(1, Math.round(n / 1024)) + ' KB';
+    return n + ' B';
+}
+
+// ---- Binarios do WCA (/data/data/net.dinglisch.android.taskerm/files/WCA) ----
+async function tamanhoLocal(caminho){
+    const comando = 'wc -c < ' + shellQuote(caminho) + ' 2>/dev/null';
+    try {
+        const resultado = await Promise.race([ taskerCall('runShell', { cmd: comando, root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+        const saida = String(resultado && resultado.stdout || '').trim();
+        if (!/^\d+$/.test(saida)) return -1;
+        const tamanho = parseInt(saida, 10);
+        return tamanho > 0 ? tamanho : -1;
+    } catch (eTamanho) {
+        return -1;
+    }
+}
+
+async function instalarBinario(nome, asset, anunciar){
+    const destino = PASTA_BINARIOS + '/' + nome;
+    const temporario = destino + '.update';
+    await Promise.race([ taskerCall('runShell', { cmd: 'rm -f ' + shellQuote(temporario), root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+    anunciar('baixando');
+    let tentativa = { ok: false };
+    try {
+        await Promise.race([ taskerCall('httpRequest', { method: 'GET', url: asset.url, headers: 'User-Agent: Tasker', fileToSave: temporario, timeout: 600, autoRedirect: true }), bridgeTimeout(660000) ]);
+        tentativa.ok = true;
+    } catch (eRede) { tentativa.motivo = String((eRede && eRede.message) || eRede || ''); }
+    if (!tentativa.ok) {
+        await apagarSeExistir(temporario);
+        return { ok: false, motivo: tentativa.motivo || '' };
+    }
+    const tamanho = await tamanhoLocal(temporario);
+    if (tamanho <= 0 || (asset.tamanho > 0 && tamanho !== asset.tamanho)) {
+        await apagarSeExistir(temporario);
+        return { ok: false, motivo: 'tamanho divergente' };
+    }
+    anunciar('aplicando');
+    try {
+        const resultado = await Promise.race([ taskerCall('runShell', {
+            cmd: 'chmod 700 ' + shellQuote(temporario) + ' && mv -f ' + shellQuote(temporario) + ' ' + shellQuote(destino) + " && printf 'WCA_BIN_OK'",
+            root: false,
+            timeout: 30
+        }), bridgeTimeout(35000) ]);
+        if (!resultado || String(resultado.stdout || '').indexOf('WCA_BIN_OK') < 0) throw new Error('falha ao aplicar o binario');
+        return { ok: true };
+    } catch (eAplicar) {
+        await apagarSeExistir(temporario);
+        return { ok: false, motivo: String((eAplicar && eAplicar.message) || eAplicar || '') };
+    }
+}
+
+// Cada binario e baixado em .update e validado antes de substituir o anterior;
+// tamanho igual isoladamente nao garante que o arquivo local seja atualizado
+async function sincronizarBinarios(){
+    const mapa = (pacoteAtual && pacoteAtual.binarios) || { };
+    const disponiveis = BINARIOS_EXIGIDOS.filter(function (nome) { return mapa[nome] && mapa[nome].url; });
+    if (disponiveis.length !== BINARIOS_EXIGIDOS.length) return { ok: false, motivo: 'A release não contém os dois binários necessários.' };
+    await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_BINARIOS), root: false, timeout: 20 }), bridgeTimeout(25000) ]);
+    let baixados = 0;
+    let falhas = 0;
+    for (let i = 0; i < disponiveis.length; i++) {
+        const nome = disponiveis[i];
+        const asset = mapa[nome];
+        const posicao = '(' + (i + 1) + ' de ' + disponiveis.length + ')';
+        definirProgresso('Verificando o binário ' + posicao + ': ' + nome + '...', '');
+        const resultado = await instalarBinario(nome, asset, function (etapa) {
+            if (etapa === 'baixando') definirProgresso('Baixando o binário ' + posicao + ': ' + nome + '...', '');
+            else definirProgresso('Aplicando o binário ' + posicao + ': ' + nome + '...', '');
+        });
+        if (resultado.ok) baixados += 1;
+        else falhas += 1;
+    }
+    return { ok: falhas === 0, pulado: false, baixados: baixados, falhas: falhas };
+}
+
+async function iniciarDownload(){
+    if (baixando || !pacoteAtual) return;
+    baixando = true;
+    finalizado = false;
+    const botao = document.getElementById('btnBaixar');
+    if (botao) botao.disabled = true;
+    const spinner = document.getElementById('progressoSpinner');
+    if (spinner) spinner.style.display = '';
+    if (usandoPadrao) await carregarPacote();
+    const binariosDisponiveis = (pacoteAtual && pacoteAtual.binarios) || { };
+    if (!BINARIOS_EXIGIDOS.every(function (nome) { return binariosDisponiveis[nome] && binariosDisponiveis[nome].url; })) {
+        falhaDownload('BINÁRIOS INDISPONÍVEIS', 'Não foi possível encontrar os dois binários na release. Verifique a conexão e tente novamente.');
+        definirProgresso('Não foi possível encontrar os dois binários na release. Tente novamente.', 'erro');
+        return;
+    }
+    definirProgresso('Preparando as pastas de destino...', '');
+    await garantirPasta(PASTA_DESTINO);
+    await garantirPasta(PASTA_ICONS);
+    definirProgresso('Baixando o pacote zip (' + formatarTamanhoCurto(pacoteAtual.tamanho) + ')...', '');
+    const inicioBaixando = Date.now();
+    try {
+        const resultado = await baixarPacote();
+        await garantirTempoVisivel(inicioBaixando, TEMPO_MINIMO_BAIXANDO_MS);
+        if (!resultado.ok) {
+            falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');
+            definirProgresso('Não foi possível baixar o pacote. Tente novamente.', 'erro');
+            return;
+        }
+        definirProgresso('Verificando o pacote baixado...', '');
+        const verificacao = await verificarArquivoBaixado();
+        if (!verificacao.ok) {
+            falhaDownload('VERIFICA\u00c7\u00c3O', 'O arquivo n\u00e3o foi gravado corretamente na pasta. Tente novamente.');
+            definirProgresso('O download terminou, mas o arquivo n\u00e3o foi encontrado na pasta.', 'erro');
+            await apagarSeExistir(caminhoArquivo());
+            return;
+        }
+        definirProgresso('Descompactando o pacote...', '');
+        const inicioExtracao = Date.now();
+        let extracao = { ok: false };
+        try {
+            extracao = await extrairPacote(function (i, total, nome) {
+                definirProgresso('Descompactando (' + (i + 1) + ' de ' + total + '): ' + nome + '...', '');
+            });
+        } catch (eExtracao) {
+            extracao = { ok: false };
+        }
+        await garantirTempoVisivel(inicioExtracao, TEMPO_MINIMO_VERIFICANDO_MS);
+        if (!extracao.ok) {
+            if (spinner) spinner.style.display = 'none';
+            baixando = false;
+            definirProgresso('O pacote foi baixado, mas não foi possível descompactá-lo. O zip foi mantido na pasta.', 'erro');
+            showToast({ type: 'error', title: 'EXTRA\u00c7\u00c3O', message: 'O zip continua na pasta do WebView.' });
+            const botaoExtr = document.getElementById('btnBaixar');
+            if (botaoExtr) botaoExtr.disabled = false;
+            return;
+        }
+        await apagarSeExistir(caminhoArquivo());
+        definirProgresso('Verificando os binários do WCA...', '');
+        const inicioBinarios = Date.now();
+        let binarios;
+        try { binarios = await sincronizarBinarios(); } catch (eBinarios) { binarios = { ok: false }; }
+        await garantirTempoVisivel(inicioBinarios, TEMPO_MINIMO_VERIFICANDO_MS);
+        if (!binarios.ok) {
+            falhaDownload('FALHA NOS BINÁRIOS', binarios.motivo || 'Não foi possível baixar ou gravar todos os binários. Tente novamente.');
+            definirProgresso(binarios.motivo || 'Não foi possível baixar ou gravar todos os binários. Tente novamente.', 'erro');
+            return;
+        }
+        if (spinner) spinner.style.display = 'none';
+        finalizado = true;
+        baixando = false;
+        const botaoOk = document.getElementById('btnBaixar');
+        if (botaoOk) botaoOk.disabled = false;
+        contagemRegressivaFechar();
+        return;
+    } catch (eDownload) {
+        falhaDownload('FALHA NO DOWNLOAD', 'Verifique a internet e tente novamente.');
+        definirProgresso('N\u00e3o foi poss\u00edvel baixar o pacote. Tente novamente.', 'erro');
+        return;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.opacity = '0';
+    setTimeout(function () {
+        document.body.style.transition = 'opacity 0.1s ease';
+        document.body.style.opacity = '1';
+    }, 100);
+
+    // Comando do botao voltar do Android (Back Pressed no Tasker);
+    // listener SEMPRE com wrapper (nome, valor) - funcao direta e bug
+    try {
+        const api = getTaskerBridge();
+        if (api && typeof api.onVariableChanged === 'function') {
+            api.onVariableChanged(WCA_RETURN_MODAL_VAR, function (nome, valor) { wcaFecharModalDoTopo(); });
+        }
+    } catch (eVoltar) { }
+
+    document.querySelectorAll('[data-close]').forEach(function (b) {
+        b.addEventListener('click', function () { closeModal(b.getAttribute('data-close')); });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function (m) { if (m.id) closeModal(m.id); });
+    });
+
+    const btnBaixar = document.getElementById('btnBaixar');
+    if (btnBaixar) btnBaixar.addEventListener('click', function () {
+        if (baixando || !pacoteAtual) return;
+        document.getElementById('confirmBaixarTexto').textContent = 'O arquivo ' + pacoteAtual.arquivo + ' (release ' + pacoteAtual.tag + ') ser\u00e1 baixado e salvo na pasta do WebView. Continuar?';
+        openModal('confirmBaixarModal');
+    });
+
+    const confirmOk = document.getElementById('confirmBaixarOk');
+    if (confirmOk) confirmOk.addEventListener('click', function () {
+        closeModal('confirmBaixarModal');
+        iniciarDownload();
+    });
+
+    carregarPacote();
+});
+</script>
+</body>
+</html>
