@@ -6946,6 +6946,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         deleteReviewModal: 'reviewsModal',
         confirmCancelPremiumRequestModal: 'premiumHistoryModal', devAlertModal: 'helpModal', devSettingsModal: 'helpModal', premiumProgressModal: 'helpModal', premiumResultModal: 'helpModal'
     };
+    // A origem do pedido pode ser a tela inicial ou o menu.
+    let origemModalPremium = '';
+    function wcaPaiModal(id){
+        return id === 'buyModal' ? origemModalPremium : WCA_MODAL_PAI[id];
+    }
     let wcaModalStack = [];
     let wcaModalSyncAgendado = false;
 
@@ -6978,7 +6983,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             // Voltar = voltar para onde o usuario estava: se o modal fechado foi
             // aberto a partir de outro (ex.: Menu -> confirmacao) e o modal de
             // origem nao esta mais aberto, reabre ele (o proprio Menu)
-            const pai = WCA_MODAL_PAI[topo];
+            const pai = wcaPaiModal(topo);
             if (pai && !wcaModalVisivel(pai) && !wcaModalStack.some(wcaModalVisivel)) {
                 openModal(pai);
             }
@@ -7056,7 +7061,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     function wcaReabrirModalPaiAoCancelar(id){
         if (!id || wcaModalVisivel(id)) return;
-        const pai = WCA_MODAL_PAI[id];
+        const pai = wcaPaiModal(id);
         if (pai && !wcaModalVisivel(pai)) {
             openModal(pai);
         }
@@ -7600,7 +7605,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
     }
 
-    function openBuyModal(){
+    function openBuyModal(origem){
         const titleEl = document.getElementById('buyModalTitle');
         if(titleEl){
             const isPremium = isPremiumLogData();
@@ -7612,6 +7617,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             showToast({title: 'Conexão necessária', message: 'Conecte um número principal antes de solicitar Premium.', type: 'warning', duration: 4500});
             return;
         }
+        if(origem !== 'continuar') origemModalPremium = origem === 'menu' ? 'helpModal' : '';
         dom.buyNameInput.value = '';
         dom.buyTelInput.value = principalPhone;
         dom.buyTelInput.readOnly = true;
@@ -7736,7 +7742,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     function cancelBuyConfirm(){
         closeModal('buyConfirmModal');
-        openBuyModal();
+        openBuyModal('continuar');
     }
 
     function openHelp(){ updateReviewMenuAvailability(); updatePremiumMenuAvailability(); updatePremiumMenuLabel(); openModal('helpModal'); }
@@ -10082,7 +10088,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     document.getElementById('supportWhatsAppBtn')?.addEventListener('click', () => abrirContatoSuporte('https://wa.me/5581997573129'));
     document.getElementById('supportTelegramBtn')?.addEventListener('click', () => abrirContatoSuporte('https://t.me/Andredye'));
     document.getElementById('menuFaqBtn')?.addEventListener('click', taskOpenFaq);
-    document.getElementById('menuPremiumBtn')?.addEventListener('click', () => { closeModal('helpModal'); openBuyModal(); });
+    document.getElementById('menuPremiumBtn')?.addEventListener('click', () => { closeModal('helpModal'); openBuyModal('menu'); });
     document.getElementById('menuReinstallApiBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
         openModal('confirmReinstallApiModal');

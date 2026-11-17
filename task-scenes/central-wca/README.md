@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.75**
+Versão atual: **1.76**
 
-Arquivo atual: `central-wca-1.75.html`
+Arquivo atual: `central-wca-1.76.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -48,7 +48,7 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 
 ## Premium
 
-- Na tela inicial, um cartão **Pedido Premium pendente** mostra plano, valor e data e abre o gerenciamento ao tocar em **VER PEDIDO**. É exibido apenas quando há pendência para o número principal; o status é consultado ao identificar o número e a cada 60 segundos. Falhas de rede mantêm o último resumo confirmado durante a sessão;
+- Na tela inicial, um cartão **Pedido Premium pendente** mostra plano, valor e data e abre o gerenciamento ao tocar em **VER PEDIDO**. Ao voltar ou cancelar, retorna à tela inicial; quando aberto pelo menu, retorna ao menu. É exibido apenas quando há pendência para o número principal; o status é consultado ao identificar o número e a cada 60 segundos. Falhas de rede mantêm o último resumo confirmado durante a sessão;
 - Os textos da Central usam **pedido** para o fluxo Premium, sem alterar os campos, endpoints ou identificadores da API;
 
 - A verificação é feita diretamente pela cena, usando o telefone do dispositivo principal;
@@ -214,7 +214,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.75.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.76.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
