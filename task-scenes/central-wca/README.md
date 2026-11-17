@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.65**
+Versão atual: **1.66**
 
-Arquivo atual: `central-wca-1.65.html`
+Arquivo atual: `central-wca-1.66.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -56,6 +56,15 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - o modal superior bloqueia a interação com o conteúdo de trás;
 - a interface móvel usa feedback `:active`;
 - o rodapé exibe somente o nome do desenvolvedor.
+
+## Suporte técnico
+
+A opção **Suporte Técnico** abre um modal para escolher o canal de atendimento:
+
+- **WhatsApp:** `+55 81 99756-3129`;
+- **Telegram:** `@Andredye`.
+
+Os dois canais usam endereços HTTPS e são abertos fora do WebView por `Tasker.browseUrl`, com `Tasker.sendIntent` como alternativa. Assim, esquemas internos como `tg:resolve` não são carregados pela própria cena. Cancelar ou voltar no modal restaura o menu.
 
 ## Configurações da API
 
@@ -174,6 +183,8 @@ O fechamento atinge somente o modal superior e restaura o modal de origem quando
 A cena utiliza:
 
 - `Tasker.runTask`;
+- `Tasker.browseUrl`;
+- `Tasker.sendIntent`;
 - `Tasker.setVariable`;
 - `Tasker.getVariable`;
 - `Tasker.readFile`;
@@ -183,12 +194,12 @@ A cena utiliza:
 - `Tasker.runShell`;
 - `Tasker.dismissSceneV2`.
 
-Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SISTEMA [wca]`, incluindo reinício, parada, atualização, reinstalação, suporte e instalação de projeto.
+Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SISTEMA [wca]`, incluindo reinício, parada, atualização, reinstalação e instalação de projeto. O suporte agora abre diretamente o canal escolhido fora do WebView.
 
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.65.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.66.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

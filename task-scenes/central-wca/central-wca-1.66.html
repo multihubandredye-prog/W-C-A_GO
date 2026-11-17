@@ -1602,6 +1602,54 @@ body.modal-open { overflow: hidden; }
 .menu-item-new .icon-container.icon-muted { color: var(--text-dim); }
 .menu-item-new .icon-container.icon-primary { color: var(--primary); }
 
+.support-contact-text {
+    color: var(--text-dim);
+    font-size: .78rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+    text-align: center;
+}
+.support-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+}
+.support-contact-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: .9rem 1rem;
+    border: 1px solid rgba(132,148,164,.22);
+    border-radius: .8rem;
+    background: rgba(255,255,255,.035);
+    color: var(--text-main);
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+.support-contact-btn:active {
+    transform: scale(.985);
+    border-color: var(--primary);
+    background: rgba(15,157,203,.12);
+}
+.support-contact-icon {
+    display: grid;
+    place-items: center;
+    width: 2.55rem;
+    height: 2.55rem;
+    border-radius: 50%;
+    margin-right: .85rem;
+    font-size: 1.25rem;
+    flex: 0 0 auto;
+}
+.support-contact-icon.whatsapp { color: #25d366; background: rgba(37,211,102,.12); }
+.support-contact-icon.telegram { color: #2aabee; background: rgba(42,171,238,.12); }
+.support-contact-copy { flex: 1; min-width: 0; }
+.support-contact-name { display: block; font-size: .9rem; font-weight: 700; }
+.support-contact-detail { display: block; margin-top: .18rem; color: var(--text-dim); font-family: 'Inter', monospace; font-size: .68rem; }
+.support-contact-arrow { color: var(--text-dim); font-size: .72rem; margin-left: .65rem; }
+
 .buy-modal-fix { padding: 1.9rem 1.45rem; text-align: left; }
 .buy-input { margin-bottom: 1.15rem; text-align: left; }
 .plan-selection { margin-bottom: 1.18rem; text-align: left; }
@@ -3214,8 +3262,7 @@ input.first-install-attention {
 .dev-note { font-size: 0.64rem; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
 .dev-cancel { margin-top: 12px; flex-shrink: 0; margin-bottom: 4px; }
 
-    /* Overlay da desinstalacao (fora do fluxo de modais; acima de tudo) */
-#uninstallOverlay {
+    #uninstallOverlay {
     display: none;
     position: fixed;
     inset: 0;
@@ -3923,6 +3970,27 @@ input.first-install-attention {
 
                 <button class="btn-action btn-full btn-transparent mt-15" data-close="helpModal">Fechar Menu</button>
             </div>
+        </div>
+    </div>
+
+    <div id="supportContactModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="confirm-icon-wrap mb-18"><i class="fa-solid fa-headset accent-icon"></i></div>
+            <h3 class="modal-title accent-title">SUPORTE TÉCNICO</h3>
+            <p class="support-contact-text">Escolha por onde deseja falar diretamente com o desenvolvedor.</p>
+            <div class="support-contact-list">
+                <button id="supportWhatsAppBtn" class="support-contact-btn" type="button">
+                    <span class="support-contact-icon whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
+                    <span class="support-contact-copy"><span class="support-contact-name">WhatsApp</span><span class="support-contact-detail">+55 81 99756-3129</span></span>
+                    <span class="support-contact-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </button>
+                <button id="supportTelegramBtn" class="support-contact-btn" type="button">
+                    <span class="support-contact-icon telegram"><i class="fa-brands fa-telegram"></i></span>
+                    <span class="support-contact-copy"><span class="support-contact-name">Telegram</span><span class="support-contact-detail">@Andredye</span></span>
+                    <span class="support-contact-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </button>
+            </div>
+            <button class="btn-action btn-full btn-transparent mt-15" data-close="supportContactModal">VOLTAR AO MENU</button>
         </div>
     </div>
 
@@ -5754,16 +5822,32 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
     }
 
-    // Inicia o contato com o suporte técnico/desenvolvedor
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function taskTalkToDeveloper() {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'talk-developer' }
-            });
-        } catch (e) {
+    // Abre o canal de suporte fora do WebView para o Android encaminhar o link
+    // ao aplicativo correspondente sem tentar carregar esquemas internos na cena.
+    async function abrirContatoSuporte(url) {
+        const destino = String(url || '').trim();
+        if (!destino || typeof Tasker === 'undefined') return;
+        if (typeof Tasker.browseUrl === 'function') {
+            try {
+                await Tasker.browseUrl({ url: destino });
+                return;
+            } catch (eBrowse) {}
         }
+        if (typeof Tasker.sendIntent === 'function') {
+            try {
+                await Tasker.sendIntent({
+                    action: 'android.intent.action.VIEW',
+                    target: 'activity',
+                    category: 'browsable',
+                    data: destino
+                });
+            } catch (eIntent) {}
+        }
+    }
+
+    function openSupportContact() {
+        closeModal('helpModal');
+        openModal('supportContactModal');
     }
 
     // Envia a solicitação/aceleração da compra Premium para o lado Tasker
@@ -6654,7 +6738,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         "confirmReinstallTaskModal": "reinstall_task_confirm",
         "reinstallProgressModal": "reinstall_download",
         "duplicateDeviceModal": "duplicate_device_alert",
-        "helpModal": "menu", "devAlertModal": "dev_api_alert", "devSettingsModal": "dev_api_settings", "premiumProgressModal": "premium_check_progress", "premiumResultModal": "premium_check_result",
+        "helpModal": "menu", "supportContactModal": "support_contact", "devAlertModal": "dev_api_alert", "devSettingsModal": "dev_api_settings", "premiumProgressModal": "premium_check_progress", "premiumResultModal": "premium_check_result",
         "premiumCheckModal": "premium_check",
         "sessionHelpModal": "session_help",
         "reviewsModal": "reviews",
@@ -6748,6 +6832,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     // (extraidos dos listeners): o "voltar" reabre o modal de origem
     const WCA_MODAL_PAI = {
         devChatPresenceModal: 'devSettingsModal',
+        supportContactModal: 'helpModal',
         confirmReinstallApiModal: 'helpModal',
         confirmReinstallTaskModal: 'helpModal',
         reinstallProgressModal: 'helpModal',
@@ -9814,7 +9899,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     document.getElementById('btnConfirmDeleteAll')?.addEventListener('click', doDeleteAllDevices);
     dom.premiumButton?.addEventListener('click', openPremiumCheck);
     document.getElementById('btnConfirmPremiumCheck')?.addEventListener('click', confirmPremiumCheck);
-    document.getElementById('menuSupportBtn')?.addEventListener('click', taskTalkToDeveloper);
+    document.getElementById('menuSupportBtn')?.addEventListener('click', openSupportContact);
+    document.getElementById('supportWhatsAppBtn')?.addEventListener('click', () => abrirContatoSuporte('https://wa.me/5581997563129'));
+    document.getElementById('supportTelegramBtn')?.addEventListener('click', () => abrirContatoSuporte('https://t.me/Andredye'));
     document.getElementById('menuFaqBtn')?.addEventListener('click', taskOpenFaq);
     document.getElementById('menuPremiumBtn')?.addEventListener('click', () => { closeModal('helpModal'); openBuyModal(); });
     document.getElementById('menuReinstallApiBtn')?.addEventListener('click', () => {
