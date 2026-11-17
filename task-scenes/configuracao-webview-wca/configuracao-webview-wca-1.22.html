@@ -504,7 +504,7 @@ body::before {
 
 
                 <div class="info-texto">
-                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi. Também baixa os <strong>binários do WCA</strong> da mesma release.
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi. Verifica os <strong>binários do WCA</strong> e baixa da mesma release apenas os que estiverem ausentes.
                 </div>
 
                 <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
@@ -546,7 +546,7 @@ body::before {
     </template>
 
 <script>
-// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.21)
+// WHATS CONNECT API - Configuracao do WebView (cena 010-DOWNLOAD_VIEW [wca], V2 1.22)
 // Cena que baixa o pacote WCA-Tasker-Projetos (cenas HTML E MEDIAS, gerado
 // automaticamente pelo GitHub Actions em cada release) e salva/descompacta
 // na pasta do WebView do dispositivo. As MEDIAS (pasta icons/ do zip) sao
@@ -1204,28 +1204,41 @@ async function instalarBinario(nome, asset, anunciar){
     }
 }
 
-// Cada binario e baixado em .update e validado antes de substituir o anterior;
-// tamanho igual isoladamente nao garante que o arquivo local seja atualizado
+// Verifica a existencia de cada arquivo sem alterar os binarios ja presentes.
+// Uma resposta inesperada da ponte nao e tratada como arquivo ausente.
+async function binariosFaltantes(){
+    const testes = BINARIOS_EXIGIDOS.map(function (nome, indice) {
+        return 'if [ -f ' + shellQuote(PASTA_BINARIOS + '/' + nome) + " ]; then printf '" + indice + ":1\\n'; else printf '" + indice + ":0\\n'; fi";
+    });
+    const resultado = await Promise.race([ taskerCall('runShell', { cmd: testes.join('; '), root: false, timeout: 15 }), bridgeTimeout(20000) ]);
+    const linhas = String(resultado && resultado.stdout || '').trim().split(/\r?\n/);
+    if (linhas.length !== BINARIOS_EXIGIDOS.length) throw new Error('Não foi possível verificar os binários.');
+    const faltantes = [];
+    for (let i = 0; i < BINARIOS_EXIGIDOS.length; i++) {
+        if (linhas[i] === i + ':0') faltantes.push(BINARIOS_EXIGIDOS[i]);
+        else if (linhas[i] !== i + ':1') throw new Error('Não foi possível verificar os binários.');
+    }
+    return faltantes;
+}
+
+// Baixa somente arquivos ausentes, em temporario validado antes da gravacao.
 async function sincronizarBinarios(){
+    const faltantes = await binariosFaltantes();
+    if (!faltantes.length) return { ok: true, baixados: 0 };
     const mapa = (pacoteAtual && pacoteAtual.binarios) || { };
-    const disponiveis = BINARIOS_EXIGIDOS.filter(function (nome) { return mapa[nome] && mapa[nome].url; });
-    if (disponiveis.length !== BINARIOS_EXIGIDOS.length) return { ok: false, motivo: 'A release não contém os dois binários necessários.' };
+    const semAsset = faltantes.filter(function (nome) { return !mapa[nome] || !mapa[nome].url; });
+    if (semAsset.length) return { ok: false, motivo: 'Não foi possível localizar na release: ' + semAsset.join(', ') + '.' };
     await Promise.race([ taskerCall('runShell', { cmd: 'mkdir -p ' + shellQuote(PASTA_BINARIOS), root: false, timeout: 20 }), bridgeTimeout(25000) ]);
-    let baixados = 0;
-    let falhas = 0;
-    for (let i = 0; i < disponiveis.length; i++) {
-        const nome = disponiveis[i];
-        const asset = mapa[nome];
-        const posicao = '(' + (i + 1) + ' de ' + disponiveis.length + ')';
-        definirProgresso('Verificando o binário ' + posicao + ': ' + nome + '...', '');
-        const resultado = await instalarBinario(nome, asset, function (etapa) {
+    for (let i = 0; i < faltantes.length; i++) {
+        const nome = faltantes[i];
+        const posicao = '(' + (i + 1) + ' de ' + faltantes.length + ')';
+        const resultado = await instalarBinario(nome, mapa[nome], function (etapa) {
             if (etapa === 'baixando') definirProgresso('Baixando o binário ' + posicao + ': ' + nome + '...', '');
             else definirProgresso('Aplicando o binário ' + posicao + ': ' + nome + '...', '');
         });
-        if (resultado.ok) baixados += 1;
-        else falhas += 1;
+        if (!resultado.ok) return { ok: false, motivo: 'Não foi possível baixar ou gravar o binário ' + nome + '.' };
     }
-    return { ok: falhas === 0, pulado: false, baixados: baixados, falhas: falhas };
+    return { ok: true, baixados: faltantes.length };
 }
 
 async function iniciarDownload(){
@@ -1236,11 +1249,18 @@ async function iniciarDownload(){
     if (botao) botao.disabled = true;
     const spinner = document.getElementById('progressoSpinner');
     if (spinner) spinner.style.display = '';
-    if (usandoPadrao) await carregarPacote();
+    definirProgresso('Verificando os binários do WCA...', '');
+    let faltantes;
+    try { faltantes = await binariosFaltantes(); } catch (eVerificacao) {
+        falhaDownload('VERIFICAÇÃO DOS BINÁRIOS', 'Não foi possível verificar os binários. Tente novamente.');
+        definirProgresso('Não foi possível verificar os binários. Tente novamente.', 'erro');
+        return;
+    }
+    if (faltantes.length && usandoPadrao) await carregarPacote();
     const binariosDisponiveis = (pacoteAtual && pacoteAtual.binarios) || { };
-    if (!BINARIOS_EXIGIDOS.every(function (nome) { return binariosDisponiveis[nome] && binariosDisponiveis[nome].url; })) {
-        falhaDownload('BINÁRIOS INDISPONÍVEIS', 'Não foi possível encontrar os dois binários na release. Verifique a conexão e tente novamente.');
-        definirProgresso('Não foi possível encontrar os dois binários na release. Tente novamente.', 'erro');
+    if (faltantes.some(function (nome) { return !binariosDisponiveis[nome] || !binariosDisponiveis[nome].url; })) {
+        falhaDownload('BINÁRIOS INDISPONÍVEIS', 'Não foi possível localizar os binários ausentes na release. Tente novamente.');
+        definirProgresso('Não foi possível localizar os binários ausentes na release. Tente novamente.', 'erro');
         return;
     }
     definirProgresso('Preparando as pastas de destino...', '');
