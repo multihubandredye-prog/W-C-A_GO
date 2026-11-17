@@ -8288,12 +8288,18 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     async function fetchDevices(){
         try{
+            // Espera a leitura inicial para nao classificar antes do cache existente.
+            if (devicesCachePromise) await devicesCachePromise;
             const res     = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
             const data    = await res.json();
             const devices = data.results || [];
 
             hideServerAlert();
+            // Sincroniza primeiro: o primeiro numero precisa ter seu papel
+            // definido antes de desenhar os cartoes.
+            devices.forEach(d => { if (d && d.jid) syncDeviceToFile(d); });
             renderDeviceList(devices);
+            refreshDevicesDependentUi();
             checkReconnectStateForDevices(devices);
 
             const loggedInIds = new Set();
@@ -8627,6 +8633,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     // bridge não responder em 4s, a inicialização continua sem o cache e os
     // componentes que dependem do arquivo são atualizados quando ele chegar.
     let devicesCache = [];
+    let devicesCachePromise = null;
 
     function bridgeTimeout(ms){
         return new Promise(function(resolve){ setTimeout(resolve, ms); });
@@ -8682,11 +8689,15 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             const deviceName = getDeviceName(dev);
             const existing = list[existingIndex];
             const nameChanged = deviceName && existing.display_name !== deviceName;
+            // Corrige registros antigos sem nenhum principal, preservando a ordem.
+            const firstValid = list.find(d => d && d.jid);
+            const needsPrincipal = firstValid && !list.some(d => d && d.jid && d.is_principal);
+            if(needsPrincipal) firstValid.is_principal = true;
             if(nameChanged){
                 list[existingIndex].display_name = deviceName;
                 list[existingIndex].timestamp = new Date().toISOString().slice(0, 19);
-                writeDevicesFile(list);
             }
+            if(nameChanged || needsPrincipal) writeDevicesFile(list);
             return;
         }
 
@@ -10123,7 +10134,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     function initialize(){
         // Nada aqui pode travar a cena: as leituras do bridge rodam em
         // paralelo com prazo de 4s e a UI é atualizada quando concluem
-        loadDevicesCache().then(refreshDevicesDependentUi).catch(function () {});
+        devicesCachePromise = loadDevicesCache();
+        devicesCachePromise.then(refreshDevicesDependentUi).catch(function () {});
         loadVersionFile().catch(function () {});
         carregarAviso().catch(function () {});
         // Banner de avisos (1.52): a seta abre um modal centralizado com o

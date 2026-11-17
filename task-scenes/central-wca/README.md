@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.73**
+Versão atual: **1.74**
 
-Arquivo atual: `central-wca-1.73.html`
+Arquivo atual: `central-wca-1.74.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -34,7 +34,8 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - `open_tab=two` promove a aba **Conexões** por listener e sondagem inicial;
 - o listener recebe a variável depois da exibição da cena, preservando a compatibilidade com variáveis locais do Tasker;
 - a escolha manual do usuário não é sobrescrita pela sondagem;
-- dispositivos são lidos e gravados em `devices.json`;
+- dispositivos são lidos e gravados em `devices.json`; a leitura inicial do cache precede a sincronização e a renderização dos cartões;
+- o primeiro dispositivo registrado é **PRIMÁRIO** e os seguintes são **AUXILIAR**; um principal já salvo é preservado e, quando registros existentes não têm principal, o primeiro válido é marcado;
 - o fluxo de QR Code renova o código quando o contador chega a zero e libera o cartão ao fechar o modal;
 - a instalação do número é direta ao Tasker: a cena valida o número, grava a sessão e entrega `number` e `session` em `exit_data` para `006-CONFIGURAR_SISTEMA [wca]` com `par1 = install-project`;
 - a cena não inicia a API, não consulta `/devices` e não confere os arquivos do pacote — toda a configuração, inclusive a subida do serviço, acontece na tarefa do Tasker;
@@ -210,7 +211,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.73.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.74.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
