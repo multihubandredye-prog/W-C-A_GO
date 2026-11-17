@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.68**
+Versão atual: **1.69**
 
-Arquivo atual: `central-wca-1.68.html`
+Arquivo atual: `central-wca-1.69.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -167,8 +167,9 @@ A Central não usa mais `force-reinstall-api` para baixar os binários.
 2. baixa para `W_C_A_API.prj.xml.update`;
 3. valida o tamanho e a presença de `<TaskerData` antes de substituir o XML atual;
 4. depois da validação, exibe uma contagem regressiva de 10 até 0 e o botão **INSTALAR AGORA**;
-5. somente quando o contador chega a zero ou o usuário toca no botão, executa `006-CONFIGURAR_SISTEMA [wca]` com `par1 = force-reinstall-task`;
-6. uma trava impede disparos duplicados pelo botão e pelo contador.
+5. somente quando o contador chega a zero ou o usuário toca no botão, executa `006-CONFIGURAR_SISTEMA [wca]` com `par1 = force-reinstall-task` e a variável local `bottom = yes`;
+6. os dois caminhos usam a mesma continuação e enviam os mesmos valores;
+7. uma trava impede disparos duplicados pelo botão e pelo contador.
 
 Em caso de falha, o temporário é removido e a Central oferece **TENTAR NOVAMENTE**. O modal não pode ser fechado enquanto um download está em andamento.
 
@@ -202,7 +203,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.68.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.69.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

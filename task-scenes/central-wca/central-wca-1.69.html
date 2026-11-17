@@ -6210,7 +6210,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
         reinstallMostrarStatus('Executando a reinstalação no Tasker...', 'success');
         try {
-            await taskerCall('runTask', { name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task' } });
+            await taskerCall('runTask', { name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task', bottom: 'yes' } });
             reinstallRunning = false;
             reinstallMostrarStatus('Projeto baixado e reinstalação iniciada no Tasker.', 'success');
             if (agora) agora.classList.add('d-none');
