@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.67**
+Versão atual: **1.68**
 
-Arquivo atual: `central-wca-1.67.html`
+Arquivo atual: `central-wca-1.68.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -44,7 +44,7 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - o resultado atualiza `.mode-system.log` e `.sys_config.txt`;
 - solicitações Premium pendentes permanecem individualizadas pelo `requestId`;
 - edição ou cancelamento de uma solicitação não altera as demais;
-- **ACELERAR PEDIDO** abre um seletor para enviar os dados da solicitação ao desenvolvedor pelo WhatsApp `+55 81 99756-3129` ou Telegram `@Andredye`;
+- **ACELERAR PEDIDO** abre um seletor para enviar os dados da solicitação ao desenvolvedor pelo WhatsApp `+55 81 99757-3129` ou Telegram `@Andredye`;
 - a mensagem começa com `*WATS-CONNECT-API*` e inclui nome, plano, telefone, valor e data da solicitação;
 - cancelar ou voltar no seletor de canal retorna à solicitação Premium pendente;
 - os modais de progresso e resultado retornam ao menu ao serem fechados.
@@ -64,7 +64,7 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 
 A opção **Suporte Técnico** abre um modal para escolher o canal de atendimento:
 
-- **WhatsApp:** `+55 81 99756-3129`;
+- **WhatsApp:** `+55 81 99757-3129`;
 - **Telegram:** `@Andredye`.
 
 Os dois canais usam endereços HTTPS e são abertos fora do WebView por `Tasker.browseUrl`, com `Tasker.sendIntent` como alternativa. Assim, esquemas internos como `tg:resolve` não são carregados pela própria cena. Cancelar ou voltar no modal restaura o menu.
@@ -202,7 +202,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.67.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.68.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
