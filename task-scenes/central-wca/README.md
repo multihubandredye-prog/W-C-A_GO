@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.70**
+Versão atual: **1.71**
 
-Arquivo atual: `central-wca-1.70.html`
+Arquivo atual: `central-wca-1.71.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -36,8 +36,10 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - a escolha manual do usuário não é sobrescrita pela sondagem;
 - dispositivos são lidos e gravados em `devices.json`;
 - o fluxo de QR Code renova o código quando o contador chega a zero e libera o cartão ao fechar o modal;
-- a desinstalação tem quatro etapas: desconecta os usuários pela API, elimina os arquivos e as pastas do WCA, desabilita o serviço com `006-CONFIGURAR_SISTEMA [wca]` e `par1 = stop-wca` e só então encerra as cenas em cascata;
-- a desabilitação roda depois da eliminação dos arquivos e não desfaz a limpeza se o comando não confirmar: o card informa o resultado e o encerramento acontece de qualquer forma.
+- a desinstalação tem quatro etapas: desconecta os usuários pela API, elimina os arquivos e as pastas do WCA, encerra o processo `whatsapp-wca-aarch64` pelo Shell e só então encerra as cenas em cascata;
+- o encerramento acontece depois da eliminação, por `runShell` com `ps -e -o PID,ARGS` + `grep` + `awk` e `kill -9`, sem depender de tarefa do Tasker;
+- o filtro `awk -v me=$$` descarta o próprio shell do `runShell`, cuja linha de comando também contém o nome do binário;
+- saída sem confirmação não desfaz a limpeza: o card informa o resultado e o encerramento das cenas acontece de qualquer forma.
 
 ## Premium
 
@@ -204,7 +206,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.70.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.71.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

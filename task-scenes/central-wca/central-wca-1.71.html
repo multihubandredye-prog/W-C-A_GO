@@ -6009,29 +6009,35 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         try { await Promise.race([ taskerCall('runShell', { cmd: 'rm -rf ' + shellQuote(PASTA_BIN_WCA) + ' ' + shellQuote(PASTA_PROJETO_WCA), root: false, timeout: 60 }), bridgeTimeout(70000) ]); } catch (eRmDir) { }
     }
 
-    // Etapa 3: desabilita o servico do WCA (stop-wca) DEPOIS da eliminacao
-    // dos arquivos, para nao deixar o processo antigo rodando sobre uma pasta
-    // que acabou de ser apagada. Falha aqui nao desfaz a limpeza: a cena
-    // informa o resultado e segue para o encerramento
-    async function desinDesabilitarServico(){
-        desinEtapa('Etapa 3 de 4 — Desabilitando o serviço do WCA');
-        desinItem('Enviando o comando de desativação do WCA...');
+    // Etapa 3: encerra o processo do WCA pelo Shell (kill -9), DEPOIS da
+    // eliminacao dos arquivos. O filtro com awk -v me=$$ descarta o proprio
+    // shell do runShell: a linha de comando dele tambem contem o nome do
+    // binario e seria morta junto, cortando o retorno do comando.
+    // Saida vazia ou erro nao desfaz a limpeza: a cena informa e segue
+    const COMANDO_ENCERRAR_PROCESSO = "pid=$(ps -e -o PID,ARGS | grep \"whatsapp-wca-aarch64\" | grep -v grep | awk -v me=$$ '$1 != me {print $1}') && [ -n \"$pid\" ] && kill -9 $pid && echo \"Process terminated\" || echo \"Process not found\"";
+
+    async function desinEncerrarProcesso(){
+        desinEtapa('Etapa 3 de 4 — Encerrando o processo do WCA');
+        desinItem('Procurando o processo whatsapp-wca-aarch64...');
         desinProgresso(0, 1);
-        let confirmado = true;
+        let saida = '';
         try {
-            const chamada = Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'stop-wca' }
-            });
-            const protegida = Promise.resolve(chamada).catch(function () { confirmado = false; });
-            await Promise.race([ protegida, desinDormir(5000) ]);
-        } catch (eStop) {
-            confirmado = false;
+            const retorno = await Promise.race([
+                taskerCall('runShell', { cmd: COMANDO_ENCERRAR_PROCESSO, root: false, timeout: 30 }),
+                desinDormir(30000)
+            ]);
+            saida = String((retorno && retorno.stdout) || '').trim();
+        } catch (eProc) {
+            saida = '';
         }
         desinProgresso(1, 1);
-        desinItem(confirmado
-            ? 'Serviço do WCA desabilitado'
-            : 'O serviço não confirmou a desativação; a limpeza foi concluída');
+        if (saida.indexOf('Process terminated') >= 0) {
+            desinItem('Processo do WhatsApp encerrado');
+        } else if (saida.indexOf('Process not found') >= 0) {
+            desinItem('Nenhum processo em execução — etapa concluída');
+        } else {
+            desinItem('O Shell não confirmou o encerramento; a limpeza foi concluída');
+        }
         await desinDormir(1200);
     }
 
@@ -6054,7 +6060,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         try {
             await desinDesconectarUsuarios();
             await desinEliminarArquivos();
-            await desinDesabilitarServico();
+            await desinEncerrarProcesso();
         } catch (eFluxo) { }
         desinEtapa('Etapa 4 de 4 — Concluído');
         desinItem('');
