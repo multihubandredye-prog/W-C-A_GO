@@ -7198,33 +7198,6 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
     }
 
-    // Pacote que a tarefa install-project precisa encontrar no aparelho: sem
-    // os dois binarios e o XML ela nao tem o que executar e termina em
-    // silencio (sintoma de "toquei em INSTALAR AGORA e nada aconteceu")
-    const ARQUIVOS_PACOTE_WCA = [
-        PASTA_BIN_WCA + '/whatsapp-wca-aarch64.bin',
-        PASTA_BIN_WCA + '/ffmpeg-wca-aarch64.bin',
-        PASTA_PROJETO_WCA + '/system/tasks-send/W_C_A_API.prj.xml'
-    ];
-
-    async function arquivosPacoteFaltando(){
-        const lista = ARQUIVOS_PACOTE_WCA.map(shellQuote).join(' ');
-        const cmd = 'for f in ' + lista + '; do if [ ! -f "$f" ]; then echo "$f"; fi; done';
-        try {
-            const retorno = await Promise.race([
-                taskerCall('runShell', { cmd: cmd, root: false, timeout: 20 }),
-                bridgeTimeout(20000)
-            ]);
-            return String((retorno && retorno.stdout) || '').split('\n').map(function (linha) {
-                return linha.trim();
-            }).filter(function (linha) {
-                return linha.length > 0;
-            });
-        } catch (ePacote) {
-            return [];
-        }
-    }
-
     function instalarMensagem(texto, classe){
         if (!dom.valMsg) return;
         dom.valMsg.textContent = texto;
@@ -7232,6 +7205,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         if (classe) dom.valMsg.classList.add(classe);
     }
 
+    // Instalacao direta: a cena apenas valida o numero e entrega numero e
+    // sessao para 006-CONFIGURAR_SISTEMA [wca]. Nao inicia a API, nao consulta
+    // /devices e nao confere arquivos: toda a configuracao acontece na tarefa
     async function install(){
         const phoneToInstall = dom.telInput.value.replace(/\D/g, '');
         if (!phoneToInstall) return;
@@ -7244,43 +7220,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
         instalacaoEmAndamento = true;
         if (dom.installBtn) dom.installBtn.disabled = true;
-        instalarMensagem('Verificando a instalação do WCA...', '');
+        instalarMensagem('Enviando a instalação...', '');
 
         try {
-            const faltando = await arquivosPacoteFaltando();
-            if (faltando.length > 0) {
-                instalarMensagem('WCA não está instalado no aparelho. Reinstale o pacote e tente novamente.', 'error');
-                showToast({
-                    title: 'Instalação incompleta',
-                    message: 'Faltam ' + faltando.length + ' arquivo(s) do WCA. Use Reinstalar API no menu ou a cena de instalação e depois informe o número.',
-                    type: 'warning',
-                    duration: 7000
-                });
-                return;
-            }
-
-            // Verifica se já existe QUALQUER número conectado (primário ou auxiliar);
-            // a consulta agora tem prazo curto: com a API desligada o fetch antigo
-            // podia ficar pendurado e travar o fluxo sem nenhuma resposta na tela
-            try {
-                const res = await Promise.race([
-                    fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}}),
-                    bridgeTimeout(4000)
-                ]);
-                const data = res ? await res.json() : { results: [] };
-                const devices = data.results || [];
-                const anyConnected = devices.find(d => d.jid);
-
-                if (anyConnected) {
-                    showDuplicateModal(anyConnected);
-                    return;
-                }
-            } catch(e) {
-                // Se falhar a verificação, prossegue com a instalação normalmente
-            }
-
-            // Nenhum número conectado — permite instalação tradicional
-            instalarMensagem('Enviando a instalação...', '');
             const sessionInput = document.getElementById('sessionInput');
             const session = (sessionInput?.value.trim()) || DEV_SESSAO_PADRAO;
             const installData = JSON.stringify({number: dom.telInput.value, session}, null, 2);
