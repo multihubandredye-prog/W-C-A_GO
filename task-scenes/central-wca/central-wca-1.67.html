@@ -3354,11 +3354,32 @@ input.first-install-attention {
                     <i class="fa-solid fa-xmark"></i> CANCELAR SOLICITAÇÃO
                 </button>
                 <button id="btnAcceleratePremiumOrder" class="btn-action btn-full btn-outline premium-accelerate-btn" type="button">
-                    <i class="fa-brands fa-whatsapp"></i> ACELERAR PEDIDO
+                    <i class="fa-solid fa-paper-plane"></i> ACELERAR PEDIDO
                 </button>
             </div>
             <button id="btnSendBuy" class="btn-action btn-full btn-gold" disabled>ENVIAR</button>
             <button class="btn-action btn-full btn-transparent" data-close="buyModal">CANCELAR</button>
+        </div>
+    </div>
+
+    <div id="premiumAccelerateModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="confirm-icon-wrap mb-18"><i class="fa-solid fa-paper-plane gold-title"></i></div>
+            <h3 class="modal-title gold-title">ACELERAR PEDIDO</h3>
+            <p class="support-contact-text">Escolha por onde deseja enviar as informações da solicitação Premium ao desenvolvedor.</p>
+            <div class="support-contact-list">
+                <button id="premiumAccelerateWhatsAppBtn" class="support-contact-btn" type="button">
+                    <span class="support-contact-icon whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
+                    <span class="support-contact-copy"><span class="support-contact-name">WhatsApp</span><span class="support-contact-detail">+55 81 99756-3129</span></span>
+                    <span class="support-contact-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </button>
+                <button id="premiumAccelerateTelegramBtn" class="support-contact-btn" type="button">
+                    <span class="support-contact-icon telegram"><i class="fa-brands fa-telegram"></i></span>
+                    <span class="support-contact-copy"><span class="support-contact-name">Telegram</span><span class="support-contact-detail">@Andredye</span></span>
+                    <span class="support-contact-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </button>
+            </div>
+            <button class="btn-action btn-full btn-transparent mt-15" data-close="premiumAccelerateModal">VOLTAR À SOLICITAÇÃO</button>
         </div>
     </div>
 
@@ -5850,16 +5871,27 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         openModal('supportContactModal');
     }
 
-    // Envia a solicitação/aceleração da compra Premium para o lado Tasker
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
-    async function taskSendPurchaseWhatsApp(details) {
-        try {
-            await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
-                variables: { par1: 'buy-vip' }
-            });
-        } catch (e) {
-        }
+    let premiumAccelerateDetails = '';
+
+    function openPremiumAccelerateChannels(details) {
+        premiumAccelerateDetails = String(details || '').trim();
+        closeModal('buyModal');
+        openModal('premiumAccelerateModal');
+    }
+
+    function buildPremiumAccelerateMessage() {
+        const dados = premiumAccelerateDetails || buildPremiumRequestDetailsFromPending();
+        return `*WATS-CONNECT-API*\n\nSolicito a aceleração da minha solicitação Premium.\n\n${dados}`;
+    }
+
+    function sendPremiumAccelerateWhatsApp() {
+        const texto = encodeURIComponent(buildPremiumAccelerateMessage());
+        abrirContatoSuporte(`https://wa.me/5581997563129?text=${texto}`);
+    }
+
+    function sendPremiumAccelerateTelegram() {
+        const texto = encodeURIComponent(buildPremiumAccelerateMessage());
+        abrirContatoSuporte(`https://t.me/Andredye?text=${texto}`);
     }
 
     // Desinstala o WCA INTEIRO DENTRO da cena (V2), passo a passo com barra de
@@ -6725,6 +6757,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     const MODAL_NAME_MAP = {
         "buyModal": "buy_premium",
+        "premiumAccelerateModal": "premium_accelerate_channel",
         "buyConfirmModal": "buy_confirm",
         "zoomModal": "qr_zoom",
         "codePhoneModal": "code_phone",
@@ -6842,6 +6875,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         buyModal: 'helpModal',
         premiumCheckModal: 'helpModal',
         reviewsModal: 'helpModal',
+        premiumAccelerateModal: 'buyModal',
         buyConfirmModal: 'buyModal',
         deleteReviewModal: 'reviewsModal',
         confirmCancelPremiumRequestModal: 'premiumHistoryModal', devAlertModal: 'helpModal', devSettingsModal: 'helpModal', premiumProgressModal: 'helpModal', premiumResultModal: 'helpModal'
@@ -9988,7 +10022,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     document.getElementById('btnOpenPremiumCta')?.addEventListener('click', openBuyModal);
 
     document.getElementById('btnSendBuy')?.addEventListener('click', sendPurchase);
-    dom.acceleratePremiumBtn?.addEventListener('click', () => taskSendPurchaseWhatsApp(buildPremiumRequestDetailsFromPending()));
+    dom.acceleratePremiumBtn?.addEventListener('click', () => openPremiumAccelerateChannels(buildPremiumRequestDetailsFromPending()));
+    document.getElementById('premiumAccelerateWhatsAppBtn')?.addEventListener('click', sendPremiumAccelerateWhatsApp);
+    document.getElementById('premiumAccelerateTelegramBtn')?.addEventListener('click', sendPremiumAccelerateTelegram);
     dom.editPremiumRequestBtn?.addEventListener('click', editPremiumPendingRequest);
     dom.cancelPremiumRequestBtn?.addEventListener('click', askCancelPremiumPendingRequest);
     dom.confirmCancelPremiumRequestBtn?.addEventListener('click', doCancelPremiumPendingRequest);
