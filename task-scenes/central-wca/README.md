@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.84**
+Versão atual: **1.85**
 
-Arquivo atual: `central-wca-1.84.html`
+Arquivo atual: `central-wca-1.85.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -224,11 +224,11 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.84.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.85.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
 ## Política de arquivos
 
 
-O menu **Baixar cenas** baixa o ZIP completo da release mais recente que o contém, valida e substitui apenas as cenas em `web-view/task-scenes/`. As mídias dentro do ZIP não são extraídas nem substituídas. Essa ação não reinstala o XML nem baixa binários. Em caso de falha, permite tentar novamente; arquivos já substituídos não são revertidos automaticamente.
+O menu **Baixar cenas** pede confirmação antes de iniciar e, após confirmar, baixa o ZIP completo da release mais recente que o contém, valida e substitui apenas as cenas em `web-view/task-scenes/`. As mídias dentro do ZIP não são extraídas nem substituídas. Essa ação não reinstala o XML nem baixa binários. Em caso de falha, permite tentar novamente; arquivos já substituídos não são revertidos automaticamente.

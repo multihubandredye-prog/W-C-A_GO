@@ -3842,6 +3842,18 @@ input.first-install-attention {
     </div>
 
 
+    <div id="confirmDownloadScenesModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content">
+            <div class="restart-icon-wrap"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+            <h3 class="modal-title default-title">Baixar cenas?</h3>
+            <p class="delete-review-text">O pacote será baixado novamente e as cenas serão substituídas. As mídias e os binários não serão alterados.</p>
+            <div class="confirm-actions">
+                <button class="btn-action btn-flex btn-border" data-close="confirmDownloadScenesModal">NÃO</button>
+                <button id="btnConfirmDownloadScenes" class="btn-action btn-flex btn-border"><i class="fa-solid fa-cloud-arrow-down"></i> SIM</button>
+            </div>
+        </div>
+    </div>
+
     <div id="reinstallProgressModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-content">
             <div class="restart-icon-wrap"><i class="fa-solid fa-cloud-arrow-down"></i></div>
@@ -7164,6 +7176,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         "confirmDeactivateModal": "deactivate_confirm",
         "confirmReinstallApiModal": "reinstall_api_confirm",
         "confirmReinstallTaskModal": "reinstall_task_confirm",
+        "confirmDownloadScenesModal": "download_scenes_confirm",
         "reinstallProgressModal": "reinstall_download",
         "duplicateDeviceModal": "duplicate_device_alert",
         "helpModal": "menu", "supportContactModal": "support_contact", "devAlertModal": "dev_api_alert", "devSettingsModal": "dev_api_settings", "premiumProgressModal": "premium_check_progress", "premiumResultModal": "premium_check_result",
@@ -7263,6 +7276,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         supportContactModal: 'helpModal',
         confirmReinstallApiModal: 'helpModal',
         confirmReinstallTaskModal: 'helpModal',
+        confirmDownloadScenesModal: 'helpModal',
         reinstallProgressModal: 'helpModal',
         confirmUninstallModal: 'helpModal',
         confirmRestartModal: 'helpModal',
@@ -10457,6 +10471,10 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
     });
     document.getElementById('menuDownloadScenesBtn')?.addEventListener('click', () => {
         closeModal('helpModal');
+        openModal('confirmDownloadScenesModal');
+    });
+    document.getElementById('btnConfirmDownloadScenes')?.addEventListener('click', () => {
+        closeModal('confirmDownloadScenesModal');
         reinstallExecutar('cenas');
     });
     document.getElementById('btnConfirmReinstallApi')?.addEventListener('click', () => {
