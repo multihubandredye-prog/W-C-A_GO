@@ -1,6 +1,6 @@
 # Configuração do WebView
 
-Cena `010-DOWNLOAD_VIEW [wca]V2` · versão **1.22** · arquivo único `configuracao-webview-wca-1.22.html` (HTML, CSS e JavaScript inline).
+Cena `010-DOWNLOAD_VIEW [wca]V2` · versão **1.23** · arquivo único `configuracao-webview-wca-1.23.html` (HTML, CSS e JavaScript inline).
 
 ## Funcionamento
 
@@ -12,3 +12,5 @@ Cena `010-DOWNLOAD_VIEW [wca]V2` · versão **1.22** · arquivo único `configur
 - Com os arquivos já presentes, o processo de ZIP prossegue sem solicitar os binários. A verificação é apenas de existência: não detecta corrupção, arquivo vazio ou versão antiga dos binários existentes.
 - Após a conclusão, exibe contagem de 5 a 1, executa `001-CENTRAL_WHATS_CONNECT_API [wca]` e fecha a cena. Não instala o número nem inicia a API diretamente.
 - Download e extração usam a ponte Tasker; a consulta de releases usa `fetch`. O acesso do telefone deve estar habilitado no WebView. O botão voltar usa `cache_modal` e `return_modal`; os modais usam transição de escala e desfoque e o feedback de toque usa `:active`.
+
+O campo **Total a baixar** soma o ZIP e os binários ausentes com tamanho informado pela mesma release. Se não for possível verificar arquivos ou obter todos os tamanhos, exibe **Indisponível**. A verificação é refeita ao iniciar o download.

@@ -493,7 +493,7 @@ body::before {
                         <span class="row-value" id="pacoteArquivo"></span>
                     </div>
                     <div class="row">
-                        <span class="row-label">Tamanho</span>
+                        <span class="row-label">Total a baixar</span>
                         <span class="row-value" id="pacoteTamanho"></span>
                     </div>
                     <div class="row">
@@ -504,7 +504,7 @@ body::before {
 
 
                 <div class="info-texto">
-                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi. Verifica os <strong>binários do WCA</strong> e baixa da mesma release apenas os que estiverem ausentes.
+                    Ao confirmar, o sistema baixa o arquivo <strong>zipado</strong> com as <strong>cenas (HTML)</strong> e as <strong>mídias (ícones, áudio e vídeo)</strong> da release mais recente do WhatsConnectApi.
                 </div>
 
                 <button type="button" id="btnBaixar" class="btn-action btn-primario" disabled><i class="fa-solid fa-cloud-arrow-down"></i> BAIXAR PACOTE AGORA</button>
@@ -692,6 +692,7 @@ async function carregarPacote(){
         usandoPadrao = true;
     }
     renderizarPacote();
+    await atualizarTamanhoTotal();
 }
 
 function renderizarPacote(){
@@ -708,11 +709,30 @@ function renderizarPacote(){
     }
     document.getElementById('pacoteTag').textContent = pacoteAtual.tag;
     document.getElementById('pacoteArquivo').textContent = pacoteAtual.arquivo;
-    document.getElementById('pacoteTamanho').textContent = formatarTamanho(pacoteAtual.tamanho);
+    document.getElementById('pacoteTamanho').textContent = 'Calculando...';
     document.getElementById('pacoteData').textContent = formatarData(pacoteAtual.publicado);
     card.style.display = 'block';
     const botao = document.getElementById('btnBaixar');
     if (botao) botao.disabled = false;
+}
+
+// Soma somente arquivos que realmente precisam ser baixados nesta verificacao.
+async function atualizarTamanhoTotal(faltantesConhecidos){
+    const campo = document.getElementById('pacoteTamanho');
+    if (!campo || !pacoteAtual) return;
+    campo.textContent = 'Calculando...';
+    try {
+        const faltantes = faltantesConhecidos || await binariosFaltantes();
+        const tamanhos = [pacoteAtual.tamanho].concat(faltantes.map(function (nome) {
+            const item = pacoteAtual.binarios && pacoteAtual.binarios[nome];
+            return item && item.url ? item.tamanho : 0;
+        }));
+        if (tamanhos.some(function (valor) { return !Number.isFinite(Number(valor)) || Number(valor) <= 0; })) {
+            campo.textContent = 'Indisponível';
+            return;
+        }
+        campo.textContent = formatarTamanho(tamanhos.reduce(function (soma, valor) { return soma + Number(valor); }, 0));
+    } catch (erro) { campo.textContent = 'Indisponível'; }
 }
 
 // ---- Toasts ----
@@ -1257,6 +1277,7 @@ async function iniciarDownload(){
         return;
     }
     if (faltantes.length && usandoPadrao) await carregarPacote();
+    await atualizarTamanhoTotal(faltantes);
     const binariosDisponiveis = (pacoteAtual && pacoteAtual.binarios) || { };
     if (faltantes.some(function (nome) { return !binariosDisponiveis[nome] || !binariosDisponiveis[nome].url; })) {
         falhaDownload('BINÁRIOS INDISPONÍVEIS', 'Não foi possível localizar os binários ausentes na release. Tente novamente.');
@@ -1315,6 +1336,7 @@ async function iniciarDownload(){
             definirProgresso(binarios.motivo || 'Não foi possível baixar ou gravar todos os binários. Tente novamente.', 'erro');
             return;
         }
+        await atualizarTamanhoTotal();
         if (spinner) spinner.style.display = 'none';
         finalizado = true;
         baixando = false;
