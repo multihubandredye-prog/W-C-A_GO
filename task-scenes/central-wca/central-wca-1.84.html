@@ -3982,7 +3982,7 @@ input.first-install-attention {
 
                 <button class="menu-item-new" id="menuDownloadScenesBtn">
                     <div class="icon-container icon-primary"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-                    <div class="text-container"><div class="item-title">Baixar cenas e mídias</div><div class="item-subtitle">Atualizar os arquivos do WebView</div></div>
+                    <div class="text-container"><div class="item-title">Baixar cenas</div><div class="item-subtitle">Atualizar os arquivos do WebView</div></div>
                     <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </button>
 
@@ -6465,8 +6465,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const fechar = document.getElementById('reinstallCloseBtn');
         reinstallPararContagem();
         reinstallContinuationStarted = false;
-        if (titulo) titulo.textContent = tipo === 'api' ? 'REINSTALANDO A API' : (tipo === 'cenas' ? 'BAIXANDO CENAS E MÍDIAS' : 'REINSTALANDO O PROJETO');
-        if (intro) intro.textContent = tipo === 'api' ? 'Baixando e validando os arquivos binários da API.' : (tipo === 'cenas' ? 'Baixando e atualizando as cenas e mídias do WebView.' : 'Baixando e validando o projeto XML do Tasker.');
+        if (titulo) titulo.textContent = tipo === 'api' ? 'REINSTALANDO A API' : (tipo === 'cenas' ? 'BAIXANDO CENAS' : 'REINSTALANDO O PROJETO');
+        if (intro) intro.textContent = tipo === 'api' ? 'Baixando e validando os arquivos binários da API.' : (tipo === 'cenas' ? 'Baixando o pacote e atualizando somente as cenas do WebView.' : 'Baixando e validando o projeto XML do Tasker.');
         if (retry) retry.classList.add('d-none');
         if (agora) agora.classList.add('d-none');
         if (fechar) fechar.classList.add('d-none');
@@ -6476,7 +6476,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             if (tipo === 'cenas') {
                 pacoteAssetAtual = await pacoteObterMaisRecente();
                 await pacoteAtualizarCenas(pacoteAssetAtual.nome, 1, 1);
-                reinstallMostrarStatus('Cenas e mídias atualizadas com sucesso.', 'success');
+                reinstallMostrarStatus('Cenas atualizadas com sucesso.', 'success');
                 reinstallRunning = false;
                 if (fechar) fechar.classList.remove('d-none');
                 return;
@@ -6507,7 +6507,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
     }
 
-    // Download independente de cenas e midias, sem reinstalar o projeto XML.
+    // Download independente das cenas, sem alterar midias ou reinstalar o projeto XML.
     const PACOTE_WEBVIEW = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
     const PACOTE_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
     const PACOTE_STAGE = PACOTE_WEBVIEW + '/.wca-package-stage';
@@ -6643,7 +6643,9 @@ function pacoteCodificarBase64(bytes){
 
 async function pacoteExtrairZip(){
     reinstallMostrarStatus('Verificando o pacote de cenas e mídias...', '');
-    const entradas = pacoteEntradas(await pacoteLerZip());
+    // O ZIP tambem contem midias; apenas arquivos de cenas sao aplicados.
+    const entradas = pacoteEntradas(await pacoteLerZip()).filter(function (item) { return item.destino.indexOf(PACOTE_WEBVIEW + '/task-scenes/') === 0; });
+    if (!entradas.length) throw new Error('O pacote não contém cenas para atualizar.');
     await pacoteValidarConteudo(entradas);
     await pacoteShellConfirmado('rm -rf ' + shellQuote(PACOTE_STAGE) + ' && mkdir -p ' + shellQuote(PACOTE_STAGE), 60);
     try {
@@ -6659,7 +6661,7 @@ async function pacoteExtrairZip(){
         }
         for (let i = 0; i < entradas.length; i++) {
             const item = entradas[i];
-            reinstallMostrarStatus('Atualizando cenas e mídias: ' + (i + 1) + ' de ' + entradas.length + '...', '');
+            reinstallMostrarStatus('Atualizando cenas: ' + (i + 1) + ' de ' + entradas.length + '...', '');
             await pacoteShellConfirmado('mkdir -p ' + shellQuote(reinstallParentPath(item.destino)) + ' && mv -f ' + shellQuote(item.etapa) + ' ' + shellQuote(item.destino), 60);
         }
     } finally {
