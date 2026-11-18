@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.78**
+Versão atual: **1.79**
 
-Arquivo atual: `central-wca-1.78.html`
+Arquivo atual: `central-wca-1.79.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -66,8 +66,11 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 ## Avisos e interface
 
 - O banner de avisos só aparece quando há conteúdo;
-- O arquivo `system/notices/notices.txt` guarda em texto JSON o aviso (`texto`), o horário da última atualização bem-sucedida (`atualizadoEm`) e o da última tentativa sem sucesso (`tentativaEm`), em milissegundos;
+- O arquivo `system/notices/notices.txt` guarda em texto JSON o aviso (`texto`), o horário da última atualização bem-sucedida (`atualizadoEm`) e o da última tentativa sem sucesso (`tentativaEm`), em milissegundos, além do identificador atual e dos identificadores dispensados;
 - O cache é exibido imediatamente e consultado novamente após 10 minutos; com a cena aberta, a próxima verificação é agendada conforme o horário salvo;
+- A opção **Não exibir este aviso novamente** está no banner e no modal: ao marcar, salva o identificador no mesmo cache e só oculta após a gravação ser confirmada. Caso a gravação falhe, informa o erro e mantém o aviso;
+- O arquivo remoto `wca-resources/updates/avisos-id` define o identificador estável, sem acrescentar metadados ao texto do aviso. Para publicar outro aviso, use um ID diferente; correções no texto com o mesmo ID não fazem o aviso dispensado reaparecer. Quando o ID não puder ser consultado, o último cache confirmado é mantido; A atualização periódica consulta o aviso e lê o ID antes e depois para evitar associar textos e IDs de publicações diferentes. Publique um novo aviso e seu ID no mesmo commit;
+- Avisos antigos sem ID usam uma identificação calculada a partir do texto, e caches da versão anterior continuam aceitos;
 - Se o arquivo estiver ausente ou vazio, o aviso é buscado no repositório; a pasta só é criada se o arquivo não existir. Um aviso remoto vazio válido também é armazenado e oculta o banner;
 - Em falha de rede, o último aviso é preservado e uma nova tentativa é limitada pelo intervalo de 10 minutos quando existe cache;
 - quebras de linha são preservadas;
@@ -221,7 +224,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.78.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.79.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
