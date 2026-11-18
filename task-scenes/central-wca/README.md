@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.81**
+Versão atual: **1.82**
 
-Arquivo atual: `central-wca-1.81.html`
+Arquivo atual: `central-wca-1.82.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -68,13 +68,13 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - O banner de avisos só aparece quando há conteúdo;
 - O arquivo `system/notices/notices.txt` guarda em texto JSON o aviso (`texto`), o horário da última atualização bem-sucedida (`atualizadoEm`) e o da última tentativa sem sucesso (`tentativaEm`), em milissegundos, além do identificador atual e dos identificadores dispensados;
 - O cache é exibido imediatamente e consultado novamente após 10 minutos; com a cena aberta, a próxima verificação é agendada conforme o horário salvo;
-- A opção **Não exibir este aviso novamente** está no banner e no modal: ao marcar, salva o identificador no mesmo cache e só oculta após a gravação ser confirmada. Caso a gravação falhe, informa o erro e mantém o aviso;
+- A opção **Não exibir este aviso novamente** está somente no modal: ao marcar, salva o identificador no mesmo cache e só oculta após a gravação ser confirmada. Caso a gravação falhe, informa o erro e mantém o aviso;
 - A identificação do aviso é calculada a partir de todo o conteúdo do arquivo remoto `wca-resources/updates/avisos`, incluindo espaços e quebras de linha. Qualquer alteração faz o aviso reaparecer após a próxima consulta, inclusive para quem dispensou o conteúdo anterior ou quando um texto antigo retorna. O intervalo de consulta continua sendo de 10 minutos. Na migração, um aviso já dispensado pode reaparecer uma vez se espaços ou quebras nas bordas não estiverem preservados no cache antigo.
 - Avisos antigos sem ID usam uma identificação calculada a partir do texto, e caches da versão anterior continuam aceitos;
 - Se o arquivo estiver ausente ou vazio, o aviso é buscado no repositório; a pasta só é criada se o arquivo não existir. Um aviso remoto vazio válido também é armazenado e oculta o banner;
 - Em falha de rede, o último aviso é preservado e uma nova tentativa é limitada pelo intervalo de 10 minutos quando existe cache;
 - quebras de linha são preservadas;
-- o banner compacto possui rolagem interna e abre o texto completo em modal; o checkbox e o botão de fechamento têm espaçamento e o conteúdo rola em telas menores;
+- o card compacto mostra uma prévia, o texto **Expandir** e uma borda animada discreta; tocar em qualquer parte abre o modal com o texto completo. No modal, o checkbox e o botão de fechamento têm espaçamento e o conteúdo rola em telas menores;
 - todos os modais entram e saem com transição de foco, combinando ampliação e desfoque, incluindo confirmações, menu e telas modais;
 - cancelar ou fechar um modal aberto pelo menu restaura automaticamente o menu de origem;
 - o modal superior bloqueia a interação com o conteúdo de trás;
@@ -224,7 +224,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.81.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.82.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

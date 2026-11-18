@@ -2040,36 +2040,66 @@ body.modal-open { overflow: hidden; }
     bottom: 3.1rem;
     left: 50%;
     transform: translateX(-50%);
-    width: calc(100% - 24px);
-    max-width: 520px;
+    width: calc(100% - 32px);
+    max-width: 480px;
     z-index: 10;
-    background: linear-gradient(135deg, rgba(255,193,7,0.16), rgba(255,193,7,0.05));
-    border: 1px solid rgba(255,193,7,0.55);
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    overflow: hidden;
+    padding: .8rem .9rem;
+    border: 1px solid rgba(88, 170, 201, .24);
+    border-radius: 14px;
+    background: #091521;
+    color: #eaf5fc;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+    isolation: isolate;
+}
+.aviso-banner::before {
+    content: '';
+    position: absolute;
+    z-index: -2;
+    left: 50%;
+    top: 50%;
+    width: 160%;
+    aspect-ratio: 1;
+    background: conic-gradient(transparent 0deg, transparent 250deg, rgba(75, 202, 238, .85) 310deg, transparent 360deg);
+    animation: avisoOrbit 7s linear infinite;
+    pointer-events: none;
+}
+.aviso-banner::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 1px;
     border-radius: 12px;
-    padding: .85rem 1rem;
-    text-align: center;
-    box-shadow: 0 0 15px rgba(255,193,7,0.25);
-    animation: alertPulse 2s infinite ease-in-out;
+    background: linear-gradient(130deg, #102330, #09131e 70%);
+    pointer-events: none;
 }
-.aviso-banner p {
-    font-size: .84rem;
-    color: #fff;
-    font-weight: 500;
-    line-height: 1.42;
-    margin: 0;
-    white-space: pre-line;
-    max-height: 4.8rem;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,193,7,.5) transparent;
+@keyframes avisoOrbit { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+.aviso-banner:active { filter: brightness(1.13); }
+.aviso-banner:focus-visible { outline: 2px solid #7bd9f1; outline-offset: 3px; }
+.aviso-icone {
+    display: flex;
+    flex: 0 0 2.35rem;
+    width: 2.35rem;
+    height: 2.35rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    background: rgba(83, 191, 218, .12);
+    color: #78d6eb;
+    font-size: 1rem;
 }
-.aviso-banner p::-webkit-scrollbar { width: 4px; }
-.aviso-banner p::-webkit-scrollbar-thumb { background: rgba(255,193,7,.5); border-radius: 4px; }
-.aviso-banner.com-corte p {
-    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
-    padding-right: 1.6rem;
-}
+.aviso-resumo { min-width: 0; flex: 1; }
+.aviso-resumo-titulo { display: block; color: #e9f7fb; font-size: .79rem; font-weight: 700; letter-spacing: .02em; margin-bottom: .22rem; }
+.aviso-resumo-texto { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; color: #aebfcc; font-size: .75rem; line-height: 1.35; overflow-wrap: anywhere; }
+.aviso-expandir { flex: 0 0 auto; color: #8ddbea; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+@media (max-width: 320px) { .aviso-banner { gap: .5rem; padding: .7rem; } .aviso-icone { flex-basis: 2rem; width: 2rem; height: 2rem; } }
+@media (prefers-reduced-motion: reduce) { .aviso-banner::before { animation: none; } }
 .aviso-modal-texto {
     font-size: .9rem;
     color: #fff;
@@ -2084,25 +2114,7 @@ body.modal-open { overflow: hidden; }
 }
 .aviso-modal-texto::-webkit-scrollbar { width: 4px; }
 .aviso-modal-texto::-webkit-scrollbar-thumb { background: rgba(255,193,7,.5); border-radius: 4px; }
-.aviso-expandir {
-    position: absolute;
-    top: .45rem;
-    right: .45rem;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    background: rgba(255,193,7,.14);
-    border: 1px solid rgba(255,193,7,.45);
-    border-radius: 999px;
-    color: #ffc107;
-    font-size: .8rem;
-    cursor: pointer;
-    padding: 0;
-}
-body.com-aviso { padding-bottom: 18rem; }
+body.com-aviso { padding-bottom: 10rem; }
 .aviso-dispensar { display: flex; align-items: center; gap: .6rem; margin-top: .75rem; text-align: left; color: #fff; font-size: .76rem; line-height: 1.4; cursor: pointer; }
 .aviso-dispensar input { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; accent-color: #ffc107; }
 .aviso-dispensar:active { color: #ffc107; }
@@ -2112,13 +2124,6 @@ body.com-aviso { padding-bottom: 18rem; }
 #avisoModal .aviso-modal-texto { flex: 1 1 auto; min-height: 0; }
 #avisoModal .delete-icon-wrap, #avisoModal .modal-title, #avisoModal .aviso-dispensar, #avisoModal .aviso-erro, #avisoModal .confirm-actions { flex-shrink: 0; }
 #avisoModal .confirm-actions { margin-top: 1rem; }
-
-.aviso-banner .aviso-icone {
-    font-size: 1.3rem;
-    color: #ffc107;
-    margin-bottom: .35rem;
-    display: inline-block;
-}
 
 @keyframes spinBorder { to { --spin: 360deg; } }
 @keyframes floatIn { from { opacity:0; transform: translateY(-18px);} to {opacity:1; transform: translateY(0);} }
@@ -4316,13 +4321,14 @@ input.first-install-attention {
         </div>
     </div>
 
-    <div id="avisoBanner" class="aviso-banner d-none" role="alert">
-        <span class="aviso-icone"><i class="fa-solid fa-triangle-exclamation"></i></span>
-        <p id="avisoTexto"></p>
-        <label class="aviso-dispensar"><input type="checkbox" id="avisoDispensar"> Não exibir este aviso novamente</label>
-        <div id="avisoErro" class="aviso-erro" role="status"></div>
-        <button id="avisoExpandir" class="aviso-expandir d-none" type="button" aria-label="Expandir aviso"><i class="fa-solid fa-chevron-down"></i></button>
-    </div>
+    <button id="avisoBanner" class="aviso-banner d-none" type="button" aria-haspopup="dialog" aria-label="Abrir aviso completo">
+        <span class="aviso-icone" aria-hidden="true"><i class="fa-solid fa-bell"></i></span>
+        <span class="aviso-resumo">
+            <span class="aviso-resumo-titulo">Aviso importante</span>
+            <span class="aviso-resumo-texto" id="avisoTexto"></span>
+        </span>
+        <span class="aviso-expandir">Expandir</span>
+    </button>
 
     <footer class="main-footer">
         <span class="dev-name">Andredye Oliveira Melo</span>
@@ -4520,10 +4526,7 @@ async function obterUltimaVersaoRelease(){
         if (textoModal) textoModal.textContent = texto;
         banner.classList.toggle('d-none', !visivel);
         document.body.classList.toggle('com-aviso', visivel);
-        const botao = document.getElementById('avisoExpandir');
-        const cortado = visivel && paragrafo.scrollHeight > paragrafo.clientHeight + 2;
-        banner.classList.toggle('com-corte', cortado);
-        if (botao) botao.classList.toggle('d-none', !cortado);
+
     }
 
     async function lerCacheAviso(){
@@ -4568,7 +4571,7 @@ async function obterUltimaVersaoRelease(){
             if (!salvo && exigirSalvamento) return false;
             const mudouAviso = !avisoMemoria || avisoMemoria.id !== novo.id;
             avisoMemoria = novo;
-            if (mudouAviso) ['avisoErro', 'avisoModalErro'].forEach(function (id) { const erro = document.getElementById(id); if (erro) erro.textContent = ''; });
+            if (mudouAviso) ['avisoModalErro'].forEach(function (id) { const erro = document.getElementById(id); if (erro) erro.textContent = ''; });
             mostrarAviso(novo.texto);
             return salvo;
         });
@@ -4579,8 +4582,8 @@ async function obterUltimaVersaoRelease(){
     async function dispensarAviso(){
         if (avisoDispensando || !avisoMemoria || !avisoMemoria.id || !avisoMemoria.texto) return;
         const id = avisoMemoria.id;
-        const caixas = [document.getElementById('avisoDispensar'), document.getElementById('avisoModalDispensar')];
-        const erros = [document.getElementById('avisoErro'), document.getElementById('avisoModalErro')];
+        const caixas = [document.getElementById('avisoModalDispensar')];
+        const erros = [document.getElementById('avisoModalErro')];
         avisoDispensando = true;
         caixas.forEach(function (c) { if (c) c.disabled = true; });
         erros.forEach(function (e) { if (e) e.textContent = ''; });
@@ -10398,14 +10401,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         setInterval(function () { atualizarPedidoInicial(false); }, 60000);
         loadVersionFile().catch(function () {});
         iniciarAtualizacaoAvisos();
-        // Banner de avisos (1.52): a seta abre um modal centralizado com o
-        // texto completo (o banner continua compacto acima do footer).
-        const btnAviso = document.getElementById('avisoExpandir');
+        // O card inteiro abre o aviso; a dispensa fica somente no modal.
+        const btnAviso = document.getElementById('avisoBanner');
         if (btnAviso) btnAviso.addEventListener('click', function () { openModal('avisoModal'); });
-        ['avisoDispensar', 'avisoModalDispensar'].forEach(function (id) {
-            const caixa = document.getElementById(id);
-            if (caixa) caixa.addEventListener('change', function () { if (caixa.checked) dispensarAviso(); });
-        });
+        const caixaAviso = document.getElementById('avisoModalDispensar');
+        if (caixaAviso) caixaAviso.addEventListener('change', function () { if (caixaAviso.checked) dispensarAviso(); });
         loadModeSystemLog().catch(function () {});
         loadUserProfilePicture().catch(function () {});
         // loadTaskerVars().catch(function () {}); // DESLIGADO: valores fictícios fixos no CONFIG por enquanto
