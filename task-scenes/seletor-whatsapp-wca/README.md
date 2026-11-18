@@ -1,53 +1,20 @@
-# Seletor de WhatsApp WCA — Cena V2 (WebView)
+# Seletor de WhatsApp WCA — Cena V2
 
-Projeto: `004-WHATSAPP_SELETOR [wca]`
-Versão atual: **1.2**
-Arquivo: `seletor-de-whatsapp-wca-1.2.html` — **único arquivo**, com HTML + CSS + JS inline.
+Projeto `004-WHATSAPP_SELETOR [wca]V2` · versão **1.3** · HTML único `seletor-de-whatsapp-wca-1.3.html`, com CSS e JavaScript inline.
 
-- **Feedback de toque (versão atual)**: todo o CSS usa **`:active`** no lugar de `:hover` — a cena é usada só em celular, então o feedback visual acontece **no toque**;
+A cena apresenta as opções **WhatsApp Messenger** e **WhatsApp Business**. Ao selecionar, envia à ponte do Tasker a variável de tela `bottom`, respectivamente `wa-message` ou `wa-business`.
 
-- **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
+## Estabilidade
 
-Painel de seleção do WhatsApp: quando mais de um aplicativo WhatsApp é detectado no dispositivo, exibe o badge "Sistema Detectado", o texto informativo e os dois botões de escolha — **WhatsApp Messenger** (verde) e **WhatsApp Business** (azul), separados pelo divisor "OU". Conteúdo estático (badge, texto e contagem são fixos, como no original).
+- Durante a operação os botões ficam temporariamente bloqueados contra toques duplicados. O progresso e eventuais erros aparecem na própria tela.
+- A gravação de `bottom` tem prazo de 5 segundos. Se a ponte estiver indisponível, rejeitar ou demorar, a cena permanece aberta e informa como tentar novamente; não inicia o fechamento por erro de gravação.
+- Uma gravação que ultrapassou o prazo ainda pode terminar posteriormente: enquanto estiver pendente, o usuário pode tentar novamente a mesma opção ou reabrir a tela, mas a outra opção fica bloqueada para evitar que uma resposta tardia sobrescreva uma escolha diferente.
+- Após a ponte aceitar a gravação, a cena tenta fechar com `dismissSceneV2`, `dismissLayout` e, como alternativa, a tarefa auxiliar `004-FECHAR_WHATSAPP_SELETOR [wca]`, se disponível. As tentativas têm prazo e tratam também rejeições assíncronas. Não usa `cancelScreen`, pois encerra a cena com erro em vez de devolver o resultado.
+- Se o fechamento não puder ser confirmado, a cena exibe uma mensagem e permite nova tentativa. A confirmação final do recebimento de `bottom` depende da execução da cena e da tarefa no dispositivo.
 
-## Variáveis do Tasker consumidas pela cena
+## Configuração no Tasker
 
-**Nenhuma.** A cena é estática — toda a informação está no HTML.
-
-## Saída da cena (AMBIENTE DO TASKER)
-
-| Ação do usuário | O que acontece |
-|---|---|
-| Botão **WhatsApp Messenger** | Grava a variável de tela `bottom = wa-message` e fecha a cena |
-| Botão **WhatsApp Business** | Grava a variável de tela `bottom = wa-business` e fecha a cena |
-
-A variável `bottom` volta para a tarefa que exibiu a cena quando ela é dismissada. O fechamento é a mesma cascata validada dos outros projetos: `Tasker.dismissSceneV2(ID da Tela)` → `dismissLayout` → `cancelScreen` → `runTask` na tarefa auxiliar `004-FECHAR_WHATSAPP_SELETOR [wca]` (criar com a ação **Fechar cena v2** garante o fechamento em qualquer versão). A constante `WCA_SCENE_SCREEN_ID` (`'1'`) deve ser o **MESMO ID da Tela** configurado na ação *Cena v2 Mostrar*. Resposta dupla é ignorada (guarda interna — o primeiro clique vence).
-
-**Receita no lado Tasker:** Show Scene v2 em modo **With Result** (Fullscreen With Result / Dialog With Result), **Screen ID `1`**, campo *Dispensar Automaticamente* vazio; após a ação, ler `%bottom` (`wa-message` | `wa-business`). O modo With Result pausa a tarefa até a cena fechar e devolve a resposta na sequência do fluxo.
-
-## Arquivos que a cena lê
-
-**Nenhum.**
-
-## Recursos externos
-
-- Google Fonts (Inter) e Font Awesome CDN no `<head>`;
-- Vídeo do cabeçalho: `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4` (exige **Allow Phone Access** no elemento Web).
-
-## Requisitos da cena V2
-
-- Tasker 6.7 ou superior (Scenes V2 / "Modern (V2)")
-- Componente **WebView** com o **JavaScript bridge** habilitado
-- **Allow Phone Access** habilitado no elemento Web (vídeo via `file://`)
-
-## Como atualizar no Tasker
-
-1. Abra a cena `004-WHATSAPP_SELETOR` (V2) no editor
-2. No componente **WebView**, substitua o HTML pelo conteúdo integral do arquivo da versão atual
-3. Confirme que **Allow Phone Access** continua habilitado
-4. Confira o **ID da Tela** da ação *Cena v2 Mostrar* — o mesmo valor deve estar na constante `WCA_SCENE_SCREEN_ID` do HTML
-5. A resposta chega em `bottom` (`wa-message` | `wa-business`) quando a cena fecha
-
-## Política de versões
-
-Todas as versões são **mantidas nesta pasta** desde a 1.0 — a cada alteração um novo arquivo é adicionado e nenhum anterior é removido, permitindo correções ou retorno sem perda.
+- Na ação **Cena v2 Mostrar**, use `FullscreenWithResult` ou outro modo **With Result**, ID da Tela `1` e **Dispensar Automaticamente** vazio.
+- Habilite o JavaScript bridge e **Allow Phone Access** no WebView. Após o fechamento, leia `%bottom` na tarefa; os valores continuam `wa-message` e `wa-business`.
+- A tarefa auxiliar de fechamento é uma alternativa, não um requisito para os métodos de fechamento do bridge.
+- O cabeçalho usa vídeo em `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4`; a fonte e os ícones externos podem depender de rede.
