@@ -1989,6 +1989,7 @@ body.modal-open { overflow: hidden; }
     transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
 }
 
+.wca-whatsapp-status { display: inline-block; margin-top: 4px; font-size: .67rem; color: #aebfcc; letter-spacing: .1px; }
 .wca-status-toast.show {
     transform: translateX(0);
     opacity: 1;
@@ -4219,7 +4220,7 @@ input.first-install-attention {
 
     <div id="wcaConnectedToast" class="wca-status-toast">
         <span class="wca-status-dot"></span>
-        <span class="wca-status-text">API ONLINE</span>
+        <span class="wca-status-text">API ONLINE<br><span id="whatsappStatusText" class="wca-whatsapp-status">WHATSAPP: VERIFICANDO</span></span>
     </div>
 
     <div class="content-wrapper">
@@ -8514,6 +8515,24 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         showServerAlert('Não foi possível conectar à API. Verifique se ela está ativa.');
     }
 
+    // JID identifica uma sessao salva; somente logged_in confirma conexao ativa.
+    function dispositivoConectado(dev){
+        return !!(dev && dev.jid && String(dev.state || '').toLowerCase() === 'logged_in');
+    }
+
+    function atualizarStatusWhatsapp(devices){
+        const campo = document.getElementById('whatsappStatusText');
+        if (!campo) return;
+        const telefone = getPrincipalPhone();
+        const principal = telefone && Array.isArray(devices) ? devices.find(function (d) { return d && d.jid && jidToPhone(d.jid) === telefone; }) : null;
+        if (!principal) { campo.textContent = 'WHATSAPP: NÃO VERIFICADO'; return; }
+        const estado = String(principal.state || '').toLowerCase();
+        if (dispositivoConectado(principal)) campo.textContent = 'WHATSAPP: CONECTADO';
+        else if (estado === 'connecting' || estado === 'connected') campo.textContent = 'WHATSAPP: CONECTANDO';
+        else if (estado === 'disconnected') campo.textContent = 'WHATSAPP: DESCONECTADO';
+        else campo.textContent = 'WHATSAPP: NÃO VERIFICADO';
+    }
+
     function computeDeviceView(dev){
         if(dev && dev.pausedFromFile){
             const phone = jidToPhone(dev.jid);
@@ -8550,7 +8569,9 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                 roleLabel: phone && getPrincipalPhone() && phone === getPrincipalPhone() ? 'PRIMÁRIO' : (phone ? 'AUXILIAR' : '')
             };
         }
-        const isLoggedIn = !!dev.jid;
+        const isLoggedIn = dispositivoConectado(dev);
+        const temSessao = !!dev.jid;
+        const estado = String(dev.state || '').toLowerCase();
         let deviceName = getDeviceName(dev);
         const hasName    = !!deviceName;
         const isWaiting  = pairingDevices.has(dev.id) && !isLoggedIn;
@@ -8566,17 +8587,19 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             badgeClass = 'badge-online';
         } else if (isSyncing) {
             stateKey = 'syncing'; cardClass += ' connecting'; nameToDisplay = 'Sincronizando...'; badgeText = 'SINCRONIZANDO'; badgeClass = 'badge-pairing';
-        } else if (isWaiting) {
-            stateKey = 'waiting'; cardClass += ' connecting'; nameToDisplay = 'Aguardando conexão'; badgeText = 'AGUARDANDO'; badgeClass = 'badge-pairing';
+        } else if (isWaiting || estado === 'connecting' || estado === 'connected') {
+            stateKey = 'waiting'; cardClass += ' connecting'; nameToDisplay = deviceName || 'Aguardando conexão'; badgeText = 'CONECTANDO'; badgeClass = 'badge-pairing';
+        } else if (temSessao && estado !== 'disconnected') {
+            stateKey = 'unknown'; cardClass += ' offline'; nameToDisplay = deviceName || jidToPhone(dev.jid); badgeText = 'NÃO VERIFICADO'; badgeClass = 'badge-offline';
         } else {
-            stateKey = 'offline'; cardClass += ' offline'; nameToDisplay = 'Dispositivo'; badgeText = 'OFFLINE'; badgeClass = 'badge-offline';
+            stateKey = 'offline'; cardClass += ' offline'; nameToDisplay = deviceName || (temSessao ? jidToPhone(dev.jid) : 'Dispositivo'); badgeText = 'OFFLINE'; badgeClass = 'badge-offline';
         }
 
-        const idToDisplay = (isLoggedIn && dev.jid) ? dev.jid.split('@')[0] : dev.id;
-        const showButtons = !isLoggedIn && !isWaiting;
+        const idToDisplay = temSessao ? dev.jid.split('@')[0] : dev.id;
+        const showButtons = !temSessao && !isWaiting;
 
         let roleLabel = '';
-        if (isLoggedIn && dev.jid) {
+        if (temSessao) {
             const principal = getPrincipalPhone();
             roleLabel = (principal && jidToPhone(dev.jid) === principal) ? 'PRIMÁRIO' : 'AUXILIAR';
         }
@@ -8738,19 +8761,21 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             if (devicesCachePromise) await devicesCachePromise;
             const res     = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
             const data    = await res.json();
-            const devices = data.results || [];
+            if (res.ok === false || !Array.isArray(data.results)) throw new Error('Resposta inválida da API de dispositivos.');
+            const devices = data.results;
 
             hideServerAlert();
             // Sincroniza primeiro: o primeiro numero precisa ter seu papel
             // definido antes de desenhar os cartoes.
             devices.forEach(d => { if (d && d.jid) syncDeviceToFile(d); });
             renderDeviceList(devices);
+            atualizarStatusWhatsapp(devices);
             refreshDevicesDependentUi();
             checkReconnectStateForDevices(devices);
 
             const loggedInIds = new Set();
             devices.forEach(d => {
-                if (d.jid) {
+                if (dispositivoConectado(d)) {
                     loggedInIds.add(d.id);
                     pairingDevices.delete(d.id);
                     if (getDeviceName(d)) {
@@ -8773,8 +8798,9 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
 
             Object.keys(nameTimers).forEach(id => { if (!loggedInIds.has(id)) stopNameWatch(id); });
 
-            return devices.filter(d => d.jid).every(d => getDeviceName(d));
+            return devices.filter(dispositivoConectado).every(d => getDeviceName(d));
         } catch(e){
+            atualizarStatusWhatsapp(null);
             handleServerError(e);
             if(hasStoredConnections()){
                 setReactivateUiState(true);
@@ -8795,7 +8821,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             const devices = data.results || [];
 
             devices.forEach(d => {
-                if (d.jid && !getDeviceName(d) && !devicesWithFallback.has(d.id)) {
+                if (dispositivoConectado(d) && !getDeviceName(d) && !devicesWithFallback.has(d.id)) {
                     // Dispositivo online mas sem nome - inicia polling (1s por até 20s)
                     stopNameWatch(d.id);
                     startNameWatch(d.id);
@@ -8822,7 +8848,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         checkTimers[id] = setInterval(async () => {
             try{
                 const dev = await fetchDeviceFromList(id);
-                const isLoggedIn = !!dev?.jid;
+                const isLoggedIn = dispositivoConectado(dev);
 
                 if (isLoggedIn) {
                     clearInterval(checkTimers[id]);
@@ -8858,7 +8884,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                 const dev = await fetchDeviceFromList(id);
 
                 // Se não tem jid, dispositivo desconectou
-                if (!dev || !dev.jid) {
+                if (!dispositivoConectado(dev)) {
                     nameToastShown.delete(id);
                     stopNameWatch(id);
                     fetchDevices();
@@ -8918,11 +8944,14 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             try {
                 const res = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
                 const data = await res.json();
-                const devices = data.results || [];
+                if (!res.ok || !Array.isArray(data.results)) { atualizarStatusWhatsapp(null); return; }
+                const devices = data.results;
+                atualizarStatusWhatsapp(devices);
+                renderDeviceList(devices);
                 let changed = false;
 
                 for (const dev of devices) {
-                    if (!dev.jid) continue;
+                    if (!dispositivoConectado(dev)) continue;
 
                     // Se já tem nome, sincroniza e sai
                     if (getDeviceName(dev)) {
@@ -8938,7 +8967,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                     // Faz uma requisição individual para esse dispositivo
                     try {
                         const latestDev = await fetchDeviceFromList(dev.id);
-                        if (latestDev && latestDev.jid && getDeviceName(latestDev)) {
+                        if (dispositivoConectado(latestDev) && getDeviceName(latestDev)) {
                             // Nome apareceu! Sai do fallback
                             devicesWithFallback.delete(dev.id);
                             syncDeviceToFile(latestDev);
@@ -8951,7 +8980,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                     deviceListSignature = null;
                     fetchDevices();
                 }
-            } catch(e) { /* silencioso */ }
+            } catch(e) { atualizarStatusWhatsapp(null); }
         }, 10000);
     }
 
