@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.77**
+Versão atual: **1.78**
 
-Arquivo atual: `central-wca-1.77.html`
+Arquivo atual: `central-wca-1.78.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -38,8 +38,10 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - dispositivos são lidos e gravados em `devices.json`; a leitura inicial do cache precede a sincronização e a renderização dos cartões;
 - o primeiro dispositivo registrado é **PRIMÁRIO** e os seguintes são **AUXILIAR**; um principal já salvo é preservado e, quando registros existentes não têm principal, o primeiro válido é marcado;
 - o fluxo de QR Code renova o código quando o contador chega a zero e libera o cartão ao fechar o modal;
-- a instalação do número é direta ao Tasker: a cena valida o número, grava a sessão e entrega `number` e `session` em `exit_data` para `006-CONFIGURAR_SISTEMA [wca]` com `par1 = install-project`;
-- a cena não inicia a API, não consulta `/devices` e não confere os arquivos do pacote — toda a configuração, inclusive a subida do serviço, acontece na tarefa do Tasker;
+- a instalação do primeiro número é direta ao Tasker: a cena valida o número, grava a sessão e entrega `number` e `session` em `exit_data` para `006-CONFIGURAR_SISTEMA [wca]` com `par1 = install-project`;
+- ao digitar quando já há conexão no cache local de `devices.json`, o aviso informa que outros números devem ser adicionados na aba **Conexões**, via QR Code ou código; o botão de instalação fica bloqueado;
+- antes de enviar a instalação, a cena aguarda a leitura local iniciada na abertura e verifica novamente se há conexão salva, preservando a instalação direta quando não há conexão registrada;
+- o fluxo de instalação não inicia a API, não consulta `/devices` e não confere os arquivos do pacote — toda a configuração, inclusive a subida do serviço, acontece na tarefa do Tasker; a classificação usa os dados disponíveis no cache local;
 - a trava `instalacaoEmAndamento` impede toque duplo enquanto o disparo está em curso;
 - o retorno do disparo de `install-project` é exibido no campo e em toast, no lugar da falha silenciosa;
 - a desinstalação tem quatro etapas: desconecta os usuários pela API, elimina os arquivos e as pastas do WCA, encerra o processo `whatsapp-wca-aarch64` pelo Shell e só então encerra as cenas em cascata;
@@ -219,7 +221,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.77.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.78.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

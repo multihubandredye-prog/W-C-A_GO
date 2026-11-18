@@ -5813,6 +5813,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     let serverStatusChecked = false;
     let wcaPausedByStoredConnection = false;
     let duplicateModalMode = 'connections';
+    let avisoConexaoMostrado = false;
+    let usuarioDigitouNumero = false;
     let firstInstallPulseTimer = null;
 
     const dom = {
@@ -7231,13 +7233,16 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         btn.addEventListener('click', () => openTab(btn.dataset.tab));
     });
 
-    function validatePhoneNumber(){
+    function validatePhoneNumber(mostrarAviso){
         const isExpired = isExpiredLogData();
         if(dom.valMsg) dom.valMsg.classList.remove('first-install-msg');
         dom.telInput.value = dom.telInput.value.replace(/\D/g, '');
         if(dom.telInput.value.trim()) stopFirstInstallInputPulse();
         const val = dom.telInput.value;
         const isValid = (val.length === 12 || val.length === 13);
+        const dispositivoSalvo = getPrincipalStoredConnection();
+        if (!val) { avisoConexaoMostrado = false; usuarioDigitouNumero = false; }
+        if (mostrarAviso && val) usuarioDigitouNumero = true;
 
         dom.valMsg.classList.remove('success', 'error');
 
@@ -7248,6 +7253,15 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             dom.valMsg.classList.add('error');
             dom.installBtn.disabled = true;
             if(sessionGroup) sessionGroup.classList.add('d-none');
+        } else if(dispositivoSalvo && val.length > 0){
+            dom.valMsg.textContent = 'Use a aba Conexões para adicionar outro número.';
+            dom.valMsg.classList.add('error');
+            dom.installBtn.disabled = true;
+            if(sessionGroup) sessionGroup.classList.add('d-none');
+            if(mostrarAviso && !avisoConexaoMostrado && !instalacaoEmAndamento){
+                avisoConexaoMostrado = true;
+                showDuplicateModal(dispositivoSalvo);
+            }
         } else if(isValid){
             dom.valMsg.textContent = "✓ Válido";
             dom.valMsg.classList.add('success');
@@ -7302,23 +7316,30 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     // /devices e nao confere arquivos: toda a configuracao acontece na tarefa
     async function install(){
         const phoneToInstall = dom.telInput.value.replace(/\D/g, '');
-        if (!phoneToInstall) return;
+        if (phoneToInstall.length !== 12 && phoneToInstall.length !== 13) return;
         if (instalacaoEmAndamento) return;
-
-        if(!serverOnline && hasStoredConnections()){
-            showPausedInstallBlockedModal(getFirstStoredConnection());
-            return;
-        }
-
+        if (isExpiredLogData()) return;
         instalacaoEmAndamento = true;
         if (dom.installBtn) dom.installBtn.disabled = true;
-        instalarMensagem('Enviando a instalação...', '');
-
         try {
+            // Espera somente a leitura local ja iniciada; nao consulta API nem binarios.
+            if (devicesCachePromise) await devicesCachePromise;
+            if (dom.telInput.value.replace(/\D/g, '') !== phoneToInstall) return;
+            const dispositivoSalvo = getPrincipalStoredConnection();
+            if (dispositivoSalvo) {
+                avisoConexaoMostrado = true;
+                if (serverStatusChecked && !serverOnline) showPausedInstallBlockedModal(dispositivoSalvo);
+                else showDuplicateModal(dispositivoSalvo);
+                return;
+            }
+            instalarMensagem('Enviando a instalação...', '');
             const sessionInput = document.getElementById('sessionInput');
             const session = (sessionInput?.value.trim()) || DEV_SESSAO_PADRAO;
-            const installData = JSON.stringify({number: dom.telInput.value, session}, null, 2);
+            const installData = JSON.stringify({number: phoneToInstall, session}, null, 2);
             try { await devAtualizarAppOs(session); } catch (eDevEnv) { }
+            if (dom.telInput.value.replace(/\D/g, '') !== phoneToInstall) return;
+            const dispositivoAntesDoEnvio = getPrincipalStoredConnection();
+            if (dispositivoAntesDoEnvio) { avisoConexaoMostrado = true; showDuplicateModal(dispositivoAntesDoEnvio); return; }
             const iniciou = await taskInstall(installData);
             if (iniciou) {
                 instalarMensagem('✓ Instalação enviada ao serviço', 'success');
@@ -7336,7 +7357,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             instalacaoEmAndamento = false;
             if (dom.installBtn) {
                 const digitos = dom.telInput.value.replace(/\D/g, '').length;
-                dom.installBtn.disabled = !(digitos === 12 || digitos === 13) || isExpiredLogData();
+                dom.installBtn.disabled = !(digitos === 12 || digitos === 13) || isExpiredLogData() || hasStoredConnections();
             }
         }
     }
@@ -8801,6 +8822,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         updateReviewMenuAvailability();
         updatePremiumMenuAvailability();
         atualizarPedidoInicial(false);
+        if (dom.telInput && dom.telInput.value.trim()) {
+            const abaInstalacao = document.getElementById('config-tab');
+            const podeAvisar = usuarioDigitouNumero && abaInstalacao && abaInstalacao.classList.contains('active') && !document.querySelector('.modal-overlay.open:not(.modal-focus-exit)');
+            validatePhoneNumber(!!podeAvisar);
+        }
         // 1.21: se o check de servidor ja concluiu OFFLINE e as conexoes
         // chegaram depois, reaplica o estado (alerta correto + botao
         // HABILITAR WCA) sem esperar uma troca de aba
@@ -8880,6 +8906,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     function getFirstStoredConnection(){
         return readDevicesFile().find(d => d && d.jid) || null;
+    }
+
+    function getPrincipalStoredConnection(){
+        const lista = readDevicesFile();
+        return lista.find(d => d && d.jid && d.is_principal) || lista.find(d => d && d.jid) || null;
     }
 
     function storedDeviceToApiDevice(d, index){
@@ -10132,7 +10163,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         setupReviewsPullToRefresh();
     }
 
-    dom.telInput?.addEventListener('input', validatePhoneNumber);
+    dom.telInput?.addEventListener('input', function () { validatePhoneNumber(true); });
     dom.buyTelInput?.addEventListener('input', validateBuyPhoneNumber);
     dom.codePhoneInput?.addEventListener('input', validateCodePhoneNumber);
     dom.installBtn?.addEventListener('click', install);
