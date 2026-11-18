@@ -1,18 +1,29 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.10**
-Arquivo: `atualizacoes-wca-1.10.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.11**
+Arquivo: `atualizacoes-wca-1.11.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
-Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação.
+Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação. Em todos os modos também baixa e extrai o pacote ZIP de cenas e mídias da mesma release.
 
 ## Modos
 
 | Rótulo da release | Modo | Operação |
 |---|---|---|
-| `[CORE]` | `core` | Baixa e substitui os dois binários; usa `type_project = project-api` |
-| `[UI]` | `ui` / projeto | Baixa `W_C_A_API.prj.xml`; usa `type_project = project-task` |
-| `[FULL]` | `full` | Atualiza os dois binários e baixa `W_C_A_API.prj.xml`; usa `type_project = project-full` |
+| `[CORE]` | `core` | Atualiza cenas e mídias pelo ZIP, além dos dois binários; usa `type_project = project-api` |
+| `[UI]` | `ui` / projeto | Atualiza cenas e mídias pelo ZIP, além de `W_C_A_API.prj.xml`; usa `type_project = project-task` |
+| `[FULL]` | `full` | Atualiza cenas e mídias pelo ZIP, os dois binários e `W_C_A_API.prj.xml`; usa `type_project = project-full` |
+
+## Pacote de cenas e mídias
+
+Toda atualização exige o asset `WCA-Tasker-Projetos-<tag>.zip` da **mesma release** que foi selecionada. Se o ZIP ou outro asset exigido pelo modo estiver ausente, a cena informa o erro antes de iniciar downloads e não executa a tarefa. O ZIP é baixado em arquivo temporário, conferido pelo tamanho da release quando disponível e validado antes de gravar as cenas e mídias.
+
+A extração segue os destinos do `configuracao-webview-wca`:
+
+- `task-scenes/` → `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view/task-scenes/`, mantendo as subpastas;
+- `icons/` → `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/`.
+
+Entradas desconhecidas, caminhos inseguros, arquivos duplicados ou conflitantes e dados com tamanho ou CRC divergentes são recusados. Os arquivos são preparados em uma pasta temporária e substituídos individualmente apenas após a validação de todo o pacote. A versão e a contagem final só são atualizadas depois do ZIP e dos demais downloads do modo terminarem com sucesso. Se uma substituição ou um download posterior falhar, os arquivos já substituídos não são revertidos automaticamente; a cena informa o erro e permite nova tentativa. O ZIP pode permanecer na pasta temporária após falha de extração.
 
 ## Destinos
 
@@ -85,7 +96,7 @@ Uma trava garante que botão e contador não possam disparar a tarefa duas vezes
 - Cena V2 com JavaScript bridge;
 - **Allow Phone Access** habilitado;
 - Permissão do Tasker para acessar o armazenamento compartilhado;
-- Os assets obrigatórios devem existir na release correspondente.
+- Os assets obrigatórios, incluindo o ZIP de cenas e mídias, devem existir na release correspondente.
 
 ## Como atualizar no Tasker
 

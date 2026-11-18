@@ -315,7 +315,7 @@ h2 {
       </div>
     </div>
     <script>
-// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.9)
+// WHATS CONNECT API - Painel de Atualizacoes (cena V2, 1.11)
 // A cena identifica a release real mais recente e executa a atualizacao sem
 // encaminhar para a cena de instalacao. CORE substitui os dois binarios; UI
 // baixa o projeto Tasker; FULL executa as duas etapas. Projeto e FULL publicam
@@ -332,6 +332,11 @@ const CHANGELOG_FONTES = [
     { url: 'https://raw.githubusercontent.com/multihubandredye-prog/W-C-A_GO/main/wca-resources/updates/changelog.txt', opcoes: { } }
 ];const BIN_DIR = '/data/data/net.dinglisch.android.taskerm/files/WCA';
 const PROJECT_FILE_PATH = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/tasks-send/W_C_A_API.prj.xml';
+const PASTA_WEBVIEW = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view';
+const PASTA_ICONS = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons';
+const PASTA_STAGE_ZIP = PASTA_WEBVIEW + '/.wca-package-stage';
+const CAMINHO_ZIP = PASTA_WEBVIEW + '/.wca-package-update.zip';
+const PREFIXO_ZIP = 'WCA-Tasker-Projetos-';
 const UPDATE_FILES = {
     whatsapp: { name: 'whatsapp-wca-aarch64.bin', path: BIN_DIR + '/whatsapp-wca-aarch64.bin' },
     ffmpeg: { name: 'ffmpeg-wca-aarch64.bin', path: BIN_DIR + '/ffmpeg-wca-aarch64.bin' },
@@ -638,6 +643,155 @@ async function baixarArquivoAtomico(nomeAsset, destino, executavel, indice, quan
     }
 }
 
+// O pacote deve pertencer a release selecionada, nunca a outra versao.
+function nomePacoteDaRelease(){
+    const nomes = [PREFIXO_ZIP + currentUpdateVersion + '.zip', PREFIXO_ZIP + 'v' + currentUpdateVersion + '.zip', PREFIXO_ZIP + 'V' + currentUpdateVersion + '.zip'];
+    for (let i = 0; i < nomes.length; i++) {
+        if (currentReleaseAssets[nomes[i]] && currentReleaseAssets[nomes[i]].url) return nomes[i];
+    }
+    throw new Error('A release selecionada não contém o pacote ZIP de cenas e mídias.');
+}
+
+async function executarShellConfirmado(cmd, timeout){
+    const resultado = await taskerCall('runShell', { cmd: cmd + " && printf 'WCA_ZIP_OK'", root: false, timeout: timeout || 60 });
+    if (!resultado || String(resultado.stdout || '').indexOf('WCA_ZIP_OK') < 0) throw new Error('Falha ao preparar ou gravar o pacote de cenas.');
+}
+
+async function baixarPacoteZip(nome, indice, quantidade){
+    const asset = assetDaRelease(nome);
+    const parcial = CAMINHO_ZIP + '.update';
+    await executarShellConfirmado('mkdir -p ' + shellQuote(PASTA_WEBVIEW) + ' && rm -f ' + shellQuote(parcial), 30);
+    try {
+        const requisicao = taskerCall('httpRequest', { method: 'GET', url: asset.url, headers: 'User-Agent: Tasker\nAccept: application/octet-stream', fileToSave: parcial, timeout: 600, autoRedirect: true });
+        await acompanharDownload(requisicao, parcial, nome, asset.size, indice, quantidade);
+        let validar = 'test -s ' + shellQuote(parcial);
+        if (asset.size > 0) validar += ' && test "$(wc -c < ' + shellQuote(parcial) + ')" -eq ' + String(Math.floor(asset.size));
+        await executarShellConfirmado(validar + ' && mv -f ' + shellQuote(parcial) + ' ' + shellQuote(CAMINHO_ZIP), 60);
+    } catch (eDownload) {
+        try { await executarShellSeguro('rm -f ' + shellQuote(parcial), 20); } catch (eLimpeza) { }
+        throw eDownload;
+    }
+}
+
+async function lerPacoteZip(){
+    const resultado = await taskerCall('runShell', { cmd: 'base64 ' + shellQuote(CAMINHO_ZIP), root: false, timeout: 120 });
+    const base64 = String(resultado && resultado.stdout || '').replace(/\s+/g, '');
+    if (!base64) throw new Error('Não foi possível ler o pacote ZIP baixado.');
+    const binario = atob(base64);
+    const bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i++) bytes[i] = binario.charCodeAt(i);
+    return bytes;
+}
+
+function crcPacote(bytes){
+    let crc = 4294967295;
+    for (let i = 0; i < bytes.length; i++) {
+        crc = crc ^ bytes[i];
+        for (let bit = 0; bit < 8; bit++) crc = (crc & 1) ? (crc >>> 1) ^ 3988292384 : crc >>> 1;
+    }
+    return (crc ^ 4294967295) >>> 0;
+}
+
+// Analisa diretorio central e valida caminhos e limites antes de gravar arquivos.
+function entradasPacote(bytes){
+    if (!bytes || bytes.length < 22) throw new Error('Pacote ZIP inválido.');
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let fim = -1;
+    for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+        if (dv.getUint32(i, true) === 101010256 && i + 22 + dv.getUint16(i + 20, true) === bytes.length) { fim = i; break; }
+    }
+    if (fim < 0) throw new Error('Diretório do ZIP não encontrado.');
+    const total = dv.getUint16(fim + 10, true);
+    const tamanhoDiretorio = dv.getUint32(fim + 12, true);
+    const inicioDiretorio = dv.getUint32(fim + 16, true);
+    if (dv.getUint16(fim + 4, true) || dv.getUint16(fim + 6, true) || dv.getUint16(fim + 8, true) !== total || total === 65535 || inicioDiretorio + tamanhoDiretorio !== fim) throw new Error('Formato ZIP não suportado.');
+    let pos = inicioDiretorio;
+    const saida = [];
+    const nomes = new Set();
+    for (let i = 0; i < total; i++) {
+        if (pos + 46 > fim || dv.getUint32(pos, true) !== 33639248) throw new Error('Diretório ZIP inválido.');
+        const flags = dv.getUint16(pos + 8, true), metodo = dv.getUint16(pos + 10, true);
+        const crc = dv.getUint32(pos + 16, true), compactado = dv.getUint32(pos + 20, true), tamanho = dv.getUint32(pos + 24, true);
+        const nomeLen = dv.getUint16(pos + 28, true), extraLen = dv.getUint16(pos + 30, true), comentarioLen = dv.getUint16(pos + 32, true), local = dv.getUint32(pos + 42, true);
+        if (pos + 46 + nomeLen + extraLen + comentarioLen > fim || (flags & 1) || (metodo !== 0 && metodo !== 8) || compactado === 4294967295 || tamanho === 4294967295) throw new Error('Entrada ZIP não suportada.');
+        const nome = new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(pos + 46, pos + 46 + nomeLen));
+        pos += 46 + nomeLen + extraLen + comentarioLen;
+        if (!nome || nome.charAt(0) === '/' || nome.indexOf('\\') >= 0 || nome.indexOf('\0') >= 0) throw new Error('Caminho inseguro no ZIP.');
+        const partes = nome.split('/');
+        if (partes.some(function (parte) { return parte === '..' || parte === '.'; })) throw new Error('Caminho inseguro no ZIP.');
+        if (nome.endsWith('/')) continue;
+        if (partes.some(function (parte) { return !parte; })) throw new Error('Caminho inválido no ZIP.');
+        let destino, relativo;
+        if (nome.indexOf('task-scenes/') === 0) { destino = PASTA_WEBVIEW; relativo = nome; }
+        else if (nome.indexOf('icons/') === 0) { destino = PASTA_ICONS; relativo = nome.slice(6); }
+        else throw new Error('O ZIP contém uma pasta não reconhecida.');
+        if (!relativo || nomes.has(destino + '/' + relativo)) throw new Error('Arquivo duplicado no ZIP.');
+        nomes.add(destino + '/' + relativo);
+        if (local + 30 > inicioDiretorio || dv.getUint32(local, true) !== 67324752 || dv.getUint16(local + 8, true) !== metodo) throw new Error('Cabeçalho ZIP inválido.');
+        const inicio = local + 30 + dv.getUint16(local + 26, true) + dv.getUint16(local + 28, true);
+        if (inicio > inicioDiretorio || compactado > inicioDiretorio - inicio) throw new Error('Dados ZIP incompletos.');
+        saida.push({ destino: destino + '/' + relativo, etapa: PASTA_STAGE_ZIP + '/arquivo-' + String(saida.length), metodo: metodo, tamanho: tamanho, crc: crc, dados: bytes.subarray(inicio, inicio + compactado) });
+    }
+    if (pos !== fim || !saida.length) throw new Error('Pacote ZIP vazio ou inválido.');
+    const destinos = saida.map(function (item) { return item.destino; }).sort();
+    for (let i = 1; i < destinos.length; i++) {
+        if (destinos[i].indexOf(destinos[i - 1] + '/') === 0) throw new Error('Arquivos conflitantes no ZIP.');
+    }
+    return saida;
+}
+
+async function validarConteudoPacote(entradas){
+    for (let i = 0; i < entradas.length; i++) {
+        const item = entradas[i];
+        let dados = item.dados;
+        if (item.metodo === 8) {
+            if (typeof DecompressionStream === 'undefined') throw new Error('Este WebView não suporta a compressão do pacote.');
+            const fluxo = new Blob([dados]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+            dados = new Uint8Array(await new Response(fluxo).arrayBuffer());
+        }
+        if (dados.length !== item.tamanho || crcPacote(dados) !== item.crc) throw new Error('Arquivo do pacote ZIP corrompido.');
+        item.dados = dados;
+    }
+}
+
+function pacoteBase64(bytes){
+    let binario = '';
+    for (let i = 0; i < bytes.length; i += 8192) binario += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    return btoa(binario);
+}
+
+async function extrairPacoteZip(){
+    mostrarStatus('Verificando o pacote de cenas e mídias...', '');
+    const entradas = entradasPacote(await lerPacoteZip());
+    await validarConteudoPacote(entradas);
+    await executarShellConfirmado('rm -rf ' + shellQuote(PASTA_STAGE_ZIP) + ' && mkdir -p ' + shellQuote(PASTA_STAGE_ZIP), 60);
+    try {
+        // Primeiro prepara todos os arquivos; somente depois substitui destinos.
+        for (let i = 0; i < entradas.length; i++) {
+            const item = entradas[i];
+            mostrarStatus('Preparando arquivo ' + (i + 1) + ' de ' + entradas.length + '...', '');
+            await executarShellConfirmado('mkdir -p ' + shellQuote(parentPath(item.etapa)), 30);
+            const base64Path = item.etapa + '.b64';
+            const resultado = await taskerCall('writeFile', { path: base64Path, text: pacoteBase64(item.dados), append: false });
+            if (resultado === false || resultado === 'false' || resultado && (resultado.ok === false || resultado.success === false || resultado.result === false)) throw new Error('Não foi possível preparar o arquivo do pacote.');
+            await executarShellConfirmado('base64 -d ' + shellQuote(base64Path) + ' > ' + shellQuote(item.etapa) + ' && rm -f ' + shellQuote(base64Path) + ' && test "$(wc -c < ' + shellQuote(item.etapa) + ')" -eq ' + item.tamanho, 90);
+        }
+        for (let i = 0; i < entradas.length; i++) {
+            const item = entradas[i];
+            mostrarStatus('Atualizando cenas e mídias: ' + (i + 1) + ' de ' + entradas.length + '...', '');
+            await executarShellConfirmado('mkdir -p ' + shellQuote(parentPath(item.destino)) + ' && mv -f ' + shellQuote(item.etapa) + ' ' + shellQuote(item.destino), 60);
+        }
+    } finally {
+        try { await executarShellSeguro('rm -rf ' + shellQuote(PASTA_STAGE_ZIP), 60); } catch (eLimpeza) { }
+    }
+    await executarShellConfirmado('rm -f ' + shellQuote(CAMINHO_ZIP), 30);
+}
+
+async function atualizarCenasEMidias(nome, indice, quantidade){
+    await baixarPacoteZip(nome, indice, quantidade);
+    await extrairPacoteZip();
+}
+
 function mostrarStatus(texto, classe){
     const status = document.getElementById('updateStatus');
     if (!status) return;
@@ -746,8 +900,14 @@ async function executarAtualizacao(tipo){
         const atualizarCore = tipo === 'core' || tipo === 'full';
         const atualizarProjeto = tipo === 'ui' || tipo === 'project' || tipo === 'full';
         if (!atualizarCore && !atualizarProjeto) throw new Error('Tipo de atualização desconhecido.');
-        const quantidadeArquivos = atualizarCore && atualizarProjeto ? 3 : (atualizarCore ? 2 : 1);
-        let indiceArquivo = 0;
+        // Antes de alterar arquivos, verifica todos os assets exigidos da release.
+        const nomeZip = nomePacoteDaRelease();
+        assetDaRelease(nomeZip);
+        if (atualizarCore) { assetDaRelease(UPDATE_FILES.whatsapp.name); assetDaRelease(UPDATE_FILES.ffmpeg.name); }
+        if (atualizarProjeto) assetDaRelease(UPDATE_FILES.project.name);
+        const quantidadeArquivos = (atualizarCore && atualizarProjeto ? 3 : (atualizarCore ? 2 : 1)) + 1;
+        let indiceArquivo = 1;
+        await atualizarCenasEMidias(nomeZip, indiceArquivo, quantidadeArquivos);
         if (atualizarCore) {
             indiceArquivo += 1;
             await baixarArquivoAtomico(UPDATE_FILES.whatsapp.name, UPDATE_FILES.whatsapp.path, true, indiceArquivo, quantidadeArquivos);
