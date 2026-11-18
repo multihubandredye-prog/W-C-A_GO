@@ -2108,6 +2108,11 @@ body.com-aviso { padding-bottom: 18rem; }
 .aviso-dispensar:active { color: #ffc107; }
 .aviso-erro { color: #ffb6c0; text-align: left; margin-top: .5rem; font-size: .75rem; line-height: 1.4; }
 .aviso-erro:empty { display: none; }
+#avisoModal .modal-content { display: flex; flex-direction: column; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); }
+#avisoModal .aviso-modal-texto { flex: 1 1 auto; min-height: 0; }
+#avisoModal .delete-icon-wrap, #avisoModal .modal-title, #avisoModal .aviso-dispensar, #avisoModal .aviso-erro, #avisoModal .confirm-actions { flex-shrink: 0; }
+#avisoModal .confirm-actions { margin-top: 1rem; }
+
 .aviso-banner .aviso-icone {
     font-size: 1.3rem;
     color: #ffc107;
