@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>WhatsConnectApi | Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -14,6 +15,7 @@
 }
 
 :root {
+    color-scheme: dark;
     --bg-body:   #030508;
     --bg-card:   #07101A;
     --bg-card-2: #0b1825;
@@ -3269,9 +3271,9 @@ input.first-install-attention {
 .dev-input:focus, .dev-select:focus { outline: none; border-color: var(--primary); }
 .dev-events { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
 .dev-chip { box-sizing: border-box; height: 64px; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); font-size: 0.76rem; color: var(--text-dim); cursor: pointer; }
-.dev-chip input { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; border: 1px solid #6c7c81; border-radius: 50%; background: #2c4c28; margin: 0; position: relative; }
-.dev-chip input:checked { background: #b5fb2a; border-color: #b5fb2a; }
-.dev-chip input:checked::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #f4ffe1; top: 5px; left: 5px; }
+#devSettingsModal .dev-chip input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; border: 2px solid #93a5a9; border-radius: 50%; background-color: #17252a; margin: 0; position: relative; forced-color-adjust: none; }
+#devSettingsModal .dev-chip input[type="checkbox"]:checked { background-color: #c5ff42; border-color: #c5ff42; box-shadow: 0 0 6px rgba(197,255,66,0.45); }
+#devSettingsModal .dev-chip input[type="checkbox"]:checked::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #355000; top: 4px; left: 4px; }
 .dev-chip input:focus-visible { outline: 2px solid #b5fb2a; outline-offset: 2px; }
 .dev-chip span { min-width: 0; overflow-wrap: anywhere; word-break: normal; line-height: 1.2; text-align: left; cursor: pointer; }
 .dev-events:not(.expanded) .dev-chip:nth-child(n+3) { display: none; }
@@ -3645,8 +3647,8 @@ input.first-install-attention {
                     <input type="text" id="devInMaxDownload" class="dev-input dev-input-num" inputmode="numeric" placeholder="500">
                 </div>
                 </div>
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="true" aria-controls="devSection3"><span>Webhook</span><i class="fa-solid fa-chevron-up"></i></button></div>
-                <div class="dev-section-body" id="devSection3">
+                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection3"><span>Webhook</span><i class="fa-solid fa-chevron-down"></i></button></div>
+                <div class="dev-section-body" id="devSection3" hidden>
 
 <div class="dev-row dev-row-inline">
                         <span class="dev-key">Atraso do webhook (milissegundos)</span>
@@ -5325,12 +5327,32 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         if (DEV_DURACOES.indexOf(e.pulse_duration) < 0) return erro('Escolha a duração do pulso.');
         return e;
     }
+    // Sempre inicia com as secoes recolhidas, sem alterar as configuracoes.
+    function devRecolherSecoes(){
+        document.querySelectorAll('#devSettingsModal .dev-section-toggle').forEach(function (btn) {
+            const body = document.getElementById(btn.getAttribute('aria-controls'));
+            if (body) body.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-chevron-down';
+        });
+        const grid = document.getElementById('devEventsGrid');
+        if (grid) grid.classList.remove('expanded');
+        const botao = document.getElementById('devEventsExpand');
+        if (botao) {
+            botao.setAttribute('aria-expanded', 'false');
+            botao.setAttribute('aria-label', 'Mostrar todos os eventos');
+            const icon = botao.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-chevron-down';
+        }
+    }
     async function devAbrir(){
         const status = document.getElementById('devStatus');
         if (!status) return;
         status.classList.remove('dev-status-erro');
         status.textContent = 'Lendo configurações atuais…';
         devEstado = devPadroes();
+        devRecolherSecoes();
         openModal('devSettingsModal');
         try {
             const texto = await Promise.race([lerArquivo(DEV_ENV_PATH, DEV_ENV_REGEX), bridgeTimeout(15000)]);
