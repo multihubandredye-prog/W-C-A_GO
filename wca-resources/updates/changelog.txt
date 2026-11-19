@@ -1,3 +1,6 @@
+[16/09/2026]
+➪ A Central e a API passaram a permitir o controle separado dos webhooks de entrega, leitura pelo destinatário e leitura pela própria conta.
+
 [15/11/2026]
 ➪ O painel da API ganhou a seção System Metrics, com versão instalada, tempo em funcionamento, uso de memória e disco e quantidade de dispositivos conectados.
 ➪ Mídias antigas ou expiradas agora têm uma nova tentativa automática de recuperação pelo telefone conectado antes de o download ser considerado indisponível.
@@ -36,6 +39,3 @@
 [11/11/2026]
 ➪ Iniciada a modernização da Central para o formato V2, preservando as funções já existentes e melhorando a integração com os arquivos e recursos do Tasker.
 ➪ O envio ao webhook ganhou quantidade de tentativas configurável, permitindo controlar reenvios quando o destino não responde.
-
-[16/09/2026]
-➪ A Central e a API passaram a permitir o controle separado dos webhooks de entrega, leitura pelo destinatário e leitura pela própria conta.
