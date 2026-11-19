@@ -35,7 +35,10 @@ var (
 	AutoDeleteMediaDuration           = 300   // Duration in seconds to keep media files before deletion
 	WhatsappWebhook                   []string
 	WhatsappWebhookSecret             = "secret"
-	WhatsappWebhookInsecureSkipVerify = false          // Skip TLS certificate verification for webhooks (insecure)
+	WhatsappWebhookInsecureSkipVerify = false // Skip TLS certificate verification for webhooks (insecure)
+	WhatsappWebhookAckDelivered       = true
+	WhatsappWebhookAckRead            = true
+	WhatsappWebhookAckReadSelf        = true
 	WhatsappWebhookEvents             []string         // Whitelist of events to forward to webhook (empty = all events)
 	WhatsappWebhookIncludeOutgoing             = true  // Preserve existing outgoing webhook behavior
 	WhatsappWebhookDelayMS                     = 1500  // Delay between webhook deliveries per URL in milliseconds (0 = parallel delivery)

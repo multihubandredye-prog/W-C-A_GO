@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.93**
+Versão atual: **1.94**
 
-Arquivo atual: `central-wca-1.93.html`
+Arquivo atual: `central-wca-1.94.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -224,7 +224,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.93.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.94.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
@@ -240,3 +240,5 @@ A consulta de dispositivos não solicita reconexão e o botão de reconectar foi
 Fechar o pareamento não executa logout. Listas vazias não apagam automaticamente o cache, inclusive durante inicialização. Dispositivos só são acrescentados ao cache quando a API informa estado logged_in. As escritas do arquivo de dispositivos são serializadas. Se a API não responder durante a remoção, o resultado é tratado como incerto.
 
 O menu oferece **Reiniciar WCA**, com confirmação, para reiniciar o serviço pela tarefa do Tasker.
+
+As confirmações `message.ack` possuem filtros independentes para entrega, leitura pelo destinatário e leitura pela própria conta. O evento geral precisa estar habilitado ou a lista geral de eventos deve estar vazia (o que permite todos); as três opções são gravadas no `.env` e aplicadas após reiniciar a API. Na ausência das chaves, os filtros ficam ativados.

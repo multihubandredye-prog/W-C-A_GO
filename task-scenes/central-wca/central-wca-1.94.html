@@ -3667,6 +3667,32 @@ input.first-install-attention {
                         <button type="button" id="devEventsNone">DESMARCAR TODAS</button>
                     </div>
                 </div>
+                <div class="dev-group-title">Confirmações de entrega e leitura</div>
+                <p class="dev-note">As opções abaixo filtram as confirmações. Mantenha o evento Confirmações de entrega e leitura marcado; se todos os eventos estiverem desmarcados, a lista vazia permite todos.</p>
+                <div class="dev-row">
+                    <div class="dev-label-row"><span class="dev-key">Confirmação de entrega</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
+                    <div class="dev-help">Envia confirmações de entrega recebidas pela API para mensagens enviadas.</div>
+                    <div class="dev-toggle" data-key="ack_delivered">
+                        <button type="button" class="dev-opt active" data-val="true">ATIVADO</button>
+                        <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
+                    </div>
+                </div>
+                <div class="dev-row">
+                    <div class="dev-label-row"><span class="dev-key">Leitura pelo destinatário</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
+                    <div class="dev-help">Envia confirmações de leitura feitas por outras pessoas.</div>
+                    <div class="dev-toggle" data-key="ack_read">
+                        <button type="button" class="dev-opt active" data-val="true">ATIVADO</button>
+                        <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
+                    </div>
+                </div>
+                <div class="dev-row">
+                    <div class="dev-label-row"><span class="dev-key">Leitura por mim</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
+                    <div class="dev-help">Envia confirmações de leitura feitas pela própria conta em outro dispositivo, quando disponibilizadas pelo WhatsApp.</div>
+                    <div class="dev-toggle" data-key="ack_read_self">
+                        <button type="button" class="dev-opt active" data-val="true">ATIVADO</button>
+                        <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
+                    </div>
+                </div>
                 <div class="dev-group-title">Conta e presença</div>
                 <div class="dev-row">
                     <div class="dev-label-row">
@@ -4853,7 +4879,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         'message.reaction': 'Reação (emoji) em uma mensagem.',
         'message.revoked': 'Mensagem apagada pelo remetente para todos.',
         'message.deleted': 'Mensagem excluída (registro removido no aparelho).',
-        'message.ack': 'Mensagem entregue ou lida pelo destinatário.',
+        'message.ack': 'Confirmações de entrega e leitura. Use os filtros abaixo para escolher os tipos.',
         'status.response': 'Respostas do próprio WhatsApp sobre o status (stories) publicado.',
         'chat_presence': 'Alguém digitando ou gravando áudio na conversa.',
         'call.offer': 'Chamada (voz ou vídeo) recebida, tocando.',
@@ -4907,6 +4933,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             max_attempts: '1',
             eventos: DEV_EVENTS_PADRAO.slice(),
             eco: true,
+            ack_delivered: true,
+            ack_read: true,
+            ack_read_self: true,
             account_validation: true,
             presence: 'unavailable',
             pulse_enabled: true,
@@ -4949,6 +4978,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             p.eventos = String(mapa.WHATSAPP_WEBHOOK_EVENTS).split(',').map(function (s) { return s.trim(); }).filter(function (s) { return DEV_EVENTS.indexOf(s) >= 0; });
         }
         p.eco = bool('WHATSAPP_WEBHOOK_INCLUDE_OUTGOING');
+        p.ack_delivered = mapa.WHATSAPP_WEBHOOK_ACK_DELIVERED === undefined ? true : bool('WHATSAPP_WEBHOOK_ACK_DELIVERED');
+        p.ack_read = mapa.WHATSAPP_WEBHOOK_ACK_READ === undefined ? true : bool('WHATSAPP_WEBHOOK_ACK_READ');
+        p.ack_read_self = mapa.WHATSAPP_WEBHOOK_ACK_READ_SELF === undefined ? true : bool('WHATSAPP_WEBHOOK_ACK_READ_SELF');
         p.account_validation = bool('WHATSAPP_ACCOUNT_VALIDATION');
         const pres = String(mapa.WHATSAPP_PRESENCE_ON_CONNECT === undefined ? '' : mapa.WHATSAPP_PRESENCE_ON_CONNECT);
         p.presence = ['available', 'unavailable', 'none'].indexOf(pres) >= 0 ? pres : 'unavailable';
@@ -5004,6 +5036,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             'WHATSAPP_WEBHOOK_MAX_ATTEMPTS=' + e.max_attempts,
             'WHATSAPP_WEBHOOK_EVENTS=' + e.eventos.join(','),
             'WHATSAPP_WEBHOOK_INCLUDE_OUTGOING=' + boolv(e.eco),
+            'WHATSAPP_WEBHOOK_ACK_DELIVERED=' + boolv(e.ack_delivered),
+            'WHATSAPP_WEBHOOK_ACK_READ=' + boolv(e.ack_read),
+            'WHATSAPP_WEBHOOK_ACK_READ_SELF=' + boolv(e.ack_read_self),
             '',
             '# Account & Presence Settings',
             'WHATSAPP_ACCOUNT_VALIDATION=' + boolv(e.account_validation),
@@ -5158,6 +5193,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const inMax = document.getElementById('devInMaxAttempts');
         if (inMax) inMax.value = e.max_attempts;
         devSetToggle('eco', e.eco);
+        devSetToggle('ack_delivered', e.ack_delivered);
+        devSetToggle('ack_read', e.ack_read);
+        devSetToggle('ack_read_self', e.ack_read_self);
         devSetEventos(e.eventos);
         devSetToggle('account_validation', e.account_validation);
         devSetToggle('presence', e.presence);
@@ -5207,6 +5245,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         if (!/^\d+$/.test(ma) || parseInt(ma, 10) < 1) return erro('WHATSAPP_WEBHOOK_MAX_ATTEMPTS precisa ser um número maior ou igual a 1.');
         e.max_attempts = String(parseInt(ma, 10));
         e.eco = devGetToggle('eco') === 'true';
+        e.ack_delivered = devGetToggle('ack_delivered') === 'true';
+        e.ack_read = devGetToggle('ack_read') === 'true';
+        e.ack_read_self = devGetToggle('ack_read_self') === 'true';
         e.eventos = devGetEventos();
         e.account_validation = devGetToggle('account_validation') === 'true';
         e.presence = devGetToggle('presence');

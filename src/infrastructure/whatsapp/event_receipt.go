@@ -6,12 +6,53 @@ import (
 	"sync"
 	"time"
 
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/pollstore"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
+
+// receiptIsSelf identifies reads originating from the linked account. The
+// explicit read-self type also covers privacy-disabled receipts.
+func receiptIsSelf(evt *events.Receipt, client *whatsmeow.Client) bool {
+	if evt == nil {
+		return false
+	}
+	if evt.Type == types.ReceiptTypeReadSelf || evt.IsFromMe {
+		return true
+	}
+	if client == nil || client.Store == nil {
+		return false
+	}
+	sender := evt.Sender.ToNonAD()
+	if sender.IsEmpty() {
+		return false
+	}
+	if client.Store.ID != nil && sender == client.Store.ID.ToNonAD() {
+		return true
+	}
+	return !client.Store.LID.IsEmpty() && sender == client.Store.LID.ToNonAD()
+}
+
+// receiptWebhookEnabled leaves the existing event whitelist and payload intact.
+func receiptWebhookEnabled(evt *events.Receipt, client *whatsmeow.Client) bool {
+	if evt == nil {
+		return false
+	}
+	switch evt.Type {
+	case types.ReceiptTypeRead, types.ReceiptTypeReadSelf:
+		if receiptIsSelf(evt, client) {
+			return config.WhatsappWebhookAckReadSelf
+		}
+		return config.WhatsappWebhookAckRead
+	case types.ReceiptTypeDelivered:
+		return config.WhatsappWebhookAckDelivered
+	default:
+		return false
+	}
+}
 
 func getReceiptTypeDescription(evt types.ReceiptType) string {
 	switch evt {
@@ -174,4 +215,3 @@ func forwardReceiptToWebhook(ctx context.Context, evt *events.Receipt, deviceID 
 
 	return nil
 }
-

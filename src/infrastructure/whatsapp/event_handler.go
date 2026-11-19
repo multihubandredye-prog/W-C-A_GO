@@ -232,12 +232,12 @@ func handleReceipt(ctx context.Context, evt *events.Receipt, deviceID string, cl
 		log.Infof("%v was read by %s at %s: %+v", evt.MessageIDs, evt.SourceString(), evt.Timestamp, evt)
 	case types.ReceiptTypeDelivered:
 		sendReceipt = true
-		log.Infof("%s was delivered to %s at %s: %+v", evt.MessageIDs[0], evt.SourceString(), evt.Timestamp, evt)
+		log.Infof("%v was delivered to %s at %s: %+v", evt.MessageIDs, evt.SourceString(), evt.Timestamp, evt)
 	}
 
 	// Forward receipt (ack) event to webhook if configured
 	// Note: Receipt events are not rate limited as they are critical for message delivery status
-	if len(config.WhatsappWebhook) > 0 && sendReceipt {
+	if len(config.WhatsappWebhook) > 0 && sendReceipt && receiptWebhookEnabled(evt, client) {
 		go func(e *events.Receipt, c *whatsmeow.Client) {
 			webhookCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()

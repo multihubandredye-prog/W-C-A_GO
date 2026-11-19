@@ -212,6 +212,15 @@ func initEnvConfig() {
 		events := strings.Split(envWebhookEvents, ",")
 		config.WhatsappWebhookEvents = events
 	}
+	if viper.IsSet("whatsapp_webhook_ack_delivered") {
+		config.WhatsappWebhookAckDelivered = viper.GetBool("whatsapp_webhook_ack_delivered")
+	}
+	if viper.IsSet("whatsapp_webhook_ack_read") {
+		config.WhatsappWebhookAckRead = viper.GetBool("whatsapp_webhook_ack_read")
+	}
+	if viper.IsSet("whatsapp_webhook_ack_read_self") {
+		config.WhatsappWebhookAckReadSelf = viper.GetBool("whatsapp_webhook_ack_read_self")
+	}
 	if viper.IsSet("whatsapp_webhook_include_outgoing") {
 		config.WhatsappWebhookIncludeOutgoing = viper.GetBool("whatsapp_webhook_include_outgoing")
 	}
