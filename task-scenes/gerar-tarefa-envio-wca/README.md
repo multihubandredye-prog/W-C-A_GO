@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.21**
-Arquivo: `gerar-tarefa-de-envio-wca-1.21.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.22**
+Arquivo: `gerar-tarefa-de-envio-wca-1.22.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
@@ -15,7 +15,7 @@ Seleção e geração das tarefas de envio: lista os dispositivos logados da API
 
 - A lista exibe o **nome curto** das tarefas — só o que vem depois de `id-number-` (ex.: `001-id-number-wca-texto` → `wca-texto`); o nome completo fica guardado internamente (os avisos de dependência usam ele);
 - **Todas as tarefas já vêm marcadas** por padrão;
-- Um **único ícone** (Font Awesome, dupla checagem `fa-check-double` — sempre o mesmo) no **canto superior direito**, acima da lista, **alterna marcar/desmarcar todas**;
+- O botão **MARCAR TODAS / DESMARCAR TODAS** alterna conforme a seleção; cada tarefa tem relevo e transição visual ao marcar ou desmarcar;
 - O botão **GERAR PROJETO** abre uma **confirmação** (modal com o resumo: nº de tarefas + número/id) antes de gerar — CONFIRMAR gera, CANCELAR (ou voltar/clicar fora) fecha o modal e volta à seleção.
 
 ## Resultado limpo + contagem de instalação
@@ -52,7 +52,7 @@ Seleção e geração das tarefas de envio: lista os dispositivos logados da API
 ## Funcionamento
 
 - **Busca dos dispositivos**: `GET http://localhost:3000/devices` (fetch direto; se falhar, uma tentativa pelo bridge com prazo de 15s). Só entram os `state = logged_in`;
-- **Toque no dispositivo** → tela de seleção: baixa o `id_number.prj.xml` (bridge `httpRequest` com `fileToSave` direto em `system/tasks-send/`; fallback `fetch` + `writeFile`) e lista **todas as tarefas** com checkbox **já marcadas** (ordenadas por nome), com contagem "N de M", ícone de alternar todas no canto superior direito e botões **VOLTAR** (esquerda) **/ GERAR PROJETO** (direita);
+- **Toque no dispositivo** → tela de seleção: baixa o `id_number.prj.xml` (bridge `httpRequest` com `fileToSave` direto em `system/tasks-send/`; fallback `fetch` + `writeFile`) e lista **todas as tarefas** com checkbox **já marcadas** (ordenadas por nome), com contagem "N de M", botão MARCAR TODAS / DESMARCAR TODAS no canto superior direito e botões **VOLTAR** (esquerda) **/ GERAR PROJETO** (direita);
 - **GERAR PROJETO** abre a **confirmação** (modal) e, ao CONFIRMAR, monta o arquivo final:
   1. **Filtro**: remove os blocos `<Task>` não selecionados **e** os ids deles do `<tids>` do projeto (o XML continua **válido** para importação);
   2. **Substituições**: `id-number` → `id:<4 últimos dígitos>` (ex.: `001-id:7777-wca-texto`) em nomes de tarefas e do projeto; só o placeholder literal `5581XXXXXXXX` (com X) → número completo do dispositivo (**números reais ficam intactos**);
@@ -75,6 +75,3 @@ Para a seleção ocupar a tela toda, a ação **Cena v2 Mostrar** desta cena dev
 
 **Nenhuma variável de tarefa é gravada** — a entrega é o **arquivo XML gerado** no aparelho.
 
-## Rollback
-
-A versão anterior (`1.14`) permanece no workspace para força-voltar em caso de erro.

@@ -219,9 +219,15 @@ body {
 .lista-tarefas { position: relative; z-index: 1; max-height: 46vh; overflow-y: auto; display: grid; gap: 0.4rem; padding: 0.5rem; }
 .lista-tarefas::-webkit-scrollbar { width: 0.25rem; }
 .lista-tarefas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0.625rem; }
-.chip-tarefa { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; background: rgba(15,157,203,0.06); border: 0.0625rem solid var(--border); border-radius: 0.5rem; cursor: pointer; }
-.chip-tarefa input { accent-color: #B5FB2A; width: 0.9375rem; height: 0.9375rem; flex-shrink: 0; }
-.chip-tarefa span { font-size: 0.74rem; color: var(--text-main); word-break: break-all; text-align: left; }
+.chip-tarefa { display: flex; align-items: center; gap: 0.7rem; min-height: 2.8rem; padding: 0.55rem 0.75rem; background: linear-gradient(155deg, #102b35, #091b23); border: 0.0625rem solid #31515b; border-radius: 0.7rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 0 #04141b, 0 5px 9px rgba(0,0,0,0.22); cursor: pointer; transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; }
+.chip-tarefa.selecionada { background: linear-gradient(145deg, #15363a, #0b252b); border-color: rgba(181,251,42,0.5); box-shadow: inset 0 1px 0 rgba(226,255,167,0.13), 0 3px 0 #071a1b, 0 5px 10px rgba(0,0,0,0.26); }
+.chip-tarefa:active { transform: translateY(2px) scale(0.99); box-shadow: inset 0 1px 3px rgba(0,0,0,0.35), 0 1px 0 #071a1b; }
+.chip-tarefa input { appearance: none; -webkit-appearance: none; width: 1.25rem; height: 1.25rem; flex-shrink: 0; margin: 0; border: 0.1rem solid #779097; border-radius: 0.42rem; background: #0a1a21; position: relative; transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease; }
+.chip-tarefa input:checked { background: #b5fb2a; border-color: #d4ff82; box-shadow: 0 2px 5px rgba(181,251,42,0.24); }
+.chip-tarefa input:checked::after { content: ''; position: absolute; left: 0.3rem; top: 0.12rem; width: 0.28rem; height: 0.52rem; border: solid #142e0d; border-width: 0 0.13rem 0.13rem 0; transform: rotate(45deg); }
+.chip-tarefa input:focus-visible { outline: 2px solid #c5ff62; outline-offset: 3px; }
+.chip-tarefa span { font-size: 0.76rem; font-weight: 600; letter-spacing: 0.01rem; color: var(--text-main); overflow-wrap: anywhere; text-align: left; transition: color 0.18s ease; }
+.chip-tarefa.selecionada span { color: #efffe4; }
 .contagem-tarefas { text-align: center; font-size: 0.78rem; color: var(--text-dim); padding: 0.35rem; }
 .botoes-massa { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 0.5rem 1.25rem 1rem; }
 .btn-massa { padding: 0.7rem 0.6rem; background: rgba(15,157,203,0.08); color: var(--text-main); border: 0.0625rem solid var(--border); border-radius: 0.6rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
@@ -230,8 +236,9 @@ body {
 .btn-massa-largo { grid-column: 1 / -1; }
 .linha-instrucao { display: flex; align-items: center; gap: 0.6rem; padding: 0 1.25rem; }
 .linha-instrucao .instrucao { flex: 1; text-align: left; margin-bottom: 0; }
-.btn-toggle-todas { width: 2.25rem; height: 2.25rem; border-radius: 0.5rem; background: rgba(15,157,203,0.08); border: 0.0625rem solid var(--border); color: var(--accent); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.15s; }
-.btn-toggle-todas:active { transform: scale(0.92); }
+.btn-toggle-todas { min-height: 2.4rem; padding: 0.55rem 0.75rem; border-radius: 0.65rem; background: linear-gradient(145deg, #20433a, #102b2c); border: 0.0625rem solid rgba(181,251,42,0.55); color: #c9ff6c; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.03rem; white-space: nowrap; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 3px 0 #071b1c; transition: transform 0.15s, box-shadow 0.15s; }
+.btn-toggle-todas:active { transform: translateY(2px); box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), 0 1px 0 #071b1c; }
+@media (prefers-reduced-motion: reduce) { .chip-tarefa, .chip-tarefa input, .chip-tarefa span, .btn-toggle-todas { transition: none; } }
 .btn-instalar { order: 1; align-self: center; padding: 0.9rem 2.5rem; background: var(--primary); border: 0.0625rem solid var(--primary); color: #fff; border-radius: 0.75rem; font-size: 1rem; font-weight: 700; letter-spacing: 0.05rem; cursor: pointer; animation: floatIn 0.6s ease both; }
 .btn-instalar:active { transform: scale(0.97); }
 .main-footer { order: 2; }
@@ -302,13 +309,20 @@ body {
     </div>
 
 <script>
-// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.20)
-// Botoes da selecao: VOLTAR a esquerda e GERAR PROJETO a direita.
-// Duas variaveis de saida: project_created (true/false) e id_project
-// (os 4 ultimos digitos do dispositivo, ex.: 3129) - ambas publicadas
-// ao gerar e reafirmadas antes de encerrar.
-// Lista com nome CURTO: exibe so o que vem depois de "id-number-"
-// (ex.: 001-id-number-wca-texto -> wca-texto); o nome COMPLETO fica
+// WHATS CONNECT API - Gerar Tarefa de Envio (cena V2, 1.20)
+
+// Botoes da selecao: VOLTAR a esquerda e GERAR PROJETO a direita.
+
+// Duas variaveis de saida: project_created (true/false) e id_project
+
+// (os 4 ultimos digitos do dispositivo, ex.: 3129) - ambas publicadas
+
+// ao gerar e reafirmadas antes de encerrar.
+
+// Lista com nome CURTO: exibe so o que vem depois de "id-number-"
+
+// (ex.: 001-id-number-wca-texto -> wca-texto); o nome COMPLETO fica
+
 // guardado no dataset do checkbox (avisos de dependencia usam ele).
 // Fluxo: todas as tarefas ja vem MARCADAS; um unico icone no canto
 // superior direito (acima da lista) alterna marcar/desmarcar todas; o
@@ -384,7 +398,8 @@ const TAREFAS_OCULTAS = ['003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]'];
 let dispositivoAtual = null;  // { nome, numero, final4 }
 let projetoCarregado = null;  // { xml, tarefas: [{ id, nme, bloco }], tidsOrig: [] }
 let gerandoXml = false;
-let projetoCriado = false;  // true quando o XML foi gerado com sucesso
+let projetoCriado = false;  // true quando o XML foi gerado com sucesso
+
 let idProjetoGerado = '';  // 4 ultimos digitos do dispositivo gerado
 
 function shellQuote(valor){
@@ -412,7 +427,8 @@ async function fecharPropriaCena() {
     // antes de encerrar, publica se o projeto foi criado (true/false)
     try {
         if (typeof Tasker !== 'undefined' && Tasker.setVariable) {
-            await Tasker.setVariable('project_created', projetoCriado ? 'true' : 'false');
+            await Tasker.setVariable('project_created', projetoCriado ? 'true' : 'false');
+
             await Tasker.setVariable('id_project', idProjetoGerado);
         }
     } catch (eVar) { }
@@ -765,8 +781,8 @@ function renderizarSelecao(){
     const btnToggle = document.createElement('button');
     btnToggle.className = 'btn-toggle-todas';
     btnToggle.id = 'btnToggleTodas';
-    btnToggle.title = 'Marcar ou desmarcar todas';
-    btnToggle.innerHTML = '<i class="fas fa-check-double"></i>';
+    btnToggle.type = 'button';
+    btnToggle.textContent = 'DESMARCAR TODAS';
     btnToggle.addEventListener('click', alternarTodas);
     linhaInstrucao.appendChild(instrucao);
     linhaInstrucao.appendChild(btnToggle);
@@ -846,8 +862,13 @@ function atualizarContagem(){
     if (!lista || !contagem) return;
     const todas = lista.querySelectorAll('input[type="checkbox"]');
     let n = 0;
-    todas.forEach(function (inp) { if (inp.checked) n = n + 1; });
+    todas.forEach(function (inp) {
+        if (inp.checked) n = n + 1;
+        if (inp.parentElement) inp.parentElement.classList.toggle('selecionada', inp.checked);
+    });
     contagem.textContent = n + ' de ' + todas.length + ' tarefas selecionadas';
+    const botao = document.getElementById('btnToggleTodas');
+    if (botao) botao.textContent = todas.length && n === todas.length ? 'DESMARCAR TODAS' : 'MARCAR TODAS';
 }
 
 function selecionados(){
@@ -1111,8 +1132,10 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
     definirModoTela(false);
     wcaDefinirTela('resultado');
     projetoCriado = true;
-    idProjetoGerado = dispositivoAtual ? dispositivoAtual.final4 : '';
-    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'true'); } catch (eOk) { }
+    idProjetoGerado = dispositivoAtual ? dispositivoAtual.final4 : '';
+
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'true'); } catch (eOk) { }
+
     try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('id_project', idProjetoGerado); } catch (eId) { }
     const container = document.getElementById('dispositivosContainer');
     if (!container) return;
@@ -1166,7 +1189,8 @@ function mostrarResultado(total, caminhoXml, caminhoIcone, avisos){
 
 document.addEventListener('DOMContentLoaded', function () {
     // estado inicial: nenhum projeto criado nesta abertura
-    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'false'); } catch (eInit) { }
+    try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('project_created', 'false'); } catch (eInit) { }
+
     try { if (typeof Tasker !== 'undefined' && Tasker.setVariable) Tasker.setVariable('id_project', ''); } catch (eInitId) { }
     buscarDispositivos();
 });
