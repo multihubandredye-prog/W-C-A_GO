@@ -8227,28 +8227,13 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         return !!(id && sessionDeletedDevices.has(id));
     }
 
+    // Fechar o pareamento nunca deve apagar uma sessao que acabou de conectar.
     async function resetDeviceConnection(id){
-        if(!id) return;
+        if (!id) return;
         stopAllTimers(id);
         stopNameWatch(id);
         pairingDevices.delete(id);
         connectingDevices.delete(id);
-
-        // Em reconexão de sessão deletada, nunca faça logout/reset automático.
-        // O dispositivo já existe e deve permanecer disponível para reconectar.
-        if(isSessionDeletedReconnectDevice(id)){
-            deviceListSignature = null;
-            fetchDevices();
-            return;
-        }
-
-        deviceListSignature = null;
-        try{
-            const dev = await fetchDeviceFromList(id);
-            if(dev && dev.jid){
-                await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}});
-            }
-        }catch(e){ }
         deviceListSignature = null;
         fetchDevices();
     }
@@ -8734,6 +8719,8 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             const data    = await res.json();
             if (res.ok === false) throw new Error('Falha na consulta de dispositivos.');
             const devices = interpretarListaDispositivos(data);
+            // Nao limpa o cache em falha, lista com dispositivos ou pareamento.
+            if (devices.length === 0 && data.code === 'SUCCESS') await reconciliarCacheVazio(devices);
 
             hideServerAlert();
             // Sincroniza primeiro: o primeiro numero precisa ter seu papel
@@ -8913,6 +8900,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                 const data = await res.json();
                 if (!res.ok) { atualizarStatusWhatsapp(null); return; }
                 const devices = interpretarListaDispositivos(data);
+                if (devices.length === 0 && data.code === 'SUCCESS') await reconciliarCacheVazio(devices);
                 hideServerAlert();
                 atualizarStatusWhatsapp(devices);
                 renderDeviceList(devices);
@@ -9088,6 +9076,9 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
     // componentes que dependem do arquivo são atualizados quando ele chegar.
     let devicesCache = [];
     let devicesCachePromise = null;
+    let filaEscritaDevices = Promise.resolve();
+    let versaoCacheDevices = 0;
+    let reconciliacaoDevices = null;
 
     function bridgeTimeout(ms){
         return new Promise(function(resolve){ setTimeout(resolve, ms); });
@@ -9127,16 +9118,50 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         return devicesCache;
     }
 
-    async function writeDevicesFile(list){
-        try{
-            devicesCache = Array.isArray(list) ? list : [];
-            atualizarPedidoInicial(false);
-            const escrita = await taskerCall('writeFile', { path: CONFIG.DEVICES_FILE_PATH, text: JSON.stringify(devicesCache, null, 2), append: false });
-            if (actionFailed(escrita)) throw new Error('Tasker.writeFile sinalizou falha ao gravar devices.json');
-            return true;
-        } catch(e){
-            return false;
-        }
+    // Serializa gravacoes para que uma escrita antiga nao restaure dados removidos.
+    function writeDevicesFile(list){
+        devicesCache = Array.isArray(list) ? list : [];
+        versaoCacheDevices++;
+        atualizarPedidoInicial(false);
+        const texto = JSON.stringify(devicesCache, null, 2);
+        const operacao = filaEscritaDevices.then(async function () {
+            try {
+                const escrita = await taskerCall('writeFile', { path: CONFIG.DEVICES_FILE_PATH, text: texto, append: false });
+                return !actionFailed(escrita);
+            } catch (e) { return false; }
+        });
+        filaEscritaDevices = operacao.then(function () {}, function () {});
+        return operacao;
+    }
+
+    // Duas respostas vazias validas e separadas evitam confundir falhas ou boot com exclusao.
+    function reconciliarCacheVazio(devices){
+        if (!Array.isArray(devices) || devices.length || !hasStoredConnections() || pairingDevices.size || remocaoEmAndamento) return Promise.resolve(false);
+        if (reconciliacaoDevices) return reconciliacaoDevices;
+        const versao = versaoCacheDevices;
+        const registroAnterior = readDevicesFile().slice();
+        reconciliacaoDevices = (async function () {
+            try {
+                await new Promise(function (resolve) { setTimeout(resolve, 1500); });
+                if (versao !== versaoCacheDevices || pairingDevices.size || remocaoEmAndamento) return false;
+                const resposta = await fetch(`${CONFIG.API_URL}/devices`, { headers: { "Authorization": CONFIG.AUTH } });
+                if (!resposta || !resposta.ok) return false;
+                const dados = await resposta.json();
+                if (!dados || dados.code !== 'SUCCESS' || interpretarListaDispositivos(dados).length !== 0) return false;
+                if (versao !== versaoCacheDevices || pairingDevices.size || remocaoEmAndamento) return false;
+                const gravacao = writeDevicesFile([]);
+                const versaoLimpeza = versaoCacheDevices;
+                const salvo = await gravacao;
+                if (!salvo) {
+                    if (versaoLimpeza === versaoCacheDevices) { devicesCache = registroAnterior; versaoCacheDevices++; }
+                    showToast({title: 'Falha ao atualizar conexões', message: 'Não foi possível salvar a lista local. Tente novamente.', type: 'warning'});
+                    return false;
+                }
+                refreshDevicesDependentUi();
+                return true;
+            } catch (erro) { return false; }
+        })().finally(function () { reconciliacaoDevices = null; });
+        return reconciliacaoDevices;
     }
 
     function syncDeviceToFile(dev){
