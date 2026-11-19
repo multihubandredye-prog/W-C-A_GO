@@ -5893,7 +5893,6 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     let devicesWithFallback = new Set(); // IDs que usaram fallback de nome
     let nameToastShown = new Set(); // IDs que ja exibiram o toast de nome indisponivel
     let sessionDeletedDevices = new Set(); // IDs cuja sessão do WhatsApp foi deletada fora do WCA
-    let reconnectInProgressDevices = new Set(); // protege a acao manual contra toques duplicados
     let reconnectExpandedDevices = new Set(); // IDs com opções QR/Código visíveis para reconexão
 
     let reviews = [];
@@ -8574,7 +8573,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         const estado = String(dev.state || '').toLowerCase();
         let deviceName = getDeviceName(dev);
         const hasName    = !!deviceName;
-        const isWaiting  = (pairingDevices.has(dev.id) || reconnectInProgressDevices.has(dev.id)) && !isLoggedIn;
+        const isWaiting  = pairingDevices.has(dev.id) && !isLoggedIn;
         const isSyncing  = isLoggedIn && !hasName && !devicesWithFallback.has(dev.id);
         const isFallback = isLoggedIn && !hasName && devicesWithFallback.has(dev.id);
         const effectiveOnline = (isLoggedIn && hasName) || isFallback;
@@ -8604,8 +8603,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             roleLabel = (principal && jidToPhone(dev.jid) === principal) ? 'PRIMÁRIO' : 'AUXILIAR';
         }
 
-        const showManualReconnect = temSessao && estado === 'disconnected' && !isWaiting;
-        return {id: dev.id, isLoggedIn, effectiveOnline, cardClass, nameToDisplay, badgeText, badgeClass, idToDisplay, showButtons, showManualReconnect, stateKey, roleLabel};
+        return {id: dev.id, isLoggedIn, effectiveOnline, cardClass, nameToDisplay, badgeText, badgeClass, idToDisplay, showButtons, stateKey, roleLabel};
     }
 
     function renderDeviceList(devices){
@@ -8624,7 +8622,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             })
             .map(computeDeviceView);
 
-        const signature = views.map(v => `${v.id}|${v.stateKey}|${v.nameToDisplay}|${v.idToDisplay}|${v.roleLabel}|${v.showManualReconnect}`).join('~~');
+        const signature = views.map(v => `${v.id}|${v.stateKey}|${v.nameToDisplay}|${v.idToDisplay}|${v.roleLabel}`).join('~~');
         if (signature === deviceListSignature) return;
         deviceListSignature = signature;
 
@@ -8690,15 +8688,6 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                     note.className = 'session-deleted-note';
                     note.textContent = 'A sessão foi removida no WhatsApp. Reconecte este dispositivo usando QR Code ou código.';
                     card.appendChild(note);
-                } else if(v.showManualReconnect){
-                    buttonsWrap.classList.remove('d-none');
-                    buttonsWrap.innerHTML = '';
-                    const reconnectBtn = document.createElement('button');
-                    reconnectBtn.type = 'button';
-                    reconnectBtn.className = 'btn-action btn-device btn-reconnect-device';
-                    reconnectBtn.innerHTML = '<i class="fa-solid fa-link"></i> RECONECTAR';
-                    reconnectBtn.onclick = () => reconectarDispositivo(v.id);
-                    buttonsWrap.appendChild(reconnectBtn);
                 } else if(v.showReactivateButton){
                     buttonsWrap.classList.add('d-none');
                     buttonsWrap.innerHTML = '';
@@ -8729,53 +8718,12 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         });
     }
 
-    // Reconexao so acontece por escolha expressa, nunca durante a consulta.
-    async function reconectarDispositivo(id){
-        if (!id || reconnectInProgressDevices.has(id)) return;
-        reconnectInProgressDevices.add(id);
-        deviceListSignature = null;
-        try {
-            // Evita interromper uma conexao que voltou antes do toque.
-            const consulta = await fetch(`${CONFIG.API_URL}/devices`, { headers: { "Authorization": CONFIG.AUTH } });
-            if (!consulta.ok) throw new Error('Não foi possível verificar o dispositivo.');
-            const dados = await consulta.json();
-            if (!dados || !Array.isArray(dados.results)) throw new Error('Resposta inválida da API de dispositivos.');
-            const dev = dados.results.find(function (item) { return item && item.id === id; });
-            if (!dev || !dev.jid) throw new Error('O dispositivo não possui uma sessão salva para reconectar.');
-            const estado = String(dev.state || '').toLowerCase();
-            if (estado === 'logged_in') {
-                showToast({title: 'Já conectado', message: 'O WhatsApp já está conectado.', type: 'success'});
-                return;
-            }
-            if (estado !== 'disconnected') {
-                showToast({title: 'Aguarde', message: 'A conexão está em andamento ou não pôde ser verificada.', type: 'warning'});
-                return;
-            }
-            const resposta = await fetch(`${CONFIG.API_URL}/app/reconnect`, {
-                method: 'GET',
-                headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id, "Accept": "application/json" }
-            });
-            if (!resposta.ok) {
-                const resultado = await resposta.json().catch(function () { return {}; });
-                const mensagem = String(resultado.message || resultado.error || '');
-                const minuscula = mensagem.toLowerCase();
-                if (resposta.status >= 400 && minuscula.includes('session deleted')) {
-                    sessionDeletedDevices.add(id);
-                    reconnectExpandedDevices.delete(id);
-                    showToast({title: 'Sessão indisponível', message: 'Reconecte usando QR Code ou código.', type: 'warning'});
-                } else throw new Error(mensagem || 'A API não conseguiu iniciar a reconexão.');
-                return;
-            }
-            sessionDeletedDevices.delete(id);
-            reconnectExpandedDevices.delete(id);
-            showToast({title: 'Reconexão iniciada', message: 'Aguarde a verificação do estado do WhatsApp.', type: 'success'});
-        } catch (erro) {
-            showToast({title: 'Falha na reconexão', message: String((erro && erro.message) || 'Tente novamente.'), type: 'warning'});
-        } finally {
-            reconnectInProgressDevices.delete(id);
-            deviceListSignature = null;
-            fetchDevices();
-        }
+    // Uma lista vazia pode chegar como null na resposta de sucesso da API.
+    function interpretarListaDispositivos(data){
+        if (!data || (data.code && data.code !== 'SUCCESS')) throw new Error('Resposta inválida da API de dispositivos.');
+        if (Array.isArray(data.results)) return data.results;
+        if (data.code === 'SUCCESS' && (data.results === null || data.results === undefined)) return [];
+        throw new Error('Resposta inválida da API de dispositivos.');
     }
 
     async function fetchDevices(){
@@ -8784,8 +8732,8 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             if (devicesCachePromise) await devicesCachePromise;
             const res     = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
             const data    = await res.json();
-            if (res.ok === false || !Array.isArray(data.results)) throw new Error('Resposta inválida da API de dispositivos.');
-            const devices = data.results;
+            if (res.ok === false) throw new Error('Falha na consulta de dispositivos.');
+            const devices = interpretarListaDispositivos(data);
 
             hideServerAlert();
             // Sincroniza primeiro: o primeiro numero precisa ter seu papel
@@ -8823,12 +8771,10 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             return devices.filter(dispositivoConectado).every(d => getDeviceName(d));
         } catch(e){
             atualizarStatusWhatsapp(null);
-            handleServerError(e);
-            if(hasStoredConnections()){
-                setReactivateUiState(true);
-                renderPausedStoredDevices();
-            }
-            return true;
+            showServerAlert('Não foi possível consultar os dispositivos. Tente novamente.');
+            const titulo = dom.serverAlert && dom.serverAlert.querySelector('strong');
+            if (titulo && !isExpiredLogData()) titulo.textContent = 'Consulta indisponível';
+            return false;
         }
     }
 
@@ -8965,8 +8911,9 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             try {
                 const res = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
                 const data = await res.json();
-                if (!res.ok || !Array.isArray(data.results)) { atualizarStatusWhatsapp(null); return; }
-                const devices = data.results;
+                if (!res.ok) { atualizarStatusWhatsapp(null); return; }
+                const devices = interpretarListaDispositivos(data);
+                hideServerAlert();
                 atualizarStatusWhatsapp(devices);
                 renderDeviceList(devices);
                 let changed = false;
@@ -9018,9 +8965,12 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         openModal('confirmModal');
     }
 
-    async function doDeleteDevice(){
-        if(!deleteDeviceTargetId) return;
-        const id = deleteDeviceTargetId;
+    // A API ja remove a sessao e o registro no logout; nao chamar DELETE depois.
+    async function removerDispositivoConfirmado(dev){
+        const id = dev.id;
+        const resposta = await fetch(`${CONFIG.API_URL}/app/logout`, { headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id } });
+        if (!resposta.ok) throw new Error('A API não confirmou a remoção. Ela pode ter sido parcial; verifique a lista antes de tentar novamente.');
+        if (dev.jid && !(await removeDeviceFromFile(dev.jid))) throw new Error('O dispositivo foi removido da API, mas não foi possível salvar a alteração local.');
         stopAllTimers(id);
         stopNameWatch(id);
         pairingDevices.delete(id);
@@ -9028,21 +8978,36 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         sessionDeletedDevices.delete(id);
         reconnectExpandedDevices.delete(id);
         deviceListSignature = null;
-        let jid = '';
-        try{
-            const dev = await fetchDeviceFromList(id);
-            jid = dev && dev.jid ? dev.jid : '';
-        }catch(e){ /* segue mesmo sem jid */ }
-        try{
-            await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}});
-        }catch(e){ }
-        try{
-            await fetch(`${CONFIG.API_URL}/devices/${id}`, {method: 'DELETE', headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}});
-        }catch(e){ }
-        if(jid) removeDeviceFromFile(jid);
-        closeModal('confirmModal');
-        deleteDeviceTargetId = null;
-        fetchDevices();
+    }
+
+    async function consultarDispositivosParaRemocao(){
+        const resposta = await fetch(`${CONFIG.API_URL}/devices`, { headers: { "Authorization": CONFIG.AUTH } });
+        if (!resposta.ok) throw new Error('Não foi possível consultar os dispositivos na API.');
+        return interpretarListaDispositivos(await resposta.json());
+    }
+
+    let remocaoEmAndamento = false;
+    async function doDeleteDevice(){
+        if (!deleteDeviceTargetId || remocaoEmAndamento) return;
+        remocaoEmAndamento = true;
+        const botao = document.getElementById('btnConfirmDelete');
+        if (botao) botao.disabled = true;
+        try {
+            const id = deleteDeviceTargetId;
+            const lista = await consultarDispositivosParaRemocao();
+            const dev = lista.find(function (item) { return item && item.id === id; });
+            if (!dev) throw new Error('Dispositivo não encontrado na API. Atualize a lista e confira antes de tentar novamente.');
+            await removerDispositivoConfirmado(dev);
+            showToast({title: 'Dispositivo removido', message: 'A conexão foi removida.', type: 'success'});
+            closeModal('confirmModal');
+            deleteDeviceTargetId = null;
+        } catch (erro) {
+            showToast({title: 'Falha ao remover', message: String((erro && erro.message) || 'Tente novamente.'), type: 'error'});
+        } finally {
+            if (botao) botao.disabled = false;
+            remocaoEmAndamento = false;
+            fetchDevices();
+        }
     }
 
     function askDeleteAllDevices(){
@@ -9050,30 +9015,25 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
     }
 
     async function doDeleteAllDevices(){
+        if (remocaoEmAndamento) return;
+        remocaoEmAndamento = true;
         const btn = document.getElementById('btnConfirmDeleteAll');
         if (btn) btn.disabled = true;
-        try{
-            const res = await fetch(`${CONFIG.API_URL}/devices`, {headers: {"Authorization": CONFIG.AUTH}});
-            const data = await res.json();
-            const devices = data.results || [];
-            for (const dev of devices){
-                const id = dev.id;
-                stopAllTimers(id);
-                stopNameWatch(id);
-                pairingDevices.delete(id);
-                sessionDeletedDevices.delete(id);
-                        reconnectExpandedDevices.delete(id);
-                try{ await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ }
-                try{ await fetch(`${CONFIG.API_URL}/devices/${id}`, {method: 'DELETE', headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ }
+        let removidos = 0;
+        try {
+            const devices = await consultarDispositivosParaRemocao();
+            for (const dev of devices) {
+                if (!dev || !dev.id) throw new Error('A lista contém um dispositivo inválido.');
+                await removerDispositivoConfirmado(dev);
+                removidos++;
             }
-            deviceListSignature = null;
-            clearDevicesFile();
-            showToast({title: 'Dispositivos removidos', message: 'Todos os dispositivos foram removidos.', type: 'success'});
-        }catch(e){
-            showToast({title: 'Erro', message: 'Falha ao remover os dispositivos.', type: 'error'});
-        }finally{
-            if (btn) btn.disabled = false;
+            showToast({title: 'Dispositivos removidos', message: 'Os dispositivos foram removidos.', type: 'success'});
             closeModal('confirmAllModal');
+        } catch (erro) {
+            showToast({title: 'Remoção incompleta', message: String(removidos) + ' removido(s). ' + String((erro && erro.message) || 'Tente novamente.'), type: 'error'});
+        } finally {
+            if (btn) btn.disabled = false;
+            remocaoEmAndamento = false;
             fetchDevices();
         }
     }
@@ -9214,15 +9174,15 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         writeDevicesFile(list);
     }
 
-    function removeDeviceFromFile(jid){
-        if(!jid) return;
+    async function removeDeviceFromFile(jid){
+        if(!jid) return false;
         let list = readDevicesFile();
         const removedPrincipal = list.some(d => jidToPhone(d.jid) === jidToPhone(jid) && d.is_principal);
         list = list.filter(d => jidToPhone(d.jid) !== jidToPhone(jid));
         if(removedPrincipal && list.length > 0 && !list.some(d => d.is_principal)){
             list[0].is_principal = true;
         }
-        writeDevicesFile(list);
+        return await writeDevicesFile(list);
     }
 
     function clearDevicesFile(){
