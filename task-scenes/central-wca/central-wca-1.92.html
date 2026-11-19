@@ -4017,7 +4017,7 @@ input.first-install-attention {
                     <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
                 </button>
 
-                <button class="menu-item-new d-none" id="menuRestartBtn">
+                <button class="menu-item-new" id="menuRestartBtn">
                     <div class="icon-container icon-primary"><i class="fa-solid fa-rotate-right"></i></div>
                     <div class="text-container"><div class="item-title">Reiniciar WCA</div><div class="item-subtitle">Reiniciar serviço do WCA</div></div>
                     <div class="chevron-icon"><i class="fa-solid fa-chevron-right"></i></div>
@@ -10645,7 +10645,6 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             panelVersionBadge.textContent = APP_VERSION;
             window.__panelVersionSet = true;
         }
-        document.getElementById('menuRestartBtn')?.classList.add('d-none');
         setDeactivateMenuAvailability(hasStoredConnections());
         resolveProfilePicture();
 
