@@ -5893,7 +5893,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     let devicesWithFallback = new Set(); // IDs que usaram fallback de nome
     let nameToastShown = new Set(); // IDs que ja exibiram o toast de nome indisponivel
     let sessionDeletedDevices = new Set(); // IDs cuja sessão do WhatsApp foi deletada fora do WCA
-    let reconnectCheckedDevices = new Set(); // evita checar /app/reconnect repetidamente no mesmo carregamento
+    let reconnectInProgressDevices = new Set(); // protege a acao manual contra toques duplicados
     let reconnectExpandedDevices = new Set(); // IDs com opções QR/Código visíveis para reconexão
 
     let reviews = [];
@@ -8574,7 +8574,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         const estado = String(dev.state || '').toLowerCase();
         let deviceName = getDeviceName(dev);
         const hasName    = !!deviceName;
-        const isWaiting  = pairingDevices.has(dev.id) && !isLoggedIn;
+        const isWaiting  = (pairingDevices.has(dev.id) || reconnectInProgressDevices.has(dev.id)) && !isLoggedIn;
         const isSyncing  = isLoggedIn && !hasName && !devicesWithFallback.has(dev.id);
         const isFallback = isLoggedIn && !hasName && devicesWithFallback.has(dev.id);
         const effectiveOnline = (isLoggedIn && hasName) || isFallback;
@@ -8604,7 +8604,8 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             roleLabel = (principal && jidToPhone(dev.jid) === principal) ? 'PRIMÁRIO' : 'AUXILIAR';
         }
 
-        return {id: dev.id, isLoggedIn, effectiveOnline, cardClass, nameToDisplay, badgeText, badgeClass, idToDisplay, showButtons, stateKey, roleLabel};
+        const showManualReconnect = temSessao && estado === 'disconnected' && !isWaiting;
+        return {id: dev.id, isLoggedIn, effectiveOnline, cardClass, nameToDisplay, badgeText, badgeClass, idToDisplay, showButtons, showManualReconnect, stateKey, roleLabel};
     }
 
     function renderDeviceList(devices){
@@ -8623,7 +8624,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             })
             .map(computeDeviceView);
 
-        const signature = views.map(v => `${v.id}|${v.stateKey}|${v.nameToDisplay}|${v.idToDisplay}|${v.roleLabel}`).join('~~');
+        const signature = views.map(v => `${v.id}|${v.stateKey}|${v.nameToDisplay}|${v.idToDisplay}|${v.roleLabel}|${v.showManualReconnect}`).join('~~');
         if (signature === deviceListSignature) return;
         deviceListSignature = signature;
 
@@ -8689,6 +8690,15 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                     note.className = 'session-deleted-note';
                     note.textContent = 'A sessão foi removida no WhatsApp. Reconecte este dispositivo usando QR Code ou código.';
                     card.appendChild(note);
+                } else if(v.showManualReconnect){
+                    buttonsWrap.classList.remove('d-none');
+                    buttonsWrap.innerHTML = '';
+                    const reconnectBtn = document.createElement('button');
+                    reconnectBtn.type = 'button';
+                    reconnectBtn.className = 'btn-action btn-device btn-reconnect-device';
+                    reconnectBtn.innerHTML = '<i class="fa-solid fa-link"></i> RECONECTAR';
+                    reconnectBtn.onclick = () => reconectarDispositivo(v.id);
+                    buttonsWrap.appendChild(reconnectBtn);
                 } else if(v.showReactivateButton){
                     buttonsWrap.classList.add('d-none');
                     buttonsWrap.innerHTML = '';
@@ -8719,40 +8729,53 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         });
     }
 
-    async function checkDeviceReconnectState(dev){
-        if(!dev || !dev.id || reconnectCheckedDevices.has(dev.id)) return;
-        reconnectCheckedDevices.add(dev.id);
-        try{
-            const res = await fetch(`${CONFIG.API_URL}/app/reconnect`, {
-                method: 'GET',
-                headers: {
-                    "Authorization": CONFIG.AUTH,
-                    "X-Device-Id": dev.id,
-                    "Accept": "application/json"
-                }
-            });
-            if(res.ok){
-                sessionDeletedDevices.delete(dev.id);
-                reconnectExpandedDevices.delete(dev.id);
+    // Reconexao so acontece por escolha expressa, nunca durante a consulta.
+    async function reconectarDispositivo(id){
+        if (!id || reconnectInProgressDevices.has(id)) return;
+        reconnectInProgressDevices.add(id);
+        deviceListSignature = null;
+        try {
+            // Evita interromper uma conexao que voltou antes do toque.
+            const consulta = await fetch(`${CONFIG.API_URL}/devices`, { headers: { "Authorization": CONFIG.AUTH } });
+            if (!consulta.ok) throw new Error('Não foi possível verificar o dispositivo.');
+            const dados = await consulta.json();
+            if (!dados || !Array.isArray(dados.results)) throw new Error('Resposta inválida da API de dispositivos.');
+            const dev = dados.results.find(function (item) { return item && item.id === id; });
+            if (!dev || !dev.jid) throw new Error('O dispositivo não possui uma sessão salva para reconectar.');
+            const estado = String(dev.state || '').toLowerCase();
+            if (estado === 'logged_in') {
+                showToast({title: 'Já conectado', message: 'O WhatsApp já está conectado.', type: 'success'});
                 return;
             }
-            const data = await res.json().catch(() => ({}));
-            const msg = String(data.message || data.error || '').toLowerCase();
-            if(res.status >= 400 && (msg.includes('session deleted') || msg.includes('not logged in') || msg.includes('não está logado') || msg.includes('nao esta logado'))){
-                sessionDeletedDevices.add(dev.id);
-                deviceListSignature = null;
-                fetchDevices();
+            if (estado !== 'disconnected') {
+                showToast({title: 'Aguarde', message: 'A conexão está em andamento ou não pôde ser verificada.', type: 'warning'});
+                return;
             }
-        }catch(e){
-            // Se a API caiu, o fluxo normal de offline já trata. Não marca sessão deletada por erro de rede.
+            const resposta = await fetch(`${CONFIG.API_URL}/app/reconnect`, {
+                method: 'GET',
+                headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id, "Accept": "application/json" }
+            });
+            if (!resposta.ok) {
+                const resultado = await resposta.json().catch(function () { return {}; });
+                const mensagem = String(resultado.message || resultado.error || '');
+                const minuscula = mensagem.toLowerCase();
+                if (resposta.status >= 400 && minuscula.includes('session deleted')) {
+                    sessionDeletedDevices.add(id);
+                    reconnectExpandedDevices.delete(id);
+                    showToast({title: 'Sessão indisponível', message: 'Reconecte usando QR Code ou código.', type: 'warning'});
+                } else throw new Error(mensagem || 'A API não conseguiu iniciar a reconexão.');
+                return;
+            }
+            sessionDeletedDevices.delete(id);
+            reconnectExpandedDevices.delete(id);
+            showToast({title: 'Reconexão iniciada', message: 'Aguarde a verificação do estado do WhatsApp.', type: 'success'});
+        } catch (erro) {
+            showToast({title: 'Falha na reconexão', message: String((erro && erro.message) || 'Tente novamente.'), type: 'warning'});
+        } finally {
+            reconnectInProgressDevices.delete(id);
+            deviceListSignature = null;
+            fetchDevices();
         }
-    }
-
-    function checkReconnectStateForDevices(devices){
-        if(!Array.isArray(devices)) return;
-        devices.forEach(dev => {
-            if(dev && dev.id && dev.jid) checkDeviceReconnectState(dev);
-        });
     }
 
     async function fetchDevices(){
@@ -8771,7 +8794,6 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             renderDeviceList(devices);
             atualizarStatusWhatsapp(devices);
             refreshDevicesDependentUi();
-            checkReconnectStateForDevices(devices);
 
             const loggedInIds = new Set();
             devices.forEach(d => {
@@ -8854,7 +8876,6 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                     clearInterval(checkTimers[id]);
                     pairingDevices.delete(id);
                     sessionDeletedDevices.delete(id);
-                    reconnectCheckedDevices.delete(id);
                     reconnectExpandedDevices.delete(id);
                     const pairModalOpen = document.getElementById('pairCodeModal')?.classList.contains('open');
                     const qrModalOpen = document.getElementById('zoomModal')?.classList.contains('open');
@@ -9005,7 +9026,6 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         pairingDevices.delete(id);
         devicesWithFallback.delete(id);
         sessionDeletedDevices.delete(id);
-        reconnectCheckedDevices.delete(id);
         reconnectExpandedDevices.delete(id);
         deviceListSignature = null;
         let jid = '';
@@ -9042,8 +9062,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                 stopNameWatch(id);
                 pairingDevices.delete(id);
                 sessionDeletedDevices.delete(id);
-                reconnectCheckedDevices.delete(id);
-                reconnectExpandedDevices.delete(id);
+                        reconnectExpandedDevices.delete(id);
                 try{ await fetch(`${CONFIG.API_URL}/app/logout`, {headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ }
                 try{ await fetch(`${CONFIG.API_URL}/devices/${id}`, {method: 'DELETE', headers: {"Authorization": CONFIG.AUTH, "X-Device-Id": id}}); }catch(e){ }
             }
