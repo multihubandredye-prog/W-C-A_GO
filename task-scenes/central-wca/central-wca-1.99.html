@@ -3275,13 +3275,7 @@ input.first-install-attention {
 #devSettingsModal .dev-chip input[type="checkbox"]:checked::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #355000; top: 4px; left: 4px; }
 .dev-chip input:focus-visible { outline: 2px solid #b5fb2a; outline-offset: 2px; }
 .dev-chip span { min-width: 0; overflow-wrap: anywhere; word-break: normal; line-height: 1.2; text-align: left; cursor: pointer; }
-.dev-events:not(.expanded) .dev-chip:nth-child(n+3) { display: none; }
-.dev-events-expand, .dev-section-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; color: var(--accent); background: transparent; cursor: pointer; text-align: left; }
-.dev-events-expand { justify-content: center; min-height: 32px; margin-top: 5px; font-size: 0.85rem; }
-.dev-section-toggle { padding: 6px 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; font-weight: inherit; }
-.dev-section-toggle:active, .dev-events-expand:active { opacity: 0.7; }
 .dev-section-body { display: flex; flex-direction: column; gap: 12px; }
-.dev-section-body[hidden] { display: none; }
 .dev-chip .dev-chip-help { background: none; border: none; color: rgba(181,251,42,0.75); cursor: pointer; font-size: 0.82rem; padding: 0 0 0 2px; margin-left: auto; flex-shrink: 0; line-height: 1; }
 .dev-bubble { display: none; position: fixed; z-index: 12000; max-width: 78vw; padding: 10px 12px; border-radius: 0.8rem; border: 1px solid rgba(181,251,42,0.4); background: rgba(10,13,18,0.98); box-shadow: 0 8px 24px rgba(0,0,0,0.55); font-size: 0.72rem; color: var(--text-main); line-height: 1.45; text-align: left; }
 .dev-bubble strong { display: block; margin-bottom: 3px; font-size: 0.64rem; letter-spacing: 0.05em; color: var(--primary); font-family: var(--font-mono, monospace); }
@@ -3550,8 +3544,8 @@ input.first-install-attention {
             <h3 class="modal-title default-title">CONFIGURAÇÕES DA API</h3>
             <div class="dev-status" id="devStatus"></div>
             <div class="dev-wrap">
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection0"><span>Aplicação</span><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="dev-section-body" id="devSection0" hidden>
+                <div class="dev-group-title">Aplicação</div>
+                <div class="dev-section-body" id="devSection0">
                 <div class="dev-row">
                     <div class="dev-label-row">
                         <span class="dev-key">Nome do dispositivo conectado</span>
@@ -3567,8 +3561,8 @@ input.first-install-attention {
                     <input type="text" id="devInBodyLimit" class="dev-input dev-input-num" inputmode="numeric" placeholder="135">
                 </div>
                 </div>
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection1"><span>Mensagens</span><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="dev-section-body" id="devSection1" hidden>
+                <div class="dev-group-title">Mensagens</div>
+                <div class="dev-section-body" id="devSection1">
                 <div class="dev-row">
                     <div class="dev-label-row">
                         <span class="dev-key">Resposta automática</span>
@@ -3600,8 +3594,8 @@ input.first-install-attention {
                     </div>
                 </div>
                 </div>
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection2"><span>Mídia</span><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="dev-section-body" id="devSection2" hidden>
+                <div class="dev-group-title">Mídia</div>
+                <div class="dev-section-body" id="devSection2">
                 <div class="dev-row">
                     <div class="dev-label-row">
                         <span class="dev-key">Baixar mídias automaticamente</span>
@@ -3645,8 +3639,8 @@ input.first-install-attention {
                     <input type="text" id="devInMaxDownload" class="dev-input dev-input-num" inputmode="numeric" placeholder="500">
                 </div>
                 </div>
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection3"><span>Webhook</span><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="dev-section-body" id="devSection3" hidden>
+                <div class="dev-group-title">Webhook</div>
+                <div class="dev-section-body" id="devSection3">
 
 <div class="dev-row dev-row-inline">
                         <span class="dev-key">Atraso do webhook (milissegundos)</span>
@@ -3679,15 +3673,14 @@ input.first-install-attention {
                     </div>
                     <div class="dev-help">Eventos que o webhook recebe; desmarcados não são enviados. Se deixar TODOS desmarcados, a API volta a enviar todos os eventos. Toque no ? de cada evento para ver o que ele faz.</div>
                     <div class="dev-events" id="devEventsGrid"></div>
-                    <button type="button" id="devEventsExpand" class="dev-events-expand" aria-expanded="false" aria-controls="devEventsGrid" aria-label="Mostrar todos os eventos"><i class="fa-solid fa-chevron-down"></i></button>
                     <div class="dev-events-actions">
                         <button type="button" id="devEventsAll">MARCAR TODAS</button>
                         <button type="button" id="devEventsNone">DESMARCAR TODAS</button>
                     </div>
                 </div>
                 </div>
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection4"><span>Confirmações de entrega e leitura</span><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="dev-section-body" id="devSection4" hidden>
+                <div class="dev-group-title">Confirmações de entrega e leitura</div>
+                <div class="dev-section-body" id="devSection4">
                 <p class="dev-note">A caixa de confirmações nos eventos ativa a entrega. Ao ativar uma leitura, a caixa também será marcada. Desmarcá-la desativa as leituras.</p>
                 <div class="dev-row">
                     <div class="dev-label-row"><span class="dev-key">Leitura pelo destinatário</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
@@ -3706,8 +3699,8 @@ input.first-install-attention {
                     </div>
                 </div>
                 </div>
-                <div class="dev-group-title"><button type="button" class="dev-section-toggle" aria-expanded="false" aria-controls="devSection5"><span>Conta e presença</span><i class="fa-solid fa-chevron-down"></i></button></div>
-                <div class="dev-section-body" id="devSection5" hidden>
+                <div class="dev-group-title">Conta e presença</div>
+                <div class="dev-section-body" id="devSection5">
                 <div class="dev-row">
                     <div class="dev-label-row">
                         <span class="dev-key">Validar conta do WhatsApp</span>
@@ -5325,32 +5318,12 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         if (DEV_DURACOES.indexOf(e.pulse_duration) < 0) return erro('Escolha a duração do pulso.');
         return e;
     }
-    // Sempre inicia com as secoes recolhidas, sem alterar as configuracoes.
-    function devRecolherSecoes(){
-        document.querySelectorAll('#devSettingsModal .dev-section-toggle').forEach(function (btn) {
-            const body = document.getElementById(btn.getAttribute('aria-controls'));
-            if (body) body.hidden = true;
-            btn.setAttribute('aria-expanded', 'false');
-            const icon = btn.querySelector('i');
-            if (icon) icon.className = 'fa-solid fa-chevron-down';
-        });
-        const grid = document.getElementById('devEventsGrid');
-        if (grid) grid.classList.remove('expanded');
-        const botao = document.getElementById('devEventsExpand');
-        if (botao) {
-            botao.setAttribute('aria-expanded', 'false');
-            botao.setAttribute('aria-label', 'Mostrar todos os eventos');
-            const icon = botao.querySelector('i');
-            if (icon) icon.className = 'fa-solid fa-chevron-down';
-        }
-    }
     async function devAbrir(){
         const status = document.getElementById('devStatus');
         if (!status) return;
         status.classList.remove('dev-status-erro');
         status.textContent = 'Lendo configurações atuais…';
         devEstado = devPadroes();
-        devRecolherSecoes();
         openModal('devSettingsModal');
         try {
             const texto = await Promise.race([lerArquivo(DEV_ENV_PATH, DEV_ENV_REGEX), bridgeTimeout(15000)]);
@@ -5487,30 +5460,6 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
                     if (master) master.checked = false;
                 }
             });
-        });
-        // Expansao visual nao altera os valores dos controles.
-        document.querySelectorAll('#devSettingsModal .dev-section-toggle').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const body = document.getElementById(btn.getAttribute('aria-controls'));
-                if (!body) return;
-                const abrir = body.hidden;
-                body.hidden = !abrir;
-                btn.setAttribute('aria-expanded', abrir ? 'true' : 'false');
-                const icon = btn.querySelector('i');
-                if (icon) icon.className = abrir ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
-                devFecharBolha();
-            });
-        });
-        const expEventos = document.getElementById('devEventsExpand');
-        if (expEventos) expEventos.addEventListener('click', function () {
-            const grid = document.getElementById('devEventsGrid');
-            if (!grid) return;
-            const aberto = grid.classList.toggle('expanded');
-            expEventos.setAttribute('aria-expanded', aberto ? 'true' : 'false');
-            expEventos.setAttribute('aria-label', aberto ? 'Mostrar menos eventos' : 'Mostrar todos os eventos');
-            const icon = expEventos.querySelector('i');
-            if (icon) icon.className = aberto ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
-            devFecharBolha();
         });
         const devWrapEl = document.querySelector('#devSettingsModal .dev-wrap');
         if (devWrapEl) devWrapEl.addEventListener('scroll', function () { devFecharBolha(); }, { passive: true });
