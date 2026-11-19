@@ -3480,7 +3480,7 @@ input.first-install-attention {
         <div class="modal-content">
             <div class="delete-icon-wrap"><i class="fa-solid fa-trash-can"></i></div>
             <h3 class="modal-title default-title">Remover Dispositivo?</h3>
-            <p class="delete-review-text">O dispositivo será desconectado e removido da lista.</p>
+            <p class="delete-review-text">Dispositivos online serão desconectados. Dispositivos offline serão removidos da lista; a sessão poderá permanecer salva e reaparecer.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmModal">CANCELAR</button>
                 <button id="btnConfirmDelete" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> SIM</button>
@@ -3772,7 +3772,7 @@ input.first-install-attention {
         <div class="modal-content">
             <div class="delete-icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <h3 class="modal-title default-title">Remover TODOS os dispositivos?</h3>
-            <p class="delete-review-text">Todos os dispositivos serão desconectados e removidos. Essa ação não pode ser desfeita.</p>
+            <p class="delete-review-text">Dispositivos online serão desconectados. Os offline serão removidos da lista, mas suas sessões poderão permanecer salvas e reaparecer.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmAllModal">CANCELAR</button>
                 <button id="btnConfirmDeleteAll" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-trash-can"></i> SIM</button>
@@ -8953,17 +8953,26 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         openModal('confirmModal');
     }
 
-    // A API ja remove a sessao e o registro no logout; nao chamar DELETE depois.
+    // DELETE remove apenas o registro offline; logout remove a sessao online.
     async function removerDispositivoConfirmado(dev){
         const id = dev.id;
+        const estado = String(dev.state || '').toLowerCase();
+        if (estado !== 'disconnected' && estado !== 'logged_in') throw new Error('O estado do dispositivo não está confirmado. Aguarde a conexão estabilizar e tente novamente.');
+        const apenasLista = estado === 'disconnected';
+        const caminho = apenasLista ? '/devices/' + encodeURIComponent(id) : '/app/logout';
+        const opcoes = { headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id } };
+        if (apenasLista) opcoes.method = 'DELETE';
         let resposta;
         try {
-            resposta = await fetch(`${CONFIG.API_URL}/app/logout`, { headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id } });
+            resposta = await fetch(CONFIG.API_URL + caminho, opcoes);
         } catch (erro) {
             throw new Error('A API não respondeu. A remoção pode ter ocorrido; confira as conexões antes de tentar novamente.');
         }
         if (!resposta.ok) throw new Error('A API não confirmou a remoção. Ela pode ter sido parcial; verifique a lista antes de tentar novamente.');
-        if (dev.jid && !(await removeDeviceFromFile(dev.jid))) throw new Error('O dispositivo foi removido da API, mas não foi possível salvar a alteração local.');
+        let dados;
+        try { dados = await resposta.json(); } catch (erro) { throw new Error('A resposta da API não pôde ser confirmada. Verifique a lista antes de tentar novamente.'); }
+        if (!dados || dados.code !== 'SUCCESS') throw new Error('A API não confirmou a remoção. Verifique a lista antes de tentar novamente.');
+        if (!apenasLista && dev.jid && !(await removeDeviceFromFile(dev.jid))) throw new Error('O dispositivo foi removido da API, mas não foi possível salvar a alteração local.');
         stopAllTimers(id);
         stopNameWatch(id);
         pairingDevices.delete(id);
@@ -8971,6 +8980,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         sessionDeletedDevices.delete(id);
         reconnectExpandedDevices.delete(id);
         deviceListSignature = null;
+        return apenasLista && !!dev.jid;
     }
 
     async function consultarDispositivosParaRemocao(){
@@ -8990,8 +9000,10 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             const lista = await consultarDispositivosParaRemocao();
             const dev = lista.find(function (item) { return item && item.id === id; });
             if (!dev) throw new Error('Dispositivo não encontrado na API. Atualize a lista e confira antes de tentar novamente.');
-            await removerDispositivoConfirmado(dev);
-            showToast({title: 'Dispositivo removido', message: 'A conexão foi removida.', type: 'success'});
+            const sessaoPendente = await removerDispositivoConfirmado(dev);
+            showToast(sessaoPendente
+                ? {title: 'Removido da lista', message: 'A sessão pode continuar salva e reaparecer após reiniciar. Verifique também os aparelhos conectados no WhatsApp.', type: 'warning'}
+                : {title: 'Dispositivo removido', message: 'O dispositivo foi removido.', type: 'success'});
             closeModal('confirmModal');
             deleteDeviceTargetId = null;
         } catch (erro) {
@@ -9013,15 +9025,18 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         const btn = document.getElementById('btnConfirmDeleteAll');
         if (btn) btn.disabled = true;
         let removidos = 0;
+        let sessoesPendentes = 0;
         try {
             const devices = await consultarDispositivosParaRemocao();
             if (!devices.length && hasStoredConnections()) throw new Error('A lista da API está vazia, mas existem conexões salvas. Não foi possível confirmar a remoção; verifique após a API estabilizar.');
             for (const dev of devices) {
                 if (!dev || !dev.id) throw new Error('A lista contém um dispositivo inválido.');
-                await removerDispositivoConfirmado(dev);
+                if (await removerDispositivoConfirmado(dev)) sessoesPendentes++;
                 removidos++;
             }
-            showToast({title: 'Dispositivos removidos', message: 'Os dispositivos foram removidos.', type: 'success'});
+            showToast(sessoesPendentes
+                ? {title: 'Removidos da lista', message: 'Sessões offline podem continuar salvas e reaparecer após reiniciar. Verifique os aparelhos conectados no WhatsApp.', type: 'warning'}
+                : {title: 'Dispositivos removidos', message: 'Os dispositivos foram removidos.', type: 'success'});
             closeModal('confirmAllModal');
         } catch (erro) {
             showToast({title: 'Remoção incompleta', message: String(removidos) + ' removido(s). ' + String((erro && erro.message) || 'Tente novamente.'), type: 'error'});
