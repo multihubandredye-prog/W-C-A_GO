@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
+	fiberUtils "github.com/gofiber/fiber/v2/utils"
 	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	domainChatStorage "github.com/multihubandredye-prog/W-C-A_GO/domains/chatstorage"
 	domainDevice "github.com/multihubandredye-prog/W-C-A_GO/domains/device"
-	fiberUtils "github.com/gofiber/fiber/v2/utils"
 	"github.com/sirupsen/logrus"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
@@ -141,71 +141,90 @@ func (m *DeviceManager) PurgeDevice(ctx context.Context, deviceID string) error 
 		return fmt.Errorf("device id is required")
 	}
 
-	var firstErr error
-	recordErr := func(err error) {
+	// Capture identity before logout; logout may clear the client's store ID.
+	inst, found := m.GetDevice(deviceID)
+	if !found || inst == nil {
+		return fmt.Errorf("device %s not found", deviceID)
+	}
+	var target *types.JID
+	if cli := inst.GetClient(); cli != nil && cli.Store != nil && cli.Store.ID != nil {
+		jid := *cli.Store.ID
+		target = &jid
+	}
+	if target == nil && inst.JID() != "" {
+		jid, err := types.ParseJID(inst.JID())
 		if err != nil {
-			firstErr = errors.Join(firstErr, err)
+			return fmt.Errorf("invalid stored device JID: %w", err)
 		}
+		target = &jid
 	}
 
-	// Attempt logout/disconnect if a client exists
-	if inst, ok := m.GetDevice(deviceID); ok && inst != nil {
-		if cli := inst.GetClient(); cli != nil {
-			if err := cli.Logout(ctx); err != nil {
-				logrus.WithError(err).Warnf("[DEVICE_MANAGER] logout failed for device %s", deviceID)
-				recordErr(err)
-			}
-			cli.Disconnect()
+	if cli := inst.GetClient(); cli != nil {
+		if err := cli.Logout(ctx); err != nil {
+			logrus.WithError(err).Warnf("[DEVICE_MANAGER] logout could not be confirmed for device %s", deviceID)
+			return fmt.Errorf("logout could not be confirmed; local cleanup not attempted: %w", err)
 		}
+		cli.Disconnect()
 	}
 
-	// Delete chatstorage data for this device
-	if m.storage != nil {
-		if err := m.storage.DeleteDeviceData(deviceID); err != nil {
-			logrus.WithError(err).Warnf("[DEVICE_MANAGER] failed to delete chatstorage for device %s", deviceID)
-			recordErr(err)
+	// Match the full JID first. A non-AD JID may only be used when it
+	// identifies exactly one stored session; never delete another device.
+	purgeStore := func(container *sqlstore.Container) error {
+		if container == nil || target == nil {
+			return nil
 		}
-	}
-
-	// Remove device records from primary store
-	if m.store != nil {
-		if devices, err := m.store.GetAllDevices(ctx); err != nil {
-			logrus.WithError(err).Warn("[DEVICE_MANAGER] failed to enumerate devices for purge")
-			recordErr(err)
-		} else {
-			for _, dev := range devices {
-				if dev != nil && dev.ID != nil && dev.ID.String() == deviceID {
-					if err := m.store.DeleteDevice(ctx, dev); err != nil {
-						logrus.WithError(err).Warnf("[DEVICE_MANAGER] failed to delete device %s from store", deviceID)
-						recordErr(err)
-					}
-					break
-				}
-			}
+		devices, err := container.GetAllDevices(ctx)
+		if err != nil {
+			return err
 		}
+		matches := matchingStoredDevices(devices, *target)
+		if len(matches) > 1 {
+			return fmt.Errorf("ambiguous stored sessions for device %s", deviceID)
+		}
+		if len(matches) == 1 {
+			return container.DeleteDevice(ctx, matches[0])
+		}
+		return nil
 	}
-
-	// Remove device records from keys store if separate
+	var localErr error
+	localErr = errors.Join(localErr, purgeStore(m.store))
 	if m.keys != nil && m.keys != m.store {
-		if devices, err := m.keys.GetAllDevices(ctx); err != nil {
-			logrus.WithError(err).Warn("[DEVICE_MANAGER] failed to enumerate keys devices for purge")
-			recordErr(err)
-		} else {
-			for _, dev := range devices {
-				if dev != nil && dev.ID != nil && dev.ID.String() == deviceID {
-					if err := m.keys.DeleteDevice(ctx, dev); err != nil {
-						logrus.WithError(err).Warnf("[DEVICE_MANAGER] failed to delete device %s from keys store", deviceID)
-						recordErr(err)
-					}
-					break
-				}
-			}
+		localErr = errors.Join(localErr, purgeStore(m.keys))
+	}
+	if m.storage != nil {
+		localErr = errors.Join(localErr, m.storage.DeleteDeviceData(deviceID))
+		// DeleteDeviceRecord errors must not be silently ignored.
+		if localErr == nil {
+			localErr = errors.Join(localErr, m.storage.DeleteDeviceRecord(deviceID))
 		}
 	}
+	if localErr != nil {
+		return fmt.Errorf("local device cleanup incomplete: %w", localErr)
+	}
+	m.mu.Lock()
+	delete(m.devices, deviceID)
+	m.mu.Unlock()
+	return nil
+}
 
-	// Remove from registry last
-	m.RemoveDevice(deviceID)
-	return firstErr
+// matchingStoredDevices resolves exact AD identities before a unique non-AD fallback.
+func matchingStoredDevices(devices []*store.Device, target types.JID) []*store.Device {
+	var exact, fallback []*store.Device
+	for _, dev := range devices {
+		if dev == nil || dev.ID == nil {
+			continue
+		}
+		if *dev.ID == target {
+			exact = append(exact, dev)
+		}
+		if dev.ID.ToNonAD() == target.ToNonAD() {
+			fallback = append(fallback, dev)
+		}
+	}
+	if len(exact) > 0 && target.Device != 0 {
+		return exact
+	}
+	return fallback
 }
 
 // CreateDevice registers a new device placeholder so routes can be scoped strictly by device_id.
@@ -340,6 +359,7 @@ func (m *DeviceManager) LoadExistingDevices(ctx context.Context) error {
 
 		// Create new device instance
 		instance := NewDeviceInstance(jid, nil, newDeviceChatStorage(jid, m.storage))
+		instance.jid = jid
 		instance.SetState(domainDevice.DeviceStateDisconnected)
 		m.AddDevice(instance)
 	}

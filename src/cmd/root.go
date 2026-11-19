@@ -519,7 +519,9 @@ func initApp() {
 	// Initialize device manager and usecase for multi-device support
 	dm := whatsapp.GetDeviceManager()
 	if dm != nil {
-		_ = dm.LoadExistingDevices(ctx)
+		if err := dm.LoadExistingDevices(ctx); err != nil {
+			logrus.WithError(err).Error("failed to load WhatsApp devices; automatic recovery may be incomplete")
+		}
 	}
 
 	// Usecase

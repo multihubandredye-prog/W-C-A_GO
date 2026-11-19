@@ -8725,7 +8725,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
             hideServerAlert();
             // Sincroniza primeiro: o primeiro numero precisa ter seu papel
             // definido antes de desenhar os cartoes.
-            devices.forEach(d => { if (d && d.jid) syncDeviceToFile(d); });
+            devices.forEach(d => { if (dispositivoConectado(d)) syncDeviceToFile(d); });
             renderDeviceList(devices);
             atualizarStatusWhatsapp(devices);
             refreshDevicesDependentUi();
@@ -8956,7 +8956,12 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
     // A API ja remove a sessao e o registro no logout; nao chamar DELETE depois.
     async function removerDispositivoConfirmado(dev){
         const id = dev.id;
-        const resposta = await fetch(`${CONFIG.API_URL}/app/logout`, { headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id } });
+        let resposta;
+        try {
+            resposta = await fetch(`${CONFIG.API_URL}/app/logout`, { headers: { "Authorization": CONFIG.AUTH, "X-Device-Id": id } });
+        } catch (erro) {
+            throw new Error('A API não respondeu. A remoção pode ter ocorrido; confira as conexões antes de tentar novamente.');
+        }
         if (!resposta.ok) throw new Error('A API não confirmou a remoção. Ela pode ter sido parcial; verifique a lista antes de tentar novamente.');
         if (dev.jid && !(await removeDeviceFromFile(dev.jid))) throw new Error('O dispositivo foi removido da API, mas não foi possível salvar a alteração local.');
         stopAllTimers(id);
@@ -9010,6 +9015,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         let removidos = 0;
         try {
             const devices = await consultarDispositivosParaRemocao();
+            if (!devices.length && hasStoredConnections()) throw new Error('A lista da API está vazia, mas existem conexões salvas. Não foi possível confirmar a remoção; verifique após a API estabilizar.');
             for (const dev of devices) {
                 if (!dev || !dev.id) throw new Error('A lista contém um dispositivo inválido.');
                 await removerDispositivoConfirmado(dev);
@@ -9134,38 +9140,13 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         return operacao;
     }
 
-    // Duas respostas vazias validas e separadas evitam confundir falhas ou boot com exclusao.
+    // Uma lista vazia pode ser transitoria; somente remocoes confirmadas alteram o cache.
     function reconciliarCacheVazio(devices){
-        if (!Array.isArray(devices) || devices.length || !hasStoredConnections() || pairingDevices.size || remocaoEmAndamento) return Promise.resolve(false);
-        if (reconciliacaoDevices) return reconciliacaoDevices;
-        const versao = versaoCacheDevices;
-        const registroAnterior = readDevicesFile().slice();
-        reconciliacaoDevices = (async function () {
-            try {
-                await new Promise(function (resolve) { setTimeout(resolve, 1500); });
-                if (versao !== versaoCacheDevices || pairingDevices.size || remocaoEmAndamento) return false;
-                const resposta = await fetch(`${CONFIG.API_URL}/devices`, { headers: { "Authorization": CONFIG.AUTH } });
-                if (!resposta || !resposta.ok) return false;
-                const dados = await resposta.json();
-                if (!dados || dados.code !== 'SUCCESS' || interpretarListaDispositivos(dados).length !== 0) return false;
-                if (versao !== versaoCacheDevices || pairingDevices.size || remocaoEmAndamento) return false;
-                const gravacao = writeDevicesFile([]);
-                const versaoLimpeza = versaoCacheDevices;
-                const salvo = await gravacao;
-                if (!salvo) {
-                    if (versaoLimpeza === versaoCacheDevices) { devicesCache = registroAnterior; versaoCacheDevices++; }
-                    showToast({title: 'Falha ao atualizar conexões', message: 'Não foi possível salvar a lista local. Tente novamente.', type: 'warning'});
-                    return false;
-                }
-                refreshDevicesDependentUi();
-                return true;
-            } catch (erro) { return false; }
-        })().finally(function () { reconciliacaoDevices = null; });
-        return reconciliacaoDevices;
+        return Promise.resolve(false);
     }
 
     function syncDeviceToFile(dev){
-        if(!dev || !dev.jid) return;
+        if(!dispositivoConectado(dev)) return;
         const list = readDevicesFile();
         const phone = jidToPhone(dev.jid);
         const existingIndex = list.findIndex(d => jidToPhone(d.jid) === phone);

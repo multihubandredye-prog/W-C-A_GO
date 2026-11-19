@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.90**
+Versão atual: **1.91**
 
-Arquivo atual: `central-wca-1.90.html`
+Arquivo atual: `central-wca-1.91.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -224,7 +224,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.90.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.91.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
@@ -237,4 +237,4 @@ A Central diferencia a disponibilidade da API do estado da conexão WhatsApp pri
 
 A consulta de dispositivos não solicita reconexão e o botão de reconectar foi removido. A remoção usa uma única chamada de logout por dispositivo e confirma o resultado antes de atualizar o cache local. Em caso de falha, informa que pode ter ocorrido remoção parcial; na remoção de todos, preserva os dispositivos não confirmados. Respostas de sucesso com lista vazia em `null` são aceitas.
 
-Fechar o pareamento não executa logout. Após duas respostas de sucesso com lista de dispositivos vazia, separadas por 1,5 segundo e sem pareamento ou remoção em andamento, a Central atualiza o cache local vazio; falhas, alterações concorrentes ou dispositivos presentes preservam o cache. As escritas do arquivo de dispositivos são serializadas.
+Fechar o pareamento não executa logout. Listas vazias não apagam automaticamente o cache, inclusive durante inicialização. Dispositivos só são acrescentados ao cache quando a API informa estado logged_in. As escritas do arquivo de dispositivos são serializadas. Se a API não responder durante a remoção, o resultado é tratado como incerto.
