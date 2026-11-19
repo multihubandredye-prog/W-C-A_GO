@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **1.94**
+Versão atual: **1.95**
 
-Arquivo atual: `central-wca-1.94.html`
+Arquivo atual: `central-wca-1.95.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -224,7 +224,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `006-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.94.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-1.95.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
@@ -241,4 +241,4 @@ Fechar o pareamento não executa logout. Listas vazias não apagam automaticamen
 
 O menu oferece **Reiniciar WCA**, com confirmação, para reiniciar o serviço pela tarefa do Tasker.
 
-As confirmações `message.ack` possuem filtros independentes para entrega, leitura pelo destinatário e leitura pela própria conta. O evento geral precisa estar habilitado ou a lista geral de eventos deve estar vazia (o que permite todos); as três opções são gravadas no `.env` e aplicadas após reiniciar a API. Na ausência das chaves, os filtros ficam ativados.
+As confirmações `message.ack` possuem filtros independentes para entrega, leitura pelo destinatário e leitura pela própria conta. O evento geral precisa estar habilitado ou a lista geral de eventos deve estar vazia (o que permite todos); as três opções são gravadas no `.env` e aplicadas após reiniciar a API. Na configuração inicial da cena, o evento e os filtros ficam desativados. Em configurações existentes sem as chaves, é preservado o comportamento anterior quando o evento geral está permitido. Ativar um filtro exige confirmação e marca o evento geral; desmarcar o evento geral desativa os filtros.

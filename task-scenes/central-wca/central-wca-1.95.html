@@ -3268,9 +3268,12 @@ input.first-install-attention {
 .dev-times .dev-opt { font-size: 0.62rem; padding: 7px 2px; }
 .dev-input:focus, .dev-select:focus { outline: none; border-color: var(--primary); }
 .dev-events { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-.dev-chip { display: flex; align-items: center; gap: 6px; padding: 8px 9px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); font-size: 0.76rem; color: var(--text-dim); cursor: pointer; }
-.dev-chip input { accent-color: #B5FB2A; width: 15px; height: 15px; flex-shrink: 0; }
-.dev-chip span { word-break: break-all; text-align: left; cursor: pointer; }
+.dev-chip { box-sizing: border-box; height: 64px; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 0.6rem; border: 1px solid rgba(15,80,122,0.5); background: rgba(0,0,0,0.25); font-size: 0.76rem; color: var(--text-dim); cursor: pointer; }
+.dev-chip input { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; flex-shrink: 0; border: 1px solid #6c7c81; border-radius: 50%; background: #0b1720; margin: 0; position: relative; }
+.dev-chip input:checked { background: #b5fb2a; border-color: #b5fb2a; }
+.dev-chip input:checked::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #173200; top: 5px; left: 5px; }
+.dev-chip input:focus-visible { outline: 2px solid #b5fb2a; outline-offset: 2px; }
+.dev-chip span { min-width: 0; overflow-wrap: anywhere; word-break: normal; line-height: 1.2; text-align: left; cursor: pointer; }
 .dev-chip .dev-chip-help { background: none; border: none; color: rgba(181,251,42,0.75); cursor: pointer; font-size: 0.82rem; padding: 0 0 0 2px; margin-left: auto; flex-shrink: 0; line-height: 1; }
 .dev-bubble { display: none; position: fixed; z-index: 12000; max-width: 78vw; padding: 10px 12px; border-radius: 0.8rem; border: 1px solid rgba(181,251,42,0.4); background: rgba(10,13,18,0.98); box-shadow: 0 8px 24px rgba(0,0,0,0.55); font-size: 0.72rem; color: var(--text-main); line-height: 1.45; text-align: left; }
 .dev-bubble strong { display: block; margin-bottom: 3px; font-size: 0.64rem; letter-spacing: 0.05em; color: var(--primary); font-family: var(--font-mono, monospace); }
@@ -3668,29 +3671,29 @@ input.first-install-attention {
                     </div>
                 </div>
                 <div class="dev-group-title">Confirmações de entrega e leitura</div>
-                <p class="dev-note">As opções abaixo filtram as confirmações. Mantenha o evento Confirmações de entrega e leitura marcado; se todos os eventos estiverem desmarcados, a lista vazia permite todos.</p>
+                <p class="dev-note">Ao ativar uma opção, a Central também marcará Confirmações de entrega e leitura na lista de eventos. Desmarcar esse evento desativa as três opções.</p>
                 <div class="dev-row">
                     <div class="dev-label-row"><span class="dev-key">Confirmação de entrega</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
                     <div class="dev-help">Envia confirmações de entrega recebidas pela API para mensagens enviadas.</div>
                     <div class="dev-toggle" data-key="ack_delivered">
-                        <button type="button" class="dev-opt active" data-val="true">ATIVADO</button>
-                        <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
+                        <button type="button" class="dev-opt" data-val="true">ATIVADO</button>
+                        <button type="button" class="dev-opt active" data-val="false">DESATIVADO</button>
                     </div>
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row"><span class="dev-key">Leitura pelo destinatário</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
                     <div class="dev-help">Envia confirmações de leitura feitas por outras pessoas.</div>
                     <div class="dev-toggle" data-key="ack_read">
-                        <button type="button" class="dev-opt active" data-val="true">ATIVADO</button>
-                        <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
+                        <button type="button" class="dev-opt" data-val="true">ATIVADO</button>
+                        <button type="button" class="dev-opt active" data-val="false">DESATIVADO</button>
                     </div>
                 </div>
                 <div class="dev-row">
                     <div class="dev-label-row"><span class="dev-key">Leitura por mim</span><button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button></div>
                     <div class="dev-help">Envia confirmações de leitura feitas pela própria conta em outro dispositivo, quando disponibilizadas pelo WhatsApp.</div>
                     <div class="dev-toggle" data-key="ack_read_self">
-                        <button type="button" class="dev-opt active" data-val="true">ATIVADO</button>
-                        <button type="button" class="dev-opt" data-val="false">DESATIVADO</button>
+                        <button type="button" class="dev-opt" data-val="true">ATIVADO</button>
+                        <button type="button" class="dev-opt active" data-val="false">DESATIVADO</button>
                     </div>
                 </div>
                 <div class="dev-group-title">Conta e presença</div>
@@ -3767,6 +3770,19 @@ input.first-install-attention {
         </div>
     </div>
 
+
+    <div id="devAckConfirmModal" class="modal-overlay modal-z-delete" aria-hidden="true">
+        <div class="modal-content">
+            <div class="dev-icon-wrap"><i class="fa-solid fa-check-double"></i></div>
+            <h3 class="modal-title default-title">ATIVAR CONFIRMAÇÃO?</h3>
+            <p class="delete-review-text" id="devAckConfirmText">A Central marcará o evento de confirmações de entrega e leitura para que esta opção possa ser enviada ao webhook.</p>
+            <p class="delete-review-text">Salve e reinicie a API para aplicar. O WhatsApp pode não disponibilizar todas as confirmações.</p>
+            <div class="confirm-actions">
+                <button id="devAckCancelBtn" class="btn-action btn-flex btn-border">CANCELAR</button>
+                <button id="devAckConfirmBtn" class="btn-action btn-flex btn-primary">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
 
     <div id="devChatPresenceModal" class="modal-overlay" aria-hidden="true">
         <div class="modal-content">
@@ -4915,7 +4931,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         'newsletter.mute': 'Silenciamento de canais'
     };
     const DEV_EVENTS = ['message','message.edited','message.poll_vote','message.reaction','message.revoked','message.deleted','message.ack','status.response','chat_presence','call.offer','call.terminate','group.joined','group.participants','label.association','label.edit','newsletter.joined','newsletter.left','newsletter.message','newsletter.mute'];
-    const DEV_EVENTS_PADRAO = DEV_EVENTS.filter(function (nome) { return nome !== 'chat_presence'; });
+    const DEV_EVENTS_PADRAO = DEV_EVENTS.filter(function (nome) { return nome !== 'chat_presence' && nome !== 'message.ack'; });
     function devPadroes(){
         return {
             app_os: 'app_os',
@@ -4933,9 +4949,9 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             max_attempts: '1',
             eventos: DEV_EVENTS_PADRAO.slice(),
             eco: true,
-            ack_delivered: true,
-            ack_read: true,
-            ack_read_self: true,
+            ack_delivered: false,
+            ack_read: false,
+            ack_read_self: false,
             account_validation: true,
             presence: 'unavailable',
             pulse_enabled: true,
@@ -4981,6 +4997,12 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         p.ack_delivered = mapa.WHATSAPP_WEBHOOK_ACK_DELIVERED === undefined ? true : bool('WHATSAPP_WEBHOOK_ACK_DELIVERED');
         p.ack_read = mapa.WHATSAPP_WEBHOOK_ACK_READ === undefined ? true : bool('WHATSAPP_WEBHOOK_ACK_READ');
         p.ack_read_self = mapa.WHATSAPP_WEBHOOK_ACK_READ_SELF === undefined ? true : bool('WHATSAPP_WEBHOOK_ACK_READ_SELF');
+        // Uma lista de eventos explicita sem message.ack bloqueia os tres filtros.
+        if (mapa.WHATSAPP_WEBHOOK_EVENTS !== undefined && String(mapa.WHATSAPP_WEBHOOK_EVENTS).trim() && p.eventos.indexOf('message.ack') < 0) {
+            p.ack_delivered = false;
+            p.ack_read = false;
+            p.ack_read_self = false;
+        }
         p.account_validation = bool('WHATSAPP_ACCOUNT_VALIDATION');
         const pres = String(mapa.WHATSAPP_PRESENCE_ON_CONNECT === undefined ? '' : mapa.WHATSAPP_PRESENCE_ON_CONNECT);
         p.presence = ['available', 'unavailable', 'none'].indexOf(pres) >= 0 ? pres : 'unavailable';
@@ -5061,6 +5083,32 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const ativo = document.querySelector('#devSettingsModal .dev-toggle[data-key="' + key + '"] .dev-opt.active');
         return ativo ? (ativo.getAttribute('data-val') || '') : '';
     }
+    const DEV_ACK_KEYS = ['ack_delivered', 'ack_read', 'ack_read_self'];
+    let devAckPendente = null;
+    function devDesativarAcks(){
+        DEV_ACK_KEYS.forEach(function (key) { devSetToggle(key, false); });
+    }
+    function devSolicitarAck(key){
+        if (DEV_ACK_KEYS.indexOf(key) < 0) return;
+        devAckPendente = key;
+        openModal('devAckConfirmModal');
+    }
+    function devConfirmarAck(){
+        const key = devAckPendente;
+        if (!key) return;
+        const grid = document.getElementById('devEventsGrid');
+        const checkbox = grid ? Array.from(grid.querySelectorAll('input[type="checkbox"]')).find(function (item) { return item.value === 'message.ack'; }) : null;
+        if (!checkbox) { devAckPendente = null; closeModal('devAckConfirmModal'); return; }
+        checkbox.checked = true;
+        devSetToggle(key, true);
+        devAckPendente = null;
+        closeModal('devAckConfirmModal');
+    }
+    function devCancelarAck(){
+        devAckPendente = null;
+        closeModal('devAckConfirmModal');
+    }
+
     let devChatPresenceInputPendente = null;
     let devChatPresenceConfirmado = false;
     function devRestaurarPadraoPresenca(){
@@ -5126,15 +5174,18 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             // texto ou espacos) marca/desmarca; a caixinha alterna nativamente e
             // o botao de ajuda (?) nao desmarca, apenas abre a explicacao
             inp.addEventListener('change', function () {
-                if (nome !== 'chat_presence') return;
-                if (inp.checked) devSolicitarChatPresence(inp);
-                else devRestaurarPadraoPresenca();
+                if (nome === 'message.ack' && !inp.checked) devDesativarAcks();
+                if (nome === 'chat_presence') {
+                    if (inp.checked) devSolicitarChatPresence(inp);
+                    else devRestaurarPadraoPresenca();
+                }
             });
             lab.addEventListener('click', function (eCli) {
                 const alvo = eCli.target;
                 if (alvo === inp) return;
                 if (helpBtn && (alvo === helpBtn || (helpBtn.contains && helpBtn.contains(alvo)))) return;
                 inp.checked = !inp.checked;
+                if (nome === 'message.ack' && !inp.checked) devDesativarAcks();
                 if (nome === 'chat_presence') {
                     if (inp.checked) devSolicitarChatPresence(inp);
                     else devRestaurarPadraoPresenca();
@@ -5389,6 +5440,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             tg.addEventListener('click', function (eTg) {
                 const op = eTg.target.closest('.dev-opt');
                 if (!op) return;
+                const key = tg.getAttribute('data-key');
+                if (DEV_ACK_KEYS.indexOf(key) >= 0 && op.getAttribute('data-val') === 'true' && devGetToggle(key) !== 'true') {
+                    devSolicitarAck(key);
+                    return;
+                }
                 tg.querySelectorAll('.dev-opt').forEach(function (o) { o.classList.toggle('active', o === op); });
             });
         });
@@ -5428,7 +5484,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         const todas = document.getElementById('devEventsAll');
         const nenhuma = document.getElementById('devEventsNone');
         if (todas) todas.addEventListener('click', function () { devSetEventos(DEV_EVENTS, true); });
-        if (nenhuma) nenhuma.addEventListener('click', function () { devSetEventos([]); });
+        if (nenhuma) nenhuma.addEventListener('click', function () { devSetEventos([]); devDesativarAcks(); });
+        const confirmaAck = document.getElementById('devAckConfirmBtn');
+        if (confirmaAck) confirmaAck.addEventListener('click', devConfirmarAck);
+        const cancelaAck = document.getElementById('devAckCancelBtn');
+        if (cancelaAck) cancelaAck.addEventListener('click', devCancelarAck);
         const confirmaChatPresence = document.getElementById('devChatPresenceConfirmBtn');
         if (confirmaChatPresence) confirmaChatPresence.addEventListener('click', devConfirmarChatPresence);
         const cancelaChatPresence = document.getElementById('devChatPresenceCancelBtn');
@@ -7229,6 +7289,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         "deleteReviewModal": "delete_review_confirm",
         "confirmCancelPremiumRequestModal": "cancel_premium_request_confirm",
         "premiumHistoryModal": "premium_history",
+        "devAckConfirmModal": "dev_ack_confirm",
         "devSettingsModal": "dev_settings",
         "devConfirmModal": "dev_confirm"
     };
@@ -7259,6 +7320,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
 
     function closeModal(id){
         devFecharBolha();
+        if (id === 'devAckConfirmModal') devAckPendente = null;
         if (id === 'devChatPresenceModal' && devChatPresenceInputPendente && !devChatPresenceConfirmado) {
             devChatPresenceInputPendente.checked = false;
             devChatPresenceInputPendente = null;
@@ -7313,6 +7375,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
     // Fluxos reais da cena em que um modal fecha o anterior antes de abrir
     // (extraidos dos listeners): o "voltar" reabre o modal de origem
     const WCA_MODAL_PAI = {
+        devAckConfirmModal: 'devSettingsModal',
         devChatPresenceModal: 'devSettingsModal',
         supportContactModal: 'helpModal',
         confirmReinstallApiModal: 'helpModal',
