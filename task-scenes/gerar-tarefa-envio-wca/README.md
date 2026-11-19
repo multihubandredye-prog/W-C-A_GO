@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.22**
-Arquivo: `gerar-tarefa-de-envio-wca-1.22.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.23**
+Arquivo: `gerar-tarefa-de-envio-wca-1.23.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
@@ -15,7 +15,7 @@ Seleção e geração das tarefas de envio: lista os dispositivos logados da API
 
 - A lista exibe o **nome curto** das tarefas — só o que vem depois de `id-number-` (ex.: `001-id-number-wca-texto` → `wca-texto`); o nome completo fica guardado internamente (os avisos de dependência usam ele);
 - **Todas as tarefas já vêm marcadas** por padrão;
-- O botão **MARCAR TODAS / DESMARCAR TODAS** alterna conforme a seleção; cada tarefa tem relevo e transição visual ao marcar ou desmarcar;
+- O botão **MARCAR TODAS / DESMARCAR TODAS** alterna conforme a seleção; cada tarefa usa tons de azul, relevo e transição visual ao marcar ou desmarcar; ao rolar, os itens entram suavemente em sequência, respeitando a preferência por movimento reduzido;
 - O botão **GERAR PROJETO** abre uma **confirmação** (modal com o resumo: nº de tarefas + número/id) antes de gerar — CONFIRMAR gera, CANCELAR (ou voltar/clicar fora) fecha o modal e volta à seleção.
 
 ## Resultado limpo + contagem de instalação
