@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.47.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.48.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -165,3 +165,7 @@ A lista permite enviar uma campanha salva imediatamente, usando o mesmo progress
 ## Itens independentes e contadores 1.47
 
 Os itens copiados das seções individuais mantêm conteúdo e opções, mas não seus destinatários, dispositivos ou agendamento: a campanha usa seus próprios dados. O item original e seu agendamento permanecem inalterados. Cópias antigas são ajustadas ao salvar a campanha. Cada aba mostra a quantidade de itens daquele tipo.
+
+## Alternância por gesto 1.48
+
+O gesto horizontal para trocar abas funciona também sobre botões, cartões e controles da tela principal. A rolagem vertical permanece ativa; gestos dentro de modais não mudam a aba principal.
