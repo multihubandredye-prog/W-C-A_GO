@@ -2428,7 +2428,6 @@
     
     <div class="main-container tab-content" id="tab-campaigns">
       <div class="section-header"><h2>CAMPANHAS</h2></div>
-      <p class="campaign-empty">Para o envio automático, instale o executor de campanhas atualizado no Tasker.</p>
       <button class="upload-btn" type="button" onclick="openCampaignEditor(-1)">+ Nova campanha</button>
       <div class="campaign-list" id="campaignList"></div>
     </div>
@@ -2797,7 +2796,7 @@
                     <span>Adicione pelo menos um destinatário</span>
                 </div>
             </div>
-            <div id="pollEndField" class="form-group" style="display:none"><label>Encerrar votação em grupos após (minutos):</label><input type="number" id="pollEndMinutes" min="0" max="525599" step="1" value="0"><div class="campaign-empty">0 = sem prazo. Conta a partir de cada envio; não exclui a enquete.</div></div>
+            <div id="pollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="pollEndMinutes" min="0" max="525599" step="1" value="0" oninput="refreshPollEndVisibility()"><div id="pollEndNotice" class="campaign-empty" style="display:none">O prazo vale apenas para grupos e começa no envio; não exclui a enquete.</div></div>
             <div id="addPollSchedulePreview"></div>
             <button class="schedule-edit-btn" style="width:100%; margin-top:0.25rem;" onclick="openAddPollSchedule()"><svg viewBox="0 0 24 24" style="width:0.875rem;height:0.875rem;fill:currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><span>Agendar</span></button>
         </div>
@@ -2820,7 +2819,7 @@
                 <button class="add-option-btn" onclick="addEditPollOption()">+ Adicionar opção</button>
             </div>
             <div class="form-group"><label>Respostas máximas:</label><input type="number" id="editPollMaxAnswer" min="1" max="12"></div>
-            <div id="editPollEndField" class="form-group" style="display:none"><label>Encerrar votação em grupos após (minutos):</label><input type="number" id="editPollEndMinutes" min="0" max="525599" step="1" value="0"><div class="campaign-empty">0 = sem prazo. Conta a partir de cada envio; não exclui a enquete.</div></div>
+            <div id="editPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="editPollEndMinutes" min="0" max="525599" step="1" value="0" oninput="refreshPollEndVisibility()"><div id="editPollEndNotice" class="campaign-empty" style="display:none">O prazo vale apenas para grupos e começa no envio; não exclui a enquete.</div></div>
             <div class="form-group">
                 <label>Dispositivo de envio:</label>
                 <div class="device-picker" id="editPollDevicePicker"></div>
@@ -3084,7 +3083,7 @@
 <div class="modal-overlay editor-fullscreen" id="campaignContentModal"><div class="modal"><div class="modal-header"><h3 id="campaignContentHeading">Conteúdo</h3><button class="modal-close" onclick="closeModal('campaignContentModal')">×</button></div><div class="modal-body">
   <div id="campaignContentError" class="campaign-empty" role="status"></div><div id="campaignContentPreview" class="media-preview-slot"></div><div id="campaignContentPath"></div>
   <div id="campaignMessageField" class="form-group"><label>Mensagem:</label><textarea id="campaignMessage" rows="8"></textarea></div>
-  <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (máx. 12):</label><div id="campaignOptions"></div><button type="button" class="add-option-btn" onclick="addCampaignPollOption()">+ Adicionar opção</button></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div><div id="campaignPollEndField" class="form-group" style="display:none"><label>Encerrar votação em grupos após (minutos):</label><input type="number" id="campaignPollEndMinutes" min="0" max="525599" step="1" value="0"><div class="campaign-empty">0 = sem prazo. Conta a partir de cada envio; não exclui a enquete.</div></div></div>
+  <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (máx. 12):</label><div id="campaignOptions"></div><button type="button" class="add-option-btn" onclick="addCampaignPollOption()">+ Adicionar opção</button></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div><div id="campaignPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="campaignPollEndMinutes" min="0" max="525599" step="1" value="0" oninput="refreshPollEndVisibility()"><div id="campaignPollEndNotice" class="campaign-empty" style="display:none">O prazo vale apenas para grupos e começa no envio; não exclui a enquete.</div></div></div>
   <div id="campaignCaptionField" class="form-group"><label>Legenda (opcional):</label><textarea id="campaignCaption" rows="3"></textarea></div>
   <div id="campaignForwardField" class="toggle-row"><span>Encaminhada</span><div class="toggle-switch" id="campaignForward" onclick="toggleSwitch(this)"></div></div>
   <label id="campaignOnceField" class="campaign-field-check"><input type="checkbox" id="campaignOnce"> Visualização única</label>
@@ -5973,10 +5972,9 @@ function toggleContact(phone, name) {
 
 /* ====== RECIPIENTES INLINE ====== */
 function refreshPollEndVisibility(){
-    [['pollRecipients','pollEndField'],['editPollRecipients','editPollEndField'],['campaignRecipients','campaignPollEndField']].forEach(function(pair){
-        const container=document.getElementById(pair[0]),field=document.getElementById(pair[1]);if(!container||!field)return;
-        const hasGroup=Array.from(container.querySelectorAll('.recipient-box')).some(box=>getSuffixFromBox(box.id)==='@g.us');
-        field.style.display=hasGroup?'':'none';
+    ['poll','editPoll','campaignPoll'].forEach(function(prefix){
+        const input=document.getElementById(prefix+'EndMinutes'),notice=document.getElementById(prefix+'EndNotice');
+        if(input&&notice)notice.style.display=Number(input.value)>0?'':'none';
     });
 }
 // Ao colar um JID de grupo completo, sincroniza o tipo do destinatário.
