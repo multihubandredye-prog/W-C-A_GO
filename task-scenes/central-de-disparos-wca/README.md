@@ -1,8 +1,10 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.56.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.57.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A versão 1.56 ajusta o cálculo do tempo do vídeo para permitir a minificação do pacote, preservando a formatação exibida.
+
+A versão 1.57 padroniza os editores de campanha: enquetes usam campos individuais de opções (até 12), e mensagens usam o mesmo interruptor de encaminhamento do editor individual. Nas enquetes individuais e de campanha, o prazo opcional em minutos aparece quando há destinatário do tipo grupo; zero mantém a votação sem prazo. O prazo é calculado a partir de cada envio, apenas para JIDs `@g.us`, e encerra a votação, não apaga a mensagem. A API instalada precisa suportar `end_time`. Para envios agendados, é necessário instalar separadamente o Java 1.11; versões anteriores ignoram esse prazo. Os arquivos Java não são publicados junto com a cena. Validação em Android e WhatsApp real ainda necessária.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
