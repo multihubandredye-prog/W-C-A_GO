@@ -3042,14 +3042,14 @@ const API_BASE = 'http://localhost:3000';
 const AUTH = 'Basic dXNlcjE6cGFzczE=';
 
 const FILE_PATHS = {
-    status:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-status.json',
-    polls:    '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-polls.json',
-    messages: '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-messages.json',
-    images:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-images.json',
-    videos:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-videos.json',
-    files:    '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-files.json',
-    audios:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/json-audios.json',
-    history:  '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master/history.json'
+    status:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-status.json',
+    polls:    '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-polls.json',
+    messages: '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-messages.json',
+    images:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-images.json',
+    videos:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-videos.json',
+    files:    '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-files.json',
+    audios:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-audios.json',
+    history:  '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/history.json'
 };
 
 /* =========================================================
@@ -3102,7 +3102,7 @@ function textoDaLeitura(response) {
 }
 async function carregarArquivos() {
     if (!isTasker() || typeof Tasker.runShell !== 'function') throw new Error('Ative a ponte JS e o acesso ao telefone na Cena V2.');
-    const folder = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/broadcast-master';
+    const folder = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca';
     await comPrazo(Tasker.createDirectory({dir:folder, createParents:true, root:false}), 8000);
     for (const path of Object.values(FILE_PATHS)) {
         try {

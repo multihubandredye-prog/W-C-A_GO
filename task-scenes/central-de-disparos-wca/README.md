@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.18.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.19.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -8,7 +8,7 @@ A aba Vídeos grava os vídeos para destinatários em `json-videos.json`, separa
 
 Envios de arquivo, imagem e vídeo usam `Tasker.httpRequest` com `fileToSend` e os endpoints multipart originais. É necessário validar no aparelho o formato da requisição, os arquivos e as respostas para cada tipo; um envio com resposta incerta não é repetido automaticamente.
 
-A Cena V2 precisa da ponte JS e do acesso ao telefone. Os JSONs são lidos via bridge; arquivos ilegíveis ficam protegidos contra gravação e erros são mostrados no terminal. Faça uma cópia dos JSONs de `system/broadcast-master` antes do teste. O botão voltar requer o handler Tasker com `cache_modal` e `return_modal`. Arquivos com nomes contendo quebras de linha não são suportados pela listagem.
+A Cena V2 precisa da ponte JS e do acesso ao telefone. Os JSONs são lidos via bridge; arquivos ilegíveis ficam protegidos contra gravação e erros são mostrados no terminal. Faça uma cópia dos JSONs de `system/central-disparos-wca` antes do teste. O botão voltar requer o handler Tasker com `cache_modal` e `return_modal`. Arquivos com nomes contendo quebras de linha não são suportados pela listagem.
 
 As prévias de vídeo preservam a proporção da imagem, sem exibir a reserva ao mesmo tempo; campos flexíveis usam limites de largura para evitar transbordamento.
 
@@ -56,4 +56,8 @@ Para executar os agendamentos de áudio e vídeo, use a versão atualizada do c�
 
 ## Nome e compatibilidade
 
-O nome visível é Central de Disparos WCA. Para preservar os dados e as tarefas existentes, os caminhos internos continuam em `system/broadcast-master/`; a cena não renomeia diretórios no dispositivo. A alteração do HTML não atualiza automaticamente o perfil do Tasker.
+O nome visível é Central de Disparos WCA. Os dados ficam em `system/central-disparos-wca/`. A cena não move automaticamente os dados da pasta anterior; confirme que o diretório, os arquivos e o cache foram transferidos antes de atualizar o perfil e a cena. A alteração do HTML não atualiza automaticamente o perfil do Tasker.
+
+## Diretório de dados 1.19
+
+Os arquivos JSON e o histórico são lidos em `system/central-disparos-wca/`. O código do perfil fornecido separadamente usa o mesmo diretório para os JSONs e `send-cache`. Não existe migração automática; uma pasta ou arquivo ausente pode ser criado vazio pela cena. Preserve o cache original para evitar repetição de agendamentos já processados.
