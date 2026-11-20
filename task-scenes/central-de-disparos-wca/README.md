@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.42.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.43.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -145,3 +145,7 @@ A navegação apresenta as oito abas em duas linhas de quatro. Ao criar ou edita
 ## Campanhas 1.42
 
 Os itens da campanha mostram um ícone e um rótulo por tipo. Campanhas são gravadas em `campaigns.json`, na pasta de dados da Central. Use o executor Java 1.5 fornecido separadamente, que lê esse mesmo arquivo. Arquivos `json-campaigns.json` de versões anteriores não são migrados automaticamente: com a automação parada, faça uma cópia de segurança e renomeie apenas se ainda não houver `campaigns.json`; se ambos existirem, não sobrescreva.
+
+## Leitura e diagnóstico 1.43
+
+Um arquivo de campanhas contendo apenas `[]` é reconhecido como vazio, sem ser modificado até salvar uma campanha. Outros formatos inválidos continuam protegidos. A consulta de grupos dispõe de prazo maior e informa falhas da ponte e do navegador no terminal. O executor Java 1.6 separado também reconhece `[]` vazio.

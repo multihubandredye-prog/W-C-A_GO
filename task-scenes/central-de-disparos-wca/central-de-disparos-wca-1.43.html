@@ -3312,6 +3312,7 @@ function validarDadosArquivo(path, text) {
     if (typeof text !== 'string' || !text.trim()) throw new Error('Arquivo vazio ou resposta de leitura inválida');
     const data = JSON.parse(text);
     if(path===FILE_PATHS.campaigns){
+        if(Array.isArray(data) && data.length===0) return {devices:[],items:[],campaigns:[]};
         if(!data || !Array.isArray(data.items) || !Array.isArray(data.campaigns) || data.campaigns.some(function(c){return !c || typeof c.id!=='string' || !Array.isArray(c.items) || !Array.isArray(c.recipients) || !Array.isArray(c.device_ids) || !c.schedule || !Array.isArray(c.schedule.days) || !Array.isArray(c.schedule.times) || c.items.some(function(r){return !r || typeof r.id!=='string' || !r.item || typeof r.item!=='object';});})) throw new Error('Formato de campanhas inválido');
     }
     if (path === FILE_PATHS.history ? !Array.isArray(data) : !(Array.isArray(data) || (data && Array.isArray(data.items)))) throw new Error('Formato inválido');
@@ -3562,12 +3563,14 @@ async function apiRequest(endpoint, method, body, deviceId) {
     const headers = { 'Authorization': AUTH, 'Content-Type': 'application/json', 'Accept': 'application/json' };
     if (deviceId) headers['X-Device-Id'] = deviceId;
     const verbo = String(method || 'GET').toUpperCase();
+    const tempoGrupos=verbo==='GET'&&endpoint==='/user/my/groups';
+    let erroPonte='';
     // A ponte nativa evita o bloqueio de HTTP local que ocorre em algumas WebViews.
     if (typeof Tasker !== 'undefined' && typeof Tasker.httpRequest === 'function') {
         try {
-            const request = { method: verbo, url: API_BASE + endpoint, headers: Object.keys(headers).map(function (key) { return key + ': ' + headers[key]; }).join('\n'), timeout: 12, autoRedirect: true, structureOutput: false };
+            const request = { method: verbo, url: API_BASE + endpoint, headers: Object.keys(headers).map(function (key) { return key + ': ' + headers[key]; }).join('\n'), timeout: tempoGrupos ? 45 : 12, autoRedirect: true, structureOutput: false };
             if (body !== undefined) request.body = JSON.stringify(body);
-            const result = await comPrazo(Tasker.httpRequest(request), 15000);
+            const result = await comPrazo(Tasker.httpRequest(request), tempoGrupos ? 48000 : 15000);
             const rawCode = result && (result.http_response_code ?? result.response_code ?? result.responseCode ?? result.httpResponseCode ?? result.HTTPR);
             const raw = result && (result.http_data ?? result.http_response_data ?? result.response_body ?? result.body ?? result.data);
             const code = rawCode === null || rawCode === undefined || rawCode === '' ? NaN : Number(rawCode);
@@ -3577,6 +3580,7 @@ async function apiRequest(endpoint, method, body, deviceId) {
             return { ok: code >= 200 && code < 300, status: code, data: data };
         } catch (e) {
             // Não repetir chamadas de envio: podem ter sido processadas apesar do prazo.
+            erroPonte = e && e.message ? e.message : String(e);
             if (verbo !== 'GET') return { ok: false, status: 0, data: 'Resposta não confirmada: ' + e.message };
         }
     }
@@ -3587,7 +3591,7 @@ async function apiRequest(endpoint, method, body, deviceId) {
         const text = await comPrazo(result.text(), 5000);
         let data = text; try { data = JSON.parse(text); } catch (e) {}
         return { ok: result.ok, status: result.status, data: data };
-    } catch (e) { return { ok: false, status: 0, data: e.message }; }
+    } catch (e) { return { ok: false, status: 0, data: (erroPonte ? 'Ponte Tasker: '+erroPonte+'; navegador: ' : '')+e.message }; }
 }
 
 
@@ -5775,8 +5779,8 @@ async function loadContactsForPicker(force){
         try{
             const contacts=kind==='contacts';
             const res=await apiRequest(contacts?'/user/my/contacts?filter=all':'/user/my/groups','GET',undefined,id);
-            if(!res||!res.ok||!res.data)throw new Error(JSON.stringify(res&&res.data||'Resposta inválida'));
-            let raw=null;if(res.data.results&&Array.isArray(res.data.results.data))raw=res.data.results.data;else if(Array.isArray(res.data))raw=res.data;
+            if(!res||!res.ok||!res.data)throw new Error((res&&res.status?'HTTP '+res.status+': ':'')+(typeof (res&&res.data)==='string'?res.data:JSON.stringify(res&&res.data||'Resposta inválida')));
+            let raw=null;if(res.data.results&&Array.isArray(res.data.results.data))raw=res.data.results.data;else if(Array.isArray(res.data))raw=res.data;else if(!contacts&&res.data.results&&res.data.results.data===null)raw=[];
             if(!raw)throw new Error('Formato de resposta inválido.');
             cached[kind]=raw.map(c=>contacts?{phone:(c.jid||c.id||'').replace(/@s\.whatsapp\.net$/,'')+'@s.whatsapp.net',name:c.name||c.pushName||c.notify||c.id||c.jid||'Contato'}:{phone:c.JID||c.jid||c.id||'',name:c.Name||c.name||c.subject||c.JID||'Grupo',isGroup:true}).sort((a,b)=>(a.name||'').localeCompare(b.name||'','pt-BR',{sensitivity:'base'}));
             cached[kind+'Ready']=true;log('success',cached[kind].length+' '+(contacts?'contato(s)':'grupo(s)')+' carregado(s).');
