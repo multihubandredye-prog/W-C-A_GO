@@ -6,6 +6,7 @@ Cada projeto fica em uma **subpasta própria**, contendo o **HTML da última ver
 
 | Projeto | Cena do Tasker | Pasta |
 |---|---|---|
+| Central de Disparos WCA | `BROADCAST_MASTER` | `central-de-disparos-wca/` |
 | Central WCA | `001-CENTRAL_WHATS_CONNECT_API [wca]` | `central-wca/` |
 | Instalação WCA | `002-INSTALACAO_PROJETO [wca]` | `instalacao-wca/` |
 | Atualizações WCA | `006-ATUALIZACOES [wca]` | `atualizacoes-wca/` |
