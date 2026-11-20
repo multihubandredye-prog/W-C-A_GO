@@ -1965,6 +1965,8 @@
 .send-progress-result { flex:none; text-align:right; color:#84d8ed; }
 .send-progress-operation.done .send-progress-result { color:#b5fb2a; }
 .send-progress-operation.failed .send-progress-result { color:#ffaaaa; }
+
+#imagesGrid .item-card[hidden], #videosGrid .item-card[hidden], #imagesGrid .media-empty[hidden], #videosGrid .media-empty[hidden] { display:none !important; }
 </style>
 </head>
 <body>
@@ -4190,6 +4192,43 @@ function handleImageFile(e) {
 
 
 
+// Mantém os nós de mídia conectados enquanto atualiza apenas os cartões necessários.
+const MEDIA_CARD_CACHE={images:new Map(),videos:new Map()};
+function reconcileMediaCards(section,container,items,visibleItems,multiselectClass,markup){
+    const cache=MEDIA_CARD_CACHE[section],current=new Set(items);
+    for(const [item,record] of cache){if(!current.has(item)){record.node.remove();cache.delete(item);}}
+    let wrapper=container.querySelector(':scope > .media-card-wrapper');
+    if(!wrapper){container.replaceChildren();wrapper=document.createElement('div');wrapper.className='media-card-wrapper';wrapper.style.display='contents';container.appendChild(wrapper);}
+    wrapper.classList.toggle('multiselect-mode',!!multiselectClass);
+    let empty=wrapper.querySelector(':scope > .media-empty');
+    if(!empty){empty=document.createElement('div');empty.className='empty-state media-empty';empty.style.gridColumn='1/-1';empty.textContent=section==='images'?'Nenhuma imagem encontrada.':'Nenhum vídeo encontrado.';wrapper.appendChild(empty);}
+    empty.hidden=visibleItems.size>0;
+    const template=document.createElement('template');template.innerHTML=markup;
+    const generated=Array.from(template.content.children);
+    items.forEach(function(item,i){
+        const fresh=generated[i];if(!fresh)return;
+        const signature=fresh.outerHTML,preview=fresh.querySelector('.preview'),previewKey=JSON.stringify([item.type,item.path||'',item.base64||'']);
+        let record=cache.get(item);
+        if(!record){record={node:fresh,signature:signature,previewKey:previewKey};cache.set(item,record);}
+        else if(record.signature!==signature){
+            const node=record.node;
+            Array.from(node.attributes).forEach(function(attr){if(attr.name!=='hidden'&&!fresh.hasAttribute(attr.name))node.removeAttribute(attr.name);});
+            Array.from(fresh.attributes).forEach(function(attr){if(node.getAttribute(attr.name)!==attr.value)node.setAttribute(attr.name,attr.value);});
+            const oldPreview=node.querySelector('.preview');
+            if(record.previewKey!==previewKey&&oldPreview&&preview)oldPreview.replaceWith(preview);
+            else if(oldPreview&&preview){const oldFallback=oldPreview.querySelector('img + div, video + div'),newFallback=preview.querySelector('img + div, video + div');if(oldFallback&&newFallback&&oldFallback.innerHTML!==newFallback.innerHTML)oldFallback.innerHTML=newFallback.innerHTML;}
+            const kept=node.querySelector('.preview');Array.from(node.children).forEach(function(child){if(child!==kept)child.remove();});
+            Array.from(fresh.children).forEach(function(child){if(child!==preview)node.appendChild(child);});
+            record.signature=signature;record.previewKey=previewKey;
+        }
+        record.node.classList.toggle('selected',!!item.selected);
+        record.node.hidden=!visibleItems.has(item);
+    });
+    // moveBefore preserva a reprodução quando disponível; sem ele apenas cartões reordenados são movidos.
+    let cursor=empty.nextElementSibling;
+    items.forEach(function(item){const node=cache.get(item).node;if(node===cursor){cursor=cursor.nextElementSibling;return;}if(node.parentNode===wrapper&&typeof wrapper.moveBefore==='function')wrapper.moveBefore(node,cursor);else wrapper.insertBefore(node,cursor);});
+}
+
 function renderImages() {
     updateTabCounters();
     const container = document.getElementById('imagesGrid');
@@ -4202,12 +4241,10 @@ function renderImages() {
             (i.path || '').toLowerCase().includes(q)
         );
     }
-    if (items.length === 0) { 
-        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Nenhuma imagem encontrada.</div>'; 
-        return; 
-    }
+    const visibleItems = new Set(items);
+    items = (STATE.imageItems || []).filter(i => i.type !== 'video');
     const multiselectClass = STATE.multiselect.active && STATE.multiselect.section === 'images' ? 'multiselect-mode' : '';
-    container.innerHTML = `<div class="${multiselectClass}" style="display:contents;">` + items.map((item, idx) => {
+    const markup = items.map((item, idx) => {
         idx = (STATE.imageItems.includes(item) ? STATE.imageItems : STATE.fileItems.includes(item) ? STATE.fileItems : STATE.messageItems.includes(item) ? STATE.messageItems : STATE.pollItems).indexOf(item);
         const hasSchedule = item.schedule && (item.schedule.days?.length > 0 || item.schedule.times?.length > 0);
         let preview = '';
@@ -4240,7 +4277,8 @@ function renderImages() {
             ${hasSchedule ? `<div class="schedule-info">${CAL_ICON} ${item.schedule.days?.slice(0, 2).join(', ') || ''}${item.schedule.times?.length > 0 ? ' • ' + item.schedule.times[0] : ''}</div>` : ''}
             <div class="item-check"><svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg></div>
         </div>
-    `}).join('') + '</div>';
+    `}).join('');
+    reconcileMediaCards('images', container, items, visibleItems, multiselectClass, markup);
 }
 
 function renderVideos() {
@@ -4255,12 +4293,10 @@ function renderVideos() {
             (i.path || '').toLowerCase().includes(q)
         );
     }
-    if (items.length === 0) { 
-        container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">Nenhum vídeo encontrado.</div>'; 
-        return; 
-    }
+    const visibleItems = new Set(items);
+    items = (STATE.videoItems || []).filter(i => i.type === 'video');
     const multiselectClass = STATE.multiselect.active && STATE.multiselect.section === 'videos' ? 'multiselect-mode' : '';
-    container.innerHTML = `<div class="${multiselectClass}" style="display:contents;">` + items.map((item, idx) => {
+    const markup = items.map((item, idx) => {
         idx = (STATE.videoItems.includes(item) ? STATE.videoItems : STATE.fileItems.includes(item) ? STATE.fileItems : STATE.messageItems.includes(item) ? STATE.messageItems : STATE.pollItems).indexOf(item);
         const hasSchedule = item.schedule && (item.schedule.days?.length > 0 || item.schedule.times?.length > 0);
         let preview = '';
@@ -4292,7 +4328,8 @@ function renderVideos() {
             ${hasSchedule ? `<div class="schedule-info">${CAL_ICON} ${item.schedule.days?.slice(0, 2).join(', ') || ''}${item.schedule.times?.length > 0 ? ' • ' + item.schedule.times[0] : ''}</div>` : ''}
             <div class="item-check"><svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg></div>
         </div>
-    `}).join('') + '</div>';
+    `}).join('');
+    reconcileMediaCards('videos', container, items, visibleItems, multiselectClass, markup);
 }
 
 /* =========================================================

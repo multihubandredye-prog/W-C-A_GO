@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.37.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.38.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -125,3 +125,7 @@ O modal mostra uma barra e os itens com operações por destinatário e disposit
 ## Texto do progresso 1.37
 
 O progresso apresenta “Enviado” quando a API confirma a operação; essa resposta não garante entrega ao destinatário.
+
+## Miniaturas de imagens e vídeos 1.38
+
+Os cartões e os elementos de miniatura são mantidos ao trocar de aba; inclusões, edições e exclusões atualizam somente os cartões afetados. A filtragem oculta cartões sem reconstruir suas miniaturas. Ao reordenar, a preservação da mídia depende do suporte do navegador ao movimento de elementos sem reinicialização.
