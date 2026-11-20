@@ -1851,7 +1851,7 @@
 .bulk-note { font-size:.75rem; color:var(--text-dim); margin:.75rem 0 0; }
 
 
-.tab-multiselect-controls.show { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem; }
+.tab-multiselect-controls.show { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.4rem; }
 .tab-multiselect-controls .ms-btn { min-width:0; padding:.55rem .3rem; white-space:normal; line-height:1.15; text-align:center; justify-content:center; overflow-wrap:anywhere; }
 @media(max-width:340px){.tab-multiselect-controls.show{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .send-progress-track { height:.65rem; border-radius:1rem; overflow:hidden; background:#193747; margin:.8rem 0; }
@@ -1888,6 +1888,8 @@
 
 .editor-fullscreen .modal-body { min-width:0; overflow-x:hidden; }
 .editor-fullscreen #editFilePathDisplay,.editor-fullscreen #editAudioPathDisplay { overflow-wrap:anywhere; word-break:break-word; }
+.tab-multiselect-controls .bulk-schedule-btn { color:#8fe4ff; border-color:#2287a7; background:#123749; }
+#bulkScheduleHint { display:none; color:var(--text-main); font-size:.8rem; margin:0 0 .75rem; }
 </style>
 </head>
 <body>
@@ -1964,6 +1966,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
         </div>
 
         <div class="upload-grid">
@@ -2030,6 +2033,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
                     <button class="ms-btn bulk-recipient-btn" onclick="openBulkRecipients()">Destinatários</button>
         </div>
 
@@ -2073,6 +2077,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
                     <button class="ms-btn bulk-recipient-btn" onclick="openBulkRecipients()">Destinatários</button>
         </div>
 
@@ -2116,6 +2121,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
                     <button class="ms-btn bulk-recipient-btn" onclick="openBulkRecipients()">Destinatários</button>
         </div>
 
@@ -2157,6 +2163,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
                     <button class="ms-btn bulk-recipient-btn" onclick="openBulkRecipients()">Destinatários</button>
         </div>
 
@@ -2198,6 +2205,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
                     <button class="ms-btn bulk-recipient-btn" onclick="openBulkRecipients()">Destinatários</button>
         </div>
 
@@ -2239,6 +2247,7 @@
         <div class="tab-multiselect-controls">
             <button class="ms-btn toggle-all-btn" onclick="toggleAllCurrent()">Marcar todos</button>
             <button class="ms-btn danger" onclick="deleteSelectedCurrent()">Eliminar Selecionados</button>
+            <button class="ms-btn bulk-schedule-btn" onclick="openBulkSchedule()">Agendamento</button>
                     <button class="ms-btn bulk-recipient-btn" onclick="openBulkRecipients()">Destinatários</button>
         </div>
 
@@ -2857,6 +2866,7 @@
             </div>
         </div>
         <div class="modal-body">
+            <p id="bulkScheduleHint"></p>
             <div class="schedule-section">
                 <div class="schedule-title">Dias da Semana</div>
                 <div class="days-grid" id="scheduleDaysGrid">
@@ -2882,7 +2892,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn-action btn-no" onclick="clearScheduleAlert(); closeModal('scheduleModal')">Cancelar</button>
-            <button class="btn-action btn-yes" onclick="saveSchedule()">Salvar Agendamento</button>
+            <button id="scheduleSaveButton" class="btn-action btn-yes" onclick="saveSchedule()">Salvar Agendamento</button>
         </div>
     </div>
 </div>
@@ -3659,6 +3669,7 @@ function openAddStatus(type) {
 }
 
 function openScheduleModalForAdd(type, containerPreviewId, stateKey) {
+    bulkScheduleContext=null; document.getElementById('bulkScheduleHint').style.display='none';
     scheduleItemType = type;
     scheduleItemIndex = -1;
     clearScheduleAlert();
@@ -5919,8 +5930,11 @@ function selectQuickSearchResult(phone, name, originalPhone = '') {
 /* ====== MODAL DE AGENDAMENTO ====== */
 let scheduleItemIndex = -1;
 let scheduleItemType = '';
+let bulkScheduleContext=null;
+let bulkScheduleBusy=false;
 
 function openScheduleModal(section, idx) {
+    bulkScheduleContext=null; document.getElementById('bulkScheduleHint').style.display='none';
     scheduleItemIndex = idx;
     scheduleItemType = section;
     
@@ -5954,6 +5968,38 @@ function openScheduleModal(section, idx) {
     times.forEach(time => addScheduleTime(time));
     
     openModal('scheduleModal');
+}
+
+function openBulkSchedule(){
+    const section=STATE.multiselect.section;
+    const arr=section==='status'?STATE.statusItems:bulkArray(section);
+    const items=arr?arr.filter(i=>i.selected):[];
+    if(!items.length){log('warn','Selecione itens para agendar.');return;}
+    bulkScheduleContext={section:section,items:items.slice()};scheduleItemType='bulk';scheduleItemIndex=-1;
+    clearScheduleAlert();document.querySelectorAll('#scheduleDaysGrid .day-chip').forEach(c=>c.classList.remove('active'));
+    document.getElementById('scheduleTimesList').innerHTML='';
+    const hint=document.getElementById('bulkScheduleHint');hint.textContent='Aplicar os mesmos dias e horários a '+items.length+' item(ns) selecionado(s) nesta aba.';hint.style.display='block';
+    openModal('scheduleModal');
+}
+async function applyBulkSchedule(days,times){
+    const ctx=bulkScheduleContext;if(!ctx||bulkScheduleBusy)return;
+    if(!days.length||!times.length){const msg='Selecione ao menos um dia e um horário para o agendamento em lote.';showScheduleAlert(msg,'error');log('error',msg);return;}
+    const section=ctx.section,arr=section==='status'?STATE.statusItems:bulkArray(section),items=ctx.items,path=FILE_PATHS[section];
+    if(!arr||items.some(i=>!arr.includes(i)||!i.selected)){log('error','A seleção mudou. Feche e abra novamente o agendamento em lote.');return;}
+    if(!path||FILE_LOCKED.has(path)){log('error','Não foi possível agendar: o arquivo da seção está protegido.');return;}
+    const existing=items.filter(i=>i.schedule&&((i.schedule.days||[]).length||(i.schedule.times||[]).length)).length;
+    bulkScheduleBusy=true;const button=document.getElementById('scheduleSaveButton');button.disabled=true;
+    try{
+        if(existing&&!await askConfirm('Substituir os agendamentos existentes em '+existing+' item(ns) selecionado(s)?'))return;
+        if(FILE_LOCKED.has(path)||items.some(i=>!arr.includes(i)||!i.selected)){log('error','A seleção ou a proteção do arquivo mudou; nenhuma alteração foi aplicada.');return;}
+        items.forEach(i=>{i.schedule={days:days.slice(),times:times.slice()};});
+        const savers={status:saveStatusFile,images:saveImagesFile,videos:saveVideosFile,messages:saveMessagesFile,polls:savePollsFile,files:saveFilesFile,audios:saveAudiosFile};
+        savers[section]();await FILE_WRITES[path];
+        if(FILE_LOCKED.has(path)){log('error','Não foi possível confirmar a gravação dos agendamentos. As alterações estão na tela; confira o arquivo antes de prosseguir.');return;}
+        items.forEach(i=>{i.selected=false;});bulkScheduleContext=null;bulkScheduleBusy=false;closeModal('scheduleModal');
+        if(section==='status')renderStatus();else if(section==='images')renderImages();else if(section==='videos')renderVideos();else if(section==='messages')renderMessages();else if(section==='polls')renderPolls();else if(section==='files')renderFiles();else renderAudios();
+        updateMultiselectBar();log('success','Agendamento aplicado a '+items.length+' item(ns). Nenhuma mensagem foi enviada.');
+    }catch(e){log('error','Falha ao aplicar agendamento: '+e.message);}finally{bulkScheduleBusy=false;button.disabled=false;}
 }
 
 function toggleDayChip(el) {
@@ -6014,6 +6060,8 @@ function saveSchedule() {
         return;
     }
     
+    if(scheduleItemType==='bulk'){applyBulkSchedule(days,times);return;}
+
     // Mapeamento de stateKey para cada tipo
     const stateMap = {
         status: '_pendingStatusSchedule',
@@ -6331,6 +6379,7 @@ function openModal(id) {
 
 function closeModal(id) {
     if(id==='sendProgressModal'&&sendProgressActive)return;
+    if(id==='scheduleModal'&&bulkScheduleBusy)return;
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('show');
