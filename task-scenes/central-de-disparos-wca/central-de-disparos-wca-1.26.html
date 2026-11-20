@@ -1890,6 +1890,9 @@
 .editor-fullscreen #editFilePathDisplay,.editor-fullscreen #editAudioPathDisplay { overflow-wrap:anywhere; word-break:break-word; }
 .tab-multiselect-controls .bulk-schedule-btn { color:#8fe4ff; border-color:#2287a7; background:#123749; }
 #bulkScheduleHint { display:none; color:var(--text-main); font-size:.8rem; margin:0 0 .75rem; }
+#fileManagerModal .fm-parent .fm-back-icon { display:flex; align-items:center; justify-content:center; }
+#fileManagerModal .fm-parent .fm-back-icon svg { width:1.25rem; height:1.25rem; }
+#fileManagerModal .fm-items.list .fm-parent .fm-back-icon { align-items:flex-start; }
 </style>
 </head>
 <body>
@@ -3001,7 +3004,7 @@ function fmShortName(name){
 function fmRender(){
     const generation=++FM.renderSeq, box=document.getElementById('fmItems');box.replaceChildren();box.classList.toggle('list',FM.list);
     document.querySelectorAll('[data-fm-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.fmFilter===FM.filter);});
-    if(FM.path!==FM.root){const back=document.createElement('button');back.type='button';back.className='fm-item fm-parent';back.setAttribute('aria-label','Voltar para a pasta anterior');back.title='Voltar para a pasta anterior';back.innerHTML='<span class="fm-thumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/></svg></span>'; back.addEventListener('click',fmBack);box.appendChild(back);}
+    if(FM.path!==FM.root){const back=document.createElement('button');back.type='button';back.className='fm-item fm-parent';back.setAttribute('aria-label','Voltar para a pasta anterior');back.title='Voltar para a pasta anterior';back.innerHTML='<span class="fm-thumb"><span class="fm-pict fm-folder" aria-hidden="true"></span></span><span class="fm-info fm-back-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/></svg></span>'; back.addEventListener('click',fmBack);box.appendChild(back);}
     const files=[];const folders=[];
     FM.entries.forEach(function(e){const path=FM.path+'/'+e.name,type=e.dir?'folder':fmType(e.name);if(!e.dir&&!fmMatch(path))return;
         const btn=document.createElement('button');btn.type='button';btn.className='fm-item';btn.title=e.dir?'Toque para abrir; segure para selecionar os arquivos':'Selecionar arquivo';
