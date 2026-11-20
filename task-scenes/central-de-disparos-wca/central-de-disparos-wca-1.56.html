@@ -5545,7 +5545,7 @@ async function saveEditStatus() {
 
 function addVideoSeekBar(video,container){
     const bar=document.createElement('div'),slider=document.createElement('input'),time=document.createElement('span');bar.className='video-seek';slider.type='range';slider.min='0';slider.max='1000';slider.step='1';slider.value='0';slider.disabled=true;slider.setAttribute('aria-label','Posição do vídeo');time.textContent='0:00 / 0:00';
-    function format(seconds){const n=Math.max(0,Math.floor(seconds||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
+    function format(seconds){const n=Math.max(0,Math.floor(seconds||0));const minutos=Math.floor(n/60);return minutos+':'+String(n-minutos*60).padStart(2,'0');}
     function update(){const duration=video.duration;const valid=Number.isFinite(duration)&&duration>0;slider.disabled=!valid;if(valid&&!slider.matches(':active'))slider.value=String(Math.round(Math.min(1,video.currentTime/duration)*1000));time.textContent=format(video.currentTime)+' / '+format(valid?duration:0);}
     slider.addEventListener('input',function(){if(Number.isFinite(video.duration)&&video.duration>0){try{video.currentTime=video.duration*Number(slider.value)/1000;}catch(e){}update();}});
     ['loadedmetadata','durationchange','timeupdate','seeked','emptied'].forEach(e=>video.addEventListener(e,update));bar.append(slider,time);container.appendChild(bar);update();

@@ -1,6 +1,8 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.55.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.56.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+
+A versão 1.56 ajusta o cálculo do tempo do vídeo para permitir a minificação do pacote, preservando a formatação exibida.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
