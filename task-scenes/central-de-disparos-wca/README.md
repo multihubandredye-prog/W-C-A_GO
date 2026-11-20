@@ -1,6 +1,8 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.59.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.60.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+
+A versão 1.60 organiza as ações das campanhas, adiciona ícones SVG incorporados e feedback de toque, corrige o espaçamento e o alinhamento dos destinatários nos editores, e mantém a atualização dos dispositivos em um botão de ícone com indicador de carregamento.
 
 A versão 1.56 ajusta o cálculo do tempo do vídeo para permitir a minificação do pacote, preservando a formatação exibida.
 

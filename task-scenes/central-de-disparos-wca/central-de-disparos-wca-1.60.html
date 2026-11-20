@@ -2039,6 +2039,44 @@
 .modal-overlay.modal-focus-exit {display:flex;pointer-events:none;}
 .modal-overlay.modal-focus-exit > .modal {animation:modalFocusOut .36s cubic-bezier(.55,.06,.68,.19) both;pointer-events:none;}
 
+
+/* Refinamento da campanha e alinhamento dos destinatários em todos os editores. */
+.btn-refresh {width:2.4rem;height:2.4rem;justify-content:center;padding:0;flex:none;}
+.btn-refresh svg {width:1rem;height:1rem;}
+.btn-refresh.refreshing svg {animation:refreshSpin .8s linear infinite;}
+@keyframes refreshSpin {to{transform:rotate(360deg)}}
+.modal-body > .recipients-section, .device-picker + .recipients-section, .form-group + .recipients-section {margin-top:.9rem;}
+.recipient-box {padding:.5rem;align-items:center;gap:.35rem;}
+.recipient-box input[type="text"] {min-width:0;flex:1 1 0;}
+.recipient-box .suffix-selector {flex:0 0 auto;}
+.recipient-box .suffix-selector-btn {min-width:5.15rem;min-height:2.25rem;}
+.recipient-box .recipient-search-btn,.recipient-box .recipient-remove-btn {position:static;top:auto;right:auto;transform:none;flex:0 0 2rem;width:2rem;height:2rem;align-self:center;}
+.recipient-box .recipient-remove-btn {border-radius:.45rem;background:#a73740;}
+.recipient-box .recipient-remove-btn:active {transform:scale(.94);background:#d44950;}
+.recipient-remove-btn svg,.btn-add-recipient svg {width:1rem;height:1rem;fill:currentColor;flex:none;}
+.btn-add-recipient {transition:transform .16s ease,background-color .16s ease,border-color .16s ease;}
+.btn-add-recipient:active {transform:scale(.97);}
+.campaign-new-btn {width:100%;min-height:3.25rem;flex-direction:row;justify-content:center;gap:.55rem;border-color:#375a49;background:linear-gradient(120deg,#102f30,#0b252c);font-size:.82rem;transition:transform .18s ease,border-color .18s ease,background .18s ease;}
+.campaign-new-btn svg {width:1.25rem;height:1.25rem;}
+.campaign-new-btn:active {transform:scale(.985);border-color:var(--accent);background:#173b32;}
+.campaign-tab-actions {display:flex;align-items:stretch;gap:.5rem;margin:.75rem 0 .35rem;}
+.campaign-action {min-height:2.6rem;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .8rem;border:1px solid #36565e;border-radius:.55rem;background:#102c35;color:var(--text-main);font-size:.75rem;font-weight:700;line-height:1.2;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease;}
+.campaign-action svg {width:1.05rem;height:1.05rem;fill:currentColor;flex:none;}
+.campaign-action:active {transform:scale(.96);border-color:var(--accent);background:#1b4140;}
+.campaign-action:focus-visible,.campaign-new-btn:focus-visible,.recipient-remove-btn:focus-visible {outline:2px solid var(--accent);outline-offset:2px;}
+.campaign-show-all {width:2.6rem;padding:0;flex:none;color:var(--accent);}
+.campaign-action-primary {flex:1 1 9rem;min-width:0;color:#e7ffd5;border-color:#507943;background:linear-gradient(125deg,#1b3f31,#123731);}
+.campaign-action-primary svg {color:var(--accent);}
+.campaign-action-secondary {flex:1 1 9rem;min-width:0;}
+.campaign-action-secondary svg {color:var(--accent);}
+.campaign-quick-btn {transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease;}
+.campaign-quick-btn:active {transform:scale(.97);}
+.add-option-btn {display:flex;align-items:center;justify-content:center;gap:.35rem;}
+.add-option-btn svg {width:1rem;height:1rem;fill:currentColor;flex:none;}
+.campaign-card,.campaign-row button,.campaign-picker-tabs button,.campaign-create-btn,.add-option-btn {transition:transform .16s ease,border-color .16s ease,background-color .16s ease;}
+.campaign-card:active,.campaign-row button:active,.campaign-picker-tabs button:active,.campaign-create-btn:active,.add-option-btn:active {transform:scale(.98);border-color:var(--accent);}
+@media(max-width:350px){.recipient-box{gap:.25rem;padding:.35rem;}.recipient-box .suffix-selector-btn{min-width:4.25rem;padding:.45rem .35rem;}.campaign-action-secondary{flex-basis:100%;}}
+
 </style>
 </head>
 <body>
@@ -2057,9 +2095,8 @@
                 <span class="status-dot offline"></span>
                 <span class="status-text">Verificando API</span>
             </div>
-            <button class="btn-refresh" onclick="loadDevices()">
+            <button class="btn-refresh" type="button" onclick="refreshDevicesUi()" aria-label="Atualizar dispositivos" title="Atualizar dispositivos">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-                Atualizar
             </button>
         </header>
         <div class="devices-list" id="devicesList">
@@ -2428,7 +2465,7 @@
     
     <div class="main-container tab-content" id="tab-campaigns">
       <div class="section-header"><h2>CAMPANHAS</h2></div>
-      <button class="upload-btn" type="button" onclick="openCampaignEditor(-1)">+ Nova campanha</button>
+      <button class="upload-btn campaign-new-btn" type="button" onclick="openCampaignEditor(-1)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Nova campanha</span></button>
       <div class="campaign-list" id="campaignList"></div>
     </div>
 
@@ -2621,7 +2658,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('editImageRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('editImageRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="editImageRecipients"></div>
                 <div id="editImageRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2686,7 +2723,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('msgRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('msgRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="msgRecipients"></div>
                 <div id="msgRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2746,7 +2783,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('editMsgRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('editMsgRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="editMsgRecipients"></div>
                 <div id="editMsgRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2778,7 +2815,7 @@
             <div class="form-group">
                 <label>Opções (máx. 12):</label>
                 <div id="pollOptions"></div>
-                <button class="add-option-btn" onclick="addPollOption()">+ Adicionar opção</button>
+                <button class="add-option-btn" onclick="addPollOption()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar opção</span></button>
             </div>
             <div class="form-group"><label>Respostas máximas:</label><input type="number" id="pollMaxAnswer" value="1" min="1" max="12"></div>
             <div class="form-group">
@@ -2788,7 +2825,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('pollRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('pollRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="pollRecipients"></div>
                 <div id="pollRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2816,7 +2853,7 @@
             <div class="form-group">
                 <label>Opções:</label>
                 <div id="editPollOptions"></div>
-                <button class="add-option-btn" onclick="addEditPollOption()">+ Adicionar opção</button>
+                <button class="add-option-btn" onclick="addEditPollOption()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar opção</span></button>
             </div>
             <div class="form-group"><label>Respostas máximas:</label><input type="number" id="editPollMaxAnswer" min="1" max="12"></div>
             <div id="editPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="editPollEndMinutes" min="0" max="525599" step="1" placeholder="Sem prazo" oninput="refreshPollEndVisibility()"><div id="editPollEndNotice" class="campaign-empty" style="display:none">A desativação automática vale apenas para grupos; em envios individuais, o prazo é ignorado.</div></div>
@@ -2827,7 +2864,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('editPollRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('editPollRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="editPollRecipients"></div>
                 <div id="editPollRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2867,7 +2904,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('editFileRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('editFileRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="editFileRecipients"></div>
                 <div id="editFileRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2905,7 +2942,7 @@
             <div class="recipients-section">
                 <div class="recipients-header">
                     <span class="recipients-header-title">Destinatários</span>
-                    <button class="btn-add-recipient" onclick="addRecipientBox('editAudioRecipients', '', '@s.whatsapp.net')">+ Adicionar</button>
+                    <button class="btn-add-recipient" onclick="addRecipientBox('editAudioRecipients', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button>
                 </div>
                 <div class="recipients-list" id="editAudioRecipients"></div>
                 <div id="editAudioRecipientsAlert" class="schedule-alert" style="display:none;">
@@ -2946,7 +2983,7 @@
     <label class="bulk-choice"><input type="radio" name="bulkMode" value="replace" checked> <span><strong>Substituir</strong><small>Troca todos os destinatários dos itens selecionados.</small></span></label>
     <label class="bulk-choice"><input type="radio" name="bulkMode" value="add"> <span><strong>Acrescentar</strong><small>Mantém os destinatários atuais e evita duplicatas.</small></span></label>
    </div>
-   <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Contatos ou grupos</span><button type="button" class="btn-add-recipient" onclick="addRecipientBox('bulkRecipientsList', '', '@s.whatsapp.net')">+ Adicionar</button></div><div id="bulkRecipientsList" class="recipients-list"></div></div>
+   <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Contatos ou grupos</span><button type="button" class="btn-add-recipient" onclick="addRecipientBox('bulkRecipientsList', '', '@s.whatsapp.net')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button></div><div id="bulkRecipientsList" class="recipients-list"></div></div>
    <p class="bulk-note">Você pode digitar ou usar a lupa para procurar contatos e grupos. Esta ação não envia mensagens.</p>
   </div>
   <div class="modal-footer"><button class="btn-action btn-no" onclick="closeModal('bulkRecipientsModal')">Cancelar</button><button id="bulkApply" class="btn-action btn-yes" onclick="applyBulkRecipients()">Aplicar</button></div>
@@ -3062,7 +3099,7 @@
   <div class="modal-body">
     <div class="form-group"><label for="campaignTitle">Nome da campanha:</label><input id="campaignTitle" type="text" placeholder="Ex.: Futebol" maxlength="120"></div>
     <div class="campaign-label">Dispositivo de envio</div><div class="device-picker" id="campaignDevicePicker"></div>
-    <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Destinatários</span><button class="btn-add-recipient" onclick="addRecipientBox('campaignRecipients')">+ Adicionar</button></div><div class="recipients-list" id="campaignRecipients"></div></div>
+    <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Destinatários</span><button class="btn-add-recipient" onclick="addRecipientBox('campaignRecipients')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar</span></button></div><div class="recipients-list" id="campaignRecipients"></div></div>
     <div class="campaign-label">Itens da campanha</div>
     <div class="campaign-quick-grid">
       <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('images')"><span class="campaign-count" data-count-section="images" aria-hidden="true">0</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z"/></svg><span>Imagens</span></button>
@@ -3072,8 +3109,8 @@
       <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('messages')"><span class="campaign-count" data-count-section="messages" aria-hidden="true">0</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 14H5v-2h14v2zm13-4H5V8h14z"/></svg><span>Mensagens</span></button>
       <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('polls')"><span class="campaign-count" data-count-section="polls" aria-hidden="true">0</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"/></svg><span>Enquetes</span></button>
     </div>
-    <div class="campaign-tab-actions"><button class="btn-add-recipient" type="button" onclick="openCampaignAll()">Exibir todos</button><button id="campaignTabAdd" class="btn-add-recipient" type="button" onclick="openCampaignDirect(campaignDraftTab)"></button><button id="campaignExistingItems" class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button></div><div class="campaign-empty">Os itens copiados usam os destinatários e o agendamento da campanha.</div><div id="campaignSelectionControls" class="campaign-select-controls" hidden><span id="campaignSelectionCount"></span><button type="button" class="ms-btn" onclick="toggleCampaignSelection(false)">Marcar todos</button><button type="button" class="ms-btn danger campaign-delete-selected" onclick="deleteCampaignSelection()">Eliminar selecionados</button></div><div id="campaignDraftItems"></div>
-    <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')">Agendar</button></div>
+    <div class="campaign-tab-actions"><button class="campaign-action campaign-show-all" type="button" onclick="openCampaignAll()" aria-label="Exibir todos os itens" title="Exibir todos os itens"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v6H4V5zm9 0h7v6h-7V5zM4 13h7v6H4v-6zm9 0h7v6h-7v-6z"/></svg></button><button id="campaignTabAdd" class="campaign-action campaign-action-primary" type="button" onclick="openCampaignDirect(campaignDraftTab)"></button><button id="campaignExistingItems" class="campaign-action campaign-action-secondary" type="button" onclick="openCampaignItemPicker()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v3H4zm0 6h16v3H4zm0 6h16v3H4z"/></svg><span>Usar itens cadastrados</span></button></div><div class="campaign-empty">Os itens copiados usam os destinatários e o agendamento da campanha.</div><div id="campaignSelectionControls" class="campaign-select-controls" hidden><span id="campaignSelectionCount"></span><button type="button" class="ms-btn" onclick="toggleCampaignSelection(false)">Marcar todos</button><button type="button" class="ms-btn danger campaign-delete-selected" onclick="deleteCampaignSelection()">Eliminar selecionados</button></div><div id="campaignDraftItems"></div>
+    <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1rem;height:1rem;fill:currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg><span>Agendar</span></button></div>
   </div>
   <div id="campaignFeedback" role="status" class="campaign-feedback"></div>
   <div class="modal-footer"><button id="campaignDelete" class="btn-action btn-no" onclick="deleteCampaign(campaignEditIndex)" style="display:none">Excluir</button><button id="campaignSave" class="btn-action btn-yes" onclick="saveCampaign()">Salvar</button></div>
@@ -3083,7 +3120,7 @@
 <div class="modal-overlay editor-fullscreen" id="campaignContentModal"><div class="modal"><div class="modal-header"><h3 id="campaignContentHeading">Conteúdo</h3><button class="modal-close" onclick="closeModal('campaignContentModal')">×</button></div><div class="modal-body">
   <div id="campaignContentError" class="campaign-empty" role="status"></div><div id="campaignContentPreview" class="media-preview-slot"></div><div id="campaignContentPath"></div>
   <div id="campaignMessageField" class="form-group"><label>Mensagem:</label><textarea id="campaignMessage" rows="8"></textarea></div>
-  <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (máx. 12):</label><div id="campaignOptions"></div><button type="button" class="add-option-btn" onclick="addCampaignPollOption()">+ Adicionar opção</button></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div><div id="campaignPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="campaignPollEndMinutes" min="0" max="525599" step="1" placeholder="Sem prazo" oninput="refreshPollEndVisibility()"><div id="campaignPollEndNotice" class="campaign-empty" style="display:none">A desativação automática vale apenas para grupos; em envios individuais, o prazo é ignorado.</div></div></div>
+  <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (máx. 12):</label><div id="campaignOptions"></div><button type="button" class="add-option-btn" onclick="addCampaignPollOption()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>Adicionar opção</span></button></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div><div id="campaignPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="campaignPollEndMinutes" min="0" max="525599" step="1" placeholder="Sem prazo" oninput="refreshPollEndVisibility()"><div id="campaignPollEndNotice" class="campaign-empty" style="display:none">A desativação automática vale apenas para grupos; em envios individuais, o prazo é ignorado.</div></div></div>
   <div id="campaignCaptionField" class="form-group"><label>Legenda (opcional):</label><textarea id="campaignCaption" rows="3"></textarea></div>
   <div id="campaignForwardField" class="toggle-row"><span>Encaminhada</span><div class="toggle-switch" id="campaignForward" onclick="toggleSwitch(this)"></div></div>
   <label id="campaignOnceField" class="campaign-field-check"><input type="checkbox" id="campaignOnce"> Visualização única</label>
@@ -3705,6 +3742,11 @@ async function apiMultipart(endpoint, formData, deviceId) {
 /* =========================================================
    DEVICES
    ========================================================= */
+async function refreshDevicesUi(){
+    const button=document.querySelector('.btn-refresh');if(!button||button.disabled)return;
+    button.disabled=true;button.classList.add('refreshing');button.setAttribute('aria-label','Atualizando dispositivos');
+    try{await loadDevices();}finally{button.disabled=false;button.classList.remove('refreshing');button.setAttribute('aria-label','Atualizar dispositivos');}
+}
 async function loadDevices() {
     log('info', 'Carregando dispositivos...');
     const statusBadge = document.getElementById('apiConnectionStatus');
@@ -6029,7 +6071,7 @@ function addRecipientBox(containerId, phone = '', suffix = '@s.whatsapp.net', na
         <button class="recipient-search-btn" onclick="openQuickSearch('${boxId}')" title="Buscar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         </button>
-        <button class="recipient-remove-btn" onclick="removeRecipientBox('${boxId}')">×</button>
+        <button type="button" class="recipient-remove-btn" aria-label="Remover destinatário" onclick="removeRecipientBox('${boxId}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4z"/></svg></button>
     `;
     
     container.appendChild(box);
@@ -6317,7 +6359,7 @@ function renderCampaigns(){
     const count=document.getElementById('count-campaigns');if(count)count.textContent=String(STATE.campaigns.length);
     if(FILE_LOCKED.has(FILE_PATHS.campaigns)){const info=document.createElement('div');info.className='empty-state';info.textContent='Campanhas não carregadas; gravação protegida. Confira o terminal.';list.appendChild(info);return;}
     if(!STATE.campaigns.length){const info=document.createElement('div');info.className='empty-state';info.textContent='Nenhuma campanha criada.';list.appendChild(info);return;}
-    STATE.campaigns.forEach(function(c,i){const wrap=document.createElement('div'),card=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('small'),actions=document.createElement('div'),send=document.createElement('button');wrap.className='campaign-card-wrap';card.type='button';card.className='campaign-card';title.textContent=c.title||'Campanha';meta.textContent=(c.items||[]).length+' item(ns) · '+(c.recipients||[]).length+' destinatário(s) · '+((c.schedule&&c.schedule.days||[]).join(', ')||'Sem dia')+' · '+((c.schedule&&c.schedule.times||[]).join(', ')||'Sem horário');card.append(title,meta);card.addEventListener('click',function(){openCampaignEditor(i);});actions.className='campaign-card-actions';send.type='button';send.className='btn-add-recipient';send.textContent='Enviar agora';send.addEventListener('click',function(){sendCampaignNow(c.id);});actions.appendChild(send);wrap.append(card,actions);list.appendChild(wrap);});
+    STATE.campaigns.forEach(function(c,i){const wrap=document.createElement('div'),card=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('small'),actions=document.createElement('div'),send=document.createElement('button');wrap.className='campaign-card-wrap';card.type='button';card.className='campaign-card';title.textContent=c.title||'Campanha';meta.textContent=(c.items||[]).length+' item(ns) · '+(c.recipients||[]).length+' destinatário(s) · '+((c.schedule&&c.schedule.days||[]).join(', ')||'Sem dia')+' · '+((c.schedule&&c.schedule.times||[]).join(', ')||'Sem horário');card.append(title,meta);card.addEventListener('click',function(){openCampaignEditor(i);});actions.className='campaign-card-actions';send.type='button';send.className='btn-add-recipient';send.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg><span>Enviar agora</span>';send.addEventListener('click',function(){sendCampaignNow(c.id);});actions.appendChild(send);wrap.append(card,actions);list.appendChild(wrap);});
 }
 function openCampaignEditor(index){
     if(FILE_LOCKED.has(FILE_PATHS.campaigns)){log('error','Arquivo de campanhas protegido.');return;}
@@ -6354,7 +6396,7 @@ function renderCampaignItems(all){
     document.querySelectorAll('.campaign-quick-btn').forEach(function(b){const active=b.getAttribute('onclick')==="setCampaignTab('"+campaignDraftTab+"')";b.classList.toggle('active',active);b.setAttribute('aria-pressed',active?'true':'false');});
     document.querySelectorAll('.campaign-count').forEach(function(el){el.textContent=String(campaignDraft.items.filter(r=>r.section===el.dataset.countSection).length);});
     document.getElementById('campaignExistingItems').hidden=campaignDraftTab==='messages'||campaignDraftTab==='polls';
-    document.getElementById('campaignTabAdd').textContent=({images:'+ Adicionar imagens',videos:'+ Adicionar vídeos',files:'+ Adicionar arquivos',audios:'+ Adicionar áudios',messages:'+ Criar mensagem',polls:'+ Criar enquete'})[campaignDraftTab];
+    document.getElementById('campaignTabAdd').innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg><span>'+({images:'Adicionar imagens',videos:'Adicionar vídeos',files:'Adicionar arquivos',audios:'Adicionar áudios',messages:'Criar mensagem',polls:'Criar enquete'})[campaignDraftTab]+'</span>';
     const controls=document.getElementById(all?'campaignAllControls':'campaignSelectionControls');controls.hidden=campaignSelection.size===0;document.getElementById(all?'campaignAllCount':'campaignSelectionCount').textContent=campaignSelection.size+' selecionado(s)';
     const eligible=campaignDraft.items.filter(r=>all||r.section===campaignDraftTab);const toggle=controls.querySelector('[onclick^="toggleCampaignSelection"]');toggle.textContent=eligible.length&&eligible.every(r=>campaignSelection.has(r.id))?'Desmarcar todos':'Marcar todos';toggle.disabled=!eligible.length;
     let empty=list.querySelector(':scope > .campaign-items-empty');if(!empty){empty=document.createElement('div');empty.className='campaign-empty campaign-items-empty';empty.textContent='Nenhum item nesta aba da campanha.';list.appendChild(empty);}empty.hidden=campaignDraft.items.some(function(r){return all||r.section===campaignDraftTab;});
