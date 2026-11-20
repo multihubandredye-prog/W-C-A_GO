@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.39.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.40.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -133,3 +133,7 @@ Os cartões e os elementos de miniatura são mantidos ao trocar de aba; inclusõ
 ## Campanhas 1.39
 
 A aba Campanhas organiza cópias independentes de itens existentes, destinatários, dispositivo e agendamento semanal no arquivo json-campaigns.json. Campanhas podem ser editadas e excluídas. O envio automático requer o código Java atualizado fornecido separadamente; o Java não é publicado. A programação permanece recorrente e o executor deve estar instalado e ativo no Tasker.
+
+## Conteúdo direto nas campanhas 1.40
+
+Cada campanha pode selecionar imagens, vídeos, áudios e arquivos pelo mesmo gerenciador ou criar mensagens e enquetes sem preencher as abas individuais. Os itens da campanha também podem ser editados sem alterar os originais; itens já cadastrados continuam disponíveis como opção. O Java de envio 1.4 é necessário e não é publicado.
