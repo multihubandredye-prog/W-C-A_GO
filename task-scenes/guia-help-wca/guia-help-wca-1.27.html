@@ -1693,27 +1693,23 @@ body.video-aberto { overflow: hidden; }
                         <p>Processa todas as requisições de envio de mídias, como texto, imagem, arquivos, vídeos, enquetes, etc.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>004-JS-CSS-ShellExec [wca]</h4>
-                        <p>Controla e processa os códigos do projeto, como JavaScript, CSS e Shell Script.</p>
-                    </div>
-                    <div class="tasker-item">
-                        <h4>005-RESOURCES [wca]</h4>
+                        <h4>004-RESOURCES [wca]</h4>
                         <p>Realiza o download de todos os recursos que o sistema precisa, como ícones e arquivos de configuração.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>006-CONFIGURAR_SISTEMA [wca]</h4>
+                        <h4>005-CONFIGURAR_SISTEMA [wca]</h4>
                         <p>Responsável por configurar todo o sistema, desde a instalação e atualizações até o envio de feedback ao desenvolvedor.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>007-API_REBOOT [wca]</h4>
+                        <h4>006-API_REBOOT [wca]</h4>
                         <p>Tarefa responsável por reiniciar a API quando necessário.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>008-GERAR_TAREFA_ENVIO [wca]</h4>
+                        <h4>007-GERAR_TAREFA_ENVIO [wca]</h4>
                         <p>Esta tarefa gera os modelos de tarefas de envio. Siga o passo a passo para utilizar:</p>
                         <div class="example-box correct" style="margin-top: 1rem;">
                             <h4><i class="fas fa-play-circle"></i> Passo a passo:</h4>
-                            <code>1. Execute a tarefa: 008-GERAR_TAREFA_ENVIO [wca]</code>
+                            <code>1. Execute a tarefa: 007-GERAR_TAREFA_ENVIO [wca]</code>
                             <code>2. Aguarde a cena ser exibida com o número de telefone</code>
                             <code>3. Clique no número de telefone exibido na tela</code>
                             <code>4. Aguarde o download automático da tarefa</code>
@@ -1726,19 +1722,19 @@ body.video-aberto { overflow: hidden; }
                         </div>
                     </div>
                     <div class="tasker-item">
-                        <h4>009-BROADCAST_MASTER [wca]</h4>
-                        <p>Tarefa vinculada à cena <strong>009</strong>. Gerencia os agendamentos e envios imediatos de status, mensagens e mídias.</p>
+                        <h4>008-CENTRAL_DISPAROS [wca]</h4>
+                        <p>Gerencia campanhas, agendamentos e envios imediatos de mensagens e mídias.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>010-OBTER_INFO_CONTATO/GRUPO [wca]</h4>
+                        <h4>009-OBTER_INFO_CONTATO/GRUPO [wca]</h4>
                         <p>Obtém informações de contatos e grupos do WhatsApp. Permite copiar tanto o <strong>nome do usuário</strong> quanto o <strong>número</strong>, bem como o <strong>nome do grupo</strong> ou o <strong>JID do grupo</strong>.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>011-VERIFICAR_ATUALIZACOES [wca]</h4>
+                        <h4>010-VERIFICAR_ATUALIZACOES [wca]</h4>
                         <p>Verifica se há novas atualizações disponíveis para o sistema.</p>
                     </div>
                     <div class="tasker-item">
-                        <h4>012-ENVIAR_AGENDAMENTO_BROADCAST [wca]</h4>
+                        <h4>011-ENVIAR_AGENDAMENTO_BROADCAST [wca]</h4>
                         <p>Responsável por enviar as informações de status, mensagens, vídeos, imagens, enquetes e arquivos que foram <strong>programados para serem enviados de acordo com o dia e horário do agendamento</strong>. Suporta status de texto, imagem e vídeo, além de envio de imagens, mensagens, enquetes e arquivos individuais.</p>
                     </div>
 
@@ -1773,11 +1769,11 @@ body.video-aberto { overflow: hidden; }
                     </div>
                     <div class="tasker-item">
                         <h4>008-OBTER_INFO_CONTATO/GRUPO [wca]</h4>
-                        <p>Vinculada à tarefa <strong>010-OBTER_INFO_CONTATO/GRUPO [wca]</strong>. Exibe a lista de todos os contatos do WhatsApp e da lista telefônica, permitindo copiar o nome, número, nome do grupo ou JID do grupo.</p>
+                        <p>Vinculada à tarefa <strong>009-OBTER_INFO_CONTATO/GRUPO [wca]</strong>. Exibe a lista de todos os contatos do WhatsApp e da lista telefônica, permitindo copiar o nome, número, nome do grupo ou JID do grupo.</p>
                     </div>
                     <div class="tasker-item">
                         <h4>009-BROADCAST_MASTER [wca]</h4>
-                        <p>Vinculada à tarefa <strong>009-BROADCAST_MASTER [wca]</strong>. Permite realizar agendamentos ou o envio imediato de status, mensagens, imagens e vídeos (incluindo atualização de status e envio de arquivos).</p>
+                        <p>Vinculada à tarefa <strong>008-CENTRAL_DISPAROS [wca]</strong>. Permite realizar agendamentos ou o envio imediato de status, mensagens, imagens e vídeos (incluindo atualização de status e envio de arquivos).</p>
                     </div>
                 </div>
             </section>

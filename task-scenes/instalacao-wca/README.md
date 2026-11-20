@@ -2,9 +2,9 @@
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
 
-Versão atual: **1.9**
+Versão atual: **1.10**
 
-Arquivo atual: `instalacao-wca-1.9.html`
+Arquivo atual: `instalacao-wca-1.10.html`
 
 A cena é um único arquivo HTML com CSS e JavaScript inline. Ela sempre consulta a release, baixa os dois binários e o projeto XML, acompanha o progresso, valida os arquivos e inicia a continuação no Tasker.
 
@@ -75,7 +75,7 @@ Como o XML sempre faz parte do pacote, depois de validar os três arquivos a cen
 A continuação executa:
 
 ```text
-Tarefa: 006-CONFIGURAR_SISTEMA [wca]
+Tarefa: 005-CONFIGURAR_SISTEMA [wca]
 par1: force-reinstall-task
 bottom: yes
 ```

@@ -6124,11 +6124,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
        abaixo, uma apos a outra, para facilitar a edicao manual.
     ═══════════════════════════════════════════════ */
     // Sinaliza a abertura do manual/FAQ de instalação
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    // Fluxo V2: dispara 005-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
     async function taskOpenFaq() {
         try {
             await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
+                name: '005-CONFIGURAR_SISTEMA [wca]',
                 variables: { par1: 'open-faq' }
             });
         } catch (e) {
@@ -6364,11 +6364,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     }
 
     // Desativa o WCA, pausando o serviço temporariamente
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    // Fluxo V2: dispara 005-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
     async function taskDeactivateWca() {
         try {
             await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
+                name: '005-CONFIGURAR_SISTEMA [wca]',
                 variables: { par1: 'stop-wca' }
             });
         } catch (e) {
@@ -6383,11 +6383,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     }
 
     // Reinicia o serviço do WCA
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    // Fluxo V2: dispara 005-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
     async function taskRestartWca() {
         try {
             await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
+                name: '005-CONFIGURAR_SISTEMA [wca]',
                 variables: { par1: 'restart-wca' }
             });
             return true;
@@ -6397,11 +6397,11 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     }
 
     // Verifica se há atualizações disponíveis
-    // Fluxo V2: dispara 006-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
+    // Fluxo V2: dispara 005-CONFIGURAR_SISTEMA [wca] com o comando embutido em par1
     async function taskCheckUpdates() {
         try {
             await Tasker.runTask({
-                name: '006-CONFIGURAR_SISTEMA [wca]',
+                name: '005-CONFIGURAR_SISTEMA [wca]',
                 variables: { par1: 'check_updates' }
             });
         } catch (e) {
@@ -6536,7 +6536,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         }
         reinstallMostrarStatus('Executando a reinstalação no Tasker...', 'success');
         try {
-            await taskerCall('runTask', { name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task', bottom: 'yes' } });
+            await taskerCall('runTask', { name: '005-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'force-reinstall-task', bottom: 'yes' } });
             reinstallRunning = false;
             reinstallMostrarStatus('Projeto baixado e reinstalação iniciada no Tasker.', 'success');
             if (agora) agora.classList.add('d-none');
@@ -6815,18 +6815,18 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
 
         ///alert('Botão de personalização de imagem clicada');
 
-        Tasker.runTask({ name: '006-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'profile-picture' } }).catch(function (e) { });
+        Tasker.runTask({ name: '005-CONFIGURAR_SISTEMA [wca]', variables: { par1: 'profile-picture' } }).catch(function (e) { });
     }
 
     // Dispara a instalação com o número/sessão informados
-    // Fluxo V2 (1.25): executa a 006 com par1=install-project e embute o
+    // Fluxo V2 (1.25): executa a 005 com par1=install-project e embute o
     // JSON (number/session) em exit_data — mesmo padrão das demais saídas
     // Devolve true somente quando o bridge aceitou o disparo; antes a falha
     // era engolida e o toque ficava sem qualquer resposta na tela
     async function taskInstall(data) {
         try {
             await taskerCall('runTask', {
-                name: '006-CONFIGURAR_SISTEMA [wca]',
+                name: '005-CONFIGURAR_SISTEMA [wca]',
                 variables: { par1: 'install-project', exit_data: String(data === null || data === undefined ? '' : data) }
             });
             return true;
@@ -7711,7 +7711,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
     }
 
     // Instalacao direta: a cena apenas valida o numero e entrega numero e
-    // sessao para 006-CONFIGURAR_SISTEMA [wca]. Nao inicia a API, nao consulta
+    // sessao para 005-CONFIGURAR_SISTEMA [wca]. Nao inicia a API, nao consulta
     // /devices e nao confere arquivos: toda a configuracao acontece na tarefa
     async function install(){
         const phoneToInstall = dom.telInput.value.replace(/\D/g, '');
@@ -7747,7 +7747,7 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
                 instalarMensagem('Não foi possível iniciar a instalação.', 'error');
                 showToast({
                     title: 'Não foi possível instalar',
-                    message: 'O serviço do Tasker não confirmou a execução da tarefa 006-CONFIGURAR_SISTEMA [wca].',
+                    message: 'O serviço do Tasker não confirmou a execução da tarefa 005-CONFIGURAR_SISTEMA [wca].',
                     type: 'error',
                     duration: 7000
                 });

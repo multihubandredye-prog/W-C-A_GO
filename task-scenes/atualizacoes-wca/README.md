@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.11**
-Arquivo: `atualizacoes-wca-1.11.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.12**
+Arquivo: `atualizacoes-wca-1.12.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação. Em todos os modos também baixa e extrai o pacote ZIP de cenas e mídias da mesma release.
 
@@ -57,7 +57,7 @@ Após a conclusão, a cena mostra uma contagem regressiva de 10 segundos. Projet
 
 Depois dos downloads, a cena apenas inicia a contagem regressiva. Nesse momento, `type_project` ainda não é definido e nenhuma tarefa é executada.
 
-A continuação acontece somente quando a contagem chega a zero ou quando o usuário toca em **INSTALAR AGORA** / **ATUALIZAR AGORA**. Nesse instante, a cena define `type_project`, executa `006-CONFIGURAR_SISTEMA [wca]` e encerra.
+A continuação acontece somente quando a contagem chega a zero ou quando o usuário toca em **INSTALAR AGORA** / **ATUALIZAR AGORA**. Nesse instante, a cena define `type_project`, executa `005-CONFIGURAR_SISTEMA [wca]` e encerra.
 
 A tarefa recebe:
 
@@ -81,7 +81,7 @@ Uma trava garante que botão e contador não possam disparar a tarefa duas vezes
 - Em caso de erro, o temporário é removido;
 - O botão muda para **TENTAR NOVAMENTE**;
 - A cena permanece aberta e mostra a mensagem do erro;
-- `006-CONFIGURAR_SISTEMA [wca]` só é disparada depois que todos os arquivos do modo passam nas validações.
+- `005-CONFIGURAR_SISTEMA [wca]` só é disparada depois que todos os arquivos do modo passam nas validações.
 
 ## Recursos externos
 
@@ -103,4 +103,4 @@ Uma trava garante que botão e contador não possam disparar a tarefa duas vezes
 1. Abra a cena `006-ATUALIZACOES [wca]`;
 2. Substitua o HTML do WebView pelo conteúdo integral da versão atual;
 3. Confirme que **Allow Phone Access** está habilitado;
-4. Na `006-CONFIGURAR_SISTEMA [wca]`, trate `par1 = installation-update` com `type_project = project-task | project-api | project-full`.
+4. Na `005-CONFIGURAR_SISTEMA [wca]`, trate `par1 = installation-update` com `type_project = project-task | project-api | project-full`.
