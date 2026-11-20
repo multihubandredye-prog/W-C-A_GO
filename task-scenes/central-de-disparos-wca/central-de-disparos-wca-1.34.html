@@ -1940,11 +1940,6 @@
 
 #fmIndexStatus { flex:none; display:none; padding:.35rem .8rem .5rem; color:#b8e5f2; font-size:.75rem; }
 #fmIndexStatus.active { display:block; }
-#fmIndexStatus .fm-index-track { height:.2rem; margin-top:.35rem; overflow:hidden; border-radius:1rem; background:#123c4d; }
-#fmIndexStatus .fm-index-track::after { content:''; display:block; width:35%; height:100%; background:linear-gradient(90deg,#0f9dcb,#b5fb2a); animation:fm-index-progress 1.2s ease-in-out infinite alternate; }
-#fmIndexStatus.done .fm-index-track { display:none; }
-@keyframes fm-index-progress { from { transform:translateX(0); } to { transform:translateX(185%); } }
-@media(prefers-reduced-motion:reduce){#fmIndexStatus .fm-index-track::after{animation:none;}}
 </style>
 </head>
 <body>
@@ -2954,7 +2949,7 @@
 
 <footer class="main-footer">Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span></footer>
 
-<div class="modal-overlay" id="fileManagerModal"><div class="modal"><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div id="fmIndexStatus" role="status" aria-live="polite"><span id="fmIndexText"></span><div class="fm-index-track" aria-hidden="true"></div></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
+<div class="modal-overlay" id="fileManagerModal"><div class="modal"><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div id="fmIndexStatus" role="status" aria-live="polite"><span id="fmIndexText"></span></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
 <script>
 
 // Retorno do Android: a tarefa Back Pressed publica return_modal após Show.
@@ -2977,7 +2972,7 @@ function openFileManager(mode) {
 function fmIndexMessage(text,loading){const el=document.getElementById('fmIndexStatus');document.getElementById('fmIndexText').textContent=text;el.classList.toggle('active',!!text);el.classList.toggle('done',!loading);document.querySelectorAll('[data-fm-filter],#fmLayout').forEach(function(button){button.disabled=loading;});}
 function fmStartIndex(){
     const generation=++FM.indexSeq;FM.indexReady=false;FM.indexMap=new Map();FM.filterCache.clear();
-    fmIndexMessage('Preparando filtros das pastas e subpastas…',true);
+    fmIndexMessage('Aguarde…',true);
     const extensions=['jpg','jpeg','png','gif','webp','bmp','heic','heif','mp4','mov','mkv','webm','3gp','avi','mp3','m4a','aac','ogg','opus','wav','flac','amr','3ga','aiff','wma','mp4a','pdf'];
     const patterns=extensions.map(function(ext){return '-iname '+shellQuote('*.'+ext);}).join(' -o ');
     const cmd='find '+shellQuote(FM.root)+' -path '+shellQuote(FM.root+'/Android')+' -prune -o -type f \\( '+patterns+' \\) -print && printf '+shellQuote('\n__WCA_INDICE_OK__');

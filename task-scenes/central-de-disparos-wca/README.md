@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.33.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.34.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -113,3 +113,7 @@ A regra exclusiva da Central de Disparos que desativava a rotação da borda com
 ## Preparação dos filtros 1.33
 
 Ao abrir ou atualizar o gerenciador, uma varredura inicial reúne os tipos de arquivos das pastas e subpastas, com indicador de andamento indeterminado. Ao navegar, os filtros usam o índice preparado, sem refazer a busca por subpasta. A pasta Android continua fora da varredura automática. Se a preparação for incompleta, o terminal informa e o gerenciador volta à filtragem anterior, sem esconder pastas por um índice incompleto.
+
+## Indicador de espera 1.34
+
+Durante a preparação dos filtros, é exibido apenas “Aguarde…”.
