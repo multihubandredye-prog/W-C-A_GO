@@ -2796,7 +2796,7 @@
                     <span>Adicione pelo menos um destinatário</span>
                 </div>
             </div>
-            <div id="pollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="pollEndMinutes" min="0" max="525599" step="1" value="0" oninput="refreshPollEndVisibility()"><div id="pollEndNotice" class="campaign-empty" style="display:none">O prazo vale apenas para grupos e começa no envio; não exclui a enquete.</div></div>
+            <div id="pollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="pollEndMinutes" min="0" max="525599" step="1" placeholder="Sem prazo" oninput="refreshPollEndVisibility()"><div id="pollEndNotice" class="campaign-empty" style="display:none">A desativação automática vale apenas para grupos; em envios individuais, o prazo é ignorado.</div></div>
             <div id="addPollSchedulePreview"></div>
             <button class="schedule-edit-btn" style="width:100%; margin-top:0.25rem;" onclick="openAddPollSchedule()"><svg viewBox="0 0 24 24" style="width:0.875rem;height:0.875rem;fill:currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><span>Agendar</span></button>
         </div>
@@ -2819,7 +2819,7 @@
                 <button class="add-option-btn" onclick="addEditPollOption()">+ Adicionar opção</button>
             </div>
             <div class="form-group"><label>Respostas máximas:</label><input type="number" id="editPollMaxAnswer" min="1" max="12"></div>
-            <div id="editPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="editPollEndMinutes" min="0" max="525599" step="1" value="0" oninput="refreshPollEndVisibility()"><div id="editPollEndNotice" class="campaign-empty" style="display:none">O prazo vale apenas para grupos e começa no envio; não exclui a enquete.</div></div>
+            <div id="editPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="editPollEndMinutes" min="0" max="525599" step="1" placeholder="Sem prazo" oninput="refreshPollEndVisibility()"><div id="editPollEndNotice" class="campaign-empty" style="display:none">A desativação automática vale apenas para grupos; em envios individuais, o prazo é ignorado.</div></div>
             <div class="form-group">
                 <label>Dispositivo de envio:</label>
                 <div class="device-picker" id="editPollDevicePicker"></div>
@@ -3083,7 +3083,7 @@
 <div class="modal-overlay editor-fullscreen" id="campaignContentModal"><div class="modal"><div class="modal-header"><h3 id="campaignContentHeading">Conteúdo</h3><button class="modal-close" onclick="closeModal('campaignContentModal')">×</button></div><div class="modal-body">
   <div id="campaignContentError" class="campaign-empty" role="status"></div><div id="campaignContentPreview" class="media-preview-slot"></div><div id="campaignContentPath"></div>
   <div id="campaignMessageField" class="form-group"><label>Mensagem:</label><textarea id="campaignMessage" rows="8"></textarea></div>
-  <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (máx. 12):</label><div id="campaignOptions"></div><button type="button" class="add-option-btn" onclick="addCampaignPollOption()">+ Adicionar opção</button></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div><div id="campaignPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="campaignPollEndMinutes" min="0" max="525599" step="1" value="0" oninput="refreshPollEndVisibility()"><div id="campaignPollEndNotice" class="campaign-empty" style="display:none">O prazo vale apenas para grupos e começa no envio; não exclui a enquete.</div></div></div>
+  <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (máx. 12):</label><div id="campaignOptions"></div><button type="button" class="add-option-btn" onclick="addCampaignPollOption()">+ Adicionar opção</button></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div><div id="campaignPollEndField" class="form-group"><label>Encerrar votação após (minutos):</label><input type="number" id="campaignPollEndMinutes" min="0" max="525599" step="1" placeholder="Sem prazo" oninput="refreshPollEndVisibility()"><div id="campaignPollEndNotice" class="campaign-empty" style="display:none">A desativação automática vale apenas para grupos; em envios individuais, o prazo é ignorado.</div></div></div>
   <div id="campaignCaptionField" class="form-group"><label>Legenda (opcional):</label><textarea id="campaignCaption" rows="3"></textarea></div>
   <div id="campaignForwardField" class="toggle-row"><span>Encaminhada</span><div class="toggle-switch" id="campaignForward" onclick="toggleSwitch(this)"></div></div>
   <label id="campaignOnceField" class="campaign-field-check"><input type="checkbox" id="campaignOnce"> Visualização única</label>
@@ -4798,7 +4798,7 @@ function openAddPoll() {
     document.getElementById('pollOptions').innerHTML = '';
     STATE._pendingPollSchedule = { times: [], days: [] };
     populateRecipientsContainer('pollRecipients', []);
-    document.getElementById('pollEndMinutes').value='0';refreshPollEndVisibility();
+    document.getElementById('pollEndMinutes').value='';refreshPollEndVisibility();
     addPollOption(); addPollOption();
     updateAddSchedulePreview('addPollSchedulePreview', '_pendingPollSchedule');
     hideRecipientsAlert('pollRecipientsAlert');
@@ -5679,7 +5679,7 @@ function openEditPoll(idx) {
         c.appendChild(div);
     });
     populateRecipientsContainer('editPollRecipients', item.recipients || []);
-    document.getElementById('editPollEndMinutes').value=String(item.poll_end_minutes||0);refreshPollEndVisibility();
+    document.getElementById('editPollEndMinutes').value=item.poll_end_minutes>0?String(item.poll_end_minutes):'';refreshPollEndVisibility();
     populateDevicePicker('editPoll', item.device_ids || []);
     openModal('editPollModal');
 }
@@ -5984,6 +5984,7 @@ document.addEventListener('input',function(event){
 });
 function readPollEndMinutes(id){
     const value=String(document.getElementById(id).value).trim();
+    if(value==='')return 0;
     if(!/^\d+$/.test(value)||Number(value)>525599){log('error','Informe o encerramento em minutos inteiros entre 0 e 525599.');return null;}
     return Number(value);
 }
@@ -6437,7 +6438,7 @@ function openCampaignContent(section,index){
     const show=function(id,on){document.getElementById(id).style.display=on?'':'none';};
     show('campaignMessageField',section==='messages');show('campaignPollFields',section==='polls');show('campaignCaptionField',section==='images'||section==='videos'||section==='files');
     show('campaignForwardField',section!=='polls');show('campaignOnceField',section==='images'||section==='videos');show('campaignPttField',section==='audios');show('campaignDurationField',section==='images'||section==='videos'||section==='messages');
-    document.getElementById('campaignMessage').value=item.message||'';document.getElementById('campaignQuestion').value=item.question||'';document.getElementById('campaignOptions').replaceChildren();(item.options&&item.options.length?item.options:['','']).forEach(addCampaignPollOption);document.getElementById('campaignPollEndMinutes').value=String(item.poll_end_minutes||0);refreshPollEndVisibility();document.getElementById('campaignMaxAnswer').value=String(item.max_answer||1);
+    document.getElementById('campaignMessage').value=item.message||'';document.getElementById('campaignQuestion').value=item.question||'';document.getElementById('campaignOptions').replaceChildren();(item.options&&item.options.length?item.options:['','']).forEach(addCampaignPollOption);document.getElementById('campaignPollEndMinutes').value=item.poll_end_minutes>0?String(item.poll_end_minutes):'';refreshPollEndVisibility();document.getElementById('campaignMaxAnswer').value=String(item.max_answer||1);
     document.getElementById('campaignCaption').value=item.caption||'';document.getElementById('campaignForward').classList.toggle('on',!!item.is_forwarded);document.getElementById('campaignOnce').checked=!!item.view_once;document.getElementById('campaignPtt').checked=!!item.ptt;selectDuration('campaignDuration',String(item.duration||0));openModal('campaignContentModal');
 }
 function saveCampaignContent(){
