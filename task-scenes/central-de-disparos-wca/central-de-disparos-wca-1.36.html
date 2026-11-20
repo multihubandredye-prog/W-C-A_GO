@@ -1940,6 +1940,31 @@
 
 #fmIndexStatus { flex:none; display:none; padding:.35rem .8rem .5rem; color:#b8e5f2; font-size:.75rem; }
 #fmIndexStatus.active { display:block; }
+
+/* Progresso por item e por operação, sem confundir resposta da API com entrega. */
+#sendProgressModal .modal { display:flex; flex-direction:column; max-height:90vh; max-height:90dvh; overflow:hidden; }
+#sendProgressModal .modal-header, #sendProgressModal .modal-footer { flex:none; }
+#sendProgressModal .modal-body { flex:1 1 auto; min-height:0; overflow-y:auto; }
+.send-progress-heading { display:flex; align-items:center; justify-content:space-between; gap:.75rem; color:var(--text-main); font-weight:700; font-size:.9rem; }
+#sendProgressPercent { color:var(--accent); font-size:.8rem; flex:none; }
+.send-progress-track { height:.4rem; background:#16394a; margin:.65rem 0 1rem; }
+.send-progress-fill { background:linear-gradient(90deg,#0f9dcb,#b5fb2a); }
+.send-progress-list { max-height:44vh; overflow:auto; gap:.55rem; }
+.send-progress-entry { padding:.7rem .8rem; background:#041a21; border:1px solid #205064; border-radius:.7rem; font-size:.8rem; color:var(--text-main); }
+.send-progress-entry.failed { border-color:#a84b55; color:var(--text-main); }
+.send-progress-entry.done { border-color:#477b3a; }
+.send-progress-entry.ignored { border-color:#806b3b; }
+.send-progress-title { font-weight:700; line-height:1.3; overflow-wrap:anywhere; }
+.send-progress-state { margin-top:.35rem; font-size:.72rem; color:#96acb8; }
+.send-progress-entry.done .send-progress-state { color:#b5fb2a; }
+.send-progress-entry.failed .send-progress-state { color:#ffaaaa; }
+.send-progress-entry.ignored .send-progress-state { color:#e8ca78; }
+.send-progress-operations { display:flex; flex-direction:column; gap:.35rem; margin-top:.5rem; }
+.send-progress-operation { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; padding:.35rem .45rem; background:#092832; border-radius:.4rem; font-size:.7rem; line-height:1.3; }
+.send-progress-target { min-width:0; overflow-wrap:anywhere; color:#b8d5df; }
+.send-progress-result { flex:none; text-align:right; color:#84d8ed; }
+.send-progress-operation.done .send-progress-result { color:#b5fb2a; }
+.send-progress-operation.failed .send-progress-result { color:#ffaaaa; }
 </style>
 </head>
 <body>
@@ -2825,7 +2850,7 @@
 
 <div class="modal-overlay" id="sendProgressModal"><div class="modal">
  <div class="modal-header"><h3>Progresso do envio</h3></div>
- <div class="modal-body"><p id="sendProgressSummary" aria-live="polite"></p><div class="send-progress-track"><div id="sendProgressFill" class="send-progress-fill"></div></div><div id="sendProgressList" class="send-progress-list"></div><p style="font-size:.7rem;color:var(--text-dim);margin-top:.7rem">A confirmação indica a resposta da API, não a entrega ao destinatário. Confira detalhes no terminal.</p></div>
+ <div class="modal-body"><div class="send-progress-heading"><span id="sendProgressSummary" aria-live="polite"></span><span id="sendProgressPercent"></span></div><div class="send-progress-track" role="progressbar" aria-label="Progresso do envio" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="sendProgressFill" class="send-progress-fill"></div></div><div id="sendProgressList" class="send-progress-list" aria-live="polite"></div></div>
  <div class="modal-footer"><button id="sendProgressClose" class="btn-action btn-yes" onclick="closeModal('sendProgressModal')" disabled>Fechar</button></div>
 </div></div>
 
@@ -6692,27 +6717,37 @@ async function runSendProgress(section,items,selectedOnly){
     try{
       if(!await askConfirm('Enviar '+items.length+' item(ns) via '+allDevices.size+' dispositivo(s)?'+(skipped?' '+skipped+' item(ns) sem dispositivo ou destinatário serão ignorados.':'')))return;
       sendProgressActive=true;sendPreparing=false;
-      const list=document.getElementById('sendProgressList'),summary=document.getElementById('sendProgressSummary'),fill=document.getElementById('sendProgressFill'),close=document.getElementById('sendProgressClose');list.replaceChildren();close.disabled=true;fill.style.width='0';
-      const rows=jobs.map((j,i)=>{const row=document.createElement('div');row.className='send-progress-entry pending';row.textContent=progressLabel(j.item,section,i)+' — aguardando';list.appendChild(row);return row;});
+      const list=document.getElementById('sendProgressList'),summary=document.getElementById('sendProgressSummary'),fill=document.getElementById('sendProgressFill'),percent=document.getElementById('sendProgressPercent'),bar=fill.parentElement,close=document.getElementById('sendProgressClose');list.replaceChildren();close.disabled=true;fill.style.width='0';
+      function createRow(j,i){
+        const row=document.createElement('div'),title=document.createElement('div'),state=document.createElement('div'),operations=document.createElement('div');
+        row.className='send-progress-entry pending';title.className='send-progress-title';title.textContent=progressLabel(j.item,section,i);state.className='send-progress-state';state.textContent='Aguardando';operations.className='send-progress-operations';row.append(title,state,operations);list.appendChild(row);return {row:row,state:state,operations:operations};
+      }
+      const rows=jobs.map(createRow);
       openModal('sendProgressModal');let succeeded=0,failed=0,ignored=0,completed=0;
-      function update(){summary.textContent=completed+' de '+jobs.length+' item(ns) processados • '+succeeded+' confirmado(s) • '+failed+' com falha • '+ignored+' ignorado(s)';fill.style.width=(completed/jobs.length*100)+'\x25';}
+      const totalSteps=jobs.reduce((n,j)=>n+(j.devices.length&&j.recipients.length?j.devices.length*j.recipients.length:1),0);
+      function update(){const value=Math.floor(completed*100/totalSteps);summary.textContent=completed===totalSteps?(failed||ignored?'Concluído com pendências':'Concluído'):'Enviando…';percent.textContent=value+'\x25';fill.style.width=value+'\x25';bar.setAttribute('aria-valuenow',String(value));}
       update();
       for(let i=0;i<jobs.length;i++){
-        const j=jobs[i],row=rows[i],label=progressLabel(j.item,section,i);
-        if(!j.devices.length||!j.recipients.length){ignored++;row.className='send-progress-entry failed';row.textContent=label+' — ignorado: '+(!j.devices.length?'sem dispositivo':'sem destinatário');log('warn',row.textContent);completed++;update();continue;}
-        let done=0,errors=0,total=j.devices.length*j.recipients.length;
+        const j=jobs[i],view=rows[i],label=progressLabel(j.item,section,i);
+        if(!j.devices.length||!j.recipients.length){ignored++;view.row.className='send-progress-entry ignored';view.state.textContent='Ignorado: '+(!j.devices.length?'sem dispositivo':'sem destinatário');log('warn',label+' — '+view.state.textContent);completed++;update();continue;}
+        let errors=0,total=j.devices.length*j.recipients.length,done=0;
         for(const entry of j.devices)for(const recipient of j.recipients){
-          row.className='send-progress-entry';row.textContent=label+' — enviando '+(done+1)+' de '+total;row.scrollIntoView({block:'nearest'});
-          try{if(!await progressSendOne(section,j.item,entry,recipient))errors++;}catch(e){errors++;log('error','Erro no envio de '+label+': '+e.message);}done++;
+          view.row.className='send-progress-entry';view.state.textContent='Enviando';
+          const operation=document.createElement('div'),target=document.createElement('span'),result=document.createElement('span');operation.className='send-progress-operation';target.className='send-progress-target';result.className='send-progress-result';
+          const dest=section==='status'?'Status':String(recipient.phone||'')+String(recipient.suffix||'');
+          target.textContent=dest+' · '+(entry.device.name||entry.deviceId);result.textContent='Enviando';operation.append(target,result);view.operations.appendChild(operation);operation.scrollIntoView({block:'nearest'});
+          let ok=false;try{ok=!!await progressSendOne(section,j.item,entry,recipient);}catch(e){log('error','Erro no envio de '+label+': '+e.message);}
+          if(!ok)errors++;done++;completed++;operation.classList.add(ok?'done':'failed');result.textContent=ok?'Aceito pela API':'Não confirmado';
+          view.state.textContent=done<total?'Enviando':'Processado';update();
         }
-        if(errors){failed++;row.className='send-progress-entry failed';row.textContent=label+' — '+errors+' de '+total+' envio(s) não confirmado(s)';}
-        else{succeeded++;row.className='send-progress-entry done';row.textContent=label+' — '+total+' envio(s) confirmado(s)';if(selectedOnly)j.item.selected=false;}
-        completed++;update();
+        if(errors){failed++;view.row.className='send-progress-entry failed';view.state.textContent='Há envio não confirmado';}
+        else{succeeded++;view.row.className='send-progress-entry done';view.state.textContent='Aceito pela API';if(selectedOnly)j.item.selected=false;}
+        update();
       }
       log(failed||ignored?'warn':'success','Envio finalizado: '+succeeded+' item(ns) confirmado(s), '+failed+' com falha e '+ignored+' ignorado(s).');
       if(section==='status')renderStatus();else if(section==='images')renderImages();else if(section==='videos')renderVideos();else if(section==='messages')renderMessages();else if(section==='polls')renderPolls();else if(section==='files')renderFiles();else renderAudios();
       if(selectedOnly)updateMultiselectBar();
-    }catch(e){log('error','Envio interrompido: '+e.message+'. Confira o terminal antes de tentar novamente.');}
+    }catch(e){const summary=document.getElementById('sendProgressSummary');if(summary&&sendProgressActive)summary.textContent='Envio interrompido';log('error','Envio interrompido: '+e.message+'. Confira o terminal antes de tentar novamente.');}
     finally{sendPreparing=false;sendProgressActive=false;const close=document.getElementById('sendProgressClose');if(close)close.disabled=false;}
 }
 function statusForProgress(selected){const a=selected?STATE.statusItems.filter(i=>i.selected):STATE.statusItems;return a.filter(i=>i.type==='image'?document.getElementById('sendImages').checked:i.type==='video'?document.getElementById('sendVideos').checked:i.type==='text'?document.getElementById('sendTexts').checked:true);}
