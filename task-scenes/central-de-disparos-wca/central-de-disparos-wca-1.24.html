@@ -3113,30 +3113,45 @@ function textoDaLeitura(response) {
     }
     return null;
 }
+function validarDadosArquivo(path, text) {
+    if (typeof text !== 'string' || !text.trim()) throw new Error('Arquivo vazio ou resposta de leitura inválida');
+    const data = JSON.parse(text);
+    if (path === FILE_PATHS.history ? !Array.isArray(data) : !(Array.isArray(data) || (data && Array.isArray(data.items)))) throw new Error('Formato inválido');
+    return data;
+}
+async function lerArquivoProtegido(path) {
+    const falhas=[];
+    for (let tentativa=1; tentativa<=2; tentativa++) {
+        let status='desconhecido';
+        try {
+            const check=await comPrazo(Tasker.runShell({cmd:'if [ -e '+shellQuote(path)+" ]; then printf EXISTE; else printf AUSENTE; fi",root:false,timeout:15}),18000);
+            const saida=check&&(check.stdout!==undefined?check.stdout:check.outputs&&check.outputs.stdout);
+            status=typeof saida==='string'?saida.trim():'desconhecido';
+            if(status==='AUSENTE')return null;
+            if(status!=='EXISTE')falhas.push('verificação: resposta inesperada');
+        } catch(e) { falhas.push('verificação: '+e.message); }
+        try {
+            const response=await comPrazo(Tasker.readFile({path:path}),12000);
+            return validarDadosArquivo(path,textoDaLeitura(response));
+        } catch(e) { falhas.push('readFile: '+e.message); }
+        try {
+            const fallback=await comPrazo(Tasker.runShell({cmd:'cat '+shellQuote(path),root:false,timeout:15}),18000);
+            const text=fallback&&(fallback.stdout!==undefined?fallback.stdout:fallback.outputs&&fallback.outputs.stdout);
+            return validarDadosArquivo(path,text);
+        } catch(e) { falhas.push('cat: '+e.message); }
+        if(tentativa===1)log('warn','Tentando novamente a leitura de '+path.split('/').pop()+'.');
+    }
+    throw new Error(falhas.join('; '));
+}
 async function carregarArquivos() {
     if (!isTasker() || typeof Tasker.runShell !== 'function') throw new Error('Ative a ponte JS e o acesso ao telefone na Cena V2.');
     const folder = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca';
-    await comPrazo(Tasker.createDirectory({dir:folder, createParents:true, root:false}), 8000);
+    await comPrazo(Tasker.createDirectory({dir:folder, createParents:true, root:false}), 12000);
     for (const path of Object.values(FILE_PATHS)) {
-        try {
-            const check = await comPrazo(Tasker.runShell({cmd:'if [ -e ' + shellQuote(path) + ' ]; then printf EXISTE; else printf AUSENTE; fi',root:false,timeout:8}), 10000);
-            const saida = check && (check.stdout !== undefined ? check.stdout : check.outputs && check.outputs.stdout);
-            const status = typeof saida === 'string' ? saida.trim() : '';
-            if (status === 'AUSENTE') { FILE_CACHE[path] = null; continue; }
-            if (status !== 'EXISTE') throw new Error('Não foi possível verificar se o arquivo existe (resposta do shell inesperada).');
-            let text = null;
-            try { text = textoDaLeitura(await comPrazo(Tasker.readFile({path:path}), 8000)); } catch (erroLeitura) { }
-            if (typeof text !== 'string') {
-                const fallback = await comPrazo(Tasker.runShell({cmd:'cat ' + shellQuote(path), root:false, timeout:8}),10000);
-                text = fallback && (fallback.stdout !== undefined ? fallback.stdout : fallback.outputs && fallback.outputs.stdout);
-            }
-            if (typeof text !== 'string' || !text.trim()) throw new Error('Arquivo vazio ou ilegível.');
-            const data = JSON.parse(text);
-            if (path === FILE_PATHS.history ? !Array.isArray(data) : !(Array.isArray(data) || (data && Array.isArray(data.items)))) throw new Error('Formato inválido.');
-            FILE_CACHE[path] = data;
-        } catch (error) { FILE_LOCKED.add(path); log('error', 'Leitura de ' + path.split('/').pop() + ' falhou: ' + error.message + '. Gravação bloqueada.'); }
+        try { FILE_CACHE[path]=await lerArquivoProtegido(path); }
+        catch(error) { FILE_LOCKED.add(path); log('error','Leitura de '+path.split('/').pop()+' falhou após novas tentativas: '+error.message+'. Gravação bloqueada.'); }
     }
-    if (FILE_LOCKED.size) log('error', 'Os arquivos listados acima permanecem protegidos contra gravação.');
+    if (FILE_LOCKED.size) log('error', 'Os arquivos listados acima permanecem protegidos contra gravação. Os itens não carregados não foram apagados; feche e reabra a cena para tentar novamente.');
 }
 function readFileSafe(path) { return FILE_CACHE[path] || null; }
 function writeFileSafe(path, data) {
@@ -6506,7 +6521,8 @@ async function init() {
     
     if (principal) principal.inert = false;
     loadDevices();
-    log('success', `Sistema inicializado: ${STATE.statusItems.length} status, ${STATE.imageItems.length} imagens, ${STATE.messageItems.length} mensagens, ${STATE.pollItems.length} enquetes, ${STATE.fileItems.length} arquivos.`);
+    const contagem = function(path,n){return FILE_LOCKED.has(path)?'não carregados':String(n);};
+    log('success', `Sistema inicializado: ${contagem(FILE_PATHS.status,STATE.statusItems.length)} status, ${contagem(FILE_PATHS.images,STATE.imageItems.length)} imagens, ${contagem(FILE_PATHS.messages,STATE.messageItems.length)} mensagens, ${contagem(FILE_PATHS.polls,STATE.pollItems.length)} enquetes, ${contagem(FILE_PATHS.files,STATE.fileItems.length)} arquivos.`);
 }
 
 /* =========================================================

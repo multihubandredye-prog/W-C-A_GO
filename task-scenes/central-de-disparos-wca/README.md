@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.23.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.24.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -73,3 +73,7 @@ Todos os editores de status, imagens, vídeos, mensagens, enquetes, arquivos e �
 ## Agendamento em lote 1.23
 
 Selecione itens da mesma aba e toque em Agendamento para aplicar dias e horários iguais. Se algum item já tiver agendamento, a substituição é confirmada; cancelamento ou falha mantém a seleção. Após gravação confirmada, os itens são desmarcados. A operação apenas configura os itens e não envia mensagens; a execução automática depende do perfil instalado.
+
+## Leitura de arquivos 1.24
+
+A cena tenta novamente leituras malsucedidas e usa alternativas de leitura antes de bloquear o arquivo. Uma verificação temporariamente indisponível não impede a tentativa de leitura. Se todas falharem, a gravação permanece bloqueada para proteger os dados e o terminal indica que os itens não foram carregados; reabra a cena para tentar novamente.
