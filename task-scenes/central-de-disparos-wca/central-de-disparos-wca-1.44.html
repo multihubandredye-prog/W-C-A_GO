@@ -1995,6 +1995,7 @@
 .campaign-item-info strong { color:var(--accent); font-size:.7rem; }
 .campaign-item-info span { font-size:.8rem; overflow-wrap:anywhere; }
 @media(max-width:350px) { .campaign-draft-row { flex-wrap:wrap; } .campaign-draft-row .campaign-item-actions { margin-left:auto; } }
+.campaign-feedback:not(:empty){flex:none;padding:.55rem 1rem;color:#ffabab;background:#3d1c25;font-size:.8rem;line-height:1.35;border-top:1px solid #a24755;}
 </style>
 </head>
 <body>
@@ -3015,7 +3016,6 @@
 <div class="modal-overlay editor-fullscreen" id="campaignEditorModal"><div class="modal">
   <div class="modal-header"><h3 id="campaignEditorTitle">Campanha</h3><button class="modal-close" onclick="closeModal('campaignEditorModal')">×</button></div>
   <div class="modal-body">
-    <div id="campaignFeedback" role="status" class="campaign-empty"></div>
     <div class="form-group"><label>Título:</label><input id="campaignTitle" type="text" placeholder="Ex.: Futebol" maxlength="120"></div>
     <div class="campaign-label">Dispositivo de envio</div><div class="device-picker" id="campaignDevicePicker"></div>
     <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Destinatários</span><button class="btn-add-recipient" onclick="addRecipientBox('campaignRecipients')">+ Adicionar</button></div><div class="recipients-list" id="campaignRecipients"></div></div>
@@ -3031,6 +3031,7 @@
     <button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button><div class="campaign-empty">Os agendamentos individuais dos itens cadastrados continuam ativos.</div><div id="campaignDraftItems"></div>
     <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')">Agendar</button></div>
   </div>
+  <div id="campaignFeedback" role="status" class="campaign-feedback"></div>
   <div class="modal-footer"><button id="campaignDelete" class="btn-action btn-no" onclick="deleteCampaign(campaignEditIndex)" style="display:none">Excluir</button><button class="btn-action btn-no" onclick="closeModal('campaignEditorModal')">Cancelar</button><button id="campaignSave" class="btn-action btn-yes" onclick="saveCampaign()">Salvar</button></div>
 </div></div>
 <div class="modal-overlay editor-fullscreen" id="campaignItemsModal"><div class="modal"><div class="modal-header"><h3>Escolher itens</h3><button class="modal-close" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">×</button></div><div class="modal-body"><div class="campaign-picker-tabs" id="campaignPickerTabs"></div><button type="button" class="campaign-create-btn" id="campaignCreateItem" onclick="campaignCreateCurrent()"></button><div class="campaign-label">Itens já cadastrados</div><div id="campaignPickerList"></div></div><div class="modal-footer"><button class="btn-action btn-yes" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">Concluir</button></div></div></div>
@@ -3582,6 +3583,7 @@ async function apiRequest(endpoint, method, body, deviceId) {
             // Não repetir chamadas de envio: podem ter sido processadas apesar do prazo.
             erroPonte = e && e.message ? e.message : String(e);
             if (verbo !== 'GET') return { ok: false, status: 0, data: 'Resposta não confirmada: ' + e.message };
+            if (tempoGrupos && /rate.overlimit|status\s*429/i.test(erroPonte)) return {ok:false,status:429,data:erroPonte};
         }
     }
     try {
@@ -5776,6 +5778,7 @@ async function loadContactsForPicker(force){
     log('info',force?'Atualizando contatos e grupos...':'Carregando contatos e grupos em segundo plano...');
     async function fetchPart(kind){
         if(!force&&cached[kind+'Ready'])return;
+        if(kind==='groups' && cached.groupsRetryAfter>Date.now()){log('warn','Limite de consultas de grupos: aguarde alguns minutos antes de atualizar novamente.');return;}
         try{
             const contacts=kind==='contacts';
             const res=await apiRequest(contacts?'/user/my/contacts?filter=all':'/user/my/groups','GET',undefined,id);
@@ -5783,8 +5786,8 @@ async function loadContactsForPicker(force){
             let raw=null;if(res.data.results&&Array.isArray(res.data.results.data))raw=res.data.results.data;else if(Array.isArray(res.data))raw=res.data;else if(!contacts&&res.data.results&&res.data.results.data===null)raw=[];
             if(!raw)throw new Error('Formato de resposta inválido.');
             cached[kind]=raw.map(c=>contacts?{phone:(c.jid||c.id||'').replace(/@s\.whatsapp\.net$/,'')+'@s.whatsapp.net',name:c.name||c.pushName||c.notify||c.id||c.jid||'Contato'}:{phone:c.JID||c.jid||c.id||'',name:c.Name||c.name||c.subject||c.JID||'Grupo',isGroup:true}).sort((a,b)=>(a.name||'').localeCompare(b.name||'','pt-BR',{sensitivity:'base'}));
-            cached[kind+'Ready']=true;log('success',cached[kind].length+' '+(contacts?'contato(s)':'grupo(s)')+' carregado(s).');
-        }catch(e){cached[kind+'Ready']=false;log('error','Falha ao carregar '+(kind==='contacts'?'contatos':'grupos')+': '+e.message+'. Use Atualizar para tentar novamente.');}
+            cached[kind+'Ready']=true;if(kind==='groups')cached.groupsRetryAfter=0;log('success',cached[kind].length+' '+(contacts?'contato(s)':'grupo(s)')+' carregado(s).');
+        }catch(e){cached[kind+'Ready']=false;if(kind==='groups'&&/rate.overlimit|status\s*429|HTTP 429/i.test(e.message)){cached.groupsRetryAfter=Date.now()+300000;log('warn','Limite de consultas de grupos (429): aguarde alguns minutos antes de atualizar. A lista anterior, se houver, foi preservada.');}else log('error','Falha ao carregar '+(kind==='contacts'?'contatos':'grupos')+': '+e.message+'. Use Atualizar para tentar novamente.');}
     }
     cached.pending=Promise.all([fetchPart('contacts'),fetchPart('groups')]);
     try{await cached.pending;}finally{cached.pending=null;}
@@ -5804,7 +5807,7 @@ async function refreshContactsManual(){
         await loadContactsForPicker(true);
         const current=contactDevice(),cached=CONTACT_CACHE.get(device.id);
         if(!current||current.id!==device.id){setContactsRefreshUI('Dispositivo alterado; atualize novamente.',true,false);return;}
-        if(!cached||!cached.contactsReady||!cached.groupsReady){setContactsRefreshUI('Falha na atualização. Veja o terminal.',true,false);return;}
+        if(!cached||!cached.contactsReady||!cached.groupsReady){setContactsRefreshUI(cached&&cached.groupsRetryAfter>Date.now()?'Limite de grupos: aguarde alguns minutos.':'Falha na atualização. Veja o terminal.',true,false);return;}
         setContactsRefreshUI(cached.contacts.length+' contato(s) • '+cached.groups.length+' grupo(s)',false,false);
     }catch(e){setContactsRefreshUI('Falha na atualização. Veja o terminal.',true,false);log('error','Falha ao atualizar contatos: '+e.message);}
     finally{contactsManualBusy=false;document.querySelectorAll('.contacts-refresh').forEach(btn=>{btn.disabled=false;btn.classList.remove('loading');btn.setAttribute('aria-busy','false');});}
@@ -6274,7 +6277,8 @@ async function saveCampaign(){
     if(inputs.some(i=>i.value.trim()&&!/^[+0-9(). -]+$/.test(i.value.trim()))){campaignFail('Confira os números dos destinatários.');return;}
     const recipients=[],seen=new Set();for(const r of collectRecipientsFromContainer('campaignRecipients')){const number=r.phone.replace(/[+() .]/g,'');if(!((r.suffix==='@g.us'&&/^[0-9]+-[0-9]+$/.test(number))||/^[0-9]{10,}$/.test(number))){campaignFail('Informe um número ou grupo válido para cada destinatário.');return;}const rec={phone:number,suffix:r.suffix},key=bulkKey(rec);if(!seen.has(key)){seen.add(key);recipients.push(rec);}}
     const devices=getSelectedDeviceIds('campaign'),schedule=STATE._pendingCampaignSchedule||{days:[],times:[]};
-    if(!recipients.length||!devices.length||!campaignDraft.items.length||!schedule.days.length||!schedule.times.length){campaignFail('Informe destinatários, dispositivo, itens, dias e horários para salvar a campanha.');return;}
+    if(!recipients.length||!devices.length||!campaignDraft.items.length){campaignFail('Informe destinatários, dispositivo e itens para salvar a campanha.');return;}
+    if((schedule.days.length>0)!==(schedule.times.length>0)){campaignFail('Para agendar, selecione dias e horários; ou deixe ambos vazios.');return;}
     const result=campaignCopy(campaignDraft);result.title=title;result.recipients=recipients;result.device_ids=devices;result.schedule=campaignCopy(schedule);
     const next=STATE.campaigns.slice();if(campaignEditIndex>=0)next[campaignEditIndex]=result;else next.push(result);
     const button=document.getElementById('campaignSave');campaignSaving=true;button.disabled=true;

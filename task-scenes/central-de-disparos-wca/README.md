@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.43.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.44.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -149,3 +149,7 @@ Os itens da campanha mostram um ícone e um rótulo por tipo. Campanhas são gra
 ## Leitura e diagnóstico 1.43
 
 Um arquivo de campanhas contendo apenas `[]` é reconhecido como vazio, sem ser modificado até salvar uma campanha. Outros formatos inválidos continuam protegidos. A consulta de grupos dispõe de prazo maior e informa falhas da ponte e do navegador no terminal. O executor Java 1.6 separado também reconhece `[]` vazio.
+
+## Campanhas sem agendamento 1.44
+
+É possível salvar campanhas sem dias e horários; nesse caso o executor não envia automaticamente. Um agendamento parcial continua inválido. O retorno de limite 429 na consulta de grupos suspende tentativas de grupos por cinco minutos nesta sessão e preserva a lista anterior, quando disponível; esse intervalo não garante liberação do limite externo.
