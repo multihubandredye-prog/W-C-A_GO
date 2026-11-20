@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.53.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.54.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -189,3 +189,7 @@ Cada aba do editor limita a área visível aos quatro primeiros itens, com altur
 ## Duração nos itens de campanha 1.53
 
 O campo de duração usa os mesmos botões do editor individual, mantendo os valores e a persistência já existentes.
+
+## Animações de modal 1.54
+
+Os modais usam o mesmo efeito de foco de entrada e saída da Central WCA. Ao fechar, a pilha de modais e o botão Voltar são atualizados imediatamente; o efeito de saída é apenas visual e não bloqueia interações. A preferência por movimento reduzido continua respeitada.

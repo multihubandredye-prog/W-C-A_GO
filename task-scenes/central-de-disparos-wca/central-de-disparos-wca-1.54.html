@@ -2030,6 +2030,15 @@
 .campaign-select-controls .ms-btn {min-width:0;white-space:normal;text-align:center;line-height:1.2;}
 .campaign-select-controls .campaign-delete-selected {background:var(--btn-no);color:#fff;border-color:var(--btn-no);}
 .campaign-select-controls .campaign-delete-selected:active {background:#ce3838;}
+
+/* Mesmo efeito de foco da Central WCA, com saída visual sem bloquear o modal anterior. */
+@keyframes modalFocusIn { from{transform:scale(1.15);filter:blur(14px);opacity:.24} to{transform:scale(1);filter:blur(0);opacity:1} }
+@keyframes modalFocusOut { from{transform:scale(1);filter:blur(0);opacity:1} to{transform:scale(1.15);filter:blur(14px);opacity:.16} }
+.modal-overlay > .modal {transform-origin:center center;will-change:transform,filter,opacity;}
+.modal-overlay.show.modal-focus-enter > .modal {animation:modalFocusIn .48s cubic-bezier(.22,.75,.2,1) both;}
+.modal-overlay.modal-focus-exit {display:flex;pointer-events:none;}
+.modal-overlay.modal-focus-exit > .modal {animation:modalFocusOut .36s cubic-bezier(.55,.06,.68,.19) both;pointer-events:none;}
+@media(prefers-reduced-motion:reduce){.modal-overlay.show.modal-focus-enter > .modal,.modal-overlay.modal-focus-exit > .modal{animation:none;}}
 </style>
 </head>
 <body>
@@ -6874,13 +6883,16 @@ function escapeForJson(str) {
 let modalZIndex = 200;
 
 function openModal(id) {
-    modalZIndex += 10;
     const el = document.getElementById(id);
     if (!el) return;
+    if(el._modalFocusTimer){clearTimeout(el._modalFocusTimer);el._modalFocusTimer=null;}
+    el.classList.remove('modal-focus-exit','modal-focus-enter');
+    modalZIndex += 10;
     document.querySelectorAll('.modal-overlay.show').forEach(function(m){ m.inert = true; });
     el.inert = false;
     el.style.zIndex = modalZIndex;
     el.classList.add('show');
+    void el.offsetWidth;el.classList.add('modal-focus-enter');
     syncModalBack();
 
 }
@@ -6889,20 +6901,22 @@ function closeModal(id) {
     if(id==='sendProgressModal'&&sendProgressActive)return;
     if(id==='campaignEditorModal'&&campaignSaving)return;
     if(id==='scheduleModal'&&bulkScheduleBusy)return;
-    if(id==='fileManagerModal'){++FM.seq;++FM.renderSeq;++FM.indexSeq;FM.pendingPath=null;FM.indexPromise=null;}
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el || !el.classList.contains('show')) return;
+    if(id==='fileManagerModal'){++FM.seq;++FM.renderSeq;++FM.indexSeq;FM.pendingPath=null;FM.indexPromise=null;}
+    el.classList.remove('modal-focus-enter');
+    const reduced=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduced){void el.offsetWidth;el.classList.add('modal-focus-exit');el._modalFocusTimer=setTimeout(function(){el._modalFocusTimer=null;el.classList.remove('modal-focus-exit');},360);}
+    el.inert=true;
     el.classList.remove('show');
     const remaining = Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});
     if (remaining[0]) remaining[0].inert = false;
     syncModalBack();
-    modalZIndex = Math.max(200, modalZIndex - 10);
     
     // Para todos os vídeos e áudios dentro do modal ao fechar
     const mediaElements = el.querySelectorAll('video, audio');
     mediaElements.forEach(media => {
-        media.pause();
-        media.currentTime = 0;
+        try{media.pause();media.currentTime=0;}catch(e){log('warn','Não foi possível reiniciar a prévia de mídia: '+e.message);}
     });
 
     // Fecha todos os dropdowns de sufixo ao fechar o modal
