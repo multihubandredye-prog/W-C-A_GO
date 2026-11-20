@@ -1937,6 +1937,14 @@
 .devices-header, .terminal-header { border-radius: .875rem .875rem 0 0; }
 .tabs-grid { border-radius: .875rem; overflow: hidden; }
 
+
+#fmIndexStatus { flex:none; display:none; padding:.35rem .8rem .5rem; color:#b8e5f2; font-size:.75rem; }
+#fmIndexStatus.active { display:block; }
+#fmIndexStatus .fm-index-track { height:.2rem; margin-top:.35rem; overflow:hidden; border-radius:1rem; background:#123c4d; }
+#fmIndexStatus .fm-index-track::after { content:''; display:block; width:35%; height:100%; background:linear-gradient(90deg,#0f9dcb,#b5fb2a); animation:fm-index-progress 1.2s ease-in-out infinite alternate; }
+#fmIndexStatus.done .fm-index-track { display:none; }
+@keyframes fm-index-progress { from { transform:translateX(0); } to { transform:translateX(185%); } }
+@media(prefers-reduced-motion:reduce){#fmIndexStatus .fm-index-track::after{animation:none;}}
 </style>
 </head>
 <body>
@@ -2946,7 +2954,7 @@
 
 <footer class="main-footer">Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span></footer>
 
-<div class="modal-overlay" id="fileManagerModal"><div class="modal"><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
+<div class="modal-overlay" id="fileManagerModal"><div class="modal"><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div id="fmIndexStatus" role="status" aria-live="polite"><span id="fmIndexText"></span><div class="fm-index-track" aria-hidden="true"></div></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
 <script>
 
 // Retorno do Android: a tarefa Back Pressed publica return_modal após Show.
@@ -2957,14 +2965,48 @@ syncModalBack();
 
 // Gerenciador: caminhos físicos, filtros recursivos e seleção sem duplicatas.
 function mediaUrl(path) { if (!path || /^(file:|data:|https?:)/i.test(path)) return path; return 'file://' + path.split('/').map(encodeURIComponent).join('/'); }
-const FM = {root:'/storage/emulated/0', path:'/storage/emulated/0', mode:'', filter:'all', list:false, entries:[], selected:new Set(), folderCache:new Map(), filterCache:new Map(), seq:0, renderSeq:0, busy:false, pendingPath:null};
+const FM = {root:'/storage/emulated/0', path:'/storage/emulated/0', mode:'', filter:'all', list:false, entries:[], selected:new Set(), folderCache:new Map(), filterCache:new Map(), seq:0, renderSeq:0, busy:false, pendingPath:null, indexSeq:0, indexReady:false, indexMap:new Map(), indexPromise:null};
 function fmType(name) { if (/\.(jpg|jpeg|png|gif|webp|bmp|heic|heif)$/i.test(name)) return 'image'; if (/\.(mp4|mov|mkv|webm|3gp|avi)$/i.test(name)) return 'video'; if (/\.(mp3|m4a|aac|ogg|opus|wav|flac|amr|3ga|aiff|wma|mp4a)$/i.test(name)) return 'audio'; if (/\.pdf$/i.test(name)) return 'pdf'; return 'file'; }
 function fmAllowed(type) { if(FM.mode==='status-image')return type==='image'; if(FM.mode==='status-video')return type==='video'; if(FM.mode==='images')return type==='image'; if(FM.mode==='videos')return type==='video'; if(FM.mode==='audios')return type==='audio'; return true; }
 function fmMatch(path) { const type=fmType(path); return fmAllowed(type) && (FM.filter==='all'||FM.filter===type); }
 function fmCount(){const n=FM.selected.size;document.getElementById('fmCount').textContent=n+' arquivo(s) selecionado(s)';document.getElementById('fmConfirm').disabled=!n||FM.busy;}
 function openFileManager(mode) {
-    FM.folderCache.clear(); FM.filterCache.clear(); FM.path=FM.root; FM.pendingPath=null; FM.mode=mode; FM.selected.clear(); FM.filter= (mode === 'status-image' || mode === 'images') ? 'image' : (mode === 'status-video' || mode === 'videos') ? 'video' : mode === 'audios' ? 'audio' : 'all'; FM.list=false; FM.busy=false;
-    fmUpdateLayoutButton();openModal('fileManagerModal'); fmCount(); fmLoad(FM.root);
+    FM.folderCache.clear(); FM.filterCache.clear(); FM.path=FM.root; FM.pendingPath=null; FM.entries=[]; FM.mode=mode; FM.selected.clear(); FM.filter= (mode === 'status-image' || mode === 'images') ? 'image' : (mode === 'status-video' || mode === 'videos') ? 'video' : mode === 'audios' ? 'audio' : 'all'; FM.list=false; FM.busy=false;
+    fmUpdateLayoutButton();openModal('fileManagerModal'); fmCount(); fmStartIndex(); fmLoad(FM.root);
+}
+function fmIndexMessage(text,loading){const el=document.getElementById('fmIndexStatus');document.getElementById('fmIndexText').textContent=text;el.classList.toggle('active',!!text);el.classList.toggle('done',!loading);document.querySelectorAll('[data-fm-filter],#fmLayout').forEach(function(button){button.disabled=loading;});}
+function fmStartIndex(){
+    const generation=++FM.indexSeq;FM.indexReady=false;FM.indexMap=new Map();FM.filterCache.clear();
+    fmIndexMessage('Preparando filtros das pastas e subpastas…',true);
+    const extensions=['jpg','jpeg','png','gif','webp','bmp','heic','heif','mp4','mov','mkv','webm','3gp','avi','mp3','m4a','aac','ogg','opus','wav','flac','amr','3ga','aiff','wma','mp4a','pdf'];
+    const patterns=extensions.map(function(ext){return '-iname '+shellQuote('*.'+ext);}).join(' -o ');
+    const cmd='find '+shellQuote(FM.root)+' -path '+shellQuote(FM.root+'/Android')+' -prune -o -type f \\( '+patterns+' \\) -print && printf '+shellQuote('\n__WCA_INDICE_OK__');
+    const promise=(async function(){
+        try{
+            const res=await comPrazo(Tasker.runShell({cmd:cmd,root:false,timeout:90}),95000);fmCheck(res);
+            let text=fmOutput(res);if(!text.trimEnd().endsWith('__WCA_INDICE_OK__'))throw new Error('Varredura incompleta ou sem permissão');
+            text=text.trimEnd().slice(0,-'__WCA_INDICE_OK__'.length).replace(/\n$/, '');
+            if(text.length>6000000)throw new Error('Índice excedeu o limite de segurança');
+            const lines=text.split('\n').filter(function(x){return x;});if(lines.length>60000)throw new Error('Índice excedeu o limite de arquivos');
+            const index=new Map(),prefix=FM.root+'/';
+            lines.forEach(function(path){
+                if(!path.startsWith(prefix)||path.startsWith(prefix+'Android/'))throw new Error('Resposta inválida na varredura');
+                const type=fmType(path);if(type==='file')throw new Error('Tipo inesperado na varredura');
+                let parent=path.slice(0,path.lastIndexOf('/'));
+                while(parent===FM.root||parent.startsWith(prefix)){
+                    let types=index.get(parent);if(!types){types=new Set();index.set(parent,types);}types.add(type);
+                    if(parent===FM.root)break;parent=parent.slice(0,parent.lastIndexOf('/'));
+                }
+            });
+            if(generation!==FM.indexSeq)return;
+            FM.indexMap=index;FM.indexReady=true;fmIndexMessage('',false);
+        }catch(e){
+            if(generation!==FM.indexSeq)return;
+            FM.indexReady=false;FM.indexMap=new Map();fmIndexMessage('Preparação incompleta. A filtragem será feita ao abrir as pastas.',false);
+            log('error','Gerenciador: preparação dos filtros falhou: '+e.message+'. As pastas continuam acessíveis.');
+        }
+    })();
+    FM.indexPromise=promise;return promise;
 }
 function fmOutput(result) { const out=result && (result.stdout !== undefined ? result.stdout : result.outputs && result.outputs.stdout); if(typeof out!=='string')throw new Error('Resposta do gerenciador inválida.'); return out; }
 function fmCheck(result){ if(result && result.result !== undefined && result.result !== null && result.result !== '' && Number.isFinite(Number(result.result)) && Number(result.result)!==0) throw new Error('Pasta inacessível ou leitura incompleta.'); }
@@ -2972,6 +3014,8 @@ async function fmLoad(path) {
     const seq=++FM.seq,box=document.getElementById('fmItems'); FM.pendingPath=path; ++FM.renderSeq; box.textContent='Carregando...';
     try {
         if(typeof Tasker==='undefined'||!Tasker.runShell)throw new Error('Ative a ponte JS e o acesso ao telefone na Cena V2.');
+        if(FM.indexPromise)await FM.indexPromise;
+        if(seq!==FM.seq)return;
         const cached=FM.folderCache.get(path);
         if(cached){FM.path=path;FM.entries=cached;document.getElementById('fmPath').textContent=path;fmRender();return;}
         const res=await comPrazo(Tasker.runShell({cmd:'ls -1p '+shellQuote(path)+" && printf '\\n__WCA_LISTA_OK__'",root:false,timeout:20}),23000);
@@ -2999,6 +3043,10 @@ async function fmFind(path,filter,mode) {
 }
 
 function fmFolderHas(path,filter,mode){
+    if(FM.indexReady && (path===FM.root||path.startsWith(FM.root+'/')) && path!==FM.root+'/Android' && !path.startsWith(FM.root+'/Android/')){
+        const allowed=mode==='status-image'||mode==='images'?filter==='image':mode==='status-video'||mode==='videos'?filter==='video':mode==='audios'?filter==='audio':true;
+        return Promise.resolve(allowed && !!(FM.indexMap.get(path)&&FM.indexMap.get(path).has(filter)));
+    }
     const key=JSON.stringify([path,filter,mode]);
     if(!FM.filterCache.has(key)){
         const promise=fmFolderHasUncached(path,filter,mode).catch(function(e){if(FM.filterCache.get(key)===promise)FM.filterCache.delete(key);throw e;});
@@ -3074,7 +3122,7 @@ function fmUpdateLayoutButton(){
     const btn=document.getElementById('fmLayout');const label=FM.list?'Mudar para grade':'Mudar para lista';btn.setAttribute('aria-label',label);btn.title=label;
     btn.innerHTML=FM.list?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h3v3H3zm5 0h13v3H8zM3 10.5h3v3H3zm5 0h13v3H8zM3 16h3v3H3zm5 0h13v3H8z"/></svg>';
 }
-document.getElementById('fmRefresh').addEventListener('click',function(){FM.folderCache.clear();FM.filterCache.clear();fmLoad(FM.path);});
+document.getElementById('fmRefresh').addEventListener('click',function(){FM.folderCache.clear();FM.filterCache.clear();fmStartIndex();fmLoad(FM.path);});
 document.getElementById('fmLayout').addEventListener('click',function(){FM.list=!FM.list;fmUpdateLayoutButton();fmRender();});
 document.querySelectorAll('[data-fm-filter]').forEach(function(b){b.addEventListener('click',function(){FM.filter=b.dataset.fmFilter;fmRender();});});
 document.getElementById('fmClear').addEventListener('click',function(){FM.selected.clear();fmCount();document.querySelectorAll('#fmItems .fm-item.selected').forEach(function(el){el.classList.remove('selected');el.setAttribute('aria-pressed','false');});});
@@ -6448,7 +6496,7 @@ function openModal(id) {
 function closeModal(id) {
     if(id==='sendProgressModal'&&sendProgressActive)return;
     if(id==='scheduleModal'&&bulkScheduleBusy)return;
-    if(id==='fileManagerModal'){++FM.seq;++FM.renderSeq;FM.pendingPath=null;}
+    if(id==='fileManagerModal'){++FM.seq;++FM.renderSeq;++FM.indexSeq;FM.pendingPath=null;FM.indexPromise=null;}
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('show');
