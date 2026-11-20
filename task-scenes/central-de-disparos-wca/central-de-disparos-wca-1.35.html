@@ -2972,7 +2972,7 @@ function openFileManager(mode) {
 function fmIndexMessage(text,loading){const el=document.getElementById('fmIndexStatus');document.getElementById('fmIndexText').textContent=text;el.classList.toggle('active',!!text);el.classList.toggle('done',!loading);document.querySelectorAll('[data-fm-filter],#fmLayout').forEach(function(button){button.disabled=loading;});}
 function fmStartIndex(){
     const generation=++FM.indexSeq;FM.indexReady=false;FM.indexMap=new Map();FM.filterCache.clear();
-    fmIndexMessage('Aguarde…',true);
+    fmIndexMessage('',true);
     const extensions=['jpg','jpeg','png','gif','webp','bmp','heic','heif','mp4','mov','mkv','webm','3gp','avi','mp3','m4a','aac','ogg','opus','wav','flac','amr','3ga','aiff','wma','mp4a','pdf'];
     const patterns=extensions.map(function(ext){return '-iname '+shellQuote('*.'+ext);}).join(' -o ');
     const cmd='find '+shellQuote(FM.root)+' -path '+shellQuote(FM.root+'/Android')+' -prune -o -type f \\( '+patterns+' \\) -print && printf '+shellQuote('\n__WCA_INDICE_OK__');
