@@ -5118,6 +5118,7 @@ async function applyBulkRecipients(){
         const saver=section==='images'?saveImagesFile:section==='videos'?saveVideosFile:section==='messages'?saveMessagesFile:section==='polls'?savePollsFile:section==='files'?saveFilesFile:saveAudiosFile;
         saver();await FILE_WRITES[path];
         if(FILE_LOCKED.has(path)){log('error','Não foi possível confirmar a gravação dos destinatários em lote. As alterações ainda estão na tela; confira o arquivo antes de prosseguir.');return;}
+        items.forEach(function(item){item.selected=false;});
         closeModal('bulkRecipientsModal');bulkRecipientContext=null;
         if(section==='images')renderImages();else if(section==='videos')renderVideos();else if(section==='messages')renderMessages();else if(section==='polls')renderPolls();else if(section==='files')renderFiles();else renderAudios();
         updateMultiselectBar();log('success','Destinatários aplicados a '+items.length+' item(ns). Nenhuma mensagem foi enviada.');
