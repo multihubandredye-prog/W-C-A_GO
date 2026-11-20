@@ -2005,6 +2005,15 @@
 .campaign-type-icon {width:3.2rem;height:3.2rem;overflow:hidden;position:relative;}
 .campaign-type-icon img,.campaign-type-icon video {width:100%;height:100%;object-fit:cover;display:block;}
 .campaign-play-mark {position:absolute;bottom:2px;right:2px;color:white;background:#071d28c9;border-radius:3px;padding:0 .18rem;font-size:.7rem;}
+
+.campaign-card-wrap{display:flex;flex-direction:column;gap:.45rem;padding:.7rem;border:1px solid var(--border);border-radius:.7rem;background:var(--bg-card-2)}
+.campaign-card-wrap .campaign-card{padding:.3rem;border:0;background:transparent;}
+.campaign-card-actions,.campaign-select-controls{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;}
+.campaign-select-controls{padding:.4rem 0;}
+.campaign-select-controls[hidden]{display:none!important;}
+.campaign-draft-row.selected{border:2px solid #38c5ef;background:#144c60;}
+.campaign-draft-row{touch-action:pan-y;}
+.campaign-all-list .campaign-draft-row{margin:.45rem 0;}
 </style>
 </head>
 <body>
@@ -3037,12 +3046,13 @@
       <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('messages')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 14H5v-2h14v2zm13-4H5V8h14z"/></svg><span>Mensagens</span></button>
       <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('polls')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"/></svg><span>Enquetes</span></button>
     </div>
-    <div class="campaign-tab-actions"><button id="campaignTabAdd" class="btn-add-recipient" type="button" onclick="openCampaignDirect(campaignDraftTab)"></button><button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button></div><div class="campaign-empty">Os agendamentos individuais dos itens cadastrados continuam ativos.</div><div id="campaignDraftItems"></div>
+    <div class="campaign-tab-actions"><button class="btn-add-recipient" type="button" onclick="openCampaignAll()">Exibir todos</button><button id="campaignTabAdd" class="btn-add-recipient" type="button" onclick="openCampaignDirect(campaignDraftTab)"></button><button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button></div><div class="campaign-empty">Os agendamentos individuais dos itens cadastrados continuam ativos.</div><div id="campaignSelectionControls" class="campaign-select-controls" hidden><span id="campaignSelectionCount"></span><button type="button" class="btn-add-recipient" onclick="toggleCampaignSelection(false)">Marcar/desmarcar aba</button><button type="button" class="btn-add-recipient" onclick="deleteCampaignSelection()">Eliminar selecionados</button><button type="button" class="btn-add-recipient" onclick="clearCampaignSelection()">Desmarcar</button></div><div id="campaignDraftItems"></div>
     <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')">Agendar</button></div>
   </div>
   <div id="campaignFeedback" role="status" class="campaign-feedback"></div>
-  <div class="modal-footer"><button id="campaignDelete" class="btn-action btn-no" onclick="deleteCampaign(campaignEditIndex)" style="display:none">Excluir</button><button class="btn-action btn-no" onclick="closeModal('campaignEditorModal')">Cancelar</button><button id="campaignSave" class="btn-action btn-yes" onclick="saveCampaign()">Salvar</button></div>
+  <div class="modal-footer"><button id="campaignDelete" class="btn-action btn-no" onclick="deleteCampaign(campaignEditIndex)" style="display:none">Excluir</button><button id="campaignSave" class="btn-action btn-yes" onclick="saveCampaign()">Salvar</button></div>
 </div></div>
+<div class="modal-overlay editor-fullscreen" id="campaignAllModal"><div class="modal"><div class="modal-header"><h3>Todos os itens</h3><button class="modal-close" onclick="closeModal('campaignAllModal')" aria-label="Fechar">×</button></div><div class="modal-body"><div id="campaignAllControls" class="campaign-select-controls" hidden><span id="campaignAllCount"></span><button type="button" class="btn-add-recipient" onclick="toggleCampaignSelection(true)">Marcar/desmarcar todos</button><button type="button" class="btn-add-recipient" onclick="deleteCampaignSelection()">Eliminar selecionados</button><button type="button" class="btn-add-recipient" onclick="clearCampaignSelection()">Desmarcar</button></div><div id="campaignAllItems" class="campaign-all-list"></div></div></div></div>
 <div class="modal-overlay editor-fullscreen" id="campaignItemsModal"><div class="modal"><div class="modal-header"><h3>Escolher itens</h3><button class="modal-close" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">×</button></div><div class="modal-body"><div class="campaign-picker-tabs" id="campaignPickerTabs"></div><button type="button" class="campaign-create-btn" id="campaignCreateItem" onclick="campaignCreateCurrent()"></button><div class="campaign-label">Itens já cadastrados</div><div id="campaignPickerList"></div></div><div class="modal-footer"><button class="btn-action btn-yes" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">Concluir</button></div></div></div>
 <div class="modal-overlay editor-fullscreen" id="campaignContentModal"><div class="modal"><div class="modal-header"><h3 id="campaignContentHeading">Conteúdo</h3><button class="modal-close" onclick="closeModal('campaignContentModal')">×</button></div><div class="modal-body">
   <div id="campaignContentError" class="campaign-empty" role="status"></div><div id="campaignContentPath"></div>
@@ -6201,6 +6211,9 @@ function selectQuickSearchResult(phone, name, originalPhone = '') {
 
 /* Campanhas guardam cópias independentes dos itens e geram tarefas para o executor. */
 let campaignDraft=null,campaignEditIndex=-1,campaignPickerSection='images',campaignDraftTab='images',campaignSaving=false;
+const campaignSelection=new Set();
+let campaignSuppressClickUntil=0;
+document.addEventListener('click',function(e){if(e.isTrusted && Date.now()<campaignSuppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},true);
 function campaignFail(message){document.getElementById('campaignFeedback').textContent=message;log('error',message);}
 function campaignId(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);}
 function campaignCopy(value){return JSON.parse(JSON.stringify(value));}
@@ -6211,26 +6224,28 @@ function renderCampaigns(){
     const count=document.getElementById('count-campaigns');if(count)count.textContent=String(STATE.campaigns.length);
     if(FILE_LOCKED.has(FILE_PATHS.campaigns)){const info=document.createElement('div');info.className='empty-state';info.textContent='Campanhas não carregadas; gravação protegida. Confira o terminal.';list.appendChild(info);return;}
     if(!STATE.campaigns.length){const info=document.createElement('div');info.className='empty-state';info.textContent='Nenhuma campanha criada.';list.appendChild(info);return;}
-    STATE.campaigns.forEach(function(c,i){const card=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('small');card.type='button';card.className='campaign-card';title.textContent=c.title||'Campanha';meta.textContent=(c.items||[]).length+' item(ns) · '+(c.recipients||[]).length+' destinatário(s) · '+((c.schedule&&c.schedule.days||[]).join(', ')||'Sem dia')+' · '+((c.schedule&&c.schedule.times||[]).join(', ')||'Sem horário');card.append(title,meta);card.addEventListener('click',function(){openCampaignEditor(i);});list.appendChild(card);});
+    STATE.campaigns.forEach(function(c,i){const wrap=document.createElement('div'),card=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('small'),actions=document.createElement('div'),send=document.createElement('button');wrap.className='campaign-card-wrap';card.type='button';card.className='campaign-card';title.textContent=c.title||'Campanha';meta.textContent=(c.items||[]).length+' item(ns) · '+(c.recipients||[]).length+' destinatário(s) · '+((c.schedule&&c.schedule.days||[]).join(', ')||'Sem dia')+' · '+((c.schedule&&c.schedule.times||[]).join(', ')||'Sem horário');card.append(title,meta);card.addEventListener('click',function(){openCampaignEditor(i);});actions.className='campaign-card-actions';send.type='button';send.className='btn-add-recipient';send.textContent='Enviar agora';send.addEventListener('click',function(){sendCampaignNow(c.id);});actions.appendChild(send);wrap.append(card,actions);list.appendChild(wrap);});
 }
 function openCampaignEditor(index){
     if(FILE_LOCKED.has(FILE_PATHS.campaigns)){log('error','Arquivo de campanhas protegido.');return;}
-    document.getElementById('campaignFeedback').textContent='';campaignDraftTab='images';campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
+    document.getElementById('campaignFeedback').textContent='';campaignDraftTab='images';campaignSelection.clear();campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
     document.getElementById('campaignDelete').style.display=existing?'':'none';document.getElementById('campaignEditorTitle').textContent=existing?'Editar campanha':'Nova campanha';document.getElementById('campaignTitle').value=campaignDraft.title||'';
     const selected=(campaignDraft.device_ids||[]).map(function(d){const byPhone=STATE.devices.find(x=>d.device_phone&&(x.phone||'').replace(/@s\.whatsapp\.net$/,'')===d.device_phone);return byPhone?{device_id:byPhone.id,device_phone:d.device_phone}:d;});
     populateDevicePicker('campaign',selected.length?selected:Array.from(STATE.selectedDeviceIds));populateRecipientsContainer('campaignRecipients',campaignDraft.recipients||[]);
     STATE._pendingCampaignSchedule=campaignCopy(campaignDraft.schedule||{days:[],times:[]});updateAddSchedulePreview('campaignSchedulePreview','_pendingCampaignSchedule');renderCampaignDraftItems();openModal('campaignEditorModal');
 }
 function setCampaignTab(section){campaignDraftTab=section;renderCampaignDraftItems();}
-function renderCampaignDraftItems(){
-    const list=document.getElementById('campaignDraftItems');list.replaceChildren();if(!campaignDraft)return;
+function renderCampaignDraftItems(){renderCampaignItems(false);if(document.getElementById('campaignAllModal').classList.contains('show'))renderCampaignItems(true);}
+function renderCampaignItems(all){
+    const list=document.getElementById(all?'campaignAllItems':'campaignDraftItems');list.replaceChildren();if(!campaignDraft)return;
     document.querySelectorAll('.campaign-quick-btn').forEach(function(b){const active=b.getAttribute('onclick')==="setCampaignTab('"+campaignDraftTab+"')";b.classList.toggle('active',active);b.setAttribute('aria-pressed',active?'true':'false');});
     document.getElementById('campaignTabAdd').textContent=({images:'+ Adicionar imagens',videos:'+ Adicionar vídeos',files:'+ Adicionar arquivos',audios:'+ Adicionar áudios',messages:'+ Criar mensagem',polls:'+ Criar enquete'})[campaignDraftTab];
-    if(!campaignDraft.items.some(function(r){return r.section===campaignDraftTab;})){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Nenhum item nesta aba da campanha.';list.appendChild(empty);return;}
+    const controls=document.getElementById(all?'campaignAllControls':'campaignSelectionControls');controls.hidden=campaignSelection.size===0;document.getElementById(all?'campaignAllCount':'campaignSelectionCount').textContent=campaignSelection.size+' selecionado(s)';
+    if(!campaignDraft.items.some(function(r){return all||r.section===campaignDraftTab;})){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Nenhum item nesta aba da campanha.';list.appendChild(empty);return;}
     campaignDraft.items.forEach(function(record,index){
-        if(record.section!==campaignDraftTab)return;
+        if(!all&&record.section!==campaignDraftTab)return;
         const row=document.createElement('div'),icon=document.createElement('div'),info=document.createElement('div'),type=document.createElement('strong'),name=document.createElement('span'),actions=document.createElement('div'),edit=document.createElement('button'),remove=document.createElement('button');
-        row.className='campaign-row campaign-draft-row';icon.className='campaign-type-icon';icon.setAttribute('aria-hidden','true');
+        row.className='campaign-row campaign-draft-row';row.classList.toggle('selected',campaignSelection.has(record.id));row.tabIndex=0;row.setAttribute('aria-label',campaignSectionName(record.section)+' '+campaignItemLabel(record.item));row.setAttribute('aria-pressed',campaignSelection.has(record.id)?'true':'false');icon.className='campaign-type-icon';icon.setAttribute('aria-hidden','true');
         const source=document.querySelector('.campaign-quick-btn[onclick="setCampaignTab(\''+record.section+'\')"] svg');if(source)icon.appendChild(source.cloneNode(true));
         if((record.section==='images'||record.section==='videos') && (record.item.path||record.item.base64)){
             const sourceUrl=record.item.path?mediaUrl(record.item.path):record.item.base64;
@@ -6240,8 +6255,31 @@ function renderCampaignDraftItems(){
             if(record.section==='videos'){const mark=document.createElement('span');mark.className='campaign-play-mark';mark.textContent='▶';icon.appendChild(mark);}
         }
         info.className='campaign-item-info';type.textContent=campaignSectionName(record.section);name.textContent=campaignItemLabel(record.item);info.append(type,name);
-        actions.className='campaign-item-actions';edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(icon,info,actions);list.appendChild(row);
+        actions.className='campaign-item-actions';edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignSelection.delete(record.id);campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(icon,info,actions);campaignAttachSelection(row,record.id);list.appendChild(row);
     });
+}
+function openCampaignAll(){renderCampaignItems(true);openModal('campaignAllModal');}
+function campaignToggleId(id){if(campaignSelection.has(id))campaignSelection.delete(id);else campaignSelection.add(id);renderCampaignDraftItems();}
+function campaignAttachSelection(row,id){
+    let timer=null,held=false,sx=0,sy=0;
+    row.addEventListener('touchstart',function(e){if(e.target.closest('button')||e.touches.length!==1)return;held=false;sx=e.touches[0].clientX;sy=e.touches[0].clientY;timer=setTimeout(function(){held=true;if(campaignSelection.has(id))campaignSelection.delete(id);else campaignSelection.add(id);row.classList.toggle('selected',campaignSelection.has(id));row.setAttribute('aria-pressed',campaignSelection.has(id)?'true':'false');},550);},{passive:true});
+    row.addEventListener('touchmove',function(e){if(e.touches.length&&Math.hypot(e.touches[0].clientX-sx,e.touches[0].clientY-sy)>10){clearTimeout(timer);timer=null;}},{passive:true});
+    ['touchend','touchcancel'].forEach(function(t){row.addEventListener(t,function(){clearTimeout(timer);if(held){campaignSuppressClickUntil=Date.now()+500;renderCampaignDraftItems();}});});
+    row.addEventListener('contextmenu',function(e){if(e.target.closest('button'))return;e.preventDefault();clearTimeout(timer);if(!held){held=true;campaignToggleId(id);}});
+    row.addEventListener('click',function(e){if(e.target.closest('button'))return;if(held){held=false;return;}if(campaignSelection.size)campaignToggleId(id);});
+    row.addEventListener('keydown',function(e){if(e.target!==row)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();campaignToggleId(id);}});
+}
+function toggleCampaignSelection(all){if(!campaignDraft)return;const items=campaignDraft.items.filter(r=>all||r.section===campaignDraftTab);const clear=items.length&&items.every(r=>campaignSelection.has(r.id));items.forEach(r=>clear?campaignSelection.delete(r.id):campaignSelection.add(r.id));renderCampaignDraftItems();}
+function clearCampaignSelection(){campaignSelection.clear();renderCampaignDraftItems();}
+async function deleteCampaignSelection(){if(!campaignDraft||!campaignSelection.size)return;const ids=new Set(campaignSelection),draft=campaignDraft;if(!await askConfirm('Eliminar '+ids.size+' item(ns) da campanha?'))return;if(campaignDraft!==draft)return;campaignDraft.items=campaignDraft.items.filter(r=>!ids.has(r.id));ids.forEach(id=>campaignSelection.delete(id));renderCampaignDraftItems();}
+function sendCampaignNow(id){
+    const c=STATE.campaigns.find(x=>x.id===id);if(!c){log('error','Campanha não encontrada.');return;}
+    const valid=['images','videos','files','audios','messages','polls'];
+    if((c.items||[]).some(r=>!valid.includes(r.section))){log('error','Campanha contém tipo de item desconhecido; envio bloqueado.');return;}
+    const devices=(c.device_ids||[]).map(function(d){const found=STATE.devices.find(x=>d.device_phone&&(x.phone||'').replace(/@s\.whatsapp\.net$/,'')===d.device_phone);return found?{device_id:found.id,device_phone:d.device_phone}:d;});
+    const items=(c.items||[]).map(function(r){const item=campaignCopy(r.item);item._campaignSection=r.section;item.id=r.id;item.type=({images:'image',videos:'video',files:'file',audios:'audio',messages:'message',polls:'poll'})[r.section];item.device_ids=campaignCopy(devices);item.recipients=campaignCopy(c.recipients||[]);return item;});
+    if(!devices.length){log('error','Campanha sem dispositivo configurado.');return;}
+    return runSendProgress('campaigns',items,false);
 }
 function openCampaignItemPicker(){campaignPickerSection=campaignDraftTab;renderCampaignPicker();openModal('campaignItemsModal');}
 function renderCampaignPicker(){
@@ -6251,7 +6289,7 @@ function renderCampaignPicker(){
     const add=document.getElementById('campaignCreateItem');add.textContent=campaignPickerSection==='messages'?'+ Criar mensagem':campaignPickerSection==='polls'?'+ Criar enquete':'+ Selecionar no gerenciador';
     const items=campaignSource(campaignPickerSection);
     if(!items.length){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Nenhum item cadastrado nesta aba.';list.appendChild(empty);return;}
-    items.forEach(function(item,index){const row=document.createElement('div'),name=document.createElement('span'),button=document.createElement('button');row.className='campaign-row';name.textContent=campaignItemLabel(item);button.type='button';const key=campaignPickerSection+'|'+(item.path||item.question||item.message||'')+'|'+index;const found=campaignDraft.items.findIndex(x=>campaignSameItem(x,campaignPickerSection,item,key));button.textContent=found>=0?'Selecionado':'Adicionar';button.classList.toggle('active',found>=0);button.addEventListener('click',function(){const i=campaignDraft.items.findIndex(x=>campaignSameItem(x,campaignPickerSection,item,key));if(i>=0)campaignDraft.items.splice(i,1);else{const copy=campaignCopy(item);delete copy.selected;campaignDraft.items.push({id:campaignId(),sourceKey:key,section:campaignPickerSection,item:copy});}renderCampaignPicker();});row.append(name,button);list.appendChild(row);});
+    items.forEach(function(item,index){const row=document.createElement('div'),name=document.createElement('span'),button=document.createElement('button');row.className='campaign-row';name.textContent=campaignItemLabel(item);button.type='button';const key=campaignPickerSection+'|'+(item.path||item.question||item.message||'')+'|'+index;const found=campaignDraft.items.findIndex(x=>campaignSameItem(x,campaignPickerSection,item,key));button.textContent=found>=0?'Selecionado':'Adicionar';button.classList.toggle('active',found>=0);button.addEventListener('click',function(){const i=campaignDraft.items.findIndex(x=>campaignSameItem(x,campaignPickerSection,item,key));if(i>=0){campaignSelection.delete(campaignDraft.items[i].id);campaignDraft.items.splice(i,1);}else{const copy=campaignCopy(item);delete copy.selected;campaignDraft.items.push({id:campaignId(),sourceKey:key,section:campaignPickerSection,item:copy});}renderCampaignPicker();});row.append(name,button);list.appendChild(row);});
 }
 function campaignSectionName(section){return {images:'Imagem',videos:'Vídeo',audios:'Áudio',files:'Arquivo',messages:'Mensagem',polls:'Enquete'}[section]||'Item';}
 function campaignSameItem(record,section,item,key){if(record.section!==section)return false;if(item.path&&record.item&&record.item.path)return fmPathKey(item.path)===fmPathKey(record.item.path);return record.sourceKey===key;}
@@ -6390,7 +6428,7 @@ async function applyBulkSchedule(days,times){
         savers[section]();await FILE_WRITES[path];
         if(FILE_LOCKED.has(path)){log('error','Não foi possível confirmar a gravação dos agendamentos. As alterações estão na tela; confira o arquivo antes de prosseguir.');return;}
         items.forEach(i=>{i.selected=false;});bulkScheduleContext=null;bulkScheduleBusy=false;closeModal('scheduleModal');
-        if(section==='status')renderStatus();else if(section==='images')renderImages();else if(section==='videos')renderVideos();else if(section==='messages')renderMessages();else if(section==='polls')renderPolls();else if(section==='files')renderFiles();else renderAudios();
+        if(section==='campaigns')renderCampaigns();else if(section==='status')renderStatus();else if(section==='images')renderImages();else if(section==='videos')renderVideos();else if(section==='messages')renderMessages();else if(section==='polls')renderPolls();else if(section==='files')renderFiles();else renderAudios();
         updateMultiselectBar();log('success','Agendamento aplicado a '+items.length+' item(ns). Nenhuma mensagem foi enviada.');
     }catch(e){log('error','Falha ao aplicar agendamento: '+e.message);}finally{bulkScheduleBusy=false;button.disabled=false;}
 }
@@ -6949,6 +6987,7 @@ function progressLabel(item,section,index){
     return (index+1)+'. '+String(label).slice(0,100);
 }
 async function progressSendOne(section,item,entry,recipient){
+    if(section==='campaigns')section=item._campaignSection;
     if(section==='images'||section==='videos')return await sendImageMultipart(item,entry.device,recipient);
     if(section==='files')return await sendFileMultipart(item,entry.device,recipient);
     if(section==='audios')return await sendAudioMultipart(item,entry.device,recipient);
@@ -6977,7 +7016,7 @@ async function runSendProgress(section,items,selectedOnly){
     const skipped=jobs.filter(j=>!j.devices.length||!j.recipients.length).length;
     sendPreparing=true;
     try{
-      if(!await askConfirm('Enviar '+items.length+' item(ns) via '+allDevices.size+' dispositivo(s)?'+(skipped?' '+skipped+' item(ns) sem dispositivo ou destinatário serão ignorados.':'')))return;
+      if(!await askConfirm((section==='campaigns'?'Enviar agora a campanha salva? O agendamento permanece ativo. ':'Enviar ')+items.length+' item(ns) via '+allDevices.size+' dispositivo(s)?'+(skipped?' '+skipped+' item(ns) sem dispositivo ou destinatário serão ignorados.':'')))return;
       sendProgressActive=true;sendPreparing=false;
       const list=document.getElementById('sendProgressList'),summary=document.getElementById('sendProgressSummary'),fill=document.getElementById('sendProgressFill'),percent=document.getElementById('sendProgressPercent'),bar=fill.parentElement,close=document.getElementById('sendProgressClose');list.replaceChildren();close.disabled=true;fill.style.width='0';
       function createRow(j,i){
