@@ -1777,7 +1777,7 @@
 #editStatusPreview, #statusPreview { width:100%; max-width:100%; }
 #editImageModal .modal-body, #editStatusModal .modal-body, #addStatusModal .modal-body { min-width:0; }
 
-.tabs-grid{grid-template-columns:repeat(7,1fr)}@media(max-width:500px){.tabs-grid{grid-template-columns:repeat(4,1fr)}}.fm-file.audio{background:linear-gradient(145deg,#8f9ff3,#5a6cc2)}.audio-schedule-note{font-size:.7rem;color:#d3b760;margin:.3rem 0}
+.tabs-grid{grid-template-columns:repeat(7,1fr)}@media(max-width:500px){.tabs-grid{grid-template-columns:repeat(4,1fr)}}.fm-file.audio{background:linear-gradient(145deg,#8f9ff3,#5a6cc2)}
 
 /* O navegador ocupa a área disponível da cena, sem mudar os outros modais. */
 #fileManagerModal { padding:0; align-items:stretch; justify-content:stretch; }
@@ -2747,7 +2747,7 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>Agendamento:</label><div class="audio-schedule-note">A execução automática depende de suporte na tarefa do Tasker.</div>
+                <label>Agendamento:</label>
                 <div class="schedule-display">
                     <span class="schedule-display-text" id="editAudioScheduleDisplay">Nenhum agendamento</span>
                     <button class="schedule-edit-btn" onclick="openScheduleModalFromEditor('audios', STATE.editingIndex)"><svg viewBox="0 0 24 24" style="width:0.875rem;height:0.875rem;fill:currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg><span>Agendar</span></button>
