@@ -6737,11 +6737,11 @@ async function runSendProgress(section,items,selectedOnly){
           const dest=section==='status'?'Status':String(recipient.phone||'')+String(recipient.suffix||'');
           target.textContent=dest+' · '+(entry.device.name||entry.deviceId);result.textContent='Enviando';operation.append(target,result);view.operations.appendChild(operation);operation.scrollIntoView({block:'nearest'});
           let ok=false;try{ok=!!await progressSendOne(section,j.item,entry,recipient);}catch(e){log('error','Erro no envio de '+label+': '+e.message);}
-          if(!ok)errors++;done++;completed++;operation.classList.add(ok?'done':'failed');result.textContent=ok?'Aceito pela API':'Não confirmado';
+          if(!ok)errors++;done++;completed++;operation.classList.add(ok?'done':'failed');result.textContent=ok?'Enviado':'Não confirmado';
           view.state.textContent=done<total?'Enviando':'Processado';update();
         }
         if(errors){failed++;view.row.className='send-progress-entry failed';view.state.textContent='Há envio não confirmado';}
-        else{succeeded++;view.row.className='send-progress-entry done';view.state.textContent='Aceito pela API';if(selectedOnly)j.item.selected=false;}
+        else{succeeded++;view.row.className='send-progress-entry done';view.state.textContent='Enviado';if(selectedOnly)j.item.selected=false;}
         update();
       }
       log(failed||ignored?'warn':'success','Envio finalizado: '+succeeded+' item(ns) confirmado(s), '+failed+' com falha e '+ignored+' ignorado(s).');
