@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.30.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.31.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -101,3 +101,7 @@ A borda usa movimento de traço SVG, que não depende de propriedade CSS animada
 ## Revisão da borda 1.30
 
 As implementações de borda concorrentes foram substituídas por um único traço móvel em SVG, sem gradiente referenciado por ID, com cores azul e verde e fundo estático. Os testes comparam a imagem da borda em vários momentos; o movimento reduzido do sistema continua respeitado.
+
+## Borda da Central WCA 1.31
+
+Removidos os traços SVG e aplicada a mesma estrutura da Central WCA: camada externa com gradiente cônico giratório e camada interna de fundo, usando a mesma sequência de cores e duração.
