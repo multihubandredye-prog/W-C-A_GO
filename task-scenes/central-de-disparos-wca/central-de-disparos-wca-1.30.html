@@ -1895,46 +1895,34 @@
 #fileManagerModal .fm-items.list .fm-parent .fm-back-icon { align-items:flex-start; }
 
 /* Identidade visual da Central WCA: bordas luminosas sem camadas sobre os controles. */
-@property --wca-border-angle { syntax:'<angle>'; inherits:false; initial-value:0deg; }
-@keyframes wca-border-spin { to { --wca-border-angle:360deg; } }
 @keyframes wca-header-glow { 0%,100% { border-bottom-color:rgba(15,157,203,.38); } 50% { border-bottom-color:rgba(181,251,42,.72); } }
 @keyframes wca-title-glow { 0%,100% { text-shadow:0 0 .5rem rgba(181,251,42,.12); } 50% { text-shadow:0 0 1rem rgba(181,251,42,.42); } }
 .scene-title { color:#B5FB2A; text-shadow:0 0 .6rem rgba(181,251,42,.2); animation:wca-title-glow 4s ease-in-out infinite; }
+/* A borda fixa é apenas o fundo: o movimento real é desenhado pelo SVG acima dela. */
 .devices-panel, .tabs-panel, .main-container, .terminal-panel {
-    border:2px solid transparent;
-    background:linear-gradient(#071a24,#071a24) padding-box,
-      conic-gradient(from var(--wca-border-angle,0deg),transparent 0deg,#0f9dcb 50deg,#b5fb2a 110deg,transparent 170deg,transparent 360deg) border-box,
-      linear-gradient(#0f507a,#0f507a) border-box;
+    border:2px solid #0f507a;
+    background:#071a24;
     box-shadow:0 .5rem 1.5rem rgba(0,0,0,.65),0 0 1rem rgba(15,157,203,.16);
-    animation:wca-border-spin 5s linear infinite;
 }
-/* O movimento entre abas continua sendo a animação principal quando ocorre. */
-.tab-content.slide-from-right { animation:slideInRight .25s cubic-bezier(.25,1,.5,1) forwards,wca-border-spin 5s linear infinite; }
-.tab-content.slide-from-left { animation:slideInLeft .25s cubic-bezier(.25,1,.5,1) forwards,wca-border-spin 5s linear infinite; }
 .devices-header,.terminal-header,.section-header,.modal-header { animation:wca-header-glow 4s ease-in-out infinite; }
 .tab-btn.active { background:linear-gradient(145deg,#0f9dcb,#08769b); color:#fff; box-shadow:inset 0 -.15rem 0 rgba(181,251,42,.8); }
 .upload-btn,.icon-action-btn,.ms-btn,.btn-refresh { transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .15s ease; }
 .upload-btn:active,.icon-action-btn:active,.ms-btn:active,.btn-refresh:active { box-shadow:0 0 .7rem rgba(15,157,203,.35); }
 .modal { border-color:#1b718a; box-shadow:0 1.5rem 3rem rgba(0,0,0,.7),0 0 1rem rgba(15,157,203,.12); }
-/* O modal mantém sua animação de entrada; a borda gira sem interferir nos controles. */
-.modal-overlay:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal {
-    border:2px solid transparent;
-    background:linear-gradient(#06222a,#06222a) padding-box,
-      conic-gradient(from var(--wca-border-angle,0deg),transparent 0deg,#0f9dcb 50deg,#b5fb2a 110deg,transparent 170deg,transparent 360deg) border-box,
-      linear-gradient(#0f507a,#0f507a) border-box;
-}
-.modal-overlay.show:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal { animation:modalFocus .4s ease both,wca-border-spin 5s linear infinite; }
+/* Os modais mantêm a animação de entrada independente da borda. */
+.modal-overlay:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal { border:2px solid #0f507a; }
 @media (prefers-reduced-motion:reduce) {
     .scene-title,.devices-panel,.tabs-panel,.main-container,.terminal-panel,.devices-header,.terminal-header,.section-header,.modal-header,.tab-content.slide-from-right,.tab-content.slide-from-left { animation:none !important; }
-    .modal-overlay.show,.modal-overlay.show .modal,.modal-overlay.show:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal { animation:none !important; }
+    .modal-overlay.show,.modal-overlay.show .modal { animation:none !important; }
 }
 
 
-/* Animação do traço não depende de @property: compatível com WebViews mais antigos. */
+/* Traços sobrepostos se deslocam pelo perímetro: apenas uma implementação de borda. */
 @keyframes wca-trace-move { from { stroke-dashoffset:100; } to { stroke-dashoffset:0; } }
 .devices-panel,.tabs-panel,.main-container,.terminal-panel,.modal { position:relative; }
 .wca-running-border { position:absolute; inset:0; width:100%; height:100%; z-index:20; pointer-events:none; overflow:hidden; }
-.wca-running-border .wca-border-track { width:calc(100% - 4px); height:calc(100% - 4px); animation:wca-trace-move 5s linear infinite; }
+.wca-running-border .wca-border-track { width:calc(100% - 4px); height:calc(100% - 4px); animation:wca-trace-move 4s linear infinite; }
+.wca-running-border .wca-border-highlight { animation-delay:-.25s; }
 .editor-fullscreen > .modal > .wca-running-border, #quickSearchModal > .modal > .wca-running-border, #fileManagerModal > .modal > .wca-running-border { display:none; }
 @media(prefers-reduced-motion:reduce){ .wca-running-border .wca-border-track { animation:none; } }
 
@@ -1946,7 +1934,7 @@
     <h1 class="scene-title">Central de Disparos WCA</h1>
 
     
-    <div class="devices-panel"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-1)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="devices-panel"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <header class="devices-header">
             <div class="devices-title">
                 <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
@@ -1967,7 +1955,7 @@
     </div>
 
     
-    <div class="tabs-panel"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-2)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="tabs-panel"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="tabs-grid">
             <button class="tab-btn active" data-tab="status" onclick="switchTab('status')">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
@@ -2001,7 +1989,7 @@
     </div>
 
     
-    <div class="main-container tab-content active" id="tab-status"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-3)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content active" id="tab-status"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>STATUS</h2>
             <div class="section-actions">
@@ -2068,7 +2056,7 @@
     </div>
 
     
-    <div class="main-container tab-content" id="tab-images"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-4)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content" id="tab-images"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>IMAGENS</h2>
             <div class="section-actions">
@@ -2112,7 +2100,7 @@
     </div>
 
     
-    <div class="main-container tab-content" id="tab-videos"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-5)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content" id="tab-videos"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>VÍDEOS</h2>
             <div class="section-actions">
@@ -2156,7 +2144,7 @@
     </div>
 
     
-    <div class="main-container tab-content" id="tab-messages"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-6)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content" id="tab-messages"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>MENSAGENS</h2>
             <div class="section-actions">
@@ -2198,7 +2186,7 @@
     </div>
 
     
-    <div class="main-container tab-content" id="tab-polls"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-7)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content" id="tab-polls"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>ENQUETES</h2>
             <div class="section-actions">
@@ -2240,7 +2228,7 @@
     </div>
 
     
-    <div class="main-container tab-content" id="tab-files"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-8" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-8)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content" id="tab-files"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>ARQUIVOS</h2>
             <div class="section-actions">
@@ -2282,7 +2270,7 @@
     </div>
 
     
-    <div class="main-container tab-content" id="tab-audios"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-9" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-9)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="main-container tab-content" id="tab-audios"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="section-header">
             <h2>ÁUDIOS</h2>
             <div class="section-actions">
@@ -2324,7 +2312,7 @@
     </div>
 
     
-    <div class="terminal-panel minimized"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-10" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-10)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="terminal-panel minimized"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="terminal-header">
             <h3>Terminal</h3>
             <div style="display:flex; gap:0.375rem; margin-right:auto; margin-left:1rem;">
@@ -2350,7 +2338,7 @@
 
 
 <div class="modal-overlay" id="imageExpandModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-11" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-11)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Visualizar</h3><button class="modal-close" onclick="closeModal('imageExpandModal')">×</button></div>
         <div class="modal-body" style="text-align:center;">
             <img id="expandImg" src="" style="max-width:100%; max-height:60vh; border-radius:0.5rem;">
@@ -2361,7 +2349,7 @@
 
 
 <div class="modal-overlay" id="contactPickerModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-12" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-12)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Selecionar Contatos</h3><button class="modal-close" onclick="closeModal('contactPickerModal')">×</button></div>
             <div class="modal-body">
                 <div class="contacts-refresh-bar"><span class="contacts-refresh-status" role="status" aria-live="polite"></span><button type="button" class="contacts-refresh" onclick="refreshContactsManual()" aria-label="Atualizar contatos e grupos" title="Atualizar contatos e grupos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button></div><input type="text" class="picker-search" id="contactSearch" placeholder="Buscar..." oninput="filterContacts()">
@@ -2398,7 +2386,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="addStatusModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-13" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-13)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3 id="addStatusTitle">Adicionar Status</h3><button class="modal-close" onclick="closeModal('addStatusModal')">×</button></div>
         <div class="modal-body">
             
@@ -2435,7 +2423,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="editStatusModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-14" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-14)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3 id="editStatusTitle">Editar Status</h3><button class="modal-close" onclick="closeModal('editStatusModal')">×</button></div>
         <div class="modal-body">
             <div id="editStatusPreview" style="margin-bottom:0.75rem; text-align:center;">
@@ -2473,7 +2461,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="editImageModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-15" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-15)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Editar Imagem</h3><button class="modal-close" onclick="closeModal('editImageModal')">×</button></div>
         <div class="modal-body">
             <div style="text-align:center; margin-bottom:0.75rem;">
@@ -2538,7 +2526,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="addMessageModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-16" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-16)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Adicionar Mensagem</h3><button class="modal-close" onclick="closeModal('addMessageModal')">×</button></div>
         <div class="modal-body">
             <div class="form-group">
@@ -2598,7 +2586,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="editMessageModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-17" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-17)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Editar Mensagem</h3><button class="modal-close" onclick="closeModal('editMessageModal')">×</button></div>
         <div class="modal-body">
             <div class="form-group">
@@ -2663,7 +2651,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="addPollModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-18" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-18)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Adicionar Enquete</h3><button class="modal-close" onclick="closeModal('addPollModal')">×</button></div>
         <div class="modal-body">
             <div class="form-group"><label>Pergunta:</label><input type="text" id="pollQuestion"></div>
@@ -2700,7 +2688,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="editPollModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-19" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-19)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Editar Enquete</h3><button class="modal-close" onclick="closeModal('editPollModal')">×</button></div>
         <div class="modal-body">
             <div class="form-group"><label>Pergunta:</label><input type="text" id="editPollQuestion"></div>
@@ -2744,7 +2732,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="editFileModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-20" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-20)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Editar Arquivo</h3><button class="modal-close" onclick="closeModal('editFileModal')">×</button></div>
         <div class="modal-body">
             <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:0.75rem;" id="editFilePathDisplay"></div>
@@ -2782,7 +2770,7 @@
 
 
 <div class="modal-overlay editor-fullscreen" id="editAudioModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-21" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-21)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Editar Áudio</h3><button class="modal-close" onclick="closeModal('editAudioModal')">×</button></div>
         <div class="modal-body">
             <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:0.75rem;" id="editAudioPathDisplay"></div>
@@ -2821,14 +2809,14 @@
 
 
 
-<div class="modal-overlay" id="sendProgressModal"><div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-22" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-22)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+<div class="modal-overlay" id="sendProgressModal"><div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
  <div class="modal-header"><h3>Progresso do envio</h3></div>
  <div class="modal-body"><p id="sendProgressSummary" aria-live="polite"></p><div class="send-progress-track"><div id="sendProgressFill" class="send-progress-fill"></div></div><div id="sendProgressList" class="send-progress-list"></div><p style="font-size:.7rem;color:var(--text-dim);margin-top:.7rem">A confirmação indica a resposta da API, não a entrega ao destinatário. Confira detalhes no terminal.</p></div>
  <div class="modal-footer"><button id="sendProgressClose" class="btn-action btn-yes" onclick="closeModal('sendProgressModal')" disabled>Fechar</button></div>
 </div></div>
 
 <div class="modal-overlay" id="bulkRecipientsModal">
- <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-23" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-23)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+ <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
   <div class="modal-header"><h3>Destinatários em lote</h3><button class="modal-close" onclick="closeModal('bulkRecipientsModal')" aria-label="Fechar">×</button></div>
   <div class="modal-body">
    <p id="bulkRecipientsSummary" class="bulk-summary"></p>
@@ -2844,7 +2832,7 @@
 </div>
 
 <div class="modal-overlay" id="historyModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-24" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-24)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header">
             <h3 id="historyTitle">Histórico</h3>
             <button class="modal-close" onclick="closeModal('historyModal')">×</button>
@@ -2867,7 +2855,7 @@
 
 
 <div class="modal-overlay" id="confirmModal">
-    <div class="modal" style="max-width:20rem;"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-25" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-25)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal" style="max-width:20rem;"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header"><h3>Confirmar</h3></div>
         <div class="modal-body"><p id="confirmMessage" style="font-size:0.8125rem; line-height:1.5;"></p></div>
         <div class="modal-footer">
@@ -2879,7 +2867,7 @@
 
 
 <div class="modal-overlay" id="quickSearchModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-26" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-26)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header">
             <h3>Buscar Contato</h3>
             <button class="modal-close" onclick="closeModal('quickSearchModal')">×</button>
@@ -2902,7 +2890,7 @@
 
 
 <div class="modal-overlay" id="scheduleModal">
-    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-27" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-27)" stroke-width="3" stroke-dasharray="22 78"/></svg>
+    <div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg>
         <div class="modal-header">
             <h3><svg style="width:1rem;height:1rem;fill:var(--primary);vertical-align:middle;margin-right:0.375rem;" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>Agendamento</h3>
             <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -2947,7 +2935,7 @@
 
 <footer class="main-footer">Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span></footer>
 
-<div class="modal-overlay" id="fileManagerModal"><div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><defs><linearGradient id="wca-stroke-28" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f9dcb"/><stop offset="1" stop-color="#b5fb2a"/></linearGradient></defs><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="url(#wca-stroke-28)" stroke-width="3" stroke-dasharray="22 78"/></svg><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
+<div class="modal-overlay" id="fileManagerModal"><div class="modal"><svg class="wca-running-border" aria-hidden="true" focusable="false"><rect class="wca-border-track" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#0f9dcb" stroke-width="4" stroke-linecap="round" stroke-dasharray="25 75"/><rect class="wca-border-track wca-border-highlight" pathLength="100" x="2" y="2" rx="10" fill="none" stroke="#b5fb2a" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 92"/></svg><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
 <script>
 
 // Retorno do Android: a tarefa Back Pressed publica return_modal após Show.
