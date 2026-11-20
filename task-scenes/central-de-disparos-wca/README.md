@@ -1,6 +1,6 @@
 # Central de Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.41.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.42.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A seleção de imagens, vídeos e arquivos usa o gerenciador interno: grade ou lista, tamanhos, navegação de pastas, busca por tipo e toque prolongado para selecionar arquivos compatíveis em subpastas. A filtragem testa a existência de arquivos por extensão e mantém pastas inacessíveis visíveis, com falha no terminal. Pastas muito grandes podem ultrapassar o limite de seleção recursiva.
 
@@ -132,7 +132,7 @@ Os cartões e os elementos de miniatura são mantidos ao trocar de aba; inclusõ
 
 ## Campanhas 1.39
 
-A aba Campanhas organiza cópias independentes de itens existentes, destinatários, dispositivo e agendamento semanal no arquivo json-campaigns.json. Campanhas podem ser editadas e excluídas. O envio automático requer o código Java atualizado fornecido separadamente; o Java não é publicado. A programação permanece recorrente e o executor deve estar instalado e ativo no Tasker.
+A aba Campanhas organiza cópias independentes de itens existentes, destinatários, dispositivo e agendamento semanal no arquivo campaigns.json. Campanhas podem ser editadas e excluídas. O envio automático requer o código Java atualizado fornecido separadamente; o Java não é publicado. A programação permanece recorrente e o executor deve estar instalado e ativo no Tasker.
 
 ## Conteúdo direto nas campanhas 1.40
 
@@ -141,3 +141,7 @@ Cada campanha pode selecionar imagens, vídeos, áudios e arquivos pelo mesmo ge
 ## Acesso direto e abas 1.41
 
 A navegação apresenta as oito abas em duas linhas de quatro. Ao criar ou editar campanha, seis botões visíveis abrem diretamente o gerenciador ou os formulários de mensagem e enquete; itens cadastrados continuam opcionais.
+
+## Campanhas 1.42
+
+Os itens da campanha mostram um ícone e um rótulo por tipo. Campanhas são gravadas em `campaigns.json`, na pasta de dados da Central. Use o executor Java 1.5 fornecido separadamente, que lê esse mesmo arquivo. Arquivos `json-campaigns.json` de versões anteriores não são migrados automaticamente: com a automação parada, faça uma cópia de segurança e renomeie apenas se ainda não houver `campaigns.json`; se ambos existirem, não sobrescreva.

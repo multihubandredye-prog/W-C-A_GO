@@ -1987,6 +1987,14 @@
 .campaign-quick-btn { min-width:0; min-height:4rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.35rem; padding:.45rem .2rem; color:var(--text-main); background:var(--bg-card-2); border:1px solid var(--border); border-radius:.6rem; font-weight:700; font-size:.73rem; }
 .campaign-quick-btn svg { width:1.2rem; height:1.2rem; fill:var(--accent); }
 .campaign-quick-btn:active { background:#123c4d; border-color:var(--primary); }
+
+.campaign-draft-row { justify-content:initial; }
+.campaign-type-icon { width:2.35rem; height:2.35rem; flex:none; border-radius:.55rem; display:flex; align-items:center; justify-content:center; background:rgba(181,251,42,.09); color:var(--accent); }
+.campaign-type-icon svg { width:1.2rem; height:1.2rem; fill:currentColor; }
+.campaign-item-info { min-width:0; flex:1; display:flex; flex-direction:column; gap:.16rem; }
+.campaign-item-info strong { color:var(--accent); font-size:.7rem; }
+.campaign-item-info span { font-size:.8rem; overflow-wrap:anywhere; }
+@media(max-width:350px) { .campaign-draft-row { flex-wrap:wrap; } .campaign-draft-row .campaign-item-actions { margin-left:auto; } }
 </style>
 </head>
 <body>
@@ -3247,7 +3255,7 @@ const FILE_PATHS = {
     videos:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-videos.json',
     files:    '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-files.json',
     audios:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-audios.json',
-    campaigns: '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-campaigns.json',
+    campaigns: '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/campaigns.json',
     history:  '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/history.json'
 };
 
@@ -6194,7 +6202,13 @@ function openCampaignEditor(index){
 function renderCampaignDraftItems(){
     const list=document.getElementById('campaignDraftItems');list.replaceChildren();if(!campaignDraft)return;
     if(!campaignDraft.items.length){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Escolha arquivos ou crie mensagens e enquetes para esta campanha.';list.appendChild(empty);return;}
-    campaignDraft.items.forEach(function(record,index){const row=document.createElement('div'),name=document.createElement('span'),actions=document.createElement('div'),edit=document.createElement('button'),remove=document.createElement('button');row.className='campaign-row';actions.className='campaign-item-actions';name.textContent=campaignSectionName(record.section)+' · '+campaignItemLabel(record.item);edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(name,actions);list.appendChild(row);});
+    campaignDraft.items.forEach(function(record,index){
+        const row=document.createElement('div'),icon=document.createElement('div'),info=document.createElement('div'),type=document.createElement('strong'),name=document.createElement('span'),actions=document.createElement('div'),edit=document.createElement('button'),remove=document.createElement('button');
+        row.className='campaign-row campaign-draft-row';icon.className='campaign-type-icon';icon.setAttribute('aria-hidden','true');
+        const source=document.querySelector('.campaign-quick-btn[onclick="openCampaignDirect(\''+record.section+'\')"] svg');if(source)icon.appendChild(source.cloneNode(true));
+        info.className='campaign-item-info';type.textContent=campaignSectionName(record.section);name.textContent=campaignItemLabel(record.item);info.append(type,name);
+        actions.className='campaign-item-actions';edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(icon,info,actions);list.appendChild(row);
+    });
 }
 function openCampaignItemPicker(){campaignPickerSection='images';renderCampaignPicker();openModal('campaignItemsModal');}
 function renderCampaignPicker(){
