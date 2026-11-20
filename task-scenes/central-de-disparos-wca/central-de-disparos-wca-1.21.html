@@ -1865,11 +1865,11 @@
 .contacts-refresh{display:block;margin:0 0 .65rem auto;padding:.45rem .65rem;border:1px solid var(--border);border-radius:.45rem;background:var(--bg-card-2);color:var(--text-main);font-size:.72rem;font-weight:600;}
 
 /* Tela cheia somente nos dois painéis solicitados. */
-#editImageModal, #quickSearchModal { padding:0; align-items:stretch; justify-content:stretch; }
-#editImageModal > .modal, #quickSearchModal > .modal { width:100vw; max-width:none; height:100vh; height:100dvh; max-height:none; border:0; border-radius:0; display:flex; flex-direction:column; overflow:hidden; }
-#editImageModal .modal-header, #quickSearchModal .modal-header { flex:none; padding-top:max(.75rem,env(safe-area-inset-top)); }
-#editImageModal .modal-body, #quickSearchModal .modal-body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
-#editImageModal .modal-footer, #quickSearchModal .modal-footer { flex:none; padding-bottom:max(.75rem,env(safe-area-inset-bottom)); }
+.editor-fullscreen, #quickSearchModal { padding:0; align-items:stretch; justify-content:stretch; }
+.editor-fullscreen > .modal, #quickSearchModal > .modal { width:100vw; max-width:none; height:100vh; height:100dvh; max-height:none; border:0; border-radius:0; display:flex; flex-direction:column; overflow:hidden; }
+.editor-fullscreen .modal-header, #quickSearchModal .modal-header { flex:none; padding-top:max(.75rem,env(safe-area-inset-top)); }
+.editor-fullscreen .modal-body, #quickSearchModal .modal-body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.editor-fullscreen .modal-footer, #quickSearchModal .modal-footer { flex:none; padding-bottom:max(.75rem,env(safe-area-inset-bottom)); }
 #quickSearchModal .modal-body { display:flex; flex-direction:column; }
 #quickSearchModal .picker-search, #quickSearchModal .suffix-picker, #quickSearchModal .contacts-refresh-bar { flex:none; }
 #quickSearchModal #quickSearchResults { flex:1 1 auto; min-height:0; max-height:none !important; overflow-y:auto; }
@@ -1885,6 +1885,9 @@
 
 
 .scene-title { margin:0 0 .8rem; padding:0 .25rem; color:var(--accent); font-size:1.15rem; line-height:1.3; font-weight:800; letter-spacing:.02em; }
+
+.editor-fullscreen .modal-body { min-width:0; overflow-x:hidden; }
+.editor-fullscreen #editFilePathDisplay,.editor-fullscreen #editAudioPathDisplay { overflow-wrap:anywhere; word-break:break-word; }
 </style>
 </head>
 <body>
@@ -2337,7 +2340,7 @@
 </div>
 
 
-<div class="modal-overlay" id="addStatusModal">
+<div class="modal-overlay editor-fullscreen" id="addStatusModal">
     <div class="modal">
         <div class="modal-header"><h3 id="addStatusTitle">Adicionar Status</h3><button class="modal-close" onclick="closeModal('addStatusModal')">×</button></div>
         <div class="modal-body">
@@ -2374,7 +2377,7 @@
 </div>
 
 
-<div class="modal-overlay" id="editStatusModal">
+<div class="modal-overlay editor-fullscreen" id="editStatusModal">
     <div class="modal">
         <div class="modal-header"><h3 id="editStatusTitle">Editar Status</h3><button class="modal-close" onclick="closeModal('editStatusModal')">×</button></div>
         <div class="modal-body">
@@ -2412,7 +2415,7 @@
 
 
 
-<div class="modal-overlay" id="editImageModal">
+<div class="modal-overlay editor-fullscreen" id="editImageModal">
     <div class="modal">
         <div class="modal-header"><h3>Editar Imagem</h3><button class="modal-close" onclick="closeModal('editImageModal')">×</button></div>
         <div class="modal-body">
@@ -2477,7 +2480,7 @@
 </div>
 
 
-<div class="modal-overlay" id="addMessageModal">
+<div class="modal-overlay editor-fullscreen" id="addMessageModal">
     <div class="modal">
         <div class="modal-header"><h3>Adicionar Mensagem</h3><button class="modal-close" onclick="closeModal('addMessageModal')">×</button></div>
         <div class="modal-body">
@@ -2537,7 +2540,7 @@
 </div>
 
 
-<div class="modal-overlay" id="editMessageModal">
+<div class="modal-overlay editor-fullscreen" id="editMessageModal">
     <div class="modal">
         <div class="modal-header"><h3>Editar Mensagem</h3><button class="modal-close" onclick="closeModal('editMessageModal')">×</button></div>
         <div class="modal-body">
@@ -2602,7 +2605,7 @@
 </div>
 
 
-<div class="modal-overlay" id="addPollModal">
+<div class="modal-overlay editor-fullscreen" id="addPollModal">
     <div class="modal">
         <div class="modal-header"><h3>Adicionar Enquete</h3><button class="modal-close" onclick="closeModal('addPollModal')">×</button></div>
         <div class="modal-body">
@@ -2639,7 +2642,7 @@
 </div>
 
 
-<div class="modal-overlay" id="editPollModal">
+<div class="modal-overlay editor-fullscreen" id="editPollModal">
     <div class="modal">
         <div class="modal-header"><h3>Editar Enquete</h3><button class="modal-close" onclick="closeModal('editPollModal')">×</button></div>
         <div class="modal-body">
@@ -2683,7 +2686,7 @@
 
 
 
-<div class="modal-overlay" id="editFileModal">
+<div class="modal-overlay editor-fullscreen" id="editFileModal">
     <div class="modal">
         <div class="modal-header"><h3>Editar Arquivo</h3><button class="modal-close" onclick="closeModal('editFileModal')">×</button></div>
         <div class="modal-body">
@@ -2721,7 +2724,7 @@
 </div>
 
 
-<div class="modal-overlay" id="editAudioModal">
+<div class="modal-overlay editor-fullscreen" id="editAudioModal">
     <div class="modal">
         <div class="modal-header"><h3>Editar Áudio</h3><button class="modal-close" onclick="closeModal('editAudioModal')">×</button></div>
         <div class="modal-body">
