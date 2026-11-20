@@ -1996,6 +1996,15 @@
 .campaign-item-info span { font-size:.8rem; overflow-wrap:anywhere; }
 @media(max-width:350px) { .campaign-draft-row { flex-wrap:wrap; } .campaign-draft-row .campaign-item-actions { margin-left:auto; } }
 .campaign-feedback:not(:empty){flex:none;padding:.55rem 1rem;color:#ffabab;background:#3d1c25;font-size:.8rem;line-height:1.35;border-top:1px solid #a24755;}
+
+.campaign-quick-grid {gap:.35rem;margin:.45rem 0;}
+.campaign-quick-btn {min-height:3.1rem;gap:.15rem;font-size:.69rem;}
+.campaign-quick-btn.active {background:#123f50;border-color:#0f9dcb;box-shadow:inset 0 -2px 0 #b5fb2a;}
+.campaign-tab-actions {display:flex;gap:.45rem;flex-wrap:wrap;margin:.5rem 0;}
+#campaignDraftItems {max-height:22rem;overflow-y:auto;overscroll-behavior:contain;}
+.campaign-type-icon {width:3.2rem;height:3.2rem;overflow:hidden;position:relative;}
+.campaign-type-icon img,.campaign-type-icon video {width:100%;height:100%;object-fit:cover;display:block;}
+.campaign-play-mark {position:absolute;bottom:2px;right:2px;color:white;background:#071d28c9;border-radius:3px;padding:0 .18rem;font-size:.7rem;}
 </style>
 </head>
 <body>
@@ -3019,16 +3028,16 @@
     <div class="form-group"><label>Título:</label><input id="campaignTitle" type="text" placeholder="Ex.: Futebol" maxlength="120"></div>
     <div class="campaign-label">Dispositivo de envio</div><div class="device-picker" id="campaignDevicePicker"></div>
     <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Destinatários</span><button class="btn-add-recipient" onclick="addRecipientBox('campaignRecipients')">+ Adicionar</button></div><div class="recipients-list" id="campaignRecipients"></div></div>
-    <div class="campaign-label">Adicionar à campanha</div>
+    <div class="campaign-label">Itens da campanha</div>
     <div class="campaign-quick-grid">
-      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('images')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z"/></svg><span>Imagens</span></button>
-      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('videos')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11z"/></svg><span>Vídeos</span></button>
-      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('files')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v12c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm7 1.5V9h5.5z"/></svg><span>Arquivos</span></button>
-      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('audios')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2a3 3 0 1 0 2 2.8V7h5V3h-7z"/></svg><span>Áudios</span></button>
-      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('messages')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 14H5v-2h14v2zm13-4H5V8h14z"/></svg><span>Mensagens</span></button>
-      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('polls')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"/></svg><span>Enquetes</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('images')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z"/></svg><span>Imagens</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('videos')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11z"/></svg><span>Vídeos</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('files')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v12c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm7 1.5V9h5.5z"/></svg><span>Arquivos</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('audios')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2a3 3 0 1 0 2 2.8V7h5V3h-7z"/></svg><span>Áudios</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('messages')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 14H5v-2h14v2zm13-4H5V8h14z"/></svg><span>Mensagens</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="setCampaignTab('polls')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"/></svg><span>Enquetes</span></button>
     </div>
-    <button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button><div class="campaign-empty">Os agendamentos individuais dos itens cadastrados continuam ativos.</div><div id="campaignDraftItems"></div>
+    <div class="campaign-tab-actions"><button id="campaignTabAdd" class="btn-add-recipient" type="button" onclick="openCampaignDirect(campaignDraftTab)"></button><button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button></div><div class="campaign-empty">Os agendamentos individuais dos itens cadastrados continuam ativos.</div><div id="campaignDraftItems"></div>
     <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')">Agendar</button></div>
   </div>
   <div id="campaignFeedback" role="status" class="campaign-feedback"></div>
@@ -3064,12 +3073,12 @@ function fmMatch(path) { const type=fmType(path); return fmAllowed(type) && (FM.
 function fmCount(){const n=FM.selected.size;document.getElementById('fmCount').textContent=n+' arquivo(s) selecionado(s)';document.getElementById('fmConfirm').disabled=!n||FM.busy;}
 function openFileManager(mode) {
     FM.folderCache.clear(); FM.filterCache.clear(); FM.path=FM.root; FM.pendingPath=null; FM.entries=[]; FM.campaignSection=null; FM.mode=mode; FM.selected.clear(); FM.filter= (mode === 'status-image' || mode === 'images') ? 'image' : (mode === 'status-video' || mode === 'videos') ? 'video' : mode === 'audios' ? 'audio' : 'all'; FM.list=false; FM.busy=false;
-    fmUpdateLayoutButton();openModal('fileManagerModal'); fmCount(); fmStartIndex(); fmLoad(FM.root);
+    fmUpdateLayoutButton();openModal('fileManagerModal'); fmCount(); fmLoad(FM.root); fmStartIndex();
 }
 function fmIndexMessage(text,loading){const el=document.getElementById('fmIndexStatus');document.getElementById('fmIndexText').textContent=text;el.classList.toggle('active',!!text);el.classList.toggle('done',!loading);document.querySelectorAll('[data-fm-filter],#fmLayout').forEach(function(button){button.disabled=loading;});}
 function fmStartIndex(){
-    const generation=++FM.indexSeq;FM.indexReady=false;FM.indexMap=new Map();FM.filterCache.clear();
-    fmIndexMessage('',true);
+    const generation=++FM.indexSeq;FM.indexReady=false;FM.indexFailed=false;FM.indexMap=new Map();FM.filterCache.clear();
+    fmIndexMessage('',false);
     const extensions=['jpg','jpeg','png','gif','webp','bmp','heic','heif','mp4','mov','mkv','webm','3gp','avi','mp3','m4a','aac','ogg','opus','wav','flac','amr','3ga','aiff','wma','mp4a','pdf'];
     const patterns=extensions.map(function(ext){return '-iname '+shellQuote('*.'+ext);}).join(' -o ');
     const cmd='find '+shellQuote(FM.root)+' -path '+shellQuote(FM.root+'/Android')+' -prune -o -type f \\( '+patterns+' \\) -print && printf '+shellQuote('\n__WCA_INDICE_OK__');
@@ -3091,10 +3100,10 @@ function fmStartIndex(){
                 }
             });
             if(generation!==FM.indexSeq)return;
-            FM.indexMap=index;FM.indexReady=true;fmIndexMessage('',false);
+            FM.indexMap=index;FM.indexReady=true;fmIndexMessage('',false);fmFilterVisibleFolders();
         }catch(e){
             if(generation!==FM.indexSeq)return;
-            FM.indexReady=false;FM.indexMap=new Map();fmIndexMessage('Preparação incompleta. A filtragem será feita ao abrir as pastas.',false);
+            FM.indexReady=false;FM.indexFailed=true;FM.indexMap=new Map();fmIndexMessage('',false);fmFilterVisibleFolders(true);
             log('error','Gerenciador: preparação dos filtros falhou: '+e.message+'. As pastas continuam acessíveis.');
         }
     })();
@@ -3106,7 +3115,6 @@ async function fmLoad(path) {
     const seq=++FM.seq,box=document.getElementById('fmItems'); FM.pendingPath=path; ++FM.renderSeq; box.textContent='Carregando...';
     try {
         if(typeof Tasker==='undefined'||!Tasker.runShell)throw new Error('Ative a ponte JS e o acesso ao telefone na Cena V2.');
-        if(FM.indexPromise)await FM.indexPromise;
         if(seq!==FM.seq)return;
         const cached=FM.folderCache.get(path);
         if(cached){FM.path=path;FM.entries=cached;document.getElementById('fmPath').textContent=path;fmRender();return;}
@@ -3208,13 +3216,20 @@ function fmRender(){
     });
     if(!box.children.length)box.textContent='Nenhum item encontrado.';
     if(files.length)fmSizes(files,generation);
-    if(FM.filter!=='all'&&folders.length){const filter=FM.filter,mode=FM.mode;let next=0;async function worker(){while(next<folders.length){const item=folders[next++];if(item.path===FM.root+'/Android'||item.path.startsWith(FM.root+'/Android/'))continue;try{const matches=await fmFolderHas(item.path,filter,mode);if(generation!==FM.renderSeq)return;if(!matches)item.btn.remove();}catch(e){if(generation!==FM.renderSeq)return;item.btn.title='Não foi possível verificar esta pasta; toque para abrir';log('error','Não foi possível filtrar a pasta '+item.path+': '+e.message);}}}for(let n=0;n<Math.min(3,folders.length);n++)worker();}
+    FM.visibleFolders=folders;FM.visibleGeneration=generation;
+    if(FM.indexReady || FM.indexFailed)fmFilterVisibleFolders(FM.indexFailed);
+}
+function fmFilterVisibleFolders(fallback){
+    const folders=FM.visibleFolders||[],generation=FM.visibleGeneration,filter=FM.filter,mode=FM.mode;
+    if(filter==='all'||!folders.length||generation!==FM.renderSeq)return;
+    let next=0;async function worker(){while(next<folders.length){const item=folders[next++];if(item.path===FM.root+'/Android'||item.path.startsWith(FM.root+'/Android/'))continue;try{const matches=await fmFolderHas(item.path,filter,mode);if(generation!==FM.renderSeq||filter!==FM.filter)return;if(!matches)item.btn.remove();}catch(e){if(generation!==FM.renderSeq)return;item.btn.title='Não foi possível verificar esta pasta; toque para abrir';log('error','Não foi possível filtrar a pasta '+item.path+': '+e.message);}}}
+    for(let n=0;n<Math.min(3,folders.length);n++)worker();
 }
 function fmUpdateLayoutButton(){
     const btn=document.getElementById('fmLayout');const label=FM.list?'Mudar para grade':'Mudar para lista';btn.setAttribute('aria-label',label);btn.title=label;
     btn.innerHTML=FM.list?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h3v3H3zm5 0h13v3H8zM3 10.5h3v3H3zm5 0h13v3H8zM3 16h3v3H3zm5 0h13v3H8z"/></svg>';
 }
-document.getElementById('fmRefresh').addEventListener('click',function(){FM.folderCache.clear();FM.filterCache.clear();fmStartIndex();fmLoad(FM.path);});
+document.getElementById('fmRefresh').addEventListener('click',function(){FM.folderCache.clear();FM.filterCache.clear();fmLoad(FM.path);fmStartIndex();});
 document.getElementById('fmLayout').addEventListener('click',function(){FM.list=!FM.list;fmUpdateLayoutButton();fmRender();});
 document.querySelectorAll('[data-fm-filter]').forEach(function(b){b.addEventListener('click',function(){FM.filter=b.dataset.fmFilter;fmRender();});});
 document.getElementById('fmClear').addEventListener('click',function(){FM.selected.clear();fmCount();document.querySelectorAll('#fmItems .fm-item.selected').forEach(function(el){el.classList.remove('selected');el.setAttribute('aria-pressed','false');});});
@@ -6185,7 +6200,7 @@ function selectQuickSearchResult(phone, name, originalPhone = '') {
 }
 
 /* Campanhas guardam cópias independentes dos itens e geram tarefas para o executor. */
-let campaignDraft=null,campaignEditIndex=-1,campaignPickerSection='images',campaignSaving=false;
+let campaignDraft=null,campaignEditIndex=-1,campaignPickerSection='images',campaignDraftTab='images',campaignSaving=false;
 function campaignFail(message){document.getElementById('campaignFeedback').textContent=message;log('error',message);}
 function campaignId(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);}
 function campaignCopy(value){return JSON.parse(JSON.stringify(value));}
@@ -6200,24 +6215,35 @@ function renderCampaigns(){
 }
 function openCampaignEditor(index){
     if(FILE_LOCKED.has(FILE_PATHS.campaigns)){log('error','Arquivo de campanhas protegido.');return;}
-    document.getElementById('campaignFeedback').textContent='';campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
+    document.getElementById('campaignFeedback').textContent='';campaignDraftTab='images';campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
     document.getElementById('campaignDelete').style.display=existing?'':'none';document.getElementById('campaignEditorTitle').textContent=existing?'Editar campanha':'Nova campanha';document.getElementById('campaignTitle').value=campaignDraft.title||'';
     const selected=(campaignDraft.device_ids||[]).map(function(d){const byPhone=STATE.devices.find(x=>d.device_phone&&(x.phone||'').replace(/@s\.whatsapp\.net$/,'')===d.device_phone);return byPhone?{device_id:byPhone.id,device_phone:d.device_phone}:d;});
     populateDevicePicker('campaign',selected.length?selected:Array.from(STATE.selectedDeviceIds));populateRecipientsContainer('campaignRecipients',campaignDraft.recipients||[]);
     STATE._pendingCampaignSchedule=campaignCopy(campaignDraft.schedule||{days:[],times:[]});updateAddSchedulePreview('campaignSchedulePreview','_pendingCampaignSchedule');renderCampaignDraftItems();openModal('campaignEditorModal');
 }
+function setCampaignTab(section){campaignDraftTab=section;renderCampaignDraftItems();}
 function renderCampaignDraftItems(){
     const list=document.getElementById('campaignDraftItems');list.replaceChildren();if(!campaignDraft)return;
-    if(!campaignDraft.items.length){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Escolha arquivos ou crie mensagens e enquetes para esta campanha.';list.appendChild(empty);return;}
+    document.querySelectorAll('.campaign-quick-btn').forEach(function(b){const active=b.getAttribute('onclick')==="setCampaignTab('"+campaignDraftTab+"')";b.classList.toggle('active',active);b.setAttribute('aria-pressed',active?'true':'false');});
+    document.getElementById('campaignTabAdd').textContent=({images:'+ Adicionar imagens',videos:'+ Adicionar vídeos',files:'+ Adicionar arquivos',audios:'+ Adicionar áudios',messages:'+ Criar mensagem',polls:'+ Criar enquete'})[campaignDraftTab];
+    if(!campaignDraft.items.some(function(r){return r.section===campaignDraftTab;})){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Nenhum item nesta aba da campanha.';list.appendChild(empty);return;}
     campaignDraft.items.forEach(function(record,index){
+        if(record.section!==campaignDraftTab)return;
         const row=document.createElement('div'),icon=document.createElement('div'),info=document.createElement('div'),type=document.createElement('strong'),name=document.createElement('span'),actions=document.createElement('div'),edit=document.createElement('button'),remove=document.createElement('button');
         row.className='campaign-row campaign-draft-row';icon.className='campaign-type-icon';icon.setAttribute('aria-hidden','true');
-        const source=document.querySelector('.campaign-quick-btn[onclick="openCampaignDirect(\''+record.section+'\')"] svg');if(source)icon.appendChild(source.cloneNode(true));
+        const source=document.querySelector('.campaign-quick-btn[onclick="setCampaignTab(\''+record.section+'\')"] svg');if(source)icon.appendChild(source.cloneNode(true));
+        if((record.section==='images'||record.section==='videos') && (record.item.path||record.item.base64)){
+            const sourceUrl=record.item.path?mediaUrl(record.item.path):record.item.base64;
+            const preview=document.createElement(record.section==='images'?'img':'video');
+            if(record.section==='images'){preview.alt='';preview.loading='lazy';}else{preview.muted=true;preview.preload='metadata';preview.playsInline=true;preview.addEventListener('loadedmetadata',function(){try{if(preview.duration>0.1)preview.currentTime=0.1;}catch(e){}});}
+            preview.onerror=function(){preview.remove();const mark=icon.querySelector('.campaign-play-mark');if(mark)mark.remove();if(source)icon.appendChild(source.cloneNode(true));};icon.replaceChildren(preview);preview.src=sourceUrl+(record.section==='videos'&&!sourceUrl.startsWith('data:')?'#t=0.1':'');
+            if(record.section==='videos'){const mark=document.createElement('span');mark.className='campaign-play-mark';mark.textContent='▶';icon.appendChild(mark);}
+        }
         info.className='campaign-item-info';type.textContent=campaignSectionName(record.section);name.textContent=campaignItemLabel(record.item);info.append(type,name);
         actions.className='campaign-item-actions';edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(icon,info,actions);list.appendChild(row);
     });
 }
-function openCampaignItemPicker(){campaignPickerSection='images';renderCampaignPicker();openModal('campaignItemsModal');}
+function openCampaignItemPicker(){campaignPickerSection=campaignDraftTab;renderCampaignPicker();openModal('campaignItemsModal');}
 function renderCampaignPicker(){
     const tabs=document.getElementById('campaignPickerTabs'),list=document.getElementById('campaignPickerList');tabs.replaceChildren();list.replaceChildren();
     const labels={images:'Imagens',videos:'Vídeos',messages:'Mensagens',polls:'Enquetes',files:'Arquivos',audios:'Áudios'};
