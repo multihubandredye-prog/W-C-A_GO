@@ -2904,25 +2904,25 @@
 
 // Retorno do Android: a tarefa Back Pressed publica return_modal após Show.
 function syncModalBack(){const all=Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});try{if(typeof Tasker!=='undefined'&&Tasker.setVariable)Tasker.setVariable('cache_modal',all.length?all[0].id:'');}catch(e){}}
-function backTop(){const all=Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});if(all.length){if(all[0].id==='confirmModal' && window.confirmCallback){const done=window.confirmCallback;window.confirmCallback=null;done(false);}closeModal(all[0].id);}}
+function backTop(){const all=Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});if(all.length){if(all[0].id==='fileManagerModal'){fmBack();return;}if(all[0].id==='confirmModal' && window.confirmCallback){const done=window.confirmCallback;window.confirmCallback=null;done(false);}closeModal(all[0].id);}}
 if(typeof Tasker!=='undefined'&&Tasker.onVariableChanged){try{Tasker.onVariableChanged('return_modal',function(nome,valor){backTop();});}catch(e){}}
 syncModalBack();
 
 // Gerenciador: caminhos físicos, filtros recursivos e seleção sem duplicatas.
 function mediaUrl(path) { if (!path || /^(file:|data:|https?:)/i.test(path)) return path; return 'file://' + path.split('/').map(encodeURIComponent).join('/'); }
-const FM = {root:'/storage/emulated/0', path:'/storage/emulated/0', mode:'', filter:'all', list:false, entries:[], selected:new Set(), folderCache:new Map(), filterCache:new Map(), seq:0, renderSeq:0, busy:false};
+const FM = {root:'/storage/emulated/0', path:'/storage/emulated/0', mode:'', filter:'all', list:false, entries:[], selected:new Set(), folderCache:new Map(), filterCache:new Map(), seq:0, renderSeq:0, busy:false, pendingPath:null};
 function fmType(name) { if (/\.(jpg|jpeg|png|gif|webp|bmp|heic|heif)$/i.test(name)) return 'image'; if (/\.(mp4|mov|mkv|webm|3gp|avi)$/i.test(name)) return 'video'; if (/\.(mp3|m4a|aac|ogg|opus|wav|flac|amr|3ga|aiff|wma|mp4a)$/i.test(name)) return 'audio'; if (/\.pdf$/i.test(name)) return 'pdf'; return 'file'; }
 function fmAllowed(type) { if(FM.mode==='status-image')return type==='image'; if(FM.mode==='status-video')return type==='video'; if(FM.mode==='images')return type==='image'; if(FM.mode==='videos')return type==='video'; if(FM.mode==='audios')return type==='audio'; return true; }
 function fmMatch(path) { const type=fmType(path); return fmAllowed(type) && (FM.filter==='all'||FM.filter===type); }
 function fmCount(){const n=FM.selected.size;document.getElementById('fmCount').textContent=n+' arquivo(s) selecionado(s)';document.getElementById('fmConfirm').disabled=!n||FM.busy;}
 function openFileManager(mode) {
-    FM.folderCache.clear(); FM.filterCache.clear(); FM.mode=mode; FM.selected.clear(); FM.filter= (mode === 'status-image' || mode === 'images') ? 'image' : (mode === 'status-video' || mode === 'videos') ? 'video' : mode === 'audios' ? 'audio' : 'all'; FM.list=false; FM.busy=false;
+    FM.folderCache.clear(); FM.filterCache.clear(); FM.path=FM.root; FM.pendingPath=null; FM.mode=mode; FM.selected.clear(); FM.filter= (mode === 'status-image' || mode === 'images') ? 'image' : (mode === 'status-video' || mode === 'videos') ? 'video' : mode === 'audios' ? 'audio' : 'all'; FM.list=false; FM.busy=false;
     fmUpdateLayoutButton();openModal('fileManagerModal'); fmCount(); fmLoad(FM.root);
 }
 function fmOutput(result) { const out=result && (result.stdout !== undefined ? result.stdout : result.outputs && result.outputs.stdout); if(typeof out!=='string')throw new Error('Resposta do gerenciador inválida.'); return out; }
 function fmCheck(result){ if(result && result.result !== undefined && result.result !== null && result.result !== '' && Number.isFinite(Number(result.result)) && Number(result.result)!==0) throw new Error('Pasta inacessível ou leitura incompleta.'); }
 async function fmLoad(path) {
-    const seq=++FM.seq,box=document.getElementById('fmItems'); ++FM.renderSeq; box.textContent='Carregando...';
+    const seq=++FM.seq,box=document.getElementById('fmItems'); FM.pendingPath=path; ++FM.renderSeq; box.textContent='Carregando...';
     try {
         if(typeof Tasker==='undefined'||!Tasker.runShell)throw new Error('Ative a ponte JS e o acesso ao telefone na Cena V2.');
         const cached=FM.folderCache.get(path);
@@ -2935,6 +2935,12 @@ async function fmLoad(path) {
         FM.entries=text.split('\n').filter(function(n){return n&&n.charAt(0)!=='.';}).map(function(n){const dir=n.endsWith('/');return {name:dir?n.slice(0,-1):n,dir:dir};});
         FM.entries.sort(function(a,b){return Number(b.dir)-Number(a.dir)||a.name.localeCompare(b.name,'pt-BR');});FM.folderCache.set(path,FM.entries);fmRender();
     }catch(e){if(seq===FM.seq){box.textContent='Não foi possível abrir esta pasta.';log('error','Gerenciador: '+e.message);}}
+    finally {if(seq===FM.seq)FM.pendingPath=null;}
+}
+function fmBack(){
+    if(FM.pendingPath && FM.pendingPath!==FM.path){fmLoad(FM.path);return;}
+    if(FM.path!==FM.root){fmLoad(FM.path.slice(0,FM.path.lastIndexOf('/'))||FM.root);return;}
+    closeModal('fileManagerModal');
 }
 // find não segue links simbólicos e nunca modifica os arquivos encontrados.
 async function fmFind(path,filter,mode) {
@@ -2995,7 +3001,7 @@ function fmShortName(name){
 function fmRender(){
     const generation=++FM.renderSeq, box=document.getElementById('fmItems');box.replaceChildren();box.classList.toggle('list',FM.list);
     document.querySelectorAll('[data-fm-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.fmFilter===FM.filter);});
-    if(FM.path!==FM.root){const back=document.createElement('button');back.type='button';back.className='fm-item fm-parent';back.setAttribute('aria-label','Voltar para a pasta anterior');back.title='Voltar para a pasta anterior';back.innerHTML='<span class="fm-thumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/></svg></span>'; back.addEventListener('click',function(){fmLoad(FM.path.slice(0,FM.path.lastIndexOf('/'))||FM.root);});box.appendChild(back);}
+    if(FM.path!==FM.root){const back=document.createElement('button');back.type='button';back.className='fm-item fm-parent';back.setAttribute('aria-label','Voltar para a pasta anterior');back.title='Voltar para a pasta anterior';back.innerHTML='<span class="fm-thumb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/></svg></span>'; back.addEventListener('click',fmBack);box.appendChild(back);}
     const files=[];const folders=[];
     FM.entries.forEach(function(e){const path=FM.path+'/'+e.name,type=e.dir?'folder':fmType(e.name);if(!e.dir&&!fmMatch(path))return;
         const btn=document.createElement('button');btn.type='button';btn.className='fm-item';btn.title=e.dir?'Toque para abrir; segure para selecionar os arquivos':'Selecionar arquivo';
@@ -6395,6 +6401,7 @@ function openModal(id) {
 function closeModal(id) {
     if(id==='sendProgressModal'&&sendProgressActive)return;
     if(id==='scheduleModal'&&bulkScheduleBusy)return;
+    if(id==='fileManagerModal'){++FM.seq;++FM.renderSeq;FM.pendingPath=null;}
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('show');
