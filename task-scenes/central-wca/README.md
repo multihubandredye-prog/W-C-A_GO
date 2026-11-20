@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.0**
+Versão atual: **2.1**
 
-Arquivo atual: `central-wca-2.0.html`
+Arquivo atual: `central-wca-2.1.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -135,6 +135,7 @@ WHATSAPP_MAX_DOWNLOAD_SIZE=500000000
 WHATSAPP_WEBHOOK=http://localhost:3129/Tasker
 WHATSAPP_WEBHOOK_SECRET=tasker12345
 WHATSAPP_WEBHOOK_INSECURE_SKIP_VERIFY=false
+WHATSAPP_WEBHOOK_DELAY_MS=1000
 WHATSAPP_WEBHOOK_INCLUDE_OUTGOING=true
 WHATSAPP_ACCOUNT_VALIDATION=true
 WHATSAPP_CHAT_STORAGE=true
@@ -144,7 +145,7 @@ Por exemplo, digitar `100` no campo de vídeo grava `WHATSAPP_MAX_VIDEO_SIZE=100
 
 `AUTO_DELETE_MEDIA_DURATION` define apenas a duração de retenção. A chave não ativa a exclusão automática por si só; a API também precisa estar configurada para habilitar essa função.
 
-`WHATSAPP_WEBHOOK_DELAY_MS` pode permanecer vazio. As mudanças entram em vigor após o reinício da API.
+O atraso padrão é **1000 ms** quando a chave não existe ou ao criar uma configuração padrão. Um valor existente, inclusive vazio, é preservado; vazio permanece sem atraso. A alteração passa a valer ao salvar o `.env` e reiniciar a API.
 
 ### Gravação e reinício
 
@@ -224,7 +225,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `005-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-2.0.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-2.1.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

@@ -3646,7 +3646,7 @@ input.first-install-attention {
                         <span class="dev-key">Atraso do webhook (milissegundos)</span>
                         <button type="button" class="dev-help-btn" aria-label="O que faz?"><i class="fa-solid fa-circle-question"></i></button>
                         <div class="dev-help">Atraso em milissegundos antes de entregar cada evento no webhook. Vazio = sem atraso.</div>
-                        <input type="text" id="devInDelay" class="dev-input dev-input-num" inputmode="numeric" placeholder="500">
+                        <input type="text" id="devInDelay" class="dev-input dev-input-num" inputmode="numeric" placeholder="1000">
                     </div>
 
 <div class="dev-row dev-row-inline">
@@ -4950,7 +4950,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             max_file_mb: '50',
             max_video_mb: '100',
             max_download_mb: '500',
-            delay: '',
+            delay: '1000',
             max_attempts: '1',
             eventos: DEV_EVENTS_PADRAO.slice(),
             eco: true,
@@ -4993,7 +4993,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         p.max_file_mb = emMb('WHATSAPP_MAX_FILE_SIZE', '50');
         p.max_video_mb = emMb('WHATSAPP_MAX_VIDEO_SIZE', '100');
         p.max_download_mb = emMb('WHATSAPP_MAX_DOWNLOAD_SIZE', '500');
-        p.delay = mapa.WHATSAPP_WEBHOOK_DELAY_MS !== undefined ? mapa.WHATSAPP_WEBHOOK_DELAY_MS : '';
+        p.delay = mapa.WHATSAPP_WEBHOOK_DELAY_MS !== undefined ? mapa.WHATSAPP_WEBHOOK_DELAY_MS : p.delay;
         p.max_attempts = inteiro('WHATSAPP_WEBHOOK_MAX_ATTEMPTS', '1');
         if (mapa.WHATSAPP_WEBHOOK_EVENTS !== undefined) {
             p.eventos = String(mapa.WHATSAPP_WEBHOOK_EVENTS).split(',').map(function (s) { return s.trim(); }).filter(function (s) { return DEV_EVENTS.indexOf(s) >= 0; });
