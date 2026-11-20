@@ -1976,6 +1976,17 @@
 .campaign-field-check {display:flex;align-items:center;gap:.55rem;padding:.45rem 0;color:var(--text-main);font-size:.8rem;}
 .campaign-field-check input {accent-color:var(--accent);width:1rem;height:1rem;}
 #campaignContentPath {overflow-wrap:anywhere;color:var(--text-dim);font-size:.75rem;margin-bottom:.75rem;}
+
+/* Navegação em duas linhas, com espaço para nomes e contadores. */
+.tabs-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.tabs-grid .tab-btn { min-width:0; min-height:4rem; padding:.6rem .25rem; }
+.tabs-grid .tab-btn:nth-child(n) { border-top:0; border-right:.0625rem solid var(--border); }
+.tabs-grid .tab-btn:nth-child(n+5) { border-top:.0625rem solid var(--border); }
+.tabs-grid .tab-btn:nth-child(4n) { border-right:0; }
+.campaign-quick-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.45rem; margin:.55rem 0 .75rem; }
+.campaign-quick-btn { min-width:0; min-height:4rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.35rem; padding:.45rem .2rem; color:var(--text-main); background:var(--bg-card-2); border:1px solid var(--border); border-radius:.6rem; font-weight:700; font-size:.73rem; }
+.campaign-quick-btn svg { width:1.2rem; height:1.2rem; fill:var(--accent); }
+.campaign-quick-btn:active { background:#123c4d; border-color:var(--primary); }
 </style>
 </head>
 <body>
@@ -3000,7 +3011,16 @@
     <div class="form-group"><label>Título:</label><input id="campaignTitle" type="text" placeholder="Ex.: Futebol" maxlength="120"></div>
     <div class="campaign-label">Dispositivo de envio</div><div class="device-picker" id="campaignDevicePicker"></div>
     <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Destinatários</span><button class="btn-add-recipient" onclick="addRecipientBox('campaignRecipients')">+ Adicionar</button></div><div class="recipients-list" id="campaignRecipients"></div></div>
-    <div class="campaign-label">Itens da campanha</div><div class="campaign-empty">Os agendamentos dos itens originais continuam ativos nas outras abas.</div><button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">+ Escolher itens</button><div id="campaignDraftItems"></div>
+    <div class="campaign-label">Adicionar à campanha</div>
+    <div class="campaign-quick-grid">
+      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('images')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5z"/></svg><span>Imagens</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('videos')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11z"/></svg><span>Vídeos</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('files')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l6 6v12c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2zm7 1.5V9h5.5z"/></svg><span>Arquivos</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('audios')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2a3 3 0 1 0 2 2.8V7h5V3h-7z"/></svg><span>Áudios</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('messages')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 14H5v-2h14v2zm13-4H5V8h14z"/></svg><span>Mensagens</span></button>
+      <button type="button" class="campaign-quick-btn" onclick="openCampaignDirect('polls')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2zm4 0h-2V7h2zm4 0h-2v-4h2z"/></svg><span>Enquetes</span></button>
+    </div>
+    <button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">Usar itens cadastrados</button><div class="campaign-empty">Os agendamentos individuais dos itens cadastrados continuam ativos.</div><div id="campaignDraftItems"></div>
     <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')">Agendar</button></div>
   </div>
   <div class="modal-footer"><button id="campaignDelete" class="btn-action btn-no" onclick="deleteCampaign(campaignEditIndex)" style="display:none">Excluir</button><button class="btn-action btn-no" onclick="closeModal('campaignEditorModal')">Cancelar</button><button id="campaignSave" class="btn-action btn-yes" onclick="saveCampaign()">Salvar</button></div>
@@ -6188,6 +6208,7 @@ function renderCampaignPicker(){
 }
 function campaignSectionName(section){return {images:'Imagem',videos:'Vídeo',audios:'Áudio',files:'Arquivo',messages:'Mensagem',polls:'Enquete'}[section]||'Item';}
 function campaignSameItem(record,section,item,key){if(record.section!==section)return false;if(item.path&&record.item&&record.item.path)return fmPathKey(item.path)===fmPathKey(record.item.path);return record.sourceKey===key;}
+function openCampaignDirect(section){campaignPickerSection=section;campaignCreateCurrent();}
 function campaignCreateCurrent(){const section=campaignPickerSection;if(section==='messages'||section==='polls')openCampaignContent(section,-1);else{openFileManager(section);FM.campaignSection=section;}}
 function addCampaignFiles(section,paths){
     if(!campaignDraft)return;let added=0,ignored=0;
