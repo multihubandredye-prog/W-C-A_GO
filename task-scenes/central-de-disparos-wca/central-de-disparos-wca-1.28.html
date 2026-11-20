@@ -1901,23 +1901,32 @@
 @keyframes wca-title-glow { 0%,100% { text-shadow:0 0 .5rem rgba(181,251,42,.12); } 50% { text-shadow:0 0 1rem rgba(181,251,42,.42); } }
 .scene-title { color:#B5FB2A; text-shadow:0 0 .6rem rgba(181,251,42,.2); animation:wca-title-glow 4s ease-in-out infinite; }
 .devices-panel, .tabs-panel, .main-container, .terminal-panel {
-    border-color:transparent;
+    border:2px solid transparent;
     background:linear-gradient(#071a24,#071a24) padding-box,
-      conic-gradient(from var(--wca-border-angle,0deg),#0f507a,#0f9dcb,#b5fb2a,#0f507a,#0f507a) border-box;
-    box-shadow:0 .5rem 1.5rem rgba(0,0,0,.65),0 0 .8rem rgba(15,157,203,.08);
-    animation:wca-border-spin 6s linear infinite;
+      conic-gradient(from var(--wca-border-angle,0deg),transparent 0deg,#0f9dcb 50deg,#b5fb2a 110deg,transparent 170deg,transparent 360deg) border-box,
+      linear-gradient(#0f507a,#0f507a) border-box;
+    box-shadow:0 .5rem 1.5rem rgba(0,0,0,.65),0 0 1rem rgba(15,157,203,.16);
+    animation:wca-border-spin 5s linear infinite;
 }
 /* O movimento entre abas continua sendo a animação principal quando ocorre. */
-.tab-content.slide-from-right { animation:slideInRight .25s cubic-bezier(.25,1,.5,1) forwards,wca-border-spin 6s linear infinite; }
-.tab-content.slide-from-left { animation:slideInLeft .25s cubic-bezier(.25,1,.5,1) forwards,wca-border-spin 6s linear infinite; }
+.tab-content.slide-from-right { animation:slideInRight .25s cubic-bezier(.25,1,.5,1) forwards,wca-border-spin 5s linear infinite; }
+.tab-content.slide-from-left { animation:slideInLeft .25s cubic-bezier(.25,1,.5,1) forwards,wca-border-spin 5s linear infinite; }
 .devices-header,.terminal-header,.section-header,.modal-header { animation:wca-header-glow 4s ease-in-out infinite; }
 .tab-btn.active { background:linear-gradient(145deg,#0f9dcb,#08769b); color:#fff; box-shadow:inset 0 -.15rem 0 rgba(181,251,42,.8); }
 .upload-btn,.icon-action-btn,.ms-btn,.btn-refresh { transition:background .2s ease,border-color .2s ease,box-shadow .2s ease,transform .15s ease; }
 .upload-btn:active,.icon-action-btn:active,.ms-btn:active,.btn-refresh:active { box-shadow:0 0 .7rem rgba(15,157,203,.35); }
 .modal { border-color:#1b718a; box-shadow:0 1.5rem 3rem rgba(0,0,0,.7),0 0 1rem rgba(15,157,203,.12); }
+/* O modal mantém sua animação de entrada; a borda gira sem interferir nos controles. */
+.modal-overlay:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal {
+    border:2px solid transparent;
+    background:linear-gradient(#06222a,#06222a) padding-box,
+      conic-gradient(from var(--wca-border-angle,0deg),transparent 0deg,#0f9dcb 50deg,#b5fb2a 110deg,transparent 170deg,transparent 360deg) border-box,
+      linear-gradient(#0f507a,#0f507a) border-box;
+}
+.modal-overlay.show:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal { animation:modalFocus .4s ease both,wca-border-spin 5s linear infinite; }
 @media (prefers-reduced-motion:reduce) {
     .scene-title,.devices-panel,.tabs-panel,.main-container,.terminal-panel,.devices-header,.terminal-header,.section-header,.modal-header,.tab-content.slide-from-right,.tab-content.slide-from-left { animation:none !important; }
-    .modal-overlay.show,.modal-overlay.show .modal { animation:none !important; }
+    .modal-overlay.show,.modal-overlay.show .modal,.modal-overlay.show:not(.editor-fullscreen):not(#quickSearchModal):not(#fileManagerModal) > .modal { animation:none !important; }
 }
 
 </style>
