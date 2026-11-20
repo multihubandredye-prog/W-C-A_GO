@@ -1967,6 +1967,9 @@
 .send-progress-operation.failed .send-progress-result { color:#ffaaaa; }
 
 #imagesGrid .item-card[hidden], #videosGrid .item-card[hidden], #imagesGrid .media-empty[hidden], #videosGrid .media-empty[hidden] { display:none !important; }
+
+.tabs-grid{grid-template-columns:repeat(8,1fr)}@media(max-width:500px){.tabs-grid{grid-template-columns:repeat(4,1fr)}}
+.campaign-list{display:flex;flex-direction:column;gap:.65rem;margin-top:1rem}.campaign-card{width:100%;text-align:left;padding:.85rem;border:1px solid var(--border);border-radius:.7rem;background:var(--bg-card-2);color:var(--text-main)}.campaign-card strong{display:block;color:var(--accent);font-size:.9rem;overflow-wrap:anywhere}.campaign-card small{display:block;color:var(--text-dim);margin-top:.3rem;line-height:1.4}.campaign-row{display:flex;gap:.5rem;align-items:center;justify-content:space-between;padding:.55rem;border:1px solid var(--border);border-radius:.5rem;margin:.4rem 0;min-width:0}.campaign-row span{min-width:0;overflow-wrap:anywhere}.campaign-row button{flex:none;padding:.4rem .6rem;border:1px solid var(--border);border-radius:.4rem;background:#123c4d;color:var(--text-main)}.campaign-row button.active{background:#2d5b22;color:#e8ffcc;border-color:#98d52c}.campaign-label{font-weight:700;color:var(--text-main);font-size:.8rem;margin:.8rem 0 .35rem}.campaign-empty{color:var(--text-dim);font-size:.75rem;padding:.6rem 0}.campaign-picker-tabs{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.7rem}.campaign-picker-tabs button{padding:.45rem;border:1px solid var(--border);border-radius:.4rem;background:#123c4d;color:var(--text-main)}.campaign-picker-tabs button.active{background:var(--primary);color:white}
 </style>
 </head>
 <body>
@@ -2026,6 +2029,7 @@
                 <svg viewBox="0 0 24 24"><path d="M12 3v11.2a3 3 0 1 0 2 2.8V7h5V3h-7z"/></svg>
                 <span>Áudios</span> <span class="tab-count-badge" id="count-audios">0</span>
             </button>
+            <button class="tab-btn" data-tab="campaigns" onclick="switchTab('campaigns')"><svg viewBox="0 0 24 24"><path d="M3 3h18v14H8l-5 4V3zm2 2v11.17L7.17 15H19V5H5zm2 2h10v2H7zm0 4h7v2H7z"/></svg><span>Campanhas</span><span class="tab-count-badge" id="count-campaigns">0</span></button>
         </div>
     </div>
 
@@ -2353,6 +2357,13 @@
     </div>
 
     
+    <div class="main-container tab-content" id="tab-campaigns">
+      <div class="section-header"><h2>CAMPANHAS</h2></div>
+      <p class="campaign-empty">Para o envio automático, instale o executor de campanhas atualizado no Tasker.</p>
+      <button class="upload-btn" type="button" onclick="openCampaignEditor(-1)">+ Nova campanha</button>
+      <div class="campaign-list" id="campaignList"></div>
+    </div>
+
     <div class="terminal-panel minimized">
         <div class="terminal-header">
             <h3>Terminal</h3>
@@ -2976,6 +2987,20 @@
 
 <footer class="main-footer">Desenvolvedor: <span class="dev-name">Andredye Oliveira Melo</span></footer>
 
+<div class="modal-overlay editor-fullscreen" id="campaignEditorModal"><div class="modal">
+  <div class="modal-header"><h3 id="campaignEditorTitle">Campanha</h3><button class="modal-close" onclick="closeModal('campaignEditorModal')">×</button></div>
+  <div class="modal-body">
+    <div id="campaignFeedback" role="status" class="campaign-empty"></div>
+    <div class="form-group"><label>Título:</label><input id="campaignTitle" type="text" placeholder="Ex.: Futebol" maxlength="120"></div>
+    <div class="campaign-label">Dispositivo de envio</div><div class="device-picker" id="campaignDevicePicker"></div>
+    <div class="recipients-section"><div class="recipients-header"><span class="recipients-header-title">Destinatários</span><button class="btn-add-recipient" onclick="addRecipientBox('campaignRecipients')">+ Adicionar</button></div><div class="recipients-list" id="campaignRecipients"></div></div>
+    <div class="campaign-label">Itens da campanha</div><div class="campaign-empty">Os agendamentos dos itens originais continuam ativos nas outras abas.</div><button class="btn-add-recipient" type="button" onclick="openCampaignItemPicker()">+ Escolher itens</button><div id="campaignDraftItems"></div>
+    <div class="campaign-label">Agendamento semanal</div><div class="schedule-display"><span id="campaignSchedulePreview" class="schedule-display-text"></span><button class="schedule-edit-btn" type="button" onclick="openScheduleModalForAdd('campaigns','campaignSchedulePreview','_pendingCampaignSchedule')">Agendar</button></div>
+  </div>
+  <div class="modal-footer"><button id="campaignDelete" class="btn-action btn-no" onclick="deleteCampaign(campaignEditIndex)" style="display:none">Excluir</button><button class="btn-action btn-no" onclick="closeModal('campaignEditorModal')">Cancelar</button><button id="campaignSave" class="btn-action btn-yes" onclick="saveCampaign()">Salvar</button></div>
+</div></div>
+<div class="modal-overlay editor-fullscreen" id="campaignItemsModal"><div class="modal"><div class="modal-header"><h3>Escolher itens</h3><button class="modal-close" onclick="closeModal('campaignItemsModal')">×</button></div><div class="modal-body"><div class="campaign-picker-tabs" id="campaignPickerTabs"></div><div id="campaignPickerList"></div></div><div class="modal-footer"><button class="btn-action btn-yes" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">Concluir</button></div></div></div>
+
 <div class="modal-overlay" id="fileManagerModal"><div class="modal"><div class="modal-header"><h3>Selecionar arquivos</h3><button type="button" class="modal-close" onclick="closeModal('fileManagerModal')" aria-label="Fechar">×</button></div><div class="fm-nav"><div class="fm-path" id="fmPath"></div><button type="button" id="fmRefresh" aria-label="Atualizar pasta" title="Atualizar pasta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4z"/></svg></button><button type="button" id="fmLayout" aria-label="Mudar para lista" title="Mudar para lista"></button></div><div class="fm-tools"><button type="button" data-fm-filter="all">Todos</button><button type="button" data-fm-filter="image">Imagens</button><button type="button" data-fm-filter="video">Vídeos</button><button type="button" data-fm-filter="audio">Áudios</button><button type="button" data-fm-filter="pdf">PDFs</button></div><div id="fmIndexStatus" role="status" aria-live="polite"><span id="fmIndexText"></span></div><div class="fm-items" id="fmItems" aria-live="polite"></div><div class="fm-footer"><button type="button" id="fmClear">Limpar</button><span id="fmCount">0 selecionados</span><button type="button" id="fmConfirm" class="fm-confirm" disabled>Adicionar</button></div></div></div>
 <script>
 
@@ -3185,6 +3210,7 @@ const FILE_PATHS = {
     videos:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-videos.json',
     files:    '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-files.json',
     audios:   '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-audios.json',
+    campaigns: '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/json-campaigns.json',
     history:  '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/system/central-disparos-wca/history.json'
 };
 
@@ -3203,6 +3229,7 @@ const STATE = {
     fileItems: [],
     audioItems: [],
     history: [],
+    campaigns: [],
     contacts: { contacts: [], groups: [], recent: [] },
     currentPickerMode: null,
     currentPickerRecipients: [],
@@ -3239,6 +3266,9 @@ function textoDaLeitura(response) {
 function validarDadosArquivo(path, text) {
     if (typeof text !== 'string' || !text.trim()) throw new Error('Arquivo vazio ou resposta de leitura inválida');
     const data = JSON.parse(text);
+    if(path===FILE_PATHS.campaigns){
+        if(!data || !Array.isArray(data.items) || !Array.isArray(data.campaigns) || data.campaigns.some(function(c){return !c || typeof c.id!=='string' || !Array.isArray(c.items) || !Array.isArray(c.recipients) || !Array.isArray(c.device_ids) || !c.schedule || !Array.isArray(c.schedule.days) || !Array.isArray(c.schedule.times) || c.items.some(function(r){return !r || typeof r.id!=='string' || !r.item || typeof r.item!=='object';});})) throw new Error('Formato de campanhas inválido');
+    }
     if (path === FILE_PATHS.history ? !Array.isArray(data) : !(Array.isArray(data) || (data && Array.isArray(data.items)))) throw new Error('Formato inválido');
     return data;
 }
@@ -3773,6 +3803,8 @@ function switchTab(tab) {
     } else if (tab === 'videos') {
         renderVideos();
         updateSendButtonsVisibility('videos');
+    } else if (tab === 'campaigns') {
+        renderCampaigns();
     } else if (tab === 'messages') {
         renderMessages();
         updateSendButtonsVisibility('messages');
@@ -6100,6 +6132,68 @@ function selectQuickSearchResult(phone, name, originalPhone = '') {
     closeModal('quickSearchModal');
 }
 
+/* Campanhas guardam cópias independentes dos itens e geram tarefas para o executor. */
+let campaignDraft=null,campaignEditIndex=-1,campaignPickerSection='images',campaignSaving=false;
+function campaignFail(message){document.getElementById('campaignFeedback').textContent=message;log('error',message);}
+function campaignId(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,12);}
+function campaignCopy(value){return JSON.parse(JSON.stringify(value));}
+function campaignSource(section){return section==='images'?STATE.imageItems.filter(x=>x.type!=='video'):section==='videos'?STATE.videoItems.filter(x=>x.type==='video'):section==='messages'?STATE.messageItems:section==='polls'?STATE.pollItems:section==='files'?STATE.fileItems:STATE.audioItems;}
+function campaignItemLabel(item){return item.path?displayFileName(item.path):String(item.question||item.message||item.caption||'Item');}
+function renderCampaigns(){
+    const list=document.getElementById('campaignList');if(!list)return;list.replaceChildren();
+    const count=document.getElementById('count-campaigns');if(count)count.textContent=String(STATE.campaigns.length);
+    if(FILE_LOCKED.has(FILE_PATHS.campaigns)){const info=document.createElement('div');info.className='empty-state';info.textContent='Campanhas não carregadas; gravação protegida. Confira o terminal.';list.appendChild(info);return;}
+    if(!STATE.campaigns.length){const info=document.createElement('div');info.className='empty-state';info.textContent='Nenhuma campanha criada.';list.appendChild(info);return;}
+    STATE.campaigns.forEach(function(c,i){const card=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('small');card.type='button';card.className='campaign-card';title.textContent=c.title||'Campanha';meta.textContent=(c.items||[]).length+' item(ns) · '+(c.recipients||[]).length+' destinatário(s) · '+((c.schedule&&c.schedule.days||[]).join(', ')||'Sem dia')+' · '+((c.schedule&&c.schedule.times||[]).join(', ')||'Sem horário');card.append(title,meta);card.addEventListener('click',function(){openCampaignEditor(i);});list.appendChild(card);});
+}
+function openCampaignEditor(index){
+    if(FILE_LOCKED.has(FILE_PATHS.campaigns)){log('error','Arquivo de campanhas protegido.');return;}
+    document.getElementById('campaignFeedback').textContent='';campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
+    document.getElementById('campaignDelete').style.display=existing?'':'none';document.getElementById('campaignEditorTitle').textContent=existing?'Editar campanha':'Nova campanha';document.getElementById('campaignTitle').value=campaignDraft.title||'';
+    const selected=(campaignDraft.device_ids||[]).map(function(d){const byPhone=STATE.devices.find(x=>d.device_phone&&(x.phone||'').replace(/@s\.whatsapp\.net$/,'')===d.device_phone);return byPhone?{device_id:byPhone.id,device_phone:d.device_phone}:d;});
+    populateDevicePicker('campaign',selected.length?selected:Array.from(STATE.selectedDeviceIds));populateRecipientsContainer('campaignRecipients',campaignDraft.recipients||[]);
+    STATE._pendingCampaignSchedule=campaignCopy(campaignDraft.schedule||{days:[],times:[]});updateAddSchedulePreview('campaignSchedulePreview','_pendingCampaignSchedule');renderCampaignDraftItems();openModal('campaignEditorModal');
+}
+function renderCampaignDraftItems(){
+    const list=document.getElementById('campaignDraftItems');list.replaceChildren();if(!campaignDraft)return;
+    if(!campaignDraft.items.length){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Escolha itens já adicionados nas outras abas.';list.appendChild(empty);return;}
+    campaignDraft.items.forEach(function(record,index){const row=document.createElement('div'),name=document.createElement('span'),remove=document.createElement('button');row.className='campaign-row';name.textContent=campaignItemLabel(record.item);remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignDraft.items.splice(index,1);renderCampaignDraftItems();});row.append(name,remove);list.appendChild(row);});
+}
+function openCampaignItemPicker(){campaignPickerSection='images';renderCampaignPicker();openModal('campaignItemsModal');}
+function renderCampaignPicker(){
+    const tabs=document.getElementById('campaignPickerTabs'),list=document.getElementById('campaignPickerList');tabs.replaceChildren();list.replaceChildren();
+    const labels={images:'Imagens',videos:'Vídeos',messages:'Mensagens',polls:'Enquetes',files:'Arquivos',audios:'Áudios'};
+    Object.keys(labels).forEach(function(sec){const b=document.createElement('button');b.type='button';b.textContent=labels[sec];b.classList.toggle('active',sec===campaignPickerSection);b.addEventListener('click',function(){campaignPickerSection=sec;renderCampaignPicker();});tabs.appendChild(b);});
+    const items=campaignSource(campaignPickerSection);
+    if(!items.length){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Nenhum item nesta aba. Adicione itens na tela principal primeiro.';list.appendChild(empty);return;}
+    items.forEach(function(item,index){const row=document.createElement('div'),name=document.createElement('span'),button=document.createElement('button');row.className='campaign-row';name.textContent=campaignItemLabel(item);button.type='button';const key=campaignPickerSection+'|'+(item.path||item.question||item.message||'')+'|'+index;const found=campaignDraft.items.findIndex(x=>x.sourceKey===key);button.textContent=found>=0?'Selecionado':'Adicionar';button.classList.toggle('active',found>=0);button.addEventListener('click',function(){const i=campaignDraft.items.findIndex(x=>x.sourceKey===key);if(i>=0)campaignDraft.items.splice(i,1);else{const copy=campaignCopy(item);delete copy.selected;campaignDraft.items.push({id:campaignId(),sourceKey:key,section:campaignPickerSection,item:copy});}renderCampaignPicker();});row.append(name,button);list.appendChild(row);});
+}
+function campaignRoot(campaigns){
+    const items=[],devices=[],deviceKeys=new Set();campaigns.forEach(function(c){(c.device_ids||[]).forEach(function(d){if(d.device_id&&!deviceKeys.has(d.device_id)){deviceKeys.add(d.device_id);devices.push(d);}});(c.items||[]).forEach(function(r){const item=campaignCopy(r.item);delete item.selected;item.recipients=campaignCopy(c.recipients||[]);item.device_ids=campaignCopy(c.device_ids||[]);item.schedule=campaignCopy(c.schedule||{days:[],times:[]});item.campaign_job_id=c.id+'|'+r.id;items.push(item);});});return {devices:devices,items:items,campaigns:campaigns};
+}
+async function saveCampaign(){
+    if(!campaignDraft||campaignSaving)return;const path=FILE_PATHS.campaigns;if(FILE_LOCKED.has(path)){log('error','Arquivo de campanhas protegido.');return;}
+    const title=document.getElementById('campaignTitle').value.trim(),inputs=Array.from(document.querySelectorAll('#campaignRecipients .recipient-phone'));
+    if(!title){campaignFail('Informe o título da campanha.');return;}
+    if(inputs.some(i=>i.value.trim()&&!/^[+0-9(). -]+$/.test(i.value.trim()))){campaignFail('Confira os números dos destinatários.');return;}
+    const recipients=[],seen=new Set();for(const r of collectRecipientsFromContainer('campaignRecipients')){const number=r.phone.replace(/[+() .]/g,'');if(!((r.suffix==='@g.us'&&/^[0-9]+-[0-9]+$/.test(number))||/^[0-9]{10,}$/.test(number))){campaignFail('Informe um número ou grupo válido para cada destinatário.');return;}const rec={phone:number,suffix:r.suffix},key=bulkKey(rec);if(!seen.has(key)){seen.add(key);recipients.push(rec);}}
+    const devices=getSelectedDeviceIds('campaign'),schedule=STATE._pendingCampaignSchedule||{days:[],times:[]};
+    if(!recipients.length||!devices.length||!campaignDraft.items.length||!schedule.days.length||!schedule.times.length){campaignFail('Informe destinatários, dispositivo, itens, dias e horários para salvar a campanha.');return;}
+    const result=campaignCopy(campaignDraft);result.title=title;result.recipients=recipients;result.device_ids=devices;result.schedule=campaignCopy(schedule);
+    const next=STATE.campaigns.slice();if(campaignEditIndex>=0)next[campaignEditIndex]=result;else next.push(result);
+    const button=document.getElementById('campaignSave');campaignSaving=true;button.disabled=true;
+    try{
+        const scheduledOriginals=campaignDraft.items.some(function(r){const x=r.item.schedule;return x&&((x.days||[]).length||(x.times||[]).length);});
+        if(scheduledOriginals&&!await askConfirm('Alguns itens escolhidos já possuem agendamento individual. Ele continuará ativo e pode causar envios adicionais. Salvar a campanha mesmo assim?'))return;
+        if(FILE_LOCKED.has(path)){campaignFail('Arquivo de campanhas protegido.');return;}
+        writeFileSafe(path,campaignRoot(next));await FILE_WRITES[path];if(FILE_LOCKED.has(path)){campaignFail('Não foi possível confirmar a gravação da campanha.');return;}STATE.campaigns=next;campaignDraft=null;campaignSaving=false;closeModal('campaignEditorModal');renderCampaigns();log('success','Campanha salva. O envio automático exige o executor de campanhas atualizado no Tasker.');}
+    catch(e){campaignFail('Não foi possível salvar a campanha: '+e.message);}finally{campaignSaving=false;button.disabled=false;}
+}
+async function deleteCampaign(index){
+    if(campaignSaving||FILE_LOCKED.has(FILE_PATHS.campaigns)||!STATE.campaigns[index])return;if(!await askConfirm('Excluir esta campanha e seu agendamento?'))return;
+    const next=STATE.campaigns.slice();next.splice(index,1);campaignSaving=true;try{writeFileSafe(FILE_PATHS.campaigns,campaignRoot(next));await FILE_WRITES[FILE_PATHS.campaigns];if(FILE_LOCKED.has(FILE_PATHS.campaigns)){log('error','Não foi possível confirmar a exclusão da campanha.');return;}STATE.campaigns=next;campaignSaving=false;closeModal('campaignEditorModal');renderCampaigns();log('success','Campanha excluída.');}catch(e){log('error','Falha ao excluir campanha: '+e.message);}finally{campaignSaving=false;}
+}
+
 /* ====== MODAL DE AGENDAMENTO ====== */
 let scheduleItemIndex = -1;
 let scheduleItemType = '';
@@ -6241,7 +6335,8 @@ function saveSchedule() {
         messages: '_pendingMessageSchedule',
         polls: '_pendingPollSchedule',
         images: '_pendingImageSchedule',
-        files: '_pendingFileSchedule'
+        files: '_pendingFileSchedule',
+        campaigns: '_pendingCampaignSchedule'
     };
     
     const previewMap = {
@@ -6249,7 +6344,8 @@ function saveSchedule() {
         messages: 'addMsgSchedulePreview',
         polls: 'addPollSchedulePreview',
         images: 'addImageSchedulePreview',
-        files: 'addFileSchedulePreview'
+        files: 'addFileSchedulePreview',
+        campaigns: 'campaignSchedulePreview'
     };
     
     if (scheduleItemIndex === -1 && stateMap[scheduleItemType]) {
@@ -6552,6 +6648,7 @@ function openModal(id) {
 
 function closeModal(id) {
     if(id==='sendProgressModal'&&sendProgressActive)return;
+    if(id==='campaignEditorModal'&&campaignSaving)return;
     if(id==='scheduleModal'&&bulkScheduleBusy)return;
     if(id==='fileManagerModal'){++FM.seq;++FM.renderSeq;++FM.indexSeq;FM.pendingPath=null;FM.indexPromise=null;}
     const el = document.getElementById(id);
@@ -6661,6 +6758,7 @@ async function init() {
     STATE.audioItems = loadItemsFromFile(FILE_PATHS.audios).map((it, i) => ({...it,id:'audio-'+i,selected:false}));
 
     // Histórico: lido do arquivo
+    const campaignData=readFileSafe(FILE_PATHS.campaigns);STATE.campaigns=campaignData&&Array.isArray(campaignData.campaigns)?campaignData.campaigns:[];
     STATE.history = readFileSafe(FILE_PATHS.history) || [];
 
     renderStatus();
@@ -6670,6 +6768,7 @@ async function init() {
     renderPolls();
     renderFiles();
     renderAudios();
+    renderCampaigns();
     
     updateSendButtonsVisibility('status');
     updateSendButtonsVisibility('images');
@@ -6823,7 +6922,7 @@ function clearAllSchedule() {
 
 /* Swipe Gestures para alternar abas */
 (function setupSwipeTabs() {
-    const TAB_ORDER = ['status', 'images', 'videos', 'messages', 'polls', 'files', 'audios'];
+    const TAB_ORDER = ['status', 'images', 'videos', 'messages', 'polls', 'files', 'audios', 'campaigns'];
     let touchStartX = 0;
     let touchStartY = 0;
     let touchStartTime = 0;
@@ -6891,6 +6990,7 @@ function filterItemList(inputEl, section) {
 }
 
 function updateTabCounters() {
+    const campaignCounter=document.getElementById('count-campaigns');if(campaignCounter)campaignCounter.textContent=String(STATE.campaigns.length);
     const statusCount = STATE.statusItems ? STATE.statusItems.length : 0;
     const imagesCount = STATE.imageItems ? STATE.imageItems.filter(i => i.type !== 'video').length : 0;
     const videosCount = STATE.videoItems ? STATE.videoItems.length : 0;
