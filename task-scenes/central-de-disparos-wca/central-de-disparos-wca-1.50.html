@@ -2021,6 +2021,12 @@
 /* Gestos horizontais na tela principal; a rolagem vertical permanece nativa. */
 .content-wrapper { touch-action:pan-y; }
 #campaignExistingItems[hidden] { display:none !important; }
+
+#campaignEditorModal .modal-body {touch-action:pan-y;}
+#campaignDraftItems .campaign-draft-row[hidden],#campaignAllItems .campaign-draft-row[hidden],.campaign-items-empty[hidden]{display:none!important;}
+.video-seek {display:flex;align-items:center;gap:.5rem;color:var(--text-main);font-size:.72rem;padding:.55rem .2rem;}
+.video-seek input {flex:1;min-width:0;accent-color:var(--accent);touch-action:pan-x;}
+.video-seek span {white-space:nowrap;min-width:4.8rem;text-align:right;}
 </style>
 </head>
 <body>
@@ -3062,7 +3068,7 @@
 <div class="modal-overlay editor-fullscreen" id="campaignAllModal"><div class="modal"><div class="modal-header"><h3>Todos os itens</h3><button class="modal-close" onclick="closeModal('campaignAllModal')" aria-label="Fechar">×</button></div><div class="modal-body"><div id="campaignAllControls" class="campaign-select-controls" hidden><span id="campaignAllCount"></span><button type="button" class="btn-add-recipient" onclick="toggleCampaignSelection(true)">Marcar/desmarcar todos</button><button type="button" class="btn-add-recipient" onclick="deleteCampaignSelection()">Eliminar selecionados</button><button type="button" class="btn-add-recipient" onclick="clearCampaignSelection()">Desmarcar</button></div><div id="campaignAllItems" class="campaign-all-list"></div></div></div></div>
 <div class="modal-overlay editor-fullscreen" id="campaignItemsModal"><div class="modal"><div class="modal-header"><h3>Escolher itens</h3><button class="modal-close" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">×</button></div><div class="modal-body"><div class="campaign-picker-tabs" id="campaignPickerTabs"></div><button type="button" class="campaign-create-btn" id="campaignCreateItem" onclick="campaignCreateCurrent()"></button><div class="campaign-label">Itens já cadastrados</div><div id="campaignPickerList"></div></div><div class="modal-footer"><button class="btn-action btn-yes" onclick="closeModal('campaignItemsModal');renderCampaignDraftItems()">Concluir</button></div></div></div>
 <div class="modal-overlay editor-fullscreen" id="campaignContentModal"><div class="modal"><div class="modal-header"><h3 id="campaignContentHeading">Conteúdo</h3><button class="modal-close" onclick="closeModal('campaignContentModal')">×</button></div><div class="modal-body">
-  <div id="campaignContentError" class="campaign-empty" role="status"></div><div id="campaignContentPath"></div>
+  <div id="campaignContentError" class="campaign-empty" role="status"></div><div id="campaignContentPreview" class="media-preview-slot"></div><div id="campaignContentPath"></div>
   <div id="campaignMessageField" class="form-group"><label>Mensagem:</label><textarea id="campaignMessage" rows="7" placeholder="Digite a mensagem"></textarea></div>
   <div id="campaignPollFields"><div class="form-group"><label>Pergunta:</label><input type="text" id="campaignQuestion"></div><div class="form-group"><label>Opções (uma por linha):</label><textarea id="campaignOptions" rows="6" placeholder="Primeira opção&#10;Segunda opção"></textarea></div><div class="form-group"><label>Respostas máximas:</label><input type="number" id="campaignMaxAnswer" min="1" max="12" value="1"></div></div>
   <div id="campaignCaptionField" class="form-group"><label>Legenda (opcional):</label><textarea id="campaignCaption" rows="3"></textarea></div>
@@ -5508,6 +5514,21 @@ async function saveEditStatus() {
     renderStatus();
 }
 
+function addVideoSeekBar(video,container){
+    const bar=document.createElement('div'),slider=document.createElement('input'),time=document.createElement('span');bar.className='video-seek';slider.type='range';slider.min='0';slider.max='1000';slider.step='1';slider.value='0';slider.disabled=true;slider.setAttribute('aria-label','Posição do vídeo');time.textContent='0:00 / 0:00';
+    function format(seconds){const n=Math.max(0,Math.floor(seconds||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
+    function update(){const duration=video.duration;const valid=Number.isFinite(duration)&&duration>0;slider.disabled=!valid;if(valid&&!slider.matches(':active'))slider.value=String(Math.round(Math.min(1,video.currentTime/duration)*1000));time.textContent=format(video.currentTime)+' / '+format(valid?duration:0);}
+    slider.addEventListener('input',function(){if(Number.isFinite(video.duration)&&video.duration>0){try{video.currentTime=video.duration*Number(slider.value)/1000;}catch(e){}update();}});
+    ['loadedmetadata','durationchange','timeupdate','seeked','emptied'].forEach(e=>video.addEventListener(e,update));bar.append(slider,time);container.appendChild(bar);update();
+}
+function showCampaignContentPreview(section,item){
+    const container=document.getElementById('campaignContentPreview');container.replaceChildren();
+    if(section!=='images'&&section!=='videos')return;
+    const src=item.path?mediaUrl(item.path):item.base64;if(!src)return;
+    const frame=document.createElement('div'),media=document.createElement(section==='images'?'img':'video');frame.className='modal-preview-container';
+    if(section==='images'){media.alt='Imagem da campanha';}else{media.controls=true;media.playsInline=true;media.preload='metadata';media.setAttribute('aria-label','Vídeo da campanha');}
+    media.src=src;media.addEventListener('error',function(){log('error','Não foi possível carregar a prévia da campanha.');});frame.appendChild(media);container.appendChild(frame);if(section==='videos')addVideoSeekBar(media,container);
+}
 function openEditImage(idx) {
     const item = (STATE.editingSection==='videos'?STATE.videoItems:STATE.imageItems)[idx];
     if (!item) return;
@@ -5521,6 +5542,7 @@ function openEditImage(idx) {
         preview.innerHTML = '';
     }
 
+    if(item.type==='video'){const player=preview.querySelector('video');if(player)addVideoSeekBar(player,preview);}
     const capEl = document.getElementById('editImageCaption');
     capEl.value = item.caption || '';
     handleAutoExpand(capEl);
@@ -6219,6 +6241,7 @@ function selectQuickSearchResult(phone, name, originalPhone = '') {
 /* Campanhas guardam cópias independentes dos itens e geram tarefas para o executor. */
 let campaignDraft=null,campaignEditIndex=-1,campaignPickerSection='images',campaignDraftTab='images',campaignSaving=false;
 const campaignSelection=new Set();
+const CAMPAIGN_ROW_CACHE={draft:new Map(),all:new Map()};
 let campaignSuppressClickUntil=0;
 document.addEventListener('click',function(e){if(e.isTrusted && Date.now()<campaignSuppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},true);
 function campaignFail(message){document.getElementById('campaignFeedback').textContent=message;log('error',message);}
@@ -6236,28 +6259,36 @@ function renderCampaigns(){
 }
 function openCampaignEditor(index){
     if(FILE_LOCKED.has(FILE_PATHS.campaigns)){log('error','Arquivo de campanhas protegido.');return;}
-    document.getElementById('campaignFeedback').textContent='';campaignDraftTab='images';campaignSelection.clear();campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
+    document.getElementById('campaignFeedback').textContent='';campaignDraftTab='images';campaignSelection.clear();CAMPAIGN_ROW_CACHE.draft.clear();CAMPAIGN_ROW_CACHE.all.clear();document.getElementById('campaignDraftItems').replaceChildren();document.getElementById('campaignAllItems').replaceChildren();campaignEditIndex=index;const existing=STATE.campaigns[index];campaignDraft=existing?campaignCopy(existing):{id:campaignId(),title:'',recipients:[],device_ids:[],items:[],schedule:{days:[],times:[]}};
     document.getElementById('campaignDelete').style.display=existing?'':'none';document.getElementById('campaignEditorTitle').textContent=existing?'Editar campanha':'Nova campanha';document.getElementById('campaignTitle').value=campaignDraft.title||'';
     const selected=(campaignDraft.device_ids||[]).map(function(d){const byPhone=STATE.devices.find(x=>d.device_phone&&(x.phone||'').replace(/@s\.whatsapp\.net$/,'')===d.device_phone);return byPhone?{device_id:byPhone.id,device_phone:d.device_phone}:d;});
     populateDevicePicker('campaign',selected.length?selected:Array.from(STATE.selectedDeviceIds));populateRecipientsContainer('campaignRecipients',campaignDraft.recipients||[]);
     STATE._pendingCampaignSchedule=campaignCopy(campaignDraft.schedule||{days:[],times:[]});updateAddSchedulePreview('campaignSchedulePreview','_pendingCampaignSchedule');renderCampaignDraftItems();openModal('campaignEditorModal');
 }
 function setCampaignTab(section){campaignDraftTab=section;renderCampaignDraftItems();}
+(function(){const order=['images','videos','files','audios','messages','polls'],modal=document.getElementById('campaignEditorModal');let start=null,block=0;
+ document.addEventListener('click',function(e){if(e.isTrusted&&Date.now()<block){e.preventDefault();e.stopImmediatePropagation();}},true);
+ modal.addEventListener('touchstart',function(e){const top=Array.from(document.querySelectorAll('.modal-overlay.show')).sort((a,b)=>Number(b.style.zIndex)-Number(a.style.zIndex))[0];if(top!==modal||e.touches.length!==1||e.target.closest('input,textarea,select,video,audio')){start=null;return;}const t=e.touches[0];start={id:t.identifier,x:t.clientX,y:t.clientY,time:Date.now()};},{passive:true});
+ modal.addEventListener('touchmove',function(e){if(start&&e.touches.length!==1)start=null;},{passive:true});
+ modal.addEventListener('touchend',function(e){const st=start;start=null;if(!st)return;const top=Array.from(document.querySelectorAll('.modal-overlay.show')).sort((a,b)=>Number(b.style.zIndex)-Number(a.style.zIndex))[0];if(top!==modal)return;const t=Array.from(e.changedTouches).find(t=>t.identifier===st.id);if(!t)return;const dx=t.clientX-st.x,dy=t.clientY-st.y;if(Math.abs(dx)<60||Math.abs(dx)<=Math.abs(dy)*1.4||Date.now()-st.time>900)return;const idx=order.indexOf(campaignDraftTab),next=idx+(dx<0?1:-1);if(idx<0||next<0||next>=order.length)return;block=Date.now()+500;setCampaignTab(order[next]);},{passive:true});
+ modal.addEventListener('touchcancel',function(){start=null;},{passive:true});
+})();
 function renderCampaignDraftItems(){renderCampaignItems(false);if(document.getElementById('campaignAllModal').classList.contains('show'))renderCampaignItems(true);}
 function renderCampaignItems(all){
-    const list=document.getElementById(all?'campaignAllItems':'campaignDraftItems');list.replaceChildren();if(!campaignDraft)return;
+    const list=document.getElementById(all?'campaignAllItems':'campaignDraftItems'),cache=all?CAMPAIGN_ROW_CACHE.all:CAMPAIGN_ROW_CACHE.draft;if(!campaignDraft)return;
+    const ids=new Set(campaignDraft.items.map(r=>r.id));for(const [id,cached] of cache){if(!ids.has(id)){cached.node.remove();cache.delete(id);}}
     document.querySelectorAll('.campaign-quick-btn').forEach(function(b){const active=b.getAttribute('onclick')==="setCampaignTab('"+campaignDraftTab+"')";b.classList.toggle('active',active);b.setAttribute('aria-pressed',active?'true':'false');});
     document.querySelectorAll('.campaign-count').forEach(function(el){el.textContent=String(campaignDraft.items.filter(r=>r.section===el.dataset.countSection).length);});
     document.getElementById('campaignExistingItems').hidden=campaignDraftTab==='messages'||campaignDraftTab==='polls';
     document.getElementById('campaignTabAdd').textContent=({images:'+ Adicionar imagens',videos:'+ Adicionar vídeos',files:'+ Adicionar arquivos',audios:'+ Adicionar áudios',messages:'+ Criar mensagem',polls:'+ Criar enquete'})[campaignDraftTab];
     const controls=document.getElementById(all?'campaignAllControls':'campaignSelectionControls');controls.hidden=campaignSelection.size===0;document.getElementById(all?'campaignAllCount':'campaignSelectionCount').textContent=campaignSelection.size+' selecionado(s)';
-    if(!campaignDraft.items.some(function(r){return all||r.section===campaignDraftTab;})){const empty=document.createElement('div');empty.className='campaign-empty';empty.textContent='Nenhum item nesta aba da campanha.';list.appendChild(empty);return;}
+    let empty=list.querySelector(':scope > .campaign-items-empty');if(!empty){empty=document.createElement('div');empty.className='campaign-empty campaign-items-empty';empty.textContent='Nenhum item nesta aba da campanha.';list.appendChild(empty);}empty.hidden=campaignDraft.items.some(function(r){return all||r.section===campaignDraftTab;});
     campaignDraft.items.forEach(function(record,index){
-        if(!all&&record.section!==campaignDraftTab)return;
+        const cached=cache.get(record.id),key=JSON.stringify([record.section,record.item.path||'',record.item.base64||'']);
         const row=document.createElement('div'),icon=document.createElement('div'),info=document.createElement('div'),type=document.createElement('strong'),name=document.createElement('span'),actions=document.createElement('div'),edit=document.createElement('button'),remove=document.createElement('button');
         row.className='campaign-row campaign-draft-row';row.classList.toggle('selected',campaignSelection.has(record.id));row.tabIndex=0;row.setAttribute('aria-label',campaignSectionName(record.section)+' '+campaignItemLabel(record.item));row.setAttribute('aria-pressed',campaignSelection.has(record.id)?'true':'false');icon.className='campaign-type-icon';icon.setAttribute('aria-hidden','true');
         const source=document.querySelector('.campaign-quick-btn[onclick="setCampaignTab(\''+record.section+'\')"] svg');if(source)icon.appendChild(source.cloneNode(true));
-        if((record.section==='images'||record.section==='videos') && (record.item.path||record.item.base64)){
+        if((!cached||cached.key!==key)&&(record.section==='images'||record.section==='videos') && (record.item.path||record.item.base64)){
             const sourceUrl=record.item.path?mediaUrl(record.item.path):record.item.base64;
             const preview=document.createElement(record.section==='images'?'img':'video');
             if(record.section==='images'){preview.alt='';preview.loading='lazy';}else{preview.muted=true;preview.preload='metadata';preview.playsInline=true;preview.addEventListener('loadedmetadata',function(){try{if(preview.duration>0.1)preview.currentTime=0.1;}catch(e){}});}
@@ -6265,7 +6296,10 @@ function renderCampaignItems(all){
             if(record.section==='videos'){const mark=document.createElement('span');mark.className='campaign-play-mark';mark.textContent='▶';icon.appendChild(mark);}
         }
         info.className='campaign-item-info';type.textContent=campaignSectionName(record.section);name.textContent=campaignItemLabel(record.item);info.append(type,name);
-        actions.className='campaign-item-actions';edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignSelection.delete(record.id);campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(icon,info,actions);campaignAttachSelection(row,record.id);list.appendChild(row);
+        actions.className='campaign-item-actions';edit.type='button';edit.textContent='Editar';edit.addEventListener('click',function(){openCampaignContent(record.section,index);});remove.type='button';remove.textContent='Remover';remove.addEventListener('click',function(){campaignSelection.delete(record.id);campaignDraft.items.splice(index,1);renderCampaignDraftItems();});actions.append(edit,remove);row.append(icon,info,actions);
+        if(!cached){campaignAttachSelection(row,record.id);row.hidden=!all&&record.section!==campaignDraftTab;list.appendChild(row);cache.set(record.id,{node:row,key:key});}
+        else{const node=cached.node,oldIcon=node.querySelector('.campaign-type-icon');if(cached.key!==key){oldIcon.replaceWith(icon);cached.key=key;}node.querySelector('.campaign-item-info').replaceWith(info);node.querySelector('.campaign-item-actions').replaceWith(actions);node.classList.toggle('selected',campaignSelection.has(record.id));node.setAttribute('aria-pressed',campaignSelection.has(record.id)?'true':'false');node.setAttribute('aria-label',row.getAttribute('aria-label'));node.hidden=!all&&record.section!==campaignDraftTab;}
+
     });
 }
 function openCampaignAll(){renderCampaignItems(true);openModal('campaignAllModal');}
@@ -6318,7 +6352,7 @@ function openCampaignContent(section,index){
     if(!campaignDraft)return;const record=index>=0?campaignDraft.items[index]:null;if(index>=0&&!record)return;
     campaignContentIndex=index;campaignContentSection=section;const item=record?record.item:{};
     document.getElementById('campaignContentHeading').textContent=(record?'Editar ':'Criar ')+campaignSectionName(section);
-    document.getElementById('campaignContentError').textContent='';document.getElementById('campaignContentPath').textContent=item.path||'';
+    document.getElementById('campaignContentError').textContent='';document.getElementById('campaignContentPath').textContent=item.path||'';showCampaignContentPreview(section,item);
     const show=function(id,on){document.getElementById(id).style.display=on?'':'none';};
     show('campaignMessageField',section==='messages');show('campaignPollFields',section==='polls');show('campaignCaptionField',section==='images'||section==='videos'||section==='files');
     show('campaignForwardField',section!=='polls');show('campaignOnceField',section==='images'||section==='videos');show('campaignPttField',section==='audios');show('campaignDurationField',section==='images'||section==='videos'||section==='messages');
