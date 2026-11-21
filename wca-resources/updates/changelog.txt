@@ -1,12 +1,12 @@
 [16/09/2026]
-➪ Adicionada ao projeto a Central de Disparos WCA, com a tarefa correspondente para gerenciar envios e agendamentos.
-➪ A Central de Disparos permite criar campanhas com múltiplos itens, destinatários e dispositivos, envio imediato e agendamento semanal opcional.
+➪ Adicionado ao projeto o Multi Envios Disparos WCA, com a tarefa correspondente para gerenciar envios e agendamentos.
+➪ O Multi Envios Disparos permite criar campanhas com múltiplos itens, destinatários e dispositivos, envio imediato e agendamento semanal opcional.
 ➪ As campanhas receberam organização por tipo, miniaturas, edição de mídias, seleção em lote e navegação por gestos.
 ➪ O gerenciador de arquivos ganhou melhorias na navegação, seleção de pastas, carregamento de miniaturas e filtragem em segundo plano.
 ➪ Os envios receberam progresso mais claro, e os modais ganharam animações de abertura e fechamento.
 ➪ As cenas foram atualizadas para usar o novo nome da tarefa de configuração, e o Guia passou a apresentar os nomes atuais das tarefas.
 ➪ O atraso padrão do webhook na Central foi definido em 1000 milissegundos para novas configurações ou quando a opção não estiver definida.
-➪ Ajustada a Central de Disparos para permitir sua minificação no pacote de cenas.
+➪ Ajustado o Multi Envios Disparos para permitir sua minificação no pacote de cenas.
 ➪ A Central e a API passaram a permitir o controle separado dos webhooks de entrega, leitura pelo destinatário e leitura pela própria conta.
 
 [15/11/2026]

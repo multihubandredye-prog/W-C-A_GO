@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.27**
-Arquivo: `guia-help-wca-1.27.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.28**
+Arquivo: `guia-help-wca-1.28.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 

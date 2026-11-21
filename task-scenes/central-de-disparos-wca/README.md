@@ -1,6 +1,6 @@
-# Central de Disparos WCA — Cena V2
+# Multi Envios Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.60.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `central-de-disparos-wca-1.61.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A versão 1.60 organiza as ações das campanhas, adiciona ícones SVG incorporados e feedback de toque, corrige o espaçamento e o alinhamento dos destinatários nos editores, e mantém a atualização dos dispositivos em um botão de ícone com indicador de carregamento.
 
@@ -62,7 +62,7 @@ Para executar os agendamentos de áudio e vídeo, use a versão atualizada do c�
 
 ## Nome e compatibilidade
 
-O nome visível é Central de Disparos WCA. Os dados ficam em `system/central-disparos-wca/`. A cena não move automaticamente os dados da pasta anterior; confirme que o diretório, os arquivos e o cache foram transferidos antes de atualizar o perfil e a cena. A alteração do HTML não atualiza automaticamente o perfil do Tasker.
+O nome visível é Multi Envios Disparos WCA; o novo nome da tarefa no Tasker é `008-MULTI_ENVIOS_DISPAROS [wca]`. Os dados ficam em `system/central-disparos-wca/`. A cena não move automaticamente os dados da pasta anterior; confirme que o diretório, os arquivos e o cache foram transferidos antes de atualizar o perfil e a cena. A alteração do HTML não atualiza automaticamente o perfil do Tasker.
 
 ## Diretório de dados 1.19
 
@@ -114,7 +114,7 @@ Removidos os traços SVG e aplicada a mesma estrutura da Central WCA: camada ext
 
 ## Borda e movimento reduzido 1.32
 
-A regra exclusiva da Central de Disparos que desativava a rotação da borda com movimento reduzido foi removida, reproduzindo o comportamento da borda da Central WCA. As demais opções de movimento reduzido permanecem inalteradas.
+A regra exclusiva do Multi Envios Disparos que desativava a rotação da borda com movimento reduzido foi removida, reproduzindo o comportamento da borda da Central WCA. As demais opções de movimento reduzido permanecem inalteradas.
 
 ## Preparação dos filtros 1.33
 
