@@ -1,6 +1,6 @@
 # Multi Envios Disparos WCA — Cena V2
 
-Arquivo de trabalho: `central-de-disparos-wca-1.61.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `multi-envio-disparos-wca-1.61.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A versão 1.60 organiza as ações das campanhas, adiciona ícones SVG incorporados e feedback de toque, corrige o espaçamento e o alinhamento dos destinatários nos editores, e mantém a atualização dos dispositivos em um botão de ícone com indicador de carregamento.
 
@@ -61,6 +61,8 @@ O editor de imagem/vídeo e a busca rápida ocupam a área disponível, com rola
 Para executar os agendamentos de áudio e vídeo, use a versão atualizada do código do perfil do Tasker em conjunto com a cena; o código do perfil não está incluído no repositório. O Java lê `json-videos.json` e `json-audios.json`, enviando multipart aos endpoints `/send/video` e `/send/audio` com os campos correspondentes e PTT; o arquivo de status permanece o mesmo. Foi compilado e exercitado com servidor HTTP simulado, mas não foi executado no Tasker nem testado com a API real. Não habilite o perfil antigo e o novo simultaneamente: risco de envios repetidos. Antes de ativar, faça backup dos dados e teste com um destinatário controlado. A lógica herdada de cache por item pode reenviar a destinatários já atendidos após falha parcial ou resposta incerta; em caso de falha, confira o histórico antes da próxima execução.
 
 ## Nome e compatibilidade
+
+O pacote extrai esta cena para `/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/web-view/task-scenes/multi-envios-disparos-wca/multi-envio-disparos-wca.html`. Se a cena do Tasker ainda estiver configurada com o caminho antigo, atualize manualmente o conteúdo do elemento WebView; a extração não altera o XML ou o endereço configurado no Tasker. O download não remove automaticamente a pasta anterior.
 
 O nome visível é Multi Envios Disparos WCA; o novo nome da tarefa no Tasker é `008-MULTI_ENVIOS_DISPAROS [wca]`. Os dados ficam em `system/central-disparos-wca/`. A cena não move automaticamente os dados da pasta anterior; confirme que o diretório, os arquivos e o cache foram transferidos antes de atualizar o perfil e a cena. A alteração do HTML não atualiza automaticamente o perfil do Tasker.
 
