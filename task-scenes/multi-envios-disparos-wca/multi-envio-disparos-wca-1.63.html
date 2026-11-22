@@ -6090,8 +6090,9 @@ function removeRecipientBox(boxId) {
 let activeSuffixMenu = null;
 function closeSuffixMenus(){
     if(!activeSuffixMenu)return false;
-    const menu=activeSuffixMenu.menu,selector=activeSuffixMenu.selector;
+    const menu=activeSuffixMenu.menu,selector=activeSuffixMenu.selector,backdrop=activeSuffixMenu.backdrop;
     activeSuffixMenu=null;menu.classList.remove('show');
+    if(backdrop)backdrop.remove();
     menu.style.removeProperty('left');menu.style.removeProperty('top');menu.style.removeProperty('z-index');
     if(selector&&selector.isConnected)selector.appendChild(menu);else menu.remove();
     return true;
@@ -6123,16 +6124,27 @@ function toggleSuffixDropdown(boxId) {
     closeSuffixMenus();
     const selector=box.querySelector('.suffix-selector'),button=box.querySelector('.suffix-selector-btn');
     if(!selector||!button)return;
-    activeSuffixMenu={menu:dropdown,selector:selector,button:button};
-    const modal=box.closest('.modal-overlay');dropdown.style.zIndex=String((modal?Number(modal.style.zIndex)||200:200)+2);
-    document.body.appendChild(dropdown);dropdown.classList.add('show');positionSuffixMenu();
+    const modal=box.closest('.modal-overlay'),z=modal?Number(modal.style.zIndex)||200:200;
+    // Uma camada transparente recebe o toque fora sem fechar o editor atrás.
+    const backdrop=document.createElement('div');
+    backdrop.className='suffix-dismiss-layer';backdrop.style.cssText='position:fixed;inset:0;background:transparent;z-index:'+String(z+1)+';';
+    backdrop.addEventListener('click',function(event){event.stopPropagation();closeSuffixMenus();});
+    activeSuffixMenu={menu:dropdown,selector:selector,button:button,backdrop:backdrop};
+    dropdown.style.zIndex=String(z+2);
+    document.body.appendChild(backdrop);document.body.appendChild(dropdown);dropdown.classList.add('show');positionSuffixMenu();
     // Acompanhar o movimento enquanto a animação de entrada do modal termina.
     const started=Date.now();function follow(){if(!activeSuffixMenu||activeSuffixMenu.menu!==dropdown)return;positionSuffixMenu();if(Date.now()-started<550)requestAnimationFrame(follow);}
     if(typeof requestAnimationFrame==='function')requestAnimationFrame(follow);
 }
 document.addEventListener('click',function(event){
     if(activeSuffixMenu&&!activeSuffixMenu.menu.contains(event.target)&&!activeSuffixMenu.button.contains(event.target))closeSuffixMenus();
-});
+},true);
+// Alguns WebViews entregam Voltar como tecla em vez do evento da cena.
+document.addEventListener('keydown',function(event){
+    if(activeSuffixMenu&&(event.key==='Escape'||event.key==='Esc'||event.key==='BrowserBack'||event.keyCode===4)){
+        event.preventDefault();event.stopPropagation();closeSuffixMenus();
+    }
+},true);
 document.addEventListener('scroll',positionSuffixMenu,true);
 window.addEventListener('resize',positionSuffixMenu);
 if(window.visualViewport){window.visualViewport.addEventListener('resize',positionSuffixMenu);window.visualViewport.addEventListener('scroll',positionSuffixMenu);}
