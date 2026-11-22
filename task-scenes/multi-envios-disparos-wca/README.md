@@ -1,6 +1,8 @@
 # Multi Envios Disparos WCA — Cena V2
 
-Arquivo de trabalho: `multi-envio-disparos-wca-1.61.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `multi-envio-disparos-wca-1.62.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+
+A versão 1.62 mantém o seletor de Usuário, Grupo e LID junto ao botão nos modais, mesmo com rolagem, pilha de modais e animação.
 
 A versão 1.60 organiza as ações das campanhas, adiciona ícones SVG incorporados e feedback de toque, corrige o espaçamento e o alinhamento dos destinatários nos editores, e mantém a atualização dos dispositivos em um botão de ícone com indicador de carregamento.
 

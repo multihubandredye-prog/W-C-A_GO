@@ -3150,7 +3150,7 @@
 
 // Retorno do Android: a tarefa Back Pressed publica return_modal após Show.
 function syncModalBack(){const all=Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});try{if(typeof Tasker!=='undefined'&&Tasker.setVariable)Tasker.setVariable('cache_modal',all.length?all[0].id:'');}catch(e){}}
-function backTop(){const all=Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});if(all.length){if(all[0].id==='fileManagerModal'){fmBack();return;}if(all[0].id==='confirmModal' && window.confirmCallback){const done=window.confirmCallback;window.confirmCallback=null;done(false);}closeModal(all[0].id);}}
+function backTop(){if(closeSuffixMenus())return;const all=Array.from(document.querySelectorAll('.modal-overlay.show')).sort(function(a,b){return Number(b.style.zIndex)-Number(a.style.zIndex);});if(all.length){if(all[0].id==='fileManagerModal'){fmBack();return;}if(all[0].id==='confirmModal' && window.confirmCallback){const done=window.confirmCallback;window.confirmCallback=null;done(false);}closeModal(all[0].id);}}
 if(typeof Tasker!=='undefined'&&Tasker.onVariableChanged){try{Tasker.onVariableChanged('return_modal',function(nome,valor){backTop();});}catch(e){}}
 syncModalBack();
 
@@ -6080,32 +6080,62 @@ function addRecipientBox(containerId, phone = '', suffix = '@s.whatsapp.net', na
 
 function removeRecipientBox(boxId) {
     const box = document.getElementById(boxId);
+    if(activeSuffixMenu&&box&&box.contains(activeSuffixMenu.button))closeSuffixMenus();
     if (box) box.remove();
     refreshPollEndVisibility();
 }
 
-function toggleSuffixDropdown(boxId) {
-    const dropdown = document.getElementById('dropdown_' + boxId);
-    if (!dropdown) return;
-    
-    // Fecha todos os outros dropdowns
-    document.querySelectorAll('.suffix-dropdown').forEach(d => {
-        if (d.id !== 'dropdown_' + boxId) d.classList.remove('show');
-    });
-    
-    if (!dropdown.classList.contains('show')) {
-        const box = document.getElementById(boxId);
-        const btn = box ? box.querySelector('.suffix-selector-btn') : null;
-        if (btn) {
-            const rect = btn.getBoundingClientRect();
-            dropdown.style.top = (rect.bottom + 4) + "px";
-            dropdown.style.left = rect.left + "px";
-        }
-        dropdown.classList.add('show');
-    } else {
-        dropdown.classList.remove('show');
-    }
+// O menu fica temporariamente no body para usar coordenadas do viewport,
+// sem ser deslocado por transformações ou cortado pela rolagem do modal.
+let activeSuffixMenu = null;
+function closeSuffixMenus(){
+    if(!activeSuffixMenu)return false;
+    const menu=activeSuffixMenu.menu,selector=activeSuffixMenu.selector;
+    activeSuffixMenu=null;menu.classList.remove('show');
+    menu.style.removeProperty('left');menu.style.removeProperty('top');menu.style.removeProperty('z-index');
+    if(selector&&selector.isConnected)selector.appendChild(menu);else menu.remove();
+    return true;
 }
+function positionSuffixMenu(){
+    if(!activeSuffixMenu)return;
+    const menu=activeSuffixMenu.menu,btn=activeSuffixMenu.button;
+    if(!btn.isConnected){closeSuffixMenus();return;}
+    const rect=btn.getBoundingClientRect(),width=document.documentElement.clientWidth||window.innerWidth,height=window.innerHeight;
+    if(rect.bottom<=0||rect.top>=height){closeSuffixMenus();return;}
+    // Fecha se o botão sair da região visível de uma lista ou modal rolável.
+    for(let parent=btn.parentElement;parent&&parent!==document.body;parent=parent.parentElement){
+        const overflow=getComputedStyle(parent).overflowY;
+        if(overflow==='auto'||overflow==='scroll'){
+            const bounds=parent.getBoundingClientRect();
+            if(rect.bottom<=bounds.top||rect.top>=bounds.bottom){closeSuffixMenus();return;}
+        }
+    }
+    const menuWidth=menu.offsetWidth,menuHeight=menu.offsetHeight,margin=6,gap=4;
+    const left=Math.max(margin,Math.min(rect.left,width-menuWidth-margin));
+    const below=rect.bottom+gap,above=rect.top-menuHeight-gap;
+    const top=below+menuHeight<=height-margin?below:(above>=margin?above:Math.max(margin,Math.min(below,height-menuHeight-margin)));
+    menu.style.left=left+'px';menu.style.top=top+'px';
+}
+function toggleSuffixDropdown(boxId) {
+    const box=document.getElementById(boxId),dropdown=document.getElementById('dropdown_'+boxId);
+    if(!box||!dropdown)return;
+    if(activeSuffixMenu&&activeSuffixMenu.menu===dropdown){closeSuffixMenus();return;}
+    closeSuffixMenus();
+    const selector=box.querySelector('.suffix-selector'),button=box.querySelector('.suffix-selector-btn');
+    if(!selector||!button)return;
+    activeSuffixMenu={menu:dropdown,selector:selector,button:button};
+    const modal=box.closest('.modal-overlay');dropdown.style.zIndex=String((modal?Number(modal.style.zIndex)||200:200)+2);
+    document.body.appendChild(dropdown);dropdown.classList.add('show');positionSuffixMenu();
+    // Acompanhar o movimento enquanto a animação de entrada do modal termina.
+    const started=Date.now();function follow(){if(!activeSuffixMenu||activeSuffixMenu.menu!==dropdown)return;positionSuffixMenu();if(Date.now()-started<550)requestAnimationFrame(follow);}
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(follow);
+}
+document.addEventListener('click',function(event){
+    if(activeSuffixMenu&&!activeSuffixMenu.menu.contains(event.target)&&!activeSuffixMenu.button.contains(event.target))closeSuffixMenus();
+});
+document.addEventListener('scroll',positionSuffixMenu,true);
+window.addEventListener('resize',positionSuffixMenu);
+if(window.visualViewport){window.visualViewport.addEventListener('resize',positionSuffixMenu);window.visualViewport.addEventListener('scroll',positionSuffixMenu);}
 
 function selectSuffixForBox(boxId, suffix) {
     const box = document.getElementById(boxId);
@@ -6123,7 +6153,7 @@ function selectSuffixForBox(boxId, suffix) {
             opt.textContent.includes(suffix === '@s.whatsapp.net' ? 'Usuário' : suffix === '@g.us' ? 'Grupo' : 'LID')
         );
         if (selected) selected.classList.add('active');
-        dropdown.classList.remove('show');
+        closeSuffixMenus();
     }
     refreshPollEndVisibility();
 }
@@ -6171,6 +6201,7 @@ function populateRecipientsContainer(containerId, recipients) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
+    if(activeSuffixMenu&&container.contains(activeSuffixMenu.button))closeSuffixMenus();
     container.innerHTML = '';
     
     if (recipients && recipients.length > 0) {
@@ -6965,6 +6996,7 @@ function escapeForJson(str) {
 let modalZIndex = 200;
 
 function openModal(id) {
+    closeSuffixMenus();
     const el = document.getElementById(id);
     if (!el) return;
     if(el._modalFocusTimer){clearTimeout(el._modalFocusTimer);el._modalFocusTimer=null;}
@@ -7001,7 +7033,7 @@ function closeModal(id) {
     });
 
     // Fecha todos os dropdowns de sufixo ao fechar o modal
-    document.querySelectorAll('.suffix-dropdown.show').forEach(d => d.classList.remove('show'));
+    closeSuffixMenus();
 }
 
 function askConfirm(message) {
