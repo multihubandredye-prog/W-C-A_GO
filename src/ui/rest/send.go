@@ -2,12 +2,13 @@ package rest
 
 import (
 	"encoding/base64"
+	"github.com/gofiber/fiber/v2"
 	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
 	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/multihubandredye-prog/W-C-A_GO/ui/rest/helpers"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+	"strings"
 )
 
 type Send struct {
@@ -27,6 +28,7 @@ func InitRestSend(app fiber.Router, service domainSend.ISendUsecase) Send {
 	app.Post("/send/audio", rest.SendAudio)
 	app.Post("/send/poll", rest.SendPoll)
 	app.Post("/send/buttons", rest.SendButtons)
+	app.Post("/send/pix-card", rest.SendPixCard)
 	app.Post("/send/list", rest.SendList)
 	app.Post("/send/call", rest.SendCall)
 	app.Post("/send/presence", rest.SendPresence)
@@ -421,6 +423,32 @@ func (controller *Send) SendButtons(c *fiber.Ctx) error {
 		Message: response.Status,
 		Results: response,
 	})
+}
+
+// SendPixCard sends an image and a copy button as one interactive message.
+// It reuses SendButtons rather than the native Pix payment flow.
+func (controller *Send) SendPixCard(c *fiber.Ctx) error {
+	var request domainSend.PixCardRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Invalid request"})
+	}
+	if strings.TrimSpace(request.ImageURL) == "" || strings.TrimSpace(request.PixKey) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "image_url and pix_key are required"})
+	}
+	utils.SanitizePhone(&request.Phone)
+	body := strings.TrimSpace(request.Body)
+	if body == "" {
+		body = "Chave Pix"
+	}
+	buttons := domainSend.ButtonsRequest{
+		BaseRequest: request.BaseRequest,
+		Body:        body,
+		ImageURL:    request.ImageURL,
+		Buttons:     []domainSend.Button{{Type: domainSend.ButtonTypeCopy, Title: "Copiar chave Pix", CopyCode: request.PixKey}},
+	}
+	response, err := controller.Service.SendButtons(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), buttons)
+	utils.PanicIfNeeded(err)
+	return c.JSON(utils.ResponseData{Status: 200, Code: "SUCCESS", Message: response.Status, Results: response})
 }
 
 // SendList handles POST /send/list — an interactive list message, used when
