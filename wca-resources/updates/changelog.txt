@@ -1,4 +1,5 @@
 [16/09/2026]
+➪ A API recebeu o endpoint de cartão Pix interativo, que envia uma imagem com botão para copiar a chave, sem processar pagamento; o Guia também documenta o exemplo da tarefa Tasker e suas variáveis.
 ➪ Adicionado ao projeto o Multi Envios Disparos WCA, com a tarefa correspondente para gerenciar envios e agendamentos.
 ➪ O Multi Envios Disparos permite criar campanhas com múltiplos itens, destinatários e dispositivos, envio imediato e agendamento semanal opcional.
 ➪ As campanhas receberam organização por tipo, miniaturas, edição de mídias, seleção em lote e navegação por gestos.

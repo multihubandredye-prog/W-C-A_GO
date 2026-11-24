@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.28**
-Arquivo: `guia-help-wca-1.28.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.29**
+Arquivo: `guia-help-wca-1.29.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 ## Funcionamento atual
 
@@ -11,7 +11,7 @@ Arquivo: `guia-help-wca-1.28.html` — arquivo único, com HTML + CSS + JavaScri
 - Ao tocar em um resultado, abre a aba e os detalhes correspondentes, posiciona o conteúdo e destaca temporariamente o destino;
 - A pesquisa ignora diferenças entre letras maiúsculas/minúsculas e entre caracteres com ou sem acento;
 - Preserva a navegação rápida, gestos laterais, listas expansíveis e botão para voltar ao topo;
-- Exibe as **61 tarefas de envio** com suas variáveis e exemplos;
+- Exibe as **61 tarefas de envio** e documenta o exemplo da tarefa 062 de cartão Pix, com variáveis baseadas na configuração informada; o exemplo não garante que a tarefa esteja incluída no XML;
 - Exibe os **20 grupos de variáveis do Receiver**;
 - Documenta as variáveis atuais do receptor, incluindo diagnóstico da requisição, contexto e estados detalhados de presença;
 - Explica métricas do sistema, recuperação de mídia expirada, inclusão de mensagens enviadas no webhook e persistência de conversas;
