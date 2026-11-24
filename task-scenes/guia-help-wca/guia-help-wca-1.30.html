@@ -1783,10 +1783,10 @@ body.video-aberto { overflow: hidden; }
             <section id="envio-info" class="section">
                 <div class="section-header">
                     <i class="fas fa-paper-plane"></i>
-                    <h2>Tarefas de Envio (61 + exemplo Pix)</h2>
+                    <h2>Tarefas de Envio (62)</h2>
                 </div>
                 <div class="section-content">
-                    <p>As 61 tarefas de envio do guia e um exemplo da nova tarefa de cartão Pix. Clique em cada uma para ver as variáveis disponíveis. A tarefa Pix apresentada é baseada no modelo de teste informado e pode não estar incluída no XML do projeto.</p>
+                    <p>Lista das 62 tarefas de envio. Clique em cada uma para ver as variáveis disponíveis.</p>
                 </div>
             </section>
             <div class="tasker-list" id="envioList"></div>
@@ -2456,7 +2456,7 @@ const envioTasks = [
             { name: 'message', desc: 'Mensagem destinada a ser marcada como menção no grupo, utilizando a opção de mencionar todos os participantes. <strong>Atenção:</strong> a menção é invisível — o "@todos" <strong>não aparece destacado em azul</strong> na mensagem, e isso é o comportamento esperado, não um erro. O que a menção fantasma faz é notificar todos os participantes do grupo, inclusive aqueles que estão com o grupo silenciado.' }
         ]
     },
-    { num: 62, name: 'id-number-wca-Cartao_pix_interativo', desc: 'Exemplo da tarefa de teste para enviar uma imagem de cartão Pix com o botão Copiar chave Pix. A imagem é gerada pela automação; o botão copia a chave informada. Não realiza nem confirma pagamento. O nome e a disponibilidade dependem da tarefa instalada no Tasker.', hasLid: true,
+    { num: 62, name: 'wca-Cartao_pix_interativo', desc: 'Tarefa para enviar um cartão Pix com imagem e botão para copiar a chave. Não realiza nem confirma pagamento.', hasLid: true,
         vars: [
             { name: 'type', desc: 'Tipo de operação usado pela tarefa de processamento. No exemplo, mantenha <code>interactive_pix_card</code>.' },
             { name: 'device_id', desc: 'Número associado ao dispositivo usado no envio, em formato internacional com código do país, DDD e número, sem espaços ou símbolos.', example: '5581999999999' },
@@ -2464,9 +2464,9 @@ const envioTasks = [
             { name: 'contact_name', desc: 'Nome do titular da conta que será apresentado no cartão.', example: 'Nome do titular' },
             { name: 'type_key', desc: 'Tipo da chave Pix que será apresentado no cartão, conforme configurado na tarefa. No exemplo informado, <code>CPF</code>.' },
             { name: 'pix_key', desc: 'Chave Pix do titular exibida na imagem e enviada para o botão copiar. Confira se as duas são iguais antes de enviar.' },
-            { name: 'multiples', desc: 'Na tarefa de teste mostrada, informe os identificadores dos grupos destinatários, um por linha. O laço envia para cada entrada.', example: '1234567890-1111111111@g.us' },
+            { name: 'multiples', desc: 'Informe os identificadores dos grupos destinatários, um por linha. O laço envia para cada entrada.', example: '1234567890-1111111111@g.us' },
             { name: 'number', desc: 'Variável usada pelo laço para receber, em cada passagem, uma entrada de <code>\u0025multiples()</code>.' },
-            { name: 'result', desc: 'Resultado usado pela tarefa de teste para verificar o processamento. Um resultado de sucesso não confirma pagamento.' }
+            { name: 'result', desc: 'Resultado usado pela tarefa para verificar o processamento. Um resultado de sucesso não confirma pagamento.' }
         ]
     }
 ];
