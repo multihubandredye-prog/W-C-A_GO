@@ -4300,21 +4300,11 @@ input.first-install-attention {
 
         <div class="main-container">
             <header class="panel-header">
-                <video src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4" class="header-video" autoplay loop muted playsinline>
-                    <source src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4" type="video/mp4">
-                    <source src="icons/video-system.webm" type="video/webm">
-                    Seu navegador não suporta vídeos.
-                </video>
-                <div class="panel-header-center">
+<div class="panel-header-center">
                     <h2><span class="accent-text">WHATS CONNECT API</span></h2>
                     <span id="panelVersionBadge" class="panel-version-badge">v &mdash;</span>
                 </div>
-                <video src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4" class="header-video" autoplay loop muted playsinline>
-                    <source src="file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4" type="video/mp4">
-                    <source src="icons/video-system.webm" type="video/webm">
-                    Seu navegador não suporta vídeos.
-                </video>
-            </header>
+</header>
 
             <div class="status-bar">
                 <div class="premium-badge-wrap">
@@ -5845,61 +5835,6 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
                 .catch(function () { });
         }, 500);
     })();
-
-    // ---- Vídeos do cabeçalho: fallback em cascata de caminhos ----
-    // A WebView da cena V2 pode bloquear file://; se o caminho absoluto
-    // falhar, tenta o caminho relativo à base da cena e por último o .webm.
-    function setupHeaderVideos(){
-        try {
-            const videos = document.querySelectorAll('video.header-video');
-            if (!videos.length) return;
-            // Caminhos em cascata: o alvo real do vídeo é
-            // /storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4;
-            // se a WebView bloquear file://, tenta o caminho relativo à base da
-            // cena e por último o .webm. O load é REINICIADO aqui (com os
-            // listeners já anexados) porque o erro do src original pode disparar
-            // antes deste script executar e a cascata nunca avançaria.
-            const candidatos = [
-                'file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4',
-                'icons/video-system.mp4',
-                'icons/video-system.webm'
-            ];
-            for (let i = 0; i < videos.length; i++) {
-                const video = videos[i];
-                let indice = 0;
-                let verificacoes = 0;
-                function tocar(){
-                    try {
-                        const p = video.play && video.play();
-                        if (p && p.catch) p.catch(function () {});
-                    } catch (ePlay) {}
-                }
-                function carregar(){
-                    try {
-                        video.src = candidatos[indice];
-                        while (video.firstChild) video.removeChild(video.firstChild);
-                        video.load();
-                        tocar();
-                    } catch (eVid) {}
-                }
-                function avancar(){
-                    indice++;
-                    if (indice >= candidatos.length) return;
-                    carregar();
-                }
-                video.addEventListener('error', avancar, true);
-                carregar();
-                // Rede de segurança: se depois de 2s nada estiver carregando
-                // (sem dados nem erro disparado), avança a cascata à mão.
-                const vigia = setInterval(function(){
-                    verificacoes++;
-                    if (video.readyState >= 2 || indice >= candidatos.length) { clearInterval(vigia); return; }
-                    if (verificacoes >= 5) { clearInterval(vigia); return; }
-                    avancar();
-                }, 2000);
-            }
-        } catch (e) { }
-    }
 
     // ---- Camada HTTP via bridge (padrao do app de exemplo, comprovado no aparelho) ----
     // A WebView bloqueia HTTP puro (http://localhost:3000); TODAS as requisicoes
@@ -10760,7 +10695,6 @@ async function pacoteAtualizarCenas(nome, indice, quantidade){
         loadModeSystemLog().catch(function () {});
         loadUserProfilePicture().catch(function () {});
         // loadTaskerVars().catch(function () {}); // DESLIGADO: valores fictícios fixos no CONFIG por enquanto
-        setupHeaderVideos();
         processLicense();
         setWelcome();
         setupQrPinchZoom();

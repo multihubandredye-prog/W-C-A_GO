@@ -1,8 +1,8 @@
 # Painel de Atividade WCA — Cena V2 (WebView)
 
 Projeto: `003-PAINEL_ATIVIDADE [wca]`
-Versão atual: **1.4**
-Arquivo: `painel-de-atividade-wca-1.4.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.5**
+Arquivo: `painel-de-atividade-wca-1.5.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Feedback de toque (versão atual)**: todo o CSS usa **`:active`** no lugar de `:hover` — a cena é usada só em celular, então o feedback visual acontece **no toque**;
 
@@ -39,13 +39,11 @@ A variável `bottom` volta para a tarefa que exibiu a cena quando ela é dismiss
 ## Recursos externos
 
 - Google Fonts (Inter) e Font Awesome CDN no `<head>`;
-- Vídeo do cabeçalho: `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4` (exige **Allow Phone Access** no elemento Web).
 
 ## Requisitos da cena V2
 
 - Tasker 6.7 ou superior (Scenes V2 / "Modern (V2)")
 - Componente **WebView** com o **JavaScript bridge** habilitado
-- **Allow Phone Access** habilitado no elemento Web (vídeo via `file://`)
 
 ## Como atualizar no Tasker
 

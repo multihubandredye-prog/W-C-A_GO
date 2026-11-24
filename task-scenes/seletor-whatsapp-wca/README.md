@@ -1,6 +1,6 @@
 # Seletor de WhatsApp WCA — Cena V2
 
-Projeto `004-WHATSAPP_SELETOR [wca]V2` · versão **1.3** · HTML único `seletor-de-whatsapp-wca-1.3.html`, com CSS e JavaScript inline.
+Projeto `004-WHATSAPP_SELETOR [wca]V2` · versão **1.4** · HTML único `seletor-de-whatsapp-wca-1.4.html`, com CSS e JavaScript inline.
 
 A cena apresenta as opções **WhatsApp Messenger** e **WhatsApp Business**. Ao selecionar, envia à ponte do Tasker a variável de tela `bottom`, respectivamente `wa-message` ou `wa-business`.
 
@@ -17,4 +17,4 @@ A cena apresenta as opções **WhatsApp Messenger** e **WhatsApp Business**. Ao 
 - Na ação **Cena v2 Mostrar**, use `FullscreenWithResult` ou outro modo **With Result**, ID da Tela `1` e **Dispensar Automaticamente** vazio.
 - Habilite o JavaScript bridge e **Allow Phone Access** no WebView. Após o fechamento, leia `%bottom` na tarefa; os valores continuam `wa-message` e `wa-business`.
 - A tarefa auxiliar de fechamento é uma alternativa, não um requisito para os métodos de fechamento do bridge.
-- O cabeçalho usa vídeo em `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4`; a fonte e os ícones externos podem depender de rede.
+- A fonte e os ícones externos podem depender de rede.

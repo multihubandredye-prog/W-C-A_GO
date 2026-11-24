@@ -2,9 +2,9 @@
 
 Projeto: `002-INSTALACAO_PROJETO [wca]`
 
-Versão atual: **1.10**
+Versão atual: **1.11**
 
-Arquivo atual: `instalacao-wca-1.10.html`
+Arquivo atual: `instalacao-wca-1.11.html`
 
 A cena é um único arquivo HTML com CSS e JavaScript inline. Ela sempre consulta a release, baixa os dois binários e o projeto XML, acompanha o progresso, valida os arquivos e inicia a continuação no Tasker.
 
@@ -98,8 +98,6 @@ O estado pode ser consultado por:
 
 ## Recursos visuais
 
-O cabeçalho usa o vídeo local:
-
-`file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4`
+O cabeçalho mantém o título centralizado, sem vídeo decorativo.
 
 A interface mantém anel colorido, cartões por arquivo, barra individual, cronômetro e feedback móvel com `:active`.

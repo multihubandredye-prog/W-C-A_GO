@@ -1,8 +1,8 @@
 # Atualizações WCA — Cena V2 (WebView)
 
 Projeto: `006-ATUALIZACOES [wca]`
-Versão atual: **1.12**
-Arquivo: `atualizacoes-wca-1.12.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.13**
+Arquivo: `atualizacoes-wca-1.13.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 Painel de atualização direta do WCA. A cena identifica a release real mais recente cujo título contém `[UI]`, `[CORE]` ou `[FULL]`, compara a tag com a versão instalada e executa o modo correspondente sem encaminhar para a cena de instalação. Em todos os modos também baixa e extrai o pacote ZIP de cenas e mídias da mesma release.
 
@@ -88,7 +88,6 @@ Uma trava garante que botão e contador não possam disparar a tarefa duas vezes
 - `https://api.github.com/repos/multihubandredye-prog/W-C-A_GO/releases?per_page=30` — release, tipo e assets;
 - API `contents` e `raw.githubusercontent.com` — changelog;
 - URLs `browser_download_url` dos assets da release — downloads;
-- `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4` — vídeo do cabeçalho.
 
 ## Requisitos
 

@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.23**
-Arquivo: `gerar-tarefa-de-envio-wca-1.23.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.24**
+Arquivo: `gerar-tarefa-de-envio-wca-1.24.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
@@ -10,6 +10,9 @@ Arquivo: `gerar-tarefa-de-envio-wca-1.23.html` — **único arquivo**, com HTML 
 - **Laço Para com `%multiples()`**: o XML gerado protege o caractere da variável com uma entidade numérica durante a importação. Depois que o Tasker interpreta o XML, o campo **Itens** contém exatamente `%multiples()`, sem ser esvaziado antecipadamente;
 
 Seleção e geração das tarefas de envio: lista os dispositivos logados da API local e, ao escolher um número, abre a **seleção das tarefas do projeto `id_number.prj.xml`** (baixado do repositório), gera um **XML personalizado com apenas as tarefas marcadas** e grava em `system/tasks-send`. **Sem Java Code** — o desenho do ícone que era feito em Java (Canvas) agora roda dentro da cena.
+
+
+O cabeçalho não utiliza vídeo decorativo.
 
 ## Seleção
 

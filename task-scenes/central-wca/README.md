@@ -2,11 +2,14 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.1**
+Versão atual: **2.2**
 
-Arquivo atual: `central-wca-2.1.html`
+Arquivo atual: `central-wca-2.2.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
+
+
+O cabeçalho não utiliza vídeo decorativo.
 
 ## Requisitos
 
@@ -225,7 +228,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `005-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-2.1.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-2.2.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 

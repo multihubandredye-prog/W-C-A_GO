@@ -1,8 +1,8 @@
 # Contatos Pro WCA — Cena V2 (WebView)
 
 Projeto: `Contatos Pro [wca]` (use o nome/ID da cena como está no seu Tasker)
-Versão atual: **1.16**
-Arquivo: `contatos-pro-wca-1.16.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.17**
+Arquivo: `contatos-pro-wca-1.17.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
@@ -69,13 +69,12 @@ Ao receber `return_modal`, a cena fecha o topo: modais fecham; no painel de cont
 ## Recursos externos
 
 - Google Fonts (Syne + DM Sans) e Font Awesome CDN no `<head>`;
-- Vídeos do cabeçalho: `file:///storage/emulated/0/Tasker/projects_task/projects/whats-connect-api/icons/video-system.mp4` (exige **Allow Phone Access** no elemento Web).
 
 ## Requisitos da cena V2
 
 - Tasker 6.7 ou superior (Scenes V2 / "Modern (V2)")
 - Componente **WebView** com o **JavaScript bridge** habilitado
-- **Allow Phone Access** habilitado no elemento Web (vídeos via `file://` e fallback de busca pelo bridge)
+- **Allow Phone Access** habilitado no elemento Web (para o acesso aos recursos e à ponte do Tasker)
 
 ## Como atualizar no Tasker
 
