@@ -282,6 +282,62 @@ body {
 @keyframes floatIn { from { opacity:0; transform: translateY(-18px);} to {opacity:1; transform: translateY(0);} }
 @keyframes topShine { 0%,100%{opacity:.32;} 50%{opacity:1;} }
 
+
+/* Identidade visual da Central WCA, mantendo o fluxo original da cena. */
+:root { --bg-body:#02090d; --bg-card:#091d25; --text-main:#d6e9ec; --text-dim:#839ba6; }
+body { background:radial-gradient(ellipse at 50% 15%,#0d2831 0,#07171d 42%,#030b0f 100%); }
+.content-wrapper { width:calc(100vw - 2rem); max-width:32rem; }
+.main-container { box-shadow:0 1.3rem 3rem rgba(0,0,0,.42); }
+.main-container::before { inset:-1px; opacity:.88; }
+.main-container::after { background:linear-gradient(160deg,#0d2731,#081b23 70%,#07171e); }
+.panel-header { min-height:5rem; padding:1rem 1.25rem; justify-content:center; background:linear-gradient(125deg,rgba(15,157,203,.10),rgba(0,0,0,.30)); border-color:rgba(90,167,184,.18); }
+.header-brand { display:flex; justify-content:center; align-items:center; gap:.75rem; min-width:0; }
+.header-mark { width:2.6rem; height:2.6rem; flex:none; display:grid; place-items:center; border:1px solid rgba(15,157,203,.35); border-radius:.8rem; background:linear-gradient(145deg,rgba(15,157,203,.18),rgba(181,251,42,.08)); box-shadow:0 0 1.2rem rgba(15,157,203,.12); }
+.header-mark svg { width:1.35rem; height:1.35rem; fill:none; stroke:#b5fb2a; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.header-titles { text-align:left; min-width:0; }
+.panel-header h2 { font-size:.94rem; line-height:1.25; letter-spacing:.12em; font-weight:800; text-align:left; }
+.header-subtitle { display:block; color:#91aab3; font-size:.62rem; font-weight:700; letter-spacing:.14em; margin-top:.28rem; }
+.info-container { padding:1.2rem; gap:.65rem; }
+.instrucao { color:#91aab3; font-size:.72rem; font-weight:700; line-height:1.5; letter-spacing:.07em; text-align:left; }
+.btn-device { min-height:4.6rem; border:1px solid rgba(80,144,161,.35); border-radius:1rem; background:linear-gradient(135deg,#133743,#0b2732); box-shadow:0 .45rem 1.2rem rgba(0,0,0,.14); padding:.8rem .9rem; animation:deviceEntrance .4s cubic-bezier(.22,1,.36,1) both; transition:transform .18s ease,background .18s ease,border-color .18s ease; }
+.btn-device .device-symbol { width:2.65rem; height:2.65rem; border-radius:50%; display:grid; place-items:center; flex:none; border:1px solid rgba(15,157,203,.35); background:#0c2630; }
+.device-symbol svg { width:1.3rem; height:1.3rem; fill:none; stroke:var(--accent); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.btn-device .device-details { flex:1; min-width:0; gap:.25rem; }
+.btn-device strong, .btn-device .device-details span { overflow-wrap:anywhere; }
+.btn-device .device-chevron { width:1rem; height:1rem; flex:none; fill:none; stroke:#8aa6af; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.btn-device:active { transform:scale(.98); background:#1a4653; border-color:var(--primary); }
+.main-footer { color:#77909b; padding:1.25rem 0; }
+.dev-name { color:#8499a1; font-weight:600; }
+.selecao-topo { margin:.1rem .05rem .35rem; padding:1rem; text-align:left; border:1px solid rgba(69,136,150,.25); background:rgba(15,57,70,.45); border-radius:.85rem; }
+.selecao-topo strong { font-size:1rem; color:#f1fbfc; overflow-wrap:anywhere; }
+.selecao-topo span { display:block; margin-top:.25rem; overflow-wrap:anywhere; }
+.linha-instrucao { padding:.25rem .15rem; }
+.linha-instrucao .instrucao { line-height:1.35; }
+.lista-borda { margin:.25rem .1rem; border-radius:1rem; }
+.lista-borda::before { inset:-1px; border-radius:1rem; opacity:.8; }
+.lista-borda::after { background:#081d25; border-radius:1rem; }
+.lista-tarefas { gap:.45rem; padding:.65rem; }
+.chip-tarefa { min-height:3.25rem; border-color:rgba(80,144,161,.27); border-radius:.8rem; background:#102d38; box-shadow:none; }
+.chip-tarefa.selecionada { border-color:rgba(15,157,203,.55); background:linear-gradient(135deg,#164453,#102e39); box-shadow:inset 3px 0 0 var(--primary); }
+.chip-tarefa input:checked { background:var(--accent); border-color:var(--accent); box-shadow:0 0 .6rem rgba(181,251,42,.2); }
+.chip-tarefa input:checked::after { border-color:#082117; }
+.chip-tarefa span { font-size:.79rem; }
+.btn-toggle-todas { border-color:rgba(181,251,42,.38); border-radius:.65rem; box-shadow:none; background:#123329; }
+.contagem-tarefas { color:#97abb2; }
+.botoes-massa { padding:.5rem .15rem 1rem; }
+.btn-massa { min-height:2.9rem; border-radius:.8rem; transition:transform .16s ease,filter .16s ease; }
+.btn-massa:active:not(:disabled),.btn-instalar:active { transform:scale(.97); filter:brightness(1.13); }
+.btn-massa-destaque,.btn-instalar { background:linear-gradient(135deg,#0f9dcb,#087ba4); border-color:#159ccb; box-shadow:0 .35rem 1rem rgba(15,157,203,.18); }
+.modal-box { background:linear-gradient(160deg,#102e39,#071a21); border-color:#245968; box-shadow:0 1.4rem 4rem rgba(0,0,0,.55); }
+.modal-box h3 { color:var(--accent); }
+.resultado-box { border-radius:1rem; background:linear-gradient(145deg,#133844,#0b2731); }
+.resultado-box .progresso-instalacao { text-align:center; word-break:normal; }
+.content-wrapper.modo-selecao .info-container { padding:.8rem 1rem .25rem; gap:.5rem; }
+.content-wrapper.modo-selecao .botoes-massa { padding-bottom:1rem; }
+@keyframes deviceEntrance { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@media (max-width:340px) { .content-wrapper { width:calc(100vw - 1rem); } .panel-header h2 { font-size:.8rem; } .header-subtitle { font-size:.58rem; } .linha-instrucao { gap:.4rem; } .btn-toggle-todas { font-size:.58rem; padding:.5rem; } }
+@media (prefers-reduced-motion:reduce) { .main-container,.main-container::before,.lista-borda::before,.panel-header::before,.btn-device,.chip-tarefa,.resultado-img,.btn-instalar,.modal-overlay .modal-box { animation:none !important; transition:none !important; } }
+
 </style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -292,8 +348,11 @@ body {
 
         <div class="main-container">
             <header class="panel-header">
-<h2><span class="accent-text">WHATS CONNECT API</span></h2>
-</header>
+                <div class="header-brand">
+                    <span class="header-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"></rect><path d="M9 7h6M9 11h6M9 15h3"></path></svg></span>
+                    <div class="header-titles"><h2><span class="accent-text">WHATS CONNECT API</span></h2><span class="header-subtitle">GERADOR DE TAREFAS</span></div>
+                </div>
+            </header>
 
             <div class="info-container" id="dispositivosContainer">
                 <div id="statusMsg">
@@ -603,11 +662,12 @@ function renderizarBotoes(lista) {
         const btn = document.createElement('button');
         btn.className = 'btn-device';
         btn.innerHTML =
-            '<i class="fab fa-whatsapp"></i>' +
-            '<div>' +
+            '<span class="device-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"></rect><path d="M10 18.5h4"></path></svg></span>' +
+            '<div class="device-details">' +
             '<strong>' + escapar(nome) + '</strong>' +
             '<span>' + escapar(numeroCompleto) + '</span>' +
-            '</div>';
+            '</div>' +
+            '<svg class="device-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>';
 
         btn.addEventListener('click', function () {
             abrirSelecaoTarefas(nome, numeroCompleto, ultimosQuatro);

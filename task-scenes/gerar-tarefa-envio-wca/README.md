@@ -1,9 +1,10 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.25**
-Arquivo: `gerar-tarefa-de-envio-wca-1.25.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.26**
+Arquivo: `gerar-tarefa-de-envio-wca-1.26.html` — **único arquivo**, com HTML + CSS + JS inline.
 
+- **Visual integrado à Central**: cores escuras, cabeçalho e cartões de dispositivos renovados, bordas animadas, feedback de toque e seleção de tarefas com melhor contraste; a movimentação respeita a preferência de movimento reduzido;
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
 - **Rodapé (versão atual)**: exibe **só o nome** do desenvolvedor (sem a palavra "Desenvolvedor:").
