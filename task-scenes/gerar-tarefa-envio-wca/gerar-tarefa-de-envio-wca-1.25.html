@@ -352,9 +352,8 @@ body {
 // tarefas usam o mesmo gradiente conico giratorio (spinBorder) - inclusive
 // na selecao em tela inteira, onde as bordas laterais voltam a aparecer.
 //
-// Correcao do icone duplicado: a imagem BASE nunca pode ser um icone ja
-// gerado (icon-id-*.png) - sem isso, a segunda geracao usava o proprio
-// icone anterior como base e desenhava os digitos DUAS vezes
+// O Canvas usa exclusivamente icons/icon-system.png como imagem base;
+// imagens de outros projetos e icones gerados nunca sao selecionados.
 
 // Na selecao o container ocupa a TELA INTEIRA (largura e altura) e as
 // tarefas de infraestrutura do projeto principal (const TAREFAS_OCULTAS)
@@ -1041,23 +1040,20 @@ async function gerarXml(){
 }
 
 async function gerarIconeFinal(final4){
-    const rLista = await Promise.race([ taskerCall('runShell', { cmd: 'ls -1 -- ' + shellQuote(PASTA_ICONS), root: false, timeout: 20 }), new Promise(function (r2) { setTimeout(r2, 25000); }) ]);
-    // a base NUNCA e um icone ja gerado (icon-id-*): sem esse filtro, a
-    // segunda geracao usava o icone anterior como base e duplicava os digitos
-    const nomes = String((rLista && rLista.stdout) || '').split('\n').map(function (n) { return n.trim(); }).filter(function (n) { return /\.(png|jpe?g|webp)$/i.test(n) && !/^icon-id-/i.test(n); });
-
-    if (!nomes.length) throw new Error('nenhuma imagem base em icons/');
-    nomes.sort();
-    const base = PASTA_ICONS + '/' + nomes[0];
-    const mime = /\.jpe?g$/i.test(nomes[0]) ? 'image/jpeg' : (/\.webp$/i.test(nomes[0]) ? 'image/webp' : 'image/png');
-    const rB64 = await Promise.race([ taskerCall('runShell', { cmd: 'base64 ' + shellQuote(base), root: false, timeout: 60 }), new Promise(function (r2) { setTimeout(r2, 60000); }) ]);
+    // A base deve ser sempre o arquivo especifico da cena. Nao procurar
+    // outras imagens em icons/: elas podem pertencer a outros projetos.
+    const base = PASTA_ICONS + '/icon-system.png';
+    const rB64 = await Promise.race([
+        taskerCall('runShell', { cmd: 'base64 ' + shellQuote(base), root: false, timeout: 60 }),
+        new Promise(function (_, rejeitar) { setTimeout(function () { rejeitar(new Error('tempo esgotado ao ler icon-system.png')); }, 60000); })
+    ]);
     const b64 = String((rB64 && rB64.stdout) || '').replace(/\s+/g, '');
-    if (!b64) throw new Error('imagem base ilegivel');
+    if (!b64) throw new Error('icon-system.png ausente ou ilegivel em icons/');
     const img = new Image();
     await new Promise(function (resolver, rejeitar) {
         img.onload = function () { resolver(); };
         img.onerror = function () { rejeitar(new Error('WebView nao decodificou a imagem base')); };
-        img.src = 'data:' + mime + ';base64,' + b64;
+        img.src = 'data:image/png;base64,' + b64;
     });
     const fator = img.naturalWidth / 1000;
     const corteEsquerda = -40 * fator;

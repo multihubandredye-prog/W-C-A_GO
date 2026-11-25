@@ -1,8 +1,8 @@
 # Gerar Tarefa de Envio WCA — Cena V2 (WebView)
 
 Projeto: `005-GERAR_TAREFA_ENVIO [wca]`
-Versão atual: **1.24**
-Arquivo: `gerar-tarefa-de-envio-wca-1.24.html` — **único arquivo**, com HTML + CSS + JS inline.
+Versão atual: **1.25**
+Arquivo: `gerar-tarefa-de-envio-wca-1.25.html` — **único arquivo**, com HTML + CSS + JS inline.
 
 - **Transição dos modais**: entrada e saída combinam `scale(1.15)` com `blur(14px)` até o conteúdo chegar ao tamanho normal e ficar nítido;
 
@@ -50,7 +50,7 @@ O cabeçalho não utiliza vídeo decorativo.
 
 ## Ícone sem duplicação
 
-- A base do Canvas é sempre a primeira imagem **original** de `icons/` — arquivos `icon-id-*` (ícones já gerados) **nunca** são usados como base, então os dígitos nunca são desenhados duas vezes.
+- A base do Canvas é exclusivamente `icons/icon-system.png`. Imagens de outros projetos e ícones já gerados não são utilizados; se a base estiver ausente ou ilegível, o ícone não é gerado e a cena informa o problema.
 
 ## Funcionamento
 
@@ -59,7 +59,7 @@ O cabeçalho não utiliza vídeo decorativo.
 - **GERAR PROJETO** abre a **confirmação** (modal) e, ao CONFIRMAR, monta o arquivo final:
   1. **Filtro**: remove os blocos `<Task>` não selecionados **e** os ids deles do `<tids>` do projeto (o XML continua **válido** para importação);
   2. **Substituições**: `id-number` → `id:<4 últimos dígitos>` (ex.: `001-id:7777-wca-texto`) em nomes de tarefas e do projeto; só o placeholder literal `5581XXXXXXXX` (com X) → número completo do dispositivo (**números reais ficam intactos**);
-  3. **Ícone em Canvas** (réplica do Java): base = primeira imagem **original** de `icons/`, lida em base64 pelo shell e carregada via data URI; escala base 1000px com os mesmos cortes (−40/−50/−385/−20), fonte **bold 450**, relevo 3D de 15 camadas `#002233`, contorno `#004466` e degradê `#99FF00`→`#00CCFF` com os 4 dígitos; PNG gravado em `icons/icon-id-<4>.png` (via `.b64` + `base64 -d`) e o `>path-img<` do XML apontado para ele;
+  3. **Ícone em Canvas** (réplica do Java): base = exclusivamente `icons/icon-system.png`, lida em base64 pelo shell e carregada via data URI; escala base 1000px com os mesmos cortes (−40/−50/−385/−20), fonte **bold 450**, relevo 3D de 15 camadas `#002233`, contorno `#004466` e degradê `#99FF00`→`#00CCFF` com os 4 dígitos; PNG gravado em `icons/icon-id-<4>.png` (via `.b64` + `base64 -d`) e o `>path-img<` do XML apontado para ele;
   4. **Validação**: DOMParser (quando disponível) rejeita XML malformado;
   5. **Gravação**: `system/tasks-send/id_number-<4>.prj.xml` (o original baixado permanece como cache);
 - **Avisos no resultado**: dependências — tarefas chamadas via Perform Task (code 130) pelas selecionadas mas **não incluídas** (ex.: `003-PROCESSAR_REQUEST_MIDIA_WHATSAPP [wca]`); ícone não gerado (o XML mantém o placeholder);
