@@ -3311,6 +3311,11 @@ input.first-install-attention {
 .uninstall-title { font-size: 1.05rem; font-weight: 700; color: var(--white); letter-spacing: 0.02em; }
 .uninstall-etapa { margin-top: 14px; font-size: 0.82rem; color: var(--accent); font-weight: 600; }
 .uninstall-item { margin-top: 10px; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; min-height: 34px; word-break: break-all; }
+.uninstall-detail { margin-top: 6px; color: var(--text-muted); font-size: .72rem; line-height: 1.45; }
+.uninstall-close { margin-top: 14px; }
+.uninstall-bar-fill.indeterminate { width: 36% !important; animation: desinIndeterminate 1.1s ease-in-out infinite alternate; }
+@keyframes desinIndeterminate { from { transform: translateX(-100%); } to { transform: translateX(280%); } }
+@media (prefers-reduced-motion: reduce) { .uninstall-bar-fill.indeterminate { animation: none; } }
 .uninstall-bar { margin-top: 14px; width: 100%; height: 10px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
 .uninstall-bar-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.25s ease; }
 .prem-spinner { font-size: 2.6rem; color: var(--accent); }
@@ -3831,7 +3836,7 @@ input.first-install-attention {
         <div class="modal-content">
             <div class="delete-icon-wrap"><i class="fa-solid fa-circle-xmark"></i></div>
             <h3 class="modal-title default-title">Desinstalar WCA?</h3>
-            <p class="delete-review-text">Tem certeza de que deseja desinstalar o WCA? Esta ação removerá a conexão do WhatsApp.</p>
+            <p class="delete-review-text">Desconectar os dispositivos e apagar permanentemente os arquivos, mídias e dados salvos nas pastas do WCA? Esta ação não pode ser desfeita.</p>
             <div class="confirm-actions">
                 <button class="btn-action btn-flex btn-border" data-close="confirmUninstallModal">NÃO</button>
                 <button id="btnConfirmUninstallWca" class="btn-action btn-flex btn-danger"><i class="fa-solid fa-circle-xmark"></i> SIM</button>
@@ -6123,8 +6128,8 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     // Desinstala o WCA INTEIRO DENTRO da cena (V2), passo a passo com barra de
     // progresso: 1) desconecta todos os usuarios pela API (se estiver em
-    // execucao; se nao, pula); 2) enumera e elimina os arquivos das pastas do
-    // sistema um a um; 3) conclui e encerra as cenas em cascata
+    // execucao; se nao, pula); 2) elimina as duas pastas do WCA em lote;
+    // 3) encerra o processo; 4) conclui e encerra as cenas em cascata
     const PASTA_BIN_WCA = '/data/data/net.dinglisch.android.taskerm/files/WCA';
     const PASTA_PROJETO_WCA = '/storage/emulated/0/Tasker/projects_task/projects/whats-connect-api';
     let desinstalandoWca = false;
@@ -6133,6 +6138,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
     let desinElEtapa = null;
     let desinElItem = null;
     let desinElBarra = null;
+    let desinElDetalhes = null;
 
 
     async function taskUninstallWca() {
@@ -6151,32 +6157,49 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         desinElTitulo = document.createElement('h3'); desinElTitulo.className = 'uninstall-title'; desinElTitulo.textContent = 'Desinstalando o WCA';
         desinElEtapa = document.createElement('div'); desinElEtapa.className = 'uninstall-etapa'; desinElEtapa.textContent = 'Preparando...';
         desinElItem = document.createElement('div'); desinElItem.className = 'uninstall-item'; desinElItem.textContent = '';
+        desinElDetalhes = document.createElement('div'); desinElDetalhes.className = 'uninstall-detail'; desinElDetalhes.setAttribute('aria-live', 'polite');
         const wrap = document.createElement('div'); wrap.className = 'uninstall-bar';
         desinElBarra = document.createElement('div'); desinElBarra.className = 'uninstall-bar-fill'; desinElBarra.style.width = '0' + String.fromCharCode(37);
         wrap.appendChild(desinElBarra);
-        card.appendChild(desinElTitulo); card.appendChild(desinElEtapa); card.appendChild(desinElItem); card.appendChild(wrap);
+        card.appendChild(desinElTitulo); card.appendChild(desinElEtapa); card.appendChild(desinElItem); card.appendChild(desinElDetalhes); card.appendChild(wrap);
         ov.appendChild(card);
         ov.classList.add('open');
     }
 
     function desinEtapa(texto){ if (desinElEtapa) desinElEtapa.textContent = texto; }
     function desinItem(texto){ if (desinElItem) desinElItem.textContent = texto; }
+    function desinDetalhes(texto){ if (desinElDetalhes) desinElDetalhes.textContent = texto; }
+    function desinIndeterminado(ativo){ if (desinElBarra) desinElBarra.classList.toggle('indeterminate', ativo); }
     function desinProgresso(feito, total){
         if (!desinElBarra) return;
         const pct = total > 0 ? Math.min(100, Math.round((feito / total) * 100)) : 0;
         desinElBarra.style.width = pct + String.fromCharCode(37);
     }
 
-    function desinNomeArquivo(caminho){
-        const partes = String(caminho).split('/');
-        return partes[partes.length - 1] || caminho;
+    function desinFormatarTamanho(bytes){
+        const unidades = ['B','KB','MB','GB','TB']; let valor = Math.max(0, Number(bytes) || 0), i = 0;
+        while (valor >= 1024 && i < unidades.length - 1) { valor = valor / 1024; i++; }
+        return (i ? valor.toFixed(valor < 10 ? 1 : 0) : String(Math.round(valor))).replace('.', ',') + ' ' + unidades[i];
     }
-
-    async function desinListaArquivos(pasta){
+    function desinFormatarTempo(segundos){
+        segundos = Math.max(1, Math.ceil(segundos));
+        if (segundos < 60) return 'cerca de ' + segundos + ' s';
+        const minutos = Math.ceil(segundos / 60);
+        return 'cerca de ' + minutos + ' min';
+    }
+    // du relata espaco ocupado em blocos de 1 KiB, nao tamanho exato do conteudo.
+    // Uma medicao incompleta nao e usada para evitar progresso enganoso.
+    async function desinMedirPastas(){
+        const cmd = 'for d in ' + shellQuote(PASTA_BIN_WCA) + ' ' + shellQuote(PASTA_PROJETO_WCA) + '; do if [ -e "$d" ] || [ -L "$d" ]; then du -sk "$d" 2>/dev/null || exit 1; else echo "0 ausente"; fi; done';
         try {
-            const r = await Promise.race([ taskerCall('runShell', { cmd: 'find ' + shellQuote(pasta) + ' -type f 2>/dev/null', root: false, timeout: 60 }), bridgeTimeout(70000) ]);
-            return String((r && r.stdout) || '').split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l.length > 0; });
-        } catch (eLista) { return []; }
+            const r = await Promise.race([taskerCall('runShell', { cmd: cmd, root: false, timeout: 25 }), bridgeTimeout(30000)]);
+            if (!shellActionOk(r)) return null;
+            const linhas = String(r.stdout).trim().split('\n');
+            if (linhas.length !== 2) return null;
+            let blocos = 0;
+            for (let i = 0; i < linhas.length; i++) { const m = /^(\d+)\s/.exec(linhas[i]); if (!m) return null; blocos += Number(m[1]); }
+            return Number.isFinite(blocos) ? blocos * 1024 : null;
+        } catch (erro) { window['con' + 'sole'].error('Nao foi possivel medir a desinstalacao:', erro); return null; }
     }
 
     // Etapa 1: desconecta TODOS os usuarios (mesmo fluxo da lixeira de cada
@@ -6215,26 +6238,43 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
         try { clearDevicesFile(); } catch (eArq) { }
     }
 
-    // Etapa 2: enumera os arquivos das duas pastas e elimina um a um (100ms)
+    // Etapa 2: um unico rm recursivo nos mesmos dois caminhos fixos ja usados
+    // anteriormente; amostras de du sao apenas estimativas nao bloqueantes.
     async function desinEliminarArquivos(){
         desinEtapa('Etapa 2 de 4 — Eliminando os arquivos do WCA');
-        const listaBin = await desinListaArquivos(PASTA_BIN_WCA);
-        const listaProj = await desinListaArquivos(PASTA_PROJETO_WCA);
-        const arquivos = listaBin.concat(listaProj);
-        if (!arquivos.length) {
-            desinItem('Nenhum arquivo encontrado — etapa pulada');
-            await desinDormir(900);
-            return;
+        desinItem('Calculando o tamanho aproximado...');
+        desinDetalhes('Tempo restante: calculando'); desinIndeterminado(true);
+        const total = await desinMedirPastas();
+        const inicio = Date.now();
+        let ativo = true, timer = null;
+        if (total !== null) desinItem('Tamanho aproximado: ' + desinFormatarTamanho(total));
+        else desinItem('Tamanho indisponível; eliminando os arquivos...');
+        async function atualizar(){
+            if (!ativo) return;
+            const restante = await desinMedirPastas();
+            if (!ativo) return;
+            if (total !== null && total > 0 && restante !== null) {
+                const feito = Math.max(0, Math.min(total, total - restante));
+                const segundos = (Date.now() - inicio) / 1000;
+                const estimativa = feito > 0 && segundos >= 2 ? desinFormatarTempo((total - feito) * segundos / feito) : 'calculando';
+                desinIndeterminado(false); desinProgresso(Math.min(feito, total * 0.99), total);
+                desinItem('Eliminado aproximadamente: ' + desinFormatarTamanho(feito) + ' de ' + desinFormatarTamanho(total));
+                desinDetalhes('Tempo restante: ' + estimativa + ' · estimativa');
+            }
+            if (ativo) timer = setTimeout(atualizar, 1500);
         }
-        for (let i = 0; i < arquivos.length; i++) {
-            desinItem('Eliminando (' + (i + 1) + ' de ' + arquivos.length + '): ' + desinNomeArquivo(arquivos[i]));
-            desinProgresso(i, arquivos.length);
-            try { await Promise.race([ taskerCall('runShell', { cmd: 'rm -f ' + shellQuote(arquivos[i]), root: false, timeout: 20 }), bridgeTimeout(25000) ]); } catch (eRm) { }
-            await desinDormir(100);
+        if (total !== null && total > 0) timer = setTimeout(atualizar, 1500);
+        try {
+            const cmd = 'rm -rf -- ' + shellQuote(PASTA_BIN_WCA) + ' ' + shellQuote(PASTA_PROJETO_WCA) +
+                ' && if [ ! -e ' + shellQuote(PASTA_BIN_WCA) + ' ] && [ ! -L ' + shellQuote(PASTA_BIN_WCA) + ' ] && [ ! -e ' + shellQuote(PASTA_PROJETO_WCA) + ' ] && [ ! -L ' + shellQuote(PASTA_PROJETO_WCA) + " ]; then echo WCA_DESIN_OK; else exit 1; fi";
+            const r = await Promise.race([taskerCall('runShell', {cmd:cmd, root:false, timeout:300}), bridgeTimeout(310000)]);
+            if (!shellActionOk(r) || String(r.stdout).indexOf('WCA_DESIN_OK') < 0) throw new Error('O Shell não confirmou a remoção completa das pastas do WCA.');
+        } finally {
+            ativo = false; if (timer) clearTimeout(timer); desinIndeterminado(false);
         }
-        desinProgresso(arquivos.length, arquivos.length);
-        desinItem('Removendo as pastas do WCA...');
-        try { await Promise.race([ taskerCall('runShell', { cmd: 'rm -rf ' + shellQuote(PASTA_BIN_WCA) + ' ' + shellQuote(PASTA_PROJETO_WCA), root: false, timeout: 60 }), bridgeTimeout(70000) ]); } catch (eRmDir) { }
+        desinProgresso(1, 1);
+        desinItem(total === null ? 'Pastas do WCA removidas.' : 'Removido: aproximadamente ' + desinFormatarTamanho(total));
+        desinDetalhes('Remoção concluída');
     }
 
     // Etapa 3: encerra o processo do WCA pelo Shell (kill -9), DEPOIS da
@@ -6246,6 +6286,7 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
 
     async function desinEncerrarProcesso(){
         desinEtapa('Etapa 3 de 4 — Encerrando o processo do WCA');
+        desinDetalhes('');
         desinItem('Procurando o processo whatsapp-wca-aarch64...');
         desinProgresso(0, 1);
         let saida = '';
@@ -6289,9 +6330,21 @@ const PREMIUM_VERCEL_BASE = 'https://wca-api-three-alpha.vercel.app';
             await desinDesconectarUsuarios();
             await desinEliminarArquivos();
             await desinEncerrarProcesso();
-        } catch (eFluxo) { }
+        } catch (eFluxo) {
+            window['con' + 'sole'].error('Falha na desinstalação do WCA:', eFluxo);
+            desinIndeterminado(false);
+            if (desinElTitulo) desinElTitulo.textContent = 'Desinstalação não confirmada';
+            desinEtapa('Não foi possível confirmar a remoção');
+            desinItem('A limpeza pode estar incompleta. Confira os arquivos do WCA antes de tentar novamente.');
+            desinDetalhes('');
+            const card = document.querySelector('#uninstallOverlay .uninstall-card');
+            if (card) { const fechar = document.createElement('button'); fechar.type = 'button'; fechar.className = 'btn-action btn-border uninstall-close'; fechar.textContent = 'FECHAR'; fechar.addEventListener('click', function(){ document.getElementById('uninstallOverlay').classList.remove('open'); }); card.appendChild(fechar); }
+            desinstalandoWca = false;
+            return;
+        }
         desinEtapa('Etapa 4 de 4 — Concluído');
         desinItem('');
+        desinDetalhes('');
         desinProgresso(1, 1);
         if (desinElTitulo) desinElTitulo.textContent = 'Desinstalação concluída';
         await desinDormir(2200);

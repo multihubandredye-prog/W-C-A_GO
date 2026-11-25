@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.2**
+Versão atual: **2.3**
 
-Arquivo atual: `central-wca-2.2.html`
+Arquivo atual: `central-wca-2.3.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -48,6 +48,7 @@ Se o arquivo de versão existir, mas estiver vazio ou inválido, a Central consu
 - a trava `instalacaoEmAndamento` impede toque duplo enquanto o disparo está em curso;
 - o retorno do disparo de `install-project` é exibido no campo e em toast, no lugar da falha silenciosa;
 - a desinstalação tem quatro etapas: desconecta os usuários pela API, elimina os arquivos e as pastas do WCA, encerra o processo `whatsapp-wca-aarch64` pelo Shell e só então encerra as cenas em cascata;
+- a limpeza das duas pastas do WCA é feita em lote, com tamanho aproximado em disco e tempo estimado quando houver dados suficientes; se o Shell não confirmar a remoção, a cena informa que a desinstalação não foi confirmada;
 - o encerramento acontece depois da eliminação, por `runShell` com `ps -e -o PID,ARGS` + `grep` + `awk` e `kill -9`, sem depender de tarefa do Tasker;
 - o filtro `awk -v me=$$` descarta o próprio shell do `runShell`, cuja linha de comando também contém o nome do binário;
 - saída sem confirmação não desfaz a limpeza: o card informa o resultado e o encerramento das cenas acontece de qualquer forma.
@@ -228,7 +229,7 @@ Os comandos de sistema continuam sendo encaminhados à tarefa `005-CONFIGURAR_SI
 ## Atualização no Tasker
 
 1. Abra a cena `001-CENTRAL_WHATS_CONNECT_API` no editor;
-2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-2.2.html`;
+2. substitua o conteúdo do WebView pelo HTML integral de `central-wca-2.3.html`;
 3. confirme que **Allow Phone Access** continua habilitado;
 4. valide abertura, modais, dispositivos, gravação do `.env` e reinício.
 
