@@ -1,6 +1,6 @@
 # Multi Envios Disparos WCA — Cena V2
 
-Arquivo de trabalho: `multi-envio-disparos-wca-1.63.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
+Arquivo de trabalho: `multi-envio-disparos-wca-1.64.html`, com HTML, CSS e JavaScript no mesmo arquivo. Esta versão publicada ainda precisa de validação no Tasker/Android antes de substituir a cena anterior.
 
 A versão 1.63 reforça o fechamento do seletor ao tocar fora e trata a tecla Voltar quando entregue ao WebView; o botão físico depende também do evento configurado na cena Tasker.
 
