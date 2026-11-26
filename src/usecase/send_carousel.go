@@ -143,6 +143,26 @@ func buildCarouselMessage(body string, captions []string, buttonText string, ima
 	}}, nil
 }
 
+// carouselCaptions preserves explicit captions; by default the displayed text
+// is the local file name including its extension, never the full path.
+func carouselCaptions(paths, titles []string) ([]string, error) {
+	if len(titles) != 0 && len(titles) != len(paths) {
+		return nil, pkgError.ValidationError("card_titles deve ter a mesma quantidade de image_paths")
+	}
+	captions := make([]string, len(paths))
+	for i, path := range paths {
+		caption := filepath.Base(path)
+		if len(titles) != 0 {
+			caption = strings.TrimSpace(titles[i])
+		}
+		if caption == "" || caption == "." || caption == string(filepath.Separator) || utf8.RuneCountInString(caption) > 160 {
+			return nil, pkgError.ValidationError(fmt.Sprintf("card_titles[%d]: o nome ou texto do cartão deve ter entre 1 e 160 caracteres", i+1))
+		}
+		captions[i] = caption
+	}
+	return captions, nil
+}
+
 func (service serviceSend) SendCarousel(ctx context.Context, request domainSend.CarouselRequest) (response domainSend.GenericResponse, err error) {
 	paths, err := carouselPaths(request.ImagePaths)
 	if err != nil {
@@ -159,18 +179,9 @@ func (service serviceSend) SendCarousel(ctx context.Context, request domainSend.
 	if utf8.RuneCountInString(body) > 1024 || utf8.RuneCountInString(buttonText) > domainSend.MaxButtonTitleLength {
 		return response, pkgError.ValidationError("body ou button_text excede o limite permitido")
 	}
-	if len(request.CardTitles) != 0 && len(request.CardTitles) != len(paths) {
-		return response, pkgError.ValidationError("card_titles deve ter a mesma quantidade de image_paths")
-	}
-	captions := make([]string, len(paths))
-	for i := range paths {
-		captions[i] = fmt.Sprintf("Imagem %d", i+1)
-		if len(request.CardTitles) != 0 {
-			captions[i] = strings.TrimSpace(request.CardTitles[i])
-		}
-		if captions[i] == "" || utf8.RuneCountInString(captions[i]) > 160 {
-			return response, pkgError.ValidationError(fmt.Sprintf("card_titles[%d]: deve ter entre 1 e 160 caracteres", i+1))
-		}
+	captions, err := carouselCaptions(paths, request.CardTitles)
+	if err != nil {
+		return response, err
 	}
 	if err = validations.ValidateSendButtons(ctx, domainSend.ButtonsRequest{BaseRequest: request.BaseRequest, Body: body, Buttons: []domainSend.Button{{Type: domainSend.ButtonTypeReply, Title: buttonText}}}); err != nil {
 		return response, err

@@ -15,7 +15,7 @@
 - `image_paths`: obrigatório; texto único com 2 a 10 caminhos absolutos separados por vírgulas. A API lê os arquivos **no aparelho/ambiente onde o processo da API está rodando**; eles devem estar no armazenamento compartilhado `/storage/emulated/0/` e ser acessíveis para o processo. Como a vírgula é delimitadora, não use caminhos cujos nomes contenham vírgula. Não são aceitos URLs ou Base64 nesse campo.
 - JPEG ou PNG válidos, até **5 MiB por imagem e 25 megapixels**. Todos os arquivos são validados antes do primeiro upload. As imagens originais não são sobrescritas; uma miniatura é gerada para a prévia.
 - `body` é opcional, padrão `Confira as imagens:`. `button_text` é opcional, padrão `Selecionar` (máximo de 20 caracteres). Cada cartão recebe o mesmo texto do botão e identificador `carousel_1`, `carousel_2` etc., conforme a ordem dos caminhos.
-- `card_titles` é opcional: um array de textos na mesma ordem e quantidade dos caminhos; sem ele, os cartões são identificados como `Imagem 1`, `Imagem 2` etc. Cada texto deve ter de 1 a 160 caracteres. `body` aceita até 1024 caracteres.
+- `card_titles` é opcional: um array de textos na mesma ordem e quantidade dos caminhos; sem ele, cada cartão mostra o nome do arquivo, incluindo a extensão, por exemplo `image1.jpg` e `image2.jpg`. Cada texto deve ter de 1 a 160 caracteres. `body` aceita até 1024 caracteres.
 - `duration` e `is_forwarded` são opcionais e seguem as mesmas regras de `/send/buttons`.
 - Use o mesmo acesso das demais rotas `/send`: Basic Auth se configurado, `X-Device-Id` quando necessário e `APP_BASE_PATH` se configurado.
 - A resposta bem-sucedida contém `results.message_id` e `results.status`, mas **não prova entrega, renderização nem clique**. Se a resposta da rede for perdida, confira no WhatsApp antes de repetir para evitar duplicidade.
@@ -24,4 +24,4 @@
 
 ## Remoção
 
-A implementação é isolada: remova o registro `app.Post("/send/carousel", rest.SendCarousel)` de `src/ui/rest/send.go` e remova `src/domains/send/carousel.go`, `src/usecase/send_carousel.go`, `src/usecase/send_carousel_test.go`, `src/ui/rest/send_carousel.go`, `src/ui/rest/send_carousel_test.go` e este documento. Um `git revert` do commit exclusivo da funcionalidade também pode ser usado, verificando eventuais conflitos com mudanças posteriores. Não altera o contrato de `/send/buttons` nem o endpoint Pix.
+A implementação é isolada: remova o registro `app.Post("/send/carousel", rest.SendCarousel)` de `src/ui/rest/send.go` e remova `src/domains/send/carousel.go`, `src/usecase/send_carousel.go`, `src/usecase/send_carousel_test.go`, `src/ui/rest/send_carousel.go`, `src/ui/rest/send_carousel_test.go` e este documento. Para reverter a funcionalidade via Git, reverta primeiro os commits posteriores que a alteraram e depois o commit original, verificando eventuais conflitos. Não altera o contrato de `/send/buttons` nem o endpoint Pix.

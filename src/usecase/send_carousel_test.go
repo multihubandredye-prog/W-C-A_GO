@@ -118,3 +118,24 @@ func TestCarouselMessage(t *testing.T) {
 		t.Fatal("single card accepted")
 	}
 }
+
+func TestCarouselCaptions(t *testing.T) {
+	paths := []string{"/storage/emulated/0/Imagens/image1.jpg", "/storage/emulated/0/Imagens/café.png"}
+	got, err := carouselCaptions(paths, nil)
+	if err != nil || got[0] != "image1.jpg" || got[1] != "café.png" {
+		t.Fatalf("default captions %v: %v", got, err)
+	}
+	got, err = carouselCaptions(paths, []string{" Montanha ", "Mar"})
+	if err != nil || got[0] != "Montanha" || got[1] != "Mar" {
+		t.Fatalf("custom captions %v: %v", got, err)
+	}
+	if _, err = carouselCaptions(paths, []string{"um"}); err == nil {
+		t.Fatal("unequal count accepted")
+	}
+	if _, err = carouselCaptions(paths, []string{"um", strings.Repeat("é", 161)}); err == nil {
+		t.Fatal("long caption accepted")
+	}
+	if _, err = carouselCaptions([]string{"/"}, nil); err == nil {
+		t.Fatal("directory root accepted")
+	}
+}
