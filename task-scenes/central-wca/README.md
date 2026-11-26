@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.4**
+Versão atual: **2.5**
 
-Arquivo atual: `central-wca-2.4.html`
+Arquivo atual: `central-wca-2.5.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -107,7 +107,9 @@ O painel permite editar:
 - resposta automática;
 - marcação automática de leitura;
 - rejeição automática de chamadas;
-- download automático de mídia;
+- recebimento de mídias: download automático e duração de retenção;
+- limite geral de download, inclusive de links usados em envios;
+- envio de mídias: limites para imagens, arquivos e vídeos;
 - duração de retenção da mídia;
 - tamanhos máximos, em MB, para imagem, arquivo, vídeo e download;
 - atraso e tentativas do webhook;
