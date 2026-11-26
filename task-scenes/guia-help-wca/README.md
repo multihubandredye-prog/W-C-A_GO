@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.31**
-Arquivo: `guia-help-wca-1.31.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.32**
+Arquivo: `guia-help-wca-1.32.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 
 O cabeçalho não utiliza vídeo decorativo.
@@ -15,7 +15,7 @@ O cabeçalho não utiliza vídeo decorativo.
 - A pesquisa ignora diferenças entre letras maiúsculas/minúsculas e entre caracteres com ou sem acento;
 - Preserva a navegação rápida, gestos laterais, listas expansíveis e botão para voltar ao topo;
 - Exibe as **62 tarefas de envio** com suas variáveis, incluindo a tarefa 062 de cartão Pix;
-- Exibe os **20 grupos de variáveis do Receiver**;
+- Exibe os **21 grupos de variáveis do Receiver**;
 - Documenta as variáveis atuais do receptor, incluindo diagnóstico da requisição, contexto e estados detalhados de presença;
 - Explica métricas do sistema, recuperação de mídia expirada, inclusão de mensagens enviadas no webhook e persistência de conversas;
 - Carrega as últimas novidades a partir de `wca-resources/updates/changelog.txt`, usando a API do GitHub como fonte principal e `raw.githubusercontent.com` como fallback;
@@ -59,3 +59,7 @@ A cena publica o modal atual em `cache_modal` e escuta `return_modal` com o list
 - Modo recomendado: **FullscreenWithResult**;
 - ID: `1`;
 - Dispensar automaticamente: vazio.
+
+## Resposta de carrossel no Receiver
+
+A aba Receiver inclui as variáveis `carousel_reply`, `carousel_selected_id`, `carousel_selected_index`, `carousel_selected_text`, `carousel_replied_to_id` e `carousel_reply_json`, com exemplo de condição, convenção dos IDs e limites de identificação. Requer atualização da API e instalação separada do Java Receiver; o clique real deve ser validado no aparelho.

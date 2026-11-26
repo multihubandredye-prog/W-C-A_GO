@@ -24,4 +24,30 @@
 
 ## Remoção
 
-A implementação é isolada: remova o registro `app.Post("/send/carousel", rest.SendCarousel)` de `src/ui/rest/send.go` e remova `src/domains/send/carousel.go`, `src/usecase/send_carousel.go`, `src/usecase/send_carousel_test.go`, `src/ui/rest/send_carousel.go`, `src/ui/rest/send_carousel_test.go` e este documento. Para reverter a funcionalidade via Git, reverta primeiro os commits posteriores que a alteraram e depois o commit original, verificando eventuais conflitos. Não altera o contrato de `/send/buttons` nem o endpoint Pix.
+A implementação é isolada: remova o registro `app.Post("/send/carousel", rest.SendCarousel)` de `src/ui/rest/send.go` e remova `src/domains/send/carousel.go`, `src/usecase/send_carousel.go`, `src/usecase/send_carousel_test.go`, `src/ui/rest/send_carousel.go`, `src/ui/rest/send_carousel_test.go` e este documento. A classificação de respostas também acrescenta os arquivos `src/infrastructure/whatsapp/carousel_reply.go` e `carousel_reply_test.go` e três pontos em `event_message.go`; remova-os ao retirar a funcionalidade. Para reverter via Git, reverta primeiro os commits posteriores que a alteraram e depois o commit original, verificando eventuais conflitos. Não altera o contrato de `/send/buttons` nem o endpoint Pix.
+
+## Resposta de seleção no webhook
+
+A API reconhece respostas de botões com os IDs reservados `carousel_1` até `carousel_10` como seleção de carrossel. Para a resposta recebida, `Event` permanece `message`, enquanto `Payload.Type` passa a ser `CarouselResponseMessage`. Um exemplo ilustrativo do trecho de `Payload` é:
+
+```json
+{
+  "Type": "CarouselResponseMessage",
+  "InteractiveReply": {
+    "Type": "carousel",
+    "SelectedID": "carousel_2",
+    "CardIndex": 2,
+    "SelectedText": "Selecionar",
+    "RepliedToID": "ID_DA_MENSAGEM_ORIGINAL"
+  },
+  "CarouselReply": {
+    "Type": "carousel",
+    "SelectedID": "carousel_2",
+    "CardIndex": 2,
+    "SelectedText": "Selecionar",
+    "RepliedToID": "ID_DA_MENSAGEM_ORIGINAL"
+  }
+}
+```
+
+`SelectedText` e `RepliedToID` só aparecem quando a resposta recebida os contém. Esses dados identificam a posição, **não o arquivo nem seu caminho**; guarde a lista enviada e associe-a à mensagem original para recuperar essa informação, quando o ID original estiver disponível. Os IDs são reutilizados entre envios. A classificação depende da convenção de nomes, não de uma prova da origem: não use `carousel_1` a `carousel_10` em botões comuns. Respostas de botão comuns e listas mantêm seus tipos anteriores. O comportamento efetivo da resposta depende do cliente WhatsApp e deve ser validado em aparelho real. Atualize tanto a API quanto o Java do Receiver para usar os novos campos.

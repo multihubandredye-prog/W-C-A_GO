@@ -2474,7 +2474,7 @@ const receiverVars = {
         ['\u0025device_id', 'Identificador único do aparelho, serve para diferenciar dispositivos em automações múltiplas.'],
         ['\u0025phone', 'Número da linha/chip que recebeu a mensagem.'],
         ['\u0025event', 'Tipo de evento que acionou a ação (ex: mensagem recebida, chamada, mensagem apagada).'],
-        ['\u0025type_message', 'Categoria da mensagem (texto, imagem, vídeo, enquete etc).'],
+        ['\u0025type_message', 'Categoria da mensagem. Para clique em cartão do carrossel: <code>carousel_response_message</code>; botões comuns continuam como <code>buttons_response_message</code>.'],
         ['\u0025message_id', 'Código único de cada mensagem, essencial para identificar, responder ou apagar uma mensagem específica.'],
         ['\u0025message_text', 'Conteúdo de texto puro da mensagem.'],
         ['\u0025recebido_em', 'Data e hora em que a requisição chegou ao Receiver.'],
@@ -2602,7 +2602,7 @@ const receiverVars = {
     ],
     "18. RESPOSTA DE BOTÕES E LISTAS (INTERATIVO)": [
         ['\u0025interactive_reply', 'Verdadeiro/falso: se a mensagem é resposta de botão ou lista.'],
-        ['\u0025interactive_type', 'Formato da resposta: "buttons", "list" ou "buttons_legacy".'],
+        ['\u0025interactive_type', 'Formato da resposta: <code>carousel</code>, <code>buttons</code>, <code>list</code> ou <code>buttons_legacy</code>.'],
         ['\u0025interactive_selected_id', 'Identificador ("id" ou "row_id") da opção escolhida.'],
         ['\u0025interactive_selected_text', 'Texto visível da opção escolhida.'],
         ['\u0025interactive_body', 'Texto do corpo que acompanha a resposta interativa.'],
@@ -2639,6 +2639,18 @@ const receiverVars = {
         ['\u0025list_sent_titles', 'Títulos dos itens da lista, separados por vírgula.'],
         ['\u0025list_sent_ids', 'row_id dos itens da lista, na mesma ordem dos títulos.'],
         ['\u0025list_sent_json', 'Objeto ListSent completo em JSON.']
+    ],
+    "21. RESPOSTA DE CARROSSEL DE IMAGENS": [
+        ['\u0025carousel_reply', 'Verdadeiro/falso: informa se o evento foi identificado como clique em um cartão de carrossel.'],
+        ['\u0025type_message', 'Para essa resposta, use a condição <code>carousel_response_message</code>. O Type no payload da API é <code>CarouselResponseMessage</code>; o Event permanece <code>message</code>.'],
+        ['\u0025carousel_selected_id', 'ID do botão selecionado: <code>carousel_1</code> até <code>carousel_10</code>, conforme a posição do cartão no envio. O mesmo ID também está em <code>\u0025interactive_selected_id</code>.'],
+        ['\u0025carousel_selected_index', 'Posição do cartão escolhido, de 1 a 10. Exemplo: <code>2</code> corresponde ao segundo caminho informado em image_paths.'],
+        ['\u0025carousel_selected_text', 'Texto recebido na resposta do botão, quando o WhatsApp o informa; pode ficar vazio. Não é o nome da imagem.'],
+        ['\u0025carousel_replied_to_id', 'ID da mensagem original do carrossel, quando informado pelo WhatsApp; pode ficar vazio.'],
+        ['\u0025carousel_reply_json', 'Objeto CarouselReply em JSON: contém Type, SelectedID e CardIndex e pode incluir outros campos da resposta.'],
+        ['Exemplo de uso', 'Condição: <code>\u0025type_message ~ carousel_response_message</code>. Se <code>\u0025carousel_selected_index ~ 2</code>, foi selecionado o segundo cartão. Guarde a lista de caminhos e relacione-a à mensagem enviada para descobrir o arquivo correspondente.'],
+        ['Importante', 'O clique envia uma resposta, não a imagem nem seu caminho. Os IDs carousel_1 a carousel_10 são reservados pela API: não use esses IDs em botões comuns. A identificação usa essa convenção, não comprova a origem; clientes podem enviar respostas em formatos diferentes.'],
+        ['Compatibilidade', 'É necessário atualizar a API e instalar o Java do Receiver correspondente; depois teste o clique real e a chegada do webhook. Os envios recebidos antes da atualização podem ser reconhecidos se retornarem um ID reservado.']
     ]
 };
 
@@ -2699,7 +2711,8 @@ const quickNavData = {
         { id: 'rcv-chamada', label: 'Chamada', icon: 'fa-phone', section: 'MENSAGEM DE CHAMADA' },
         { id: 'rcv-interativo', label: 'Interativo', icon: 'fa-hand-pointer', section: 'RESPOSTA DE BOTÕES E LISTAS (INTERATIVO)' },
         { id: 'rcv-paginacao', label: 'Paginação', icon: 'fa-layer-group', section: 'PAGINAÇÃO DE LISTA (CLIQUE EM "VER MAIS")' },
-        { id: 'rcv-eco', label: 'Eco Envio', icon: 'fa-paper-plane', section: 'BOTÕES E LISTAS ENVIADOS (ECO DO ENVIO)' }
+        { id: 'rcv-eco', label: 'Eco Envio', icon: 'fa-paper-plane', section: 'BOTÕES E LISTAS ENVIADOS (ECO DO ENVIO)' },
+        { id: 'rcv-carrossel', label: 'Carrossel', icon: 'fa-images', section: 'RESPOSTA DE CARROSSEL DE IMAGENS' }
     ]
 };
 
@@ -3231,7 +3244,8 @@ function buildReceiverList() {
         "MENSAGEM DE CHAMADA": "rcv-chamada",
         "RESPOSTA DE BOTÕES E LISTAS (INTERATIVO)": "rcv-interativo",
         "PAGINAÇÃO DE LISTA (CLIQUE EM \"VER MAIS\")": "rcv-paginacao",
-        "BOTÕES E LISTAS ENVIADOS (ECO DO ENVIO)": "rcv-eco"
+        "BOTÕES E LISTAS ENVIADOS (ECO DO ENVIO)": "rcv-eco",
+        "RESPOSTA DE CARROSSEL DE IMAGENS": "rcv-carrossel"
     };
     let html = '';
     for (const [section, vars] of Object.entries(receiverVars)) {

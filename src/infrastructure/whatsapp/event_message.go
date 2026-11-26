@@ -403,6 +403,9 @@ func getMessagePascalType(msg *waE2E.Message) string {
 	// tells the consumer what happened instead of a bare "Unknown".
 	case msg.GetSecretEncryptedMessage() != nil:
 		return "SecretEncryptedMessage"
+	// Carousel replies use reserved card IDs; ordinary interactive replies remain unchanged.
+	case carouselReplyIndex(msg) > 0:
+		return "CarouselResponseMessage"
 	// Replies to interactive messages. Checked before the outgoing variants so
 	// a tap is never reported as a new buttons/list message.
 	case msg.GetInteractiveResponseMessage() != nil,
@@ -496,7 +499,7 @@ func buildMessageBody(ctx context.Context, client *whatsmeow.Client, evt *events
 	// Add reply context if present
 	if message.RepliedId != "" {
 		payload["RepliedToID"] = message.RepliedId
-		if payload["Type"] != "StatusResponseMessage" {
+		if payload["Type"] != "StatusResponseMessage" && payload["Type"] != "CarouselResponseMessage" {
 			payload["Type"] = "QuoteMessage"
 		}
 	}
@@ -775,6 +778,7 @@ func buildOtherMessageTypes(msg *waE2E.Message, payload map[string]any) {
 	}
 
 	buildInteractiveReplyFields(msg, payload)
+	buildCarouselReplyFields(msg, payload)
 }
 
 // buildInteractiveReplyFields exposes which button or list row the user picked.
