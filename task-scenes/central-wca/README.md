@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.6**
+Versão atual: **2.7**
 
-Arquivo atual: `central-wca-2.6.html`
+Arquivo atual: `central-wca-2.7.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -107,7 +107,7 @@ O painel permite editar:
 - resposta automática;
 - marcação automática de leitura;
 - rejeição automática de chamadas;
-- recebimento de mídias: download automático, exclusão automática e duração de retenção;
+- recebimento de mídias: opção única de download com exclusão automática e duração em segundos, minutos, horas ou dias;
 - limite geral de download, inclusive de links usados em envios;
 - envio de mídias: limites para imagens, arquivos e vídeos;
 - duração de retenção da mídia;
@@ -154,7 +154,7 @@ Por exemplo, digitar `100` no campo de vídeo grava `WHATSAPP_MAX_VIDEO_SIZE=100
 
 Com o download automático desativado, o campo de tempo fica bloqueado e seu valor é preservado. Os limites de imagem, arquivo, vídeo e download permanecem editáveis porque também se aplicam a outros usos da API.
 
-A instalação nova ativa `AUTO_DELETE_MEDIA=true` e usa 30 segundos. A Central preserva o estado existente; se a chave estiver ausente, a exclusão é exibida como desativada. A verificação é periódica e pode ocorrer alguns segundos depois do prazo.
+A instalação nova ativa `AUTO_DELETE_MEDIA=true` e usa 30 segundos. A Central converte a duração escolhida em segundos e grava as chaves de download e exclusão com o mesmo estado. Assim, ao salvar uma configuração antiga em que o download estava ativo mas a exclusão não, a exclusão passa a ser ativada. A verificação é periódica e pode ocorrer alguns segundos depois do prazo.
 
 O atraso padrão é **1000 ms** quando a chave não existe ou ao criar uma configuração padrão. Um valor existente, inclusive vazio, é preservado; vazio permanece sem atraso. A alteração passa a valer ao salvar o `.env` e reiniciar a API.
 
