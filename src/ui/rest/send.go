@@ -28,6 +28,7 @@ func InitRestSend(app fiber.Router, service domainSend.ISendUsecase) Send {
 	app.Post("/send/audio", rest.SendAudio)
 	app.Post("/send/poll", rest.SendPoll)
 	app.Post("/send/buttons", rest.SendButtons)
+	app.Post("/send/carousel", rest.SendCarousel)
 	app.Post("/send/pix-card", rest.SendPixCard)
 	app.Post("/send/list", rest.SendList)
 	app.Post("/send/call", rest.SendCall)
