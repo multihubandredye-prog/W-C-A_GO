@@ -108,6 +108,7 @@
         <send-audio></send-audio>
         <send-poll></send-poll>
 
+        <send-carousel></send-carousel>
         <send-buttons></send-buttons>
         <send-list></send-list>
         <send-call></send-call>
@@ -262,6 +263,7 @@
     import SendLocation from "{{ .AppBasePath }}/components/SendLocation.js";
     import SendAudio from "{{ .AppBasePath }}/components/SendAudio.js";
     import SendPoll from "{{ .AppBasePath }}/components/SendPoll.js";
+    import SendCarousel from "{{ .AppBasePath }}/components/SendCarousel.js";
     import SendButtons from "{{ .AppBasePath }}/components/SendButtons.js";
     import SendList from "{{ .AppBasePath }}/components/SendList.js";
     import SendCall from "{{ .AppBasePath }}/components/SendCall.js";
@@ -321,7 +323,7 @@
     Vue.createApp({
         components: {
             AppLogin, AppLoginWithCode, AppLogout, AppReconnect, AppMetrics,
-            SendMessage, SendImage, SendFile, SendVideo, SendSticker, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendButtons, SendList, SendCall, SendPresence, SendChatPresence,
+            SendMessage, SendImage, SendFile, SendVideo, SendSticker, SendLink, SendContact, SendLocation, SendAudio, SendPoll, SendCarousel, SendButtons, SendList, SendCall, SendPresence, SendChatPresence,
             MessageDelete, MessageUpdate, MessageReact, MessageRevoke, MessageRead,
             GroupList, GroupCreate, GroupJoinWithLink, GroupInfoFromLink, GroupAddParticipants, GroupSetPhoto, GroupSetName, GroupSetLocked, GroupSetAnnounce, GroupSetTopic, GroupGetInviteLink, GroupInfo,
             NewsletterList,
