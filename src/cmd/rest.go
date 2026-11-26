@@ -151,15 +151,17 @@ func restServer(_ *cobra.Command, _ []string) {
 
 	apiGroup.Get("/", func(c *fiber.Ctx) error {
 		return c.Render("views/index", fiber.Map{
-			"AppHost":        fmt.Sprintf("%s://%s", c.Protocol(), c.Hostname()),
-			"AppVersion":     config.AppVersion,
-			"AppBasePath":    config.AppBasePath,
-			"BasicAuthToken": c.UserContext().Value(middleware.AuthorizationValue("BASIC_AUTH")),
-			"MaxFileSize":    humanize.Bytes(uint64(config.WhatsappSettingMaxFileSize)),
-			"MaxVideoSize":   humanize.Bytes(uint64(config.WhatsappSettingMaxVideoSize)),
+			"AppHost":           fmt.Sprintf("%s://%s", c.Protocol(), c.Hostname()),
+			"AppVersion":        config.AppVersion,
+			"AppBasePath":       config.AppBasePath,
+			"BasicAuthToken":    c.UserContext().Value(middleware.AuthorizationValue("BASIC_AUTH")),
+			"MaxImageSizeBytes": config.WhatsappSettingMaxImageSize,
+			"MaxFileSize":       humanize.Bytes(uint64(config.WhatsappSettingMaxFileSize)),
+			"MaxVideoSize":      humanize.Bytes(uint64(config.WhatsappSettingMaxVideoSize)),
 		})
 	})
 
+	whatsapp.RunMediaCleanup()
 	go websocket.RunHub()
 
 	// Set auto reconnect to whatsapp server after booting

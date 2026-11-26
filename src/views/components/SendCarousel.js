@@ -7,6 +7,7 @@ export default {
         return { phone: '', type: window.TYPEUSER, body: '', image_paths: '', button_text: '', card_titles: '', files: [], selection_error: '', loading: false };
     },
     computed: {
+        imageLimit() { return window.CAROUSEL_MAX_IMAGE_BYTES; },
         paths() { return this.image_paths.split(',').map(path => path.trim()); },
         titles() { return this.card_titles.split(/\r?\n/).map(title => title.trim()); },
         validationMessage() {
@@ -36,8 +37,8 @@ export default {
                 this.selection_error = 'Máximo de 10 imagens. A última seleção não foi adicionada.';
                 return;
             }
-            if (chosen.some(file => !/\.(jpe?g|png)$/i.test(file.name) || file.size <= 0 || file.size > 5 * 1024 * 1024)) {
-                this.selection_error = 'Selecione arquivos JPEG ou PNG de até 5 MiB cada.';
+            if (chosen.some(file => !/\.(jpe?g|png)$/i.test(file.name) || file.size <= 0 || file.size > window.CAROUSEL_MAX_IMAGE_BYTES)) {
+                this.selection_error = 'Selecione arquivos JPEG ou PNG dentro do limite de imagem da API.';
                 return;
             }
             this.selection_error = '';
@@ -111,12 +112,12 @@ export default {
                         <button type="button" class="ui mini button" :disabled="index === files.length - 1" @click="moveFile(index, 1)" :aria-label="'Mover ' + file.name + ' para baixo'">↓</button>
                         <button type="button" class="ui mini red button" @click="removeFile(index)" :aria-label="'Remover ' + file.name">×</button>
                     </div>
-                    <small>JPEG ou PNG, até 5 MiB e 25 megapixels por imagem. A ordem da lista define a ordem dos cartões.</small>
+                    <small>JPEG ou PNG, até {{ (imageLimit / 1000000).toLocaleString() }} MB e 25 megapixels por imagem. A ordem da lista define a ordem dos cartões. O total dos arquivos deve respeitar o limite geral da requisição.</small>
                 </div>
                 <div v-if="!files.length" class="field">
                     <label>Ou informe caminhos locais (2 a 10, separados por vírgulas)</label>
                     <textarea v-model="image_paths" rows="3" placeholder="/storage/emulated/0/imagens/foto1.jpg, /storage/emulated/0/imagens/foto2.png"></textarea>
-                    <small>Use caminhos locais no aparelho onde a API está rodando, na ordem desejada. Não são aceitos links nem nomes com vírgula. JPEG/PNG: até 5 MiB e 25 megapixels por imagem.</small>
+                    <small>Use caminhos locais no aparelho onde a API está rodando, na ordem desejada. Não são aceitos links nem nomes com vírgula. JPEG/PNG: até {{ (imageLimit / 1000000).toLocaleString() }} MB e 25 megapixels por imagem.</small>
                 </div>
                 <div class="field">
                     <label>Texto do botão (opcional, até 20 caracteres)</label>

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
 	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
@@ -32,17 +33,17 @@ func (controller *Send) SendCarousel(c *fiber.Ctx) error {
 			}
 		}
 		for _, file := range files {
-			if file.Size <= 0 || file.Size > 5*1024*1024 {
-				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Cada imagem deve ter até 5 MiB"})
+			if file.Size <= 0 || file.Size > config.WhatsappSettingMaxImageSize {
+				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Cada imagem deve respeitar o limite configurado na API"})
 			}
 			f, err := file.Open()
 			if err != nil {
 				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Não foi possível ler a imagem"})
 			}
-			data, readErr := io.ReadAll(io.LimitReader(f, 5*1024*1024+1))
+			data, readErr := io.ReadAll(io.LimitReader(f, config.WhatsappSettingMaxImageSize+1))
 			f.Close()
-			if readErr != nil || len(data) == 0 || len(data) > 5*1024*1024 {
-				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Não foi possível ler a imagem ou ela excede 5 MiB"})
+			if readErr != nil || len(data) == 0 || int64(len(data)) > config.WhatsappSettingMaxImageSize {
+				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Não foi possível ler a imagem ou ela excede o limite configurado"})
 			}
 			request.Uploads = append(request.Uploads, domainSend.CarouselUpload{Name: file.Filename, Data: data})
 		}

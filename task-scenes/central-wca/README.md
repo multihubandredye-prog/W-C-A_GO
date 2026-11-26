@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.5**
+Versão atual: **2.6**
 
-Arquivo atual: `central-wca-2.5.html`
+Arquivo atual: `central-wca-2.6.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -107,7 +107,7 @@ O painel permite editar:
 - resposta automática;
 - marcação automática de leitura;
 - rejeição automática de chamadas;
-- recebimento de mídias: download automático e duração de retenção;
+- recebimento de mídias: download automático, exclusão automática e duração de retenção;
 - limite geral de download, inclusive de links usados em envios;
 - envio de mídias: limites para imagens, arquivos e vídeos;
 - duração de retenção da mídia;
@@ -134,6 +134,9 @@ APP_TRUSTED_PROXIES=0.0.0.0/0
 APP_BODY_LIMIT=135000000
 DB_URI=file:storages/whatsapp.db?_foreign_keys=on
 DB_KEYS_URI=file::memory:?cache=shared&_foreign_keys=on
+WHATSAPP_AUTO_DOWNLOAD_MEDIA=true
+AUTO_DELETE_MEDIA=true
+AUTO_DELETE_MEDIA_DURATION=30
 WHATSAPP_MAX_IMAGE_SIZE=20000000
 WHATSAPP_MAX_FILE_SIZE=50000000
 WHATSAPP_MAX_VIDEO_SIZE=100000000
@@ -151,7 +154,7 @@ Por exemplo, digitar `100` no campo de vídeo grava `WHATSAPP_MAX_VIDEO_SIZE=100
 
 Com o download automático desativado, o campo de tempo fica bloqueado e seu valor é preservado. Os limites de imagem, arquivo, vídeo e download permanecem editáveis porque também se aplicam a outros usos da API.
 
-`AUTO_DELETE_MEDIA_DURATION` define apenas a duração de retenção. A chave não ativa a exclusão automática por si só; a API também precisa estar configurada para habilitar essa função.
+A instalação nova ativa `AUTO_DELETE_MEDIA=true` e usa 30 segundos. A Central preserva o estado existente; se a chave estiver ausente, a exclusão é exibida como desativada. A verificação é periódica e pode ocorrer alguns segundos depois do prazo.
 
 O atraso padrão é **1000 ms** quando a chave não existe ou ao criar uma configuração padrão. Um valor existente, inclusive vazio, é preservado; vazio permanece sem atraso. A alteração passa a valer ao salvar o `.env` e reiniciar a API.
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/gofiber/fiber/v2"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
 	"mime/multipart"
 	"net/http/httptest"
@@ -99,5 +100,38 @@ func TestCarouselMultipartRejectsTooMany(t *testing.T) {
 	defer res.Body.Close()
 	if res.StatusCode != 400 || s.calls != 0 {
 		t.Fatalf("status=%d calls=%d", res.StatusCode, s.calls)
+	}
+}
+
+func TestCarouselUploadUsesConfiguredImageLimit(t *testing.T) {
+	old := config.WhatsappSettingMaxImageSize
+	defer func() { config.WhatsappSettingMaxImageSize = old }()
+	send := func(limit int64) (int, int) {
+		config.WhatsappSettingMaxImageSize = limit
+		s := &carouselMock{}
+		app := fiber.New(fiber.Config{BodyLimit: 20 * 1024 * 1024})
+		InitRestSend(app, s)
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		_ = w.WriteField("phone", "5511999999999")
+		for i := 0; i < 2; i++ {
+			f, _ := w.CreateFormFile("images", "a.png")
+			_, _ = f.Write(bytes.Repeat([]byte("x"), 6*1024*1024))
+		}
+		_ = w.Close()
+		req := httptest.NewRequest("POST", "/send/carousel", &b)
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		res, err := app.Test(req, 30000)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer res.Body.Close()
+		return res.StatusCode, s.calls
+	}
+	if status, calls := send(5000000); status != 400 || calls != 0 {
+		t.Fatalf("limit 5MB: %d %d", status, calls)
+	}
+	if status, calls := send(50000000); status != 200 || calls != 1 {
+		t.Fatalf("limit 50MB: %d %d", status, calls)
 	}
 }

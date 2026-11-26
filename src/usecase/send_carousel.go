@@ -14,6 +14,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/disintegration/imaging"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
 	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
 	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
@@ -25,10 +26,9 @@ import (
 )
 
 const (
-	carouselStorageRoot   = "/storage/emulated/0"
-	carouselMaxImageBytes = 5 * 1024 * 1024
-	carouselMaxPixels     = 25000000
-	carouselMaxCards      = 10
+	carouselStorageRoot = "/storage/emulated/0"
+	carouselMaxPixels   = 25000000
+	carouselMaxCards    = 10
 )
 
 type carouselImage struct {
@@ -80,20 +80,20 @@ func loadCarouselImage(root, path string) (carouselImage, error) {
 	if err != nil || !info.Mode().IsRegular() {
 		return result, fmt.Errorf("não é um arquivo regular")
 	}
-	if info.Size() <= 0 || info.Size() > carouselMaxImageBytes {
-		return result, fmt.Errorf("imagem vazia ou maior que 5 MiB")
+	if info.Size() <= 0 || info.Size() > config.WhatsappSettingMaxImageSize {
+		return result, fmt.Errorf("imagem vazia ou maior que o limite de imagem configurado")
 	}
-	data, err := io.ReadAll(io.LimitReader(file, carouselMaxImageBytes+1))
-	if err != nil || len(data) == 0 || len(data) > carouselMaxImageBytes {
-		return result, fmt.Errorf("falha ao ler imagem ou arquivo maior que 5 MiB")
+	data, err := io.ReadAll(io.LimitReader(file, config.WhatsappSettingMaxImageSize+1))
+	if err != nil || len(data) == 0 || int64(len(data)) > config.WhatsappSettingMaxImageSize {
+		return result, fmt.Errorf("falha ao ler imagem ou arquivo acima do limite configurado")
 	}
 	return decodeCarouselImage(data)
 }
 
 func decodeCarouselImage(data []byte) (carouselImage, error) {
 	var result carouselImage
-	if len(data) == 0 || len(data) > carouselMaxImageBytes {
-		return result, fmt.Errorf("imagem vazia ou maior que 5 MiB")
+	if len(data) == 0 || int64(len(data)) > config.WhatsappSettingMaxImageSize {
+		return result, fmt.Errorf("imagem vazia ou maior que o limite de imagem configurado")
 	}
 	config, format, err := imageDecodeConfig(data)
 	if err != nil || (format != "jpeg" && format != "png") {

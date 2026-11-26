@@ -4,7 +4,9 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/multihubandredye-prog/W-C-A_GO/config"
@@ -52,57 +54,59 @@ func isConfiguredDatabase(path string, uris ...string) bool {
 	return false
 }
 
-// RunMediaCleanup removes only known media files after the configured age.
-func RunMediaCleanup() {
-	go func() {
-		// Wait for a short moment to ensure the current operation finishes
-		time.Sleep(5 * time.Second)
+// Only files written by storeExtractedMedia (timestamp-UUID.extension) are
+// eligible. Never sweep arbitrary files supplied by the user.
+var downloadedMediaName = regexp.MustCompile(`^[0-9]+-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.[^/\\]+$`)
+var cleanupOnce sync.Once
 
-		// Use relative paths from config
-		dirs := []string{
-			config.PathMedia,
-			config.PathStorages,
+func cleanupDownloadedMedia(now time.Time, dirs []string, age time.Duration, databaseURIs ...string) {
+	for _, dir := range dirs {
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				logrus.Warnf("Failed to read cleanup directory %s: %v", dir, err)
+			}
+			continue
 		}
-
-		// Calculate the threshold for deletion based on configuration (in seconds)
-		threshold := time.Duration(config.AutoDeleteMediaDuration) * time.Second
-
-		for _, dir := range dirs {
-			files, err := os.ReadDir(dir)
-			if err != nil {
-				logrus.Warnf("Failed to read directory for cleanup: %s: %v", dir, err)
+		for _, file := range files {
+			if !downloadedMediaName.MatchString(file.Name()) || file.Type()&os.ModeSymlink != 0 {
 				continue
 			}
-
-			for _, file := range files {
-				if file.IsDir() {
-					continue
-				}
-
-				info, err := file.Info()
-				if err != nil {
-					logrus.Warnf("Failed to get file info: %s: %v", file.Name(), err)
-					continue
-				}
-
-				// Only delete files that are older than the threshold
-				if time.Since(info.ModTime()) < threshold {
-					continue
-				}
-
-				name := file.Name()
-				if !isDisposableMedia(name) || isConfiguredDatabase(filepath.Join(dir, name), config.DBURI, config.DBKeysURI, config.ChatStorageURI) {
-					continue
-				}
-
-				// Remove the file
-				err = os.Remove(filepath.Join(dir, name))
-				if err != nil {
-					logrus.Warnf("Failed to remove file during cleanup: %s: %v", name, err)
-				} else {
-					logrus.Debugf("Cleaned up file: %s", name)
-				}
+			info, err := file.Info()
+			if err != nil || !info.Mode().IsRegular() || now.Sub(info.ModTime()) < age {
+				continue
+			}
+			path := filepath.Join(dir, file.Name())
+			if isConfiguredDatabase(path, databaseURIs...) {
+				continue
+			}
+			if err := os.Remove(path); err != nil {
+				logrus.Warnf("Failed to remove downloaded media %s: %v", file.Name(), err)
 			}
 		}
-	}()
+	}
+}
+
+// RunMediaCleanup starts one process-wide periodic worker. A file is removed
+// only once old enough; polling may add up to five seconds beyond the duration.
+func RunMediaCleanup() {
+	if !config.AutoDeleteMedia || !config.WhatsappAutoDownloadMedia {
+		return
+	}
+	cleanupOnce.Do(func() {
+		go func() {
+			ticker := time.NewTicker(5 * time.Second)
+			defer ticker.Stop()
+			for {
+				if config.AutoDeleteMedia && config.WhatsappAutoDownloadMedia {
+					seconds := config.AutoDeleteMediaDuration
+					if seconds < 0 {
+						seconds = 0
+					}
+					cleanupDownloadedMedia(time.Now(), []string{config.PathMedia, config.PathStorages}, time.Duration(seconds)*time.Second, config.DBURI, config.DBKeysURI, config.ChatStorageURI)
+				}
+				<-ticker.C
+			}
+		}()
+	})
 }

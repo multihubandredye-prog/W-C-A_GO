@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"image"
 	"image/color"
@@ -79,7 +80,7 @@ func TestCarouselLocalImages(t *testing.T) {
 		t.Fatal("invalid accepted")
 	}
 	large := filepath.Join(root, "large.jpg")
-	if err := os.WriteFile(large, make([]byte, carouselMaxImageBytes+1), 0600); err != nil {
+	if err := os.WriteFile(large, make([]byte, config.WhatsappSettingMaxImageSize+1), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := loadCarouselImage(root, large); err == nil {
@@ -151,9 +152,28 @@ func TestDecodeUploadedCarouselImage(t *testing.T) {
 	if err != nil || img.mimetype != "image/png" || img.width != 24 {
 		t.Fatalf("invalid upload: %v", err)
 	}
-	for _, bad := range [][]byte{nil, []byte("not an image"), make([]byte, carouselMaxImageBytes+1)} {
+	for _, bad := range [][]byte{nil, []byte("not an image"), make([]byte, config.WhatsappSettingMaxImageSize+1)} {
 		if _, err := decodeCarouselImage(bad); err == nil {
 			t.Fatal("invalid upload accepted")
 		}
+	}
+}
+
+func TestCarouselImageUsesConfiguredLimit(t *testing.T) {
+	old := config.WhatsappSettingMaxImageSize
+	defer func() { config.WhatsappSettingMaxImageSize = old }()
+	path := filepath.Join(t.TempDir(), "image.png")
+	makeCarouselImage(t, path, "png")
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.WhatsappSettingMaxImageSize = int64(len(raw) - 1)
+	if _, err := decodeCarouselImage(raw); err == nil {
+		t.Fatal("limit not enforced")
+	}
+	config.WhatsappSettingMaxImageSize = int64(len(raw))
+	if _, err := decodeCarouselImage(raw); err != nil {
+		t.Fatal(err)
 	}
 }
