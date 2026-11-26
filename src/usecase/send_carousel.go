@@ -87,6 +87,14 @@ func loadCarouselImage(root, path string) (carouselImage, error) {
 	if err != nil || len(data) == 0 || len(data) > carouselMaxImageBytes {
 		return result, fmt.Errorf("falha ao ler imagem ou arquivo maior que 5 MiB")
 	}
+	return decodeCarouselImage(data)
+}
+
+func decodeCarouselImage(data []byte) (carouselImage, error) {
+	var result carouselImage
+	if len(data) == 0 || len(data) > carouselMaxImageBytes {
+		return result, fmt.Errorf("imagem vazia ou maior que 5 MiB")
+	}
 	config, format, err := imageDecodeConfig(data)
 	if err != nil || (format != "jpeg" && format != "png") {
 		return result, fmt.Errorf("imagem inválida: use JPEG ou PNG")
@@ -164,9 +172,19 @@ func carouselCaptions(paths, titles []string) ([]string, error) {
 }
 
 func (service serviceSend) SendCarousel(ctx context.Context, request domainSend.CarouselRequest) (response domainSend.GenericResponse, err error) {
-	paths, err := carouselPaths(request.ImagePaths)
-	if err != nil {
-		return response, err
+	var paths []string
+	if len(request.Uploads) > 0 {
+		if strings.TrimSpace(request.ImagePaths) != "" || len(request.Uploads) < 2 || len(request.Uploads) > carouselMaxCards {
+			return response, pkgError.ValidationError("informe entre 2 e 10 imagens, sem combinar arquivos e caminhos")
+		}
+		for _, upload := range request.Uploads {
+			paths = append(paths, filepath.Base(strings.ReplaceAll(upload.Name, "\\", "/")))
+		}
+	} else {
+		paths, err = carouselPaths(request.ImagePaths)
+		if err != nil {
+			return response, err
+		}
 	}
 	body := strings.TrimSpace(request.Body)
 	if body == "" {
@@ -197,7 +215,11 @@ func (service serviceSend) SendCarousel(ctx context.Context, request domainSend.
 	// Validate every local file before uploading anything.
 	localImages := make([]carouselImage, len(paths))
 	for i, path := range paths {
-		localImages[i], err = loadCarouselImage(carouselStorageRoot, path)
+		if len(request.Uploads) > 0 {
+			localImages[i], err = decodeCarouselImage(request.Uploads[i].Data)
+		} else {
+			localImages[i], err = loadCarouselImage(carouselStorageRoot, path)
+		}
 		if err != nil {
 			return response, pkgError.ValidationError(fmt.Sprintf("image_paths[%d]: %v", i+1, err))
 		}

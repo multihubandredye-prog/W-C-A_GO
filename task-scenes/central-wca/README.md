@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.3**
+Versão atual: **2.4**
 
-Arquivo atual: `central-wca-2.3.html`
+Arquivo atual: `central-wca-2.4.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -146,6 +146,8 @@ WHATSAPP_CHAT_STORAGE=true
 ```
 
 Por exemplo, digitar `100` no campo de vídeo grava `WHATSAPP_MAX_VIDEO_SIZE=100000000`. Ao abrir um `.env` existente, a Central converte os bytes de volta para MB na interface.
+
+Com o download automático desativado, o campo de tempo fica bloqueado e seu valor é preservado. Os limites de imagem, arquivo, vídeo e download permanecem editáveis porque também se aplicam a outros usos da API.
 
 `AUTO_DELETE_MEDIA_DURATION` define apenas a duração de retenção. A chave não ativa a exclusão automática por si só; a API também precisa estar configurada para habilitar essa função.
 

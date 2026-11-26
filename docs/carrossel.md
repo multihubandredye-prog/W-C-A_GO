@@ -51,3 +51,7 @@ A API reconhece respostas de botões com os IDs reservados `carousel_1` até `ca
 ```
 
 `SelectedText` e `RepliedToID` só aparecem quando a resposta recebida os contém. Esses dados identificam a posição, **não o arquivo nem seu caminho**; guarde a lista enviada e associe-a à mensagem original para recuperar essa informação, quando o ID original estiver disponível. Os IDs são reutilizados entre envios. A classificação depende da convenção de nomes, não de uma prova da origem: não use `carousel_1` a `carousel_10` em botões comuns. Respostas de botão comuns e listas mantêm seus tipos anteriores. O comportamento efetivo da resposta depende do cliente WhatsApp e deve ser validado em aparelho real. Atualize tanto a API quanto o Java do Receiver para usar os novos campos.
+
+## Seleção de imagens na página da API
+
+O formulário aceita selecionar 2 a 10 imagens JPEG/PNG no navegador, adicionar em etapas, remover e ajustar a ordem. Nesse modo os arquivos são transmitidos para a API via `multipart/form-data` em campos repetidos `images`; a API valida o conteúdo e os limites antes dos uploads ao WhatsApp. Os nomes dos arquivos são usados como títulos por padrão. O envio JSON com `image_paths` continua disponível e não foi alterado. Os arquivos selecionados não precisam estar no armazenamento local da API. A soma deve respeitar também o limite geral do corpo da requisição configurado na API.

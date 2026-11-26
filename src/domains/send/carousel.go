@@ -4,12 +4,18 @@ import "context"
 
 // CarouselRequest is a separate, experimental image carousel endpoint.
 // ImagePaths is a comma-separated list of absolute Android shared-storage paths.
+type CarouselUpload struct {
+	Name string
+	Data []byte
+}
+
 type CarouselRequest struct {
 	BaseRequest
-	Body       string   `json:"body"`
-	ImagePaths string   `json:"image_paths"`
-	CardTitles []string `json:"card_titles,omitempty"`
-	ButtonText string   `json:"button_text,omitempty"`
+	Uploads    []CarouselUpload `json:"-"`
+	Body       string           `json:"body"`
+	ImagePaths string           `json:"image_paths"`
+	CardTitles []string         `json:"card_titles,omitempty"`
+	ButtonText string           `json:"button_text,omitempty"`
 }
 
 // ICarouselSender keeps the optional feature independent of ISendUsecase.

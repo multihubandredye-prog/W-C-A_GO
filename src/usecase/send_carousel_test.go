@@ -139,3 +139,21 @@ func TestCarouselCaptions(t *testing.T) {
 		t.Fatal("directory root accepted")
 	}
 }
+
+func TestDecodeUploadedCarouselImage(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "upload.png")
+	makeCarouselImage(t, path, "png")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := decodeCarouselImage(data)
+	if err != nil || img.mimetype != "image/png" || img.width != 24 {
+		t.Fatalf("invalid upload: %v", err)
+	}
+	for _, bad := range [][]byte{nil, []byte("not an image"), make([]byte, carouselMaxImageBytes+1)} {
+		if _, err := decodeCarouselImage(bad); err == nil {
+			t.Fatal("invalid upload accepted")
+		}
+	}
+}

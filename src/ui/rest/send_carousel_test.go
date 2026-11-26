@@ -1,9 +1,11 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"github.com/gofiber/fiber/v2"
 	domainSend "github.com/multihubandredye-prog/W-C-A_GO/domains/send"
+	"mime/multipart"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -42,5 +44,60 @@ func TestCarouselEndpoint(t *testing.T) {
 	}
 	if s.request.Phone != "5511999999999@s.whatsapp.net" || s.request.ButtonText != "Escolher" || s.request.ImagePaths != "/storage/emulated/0/a.jpg,/storage/emulated/0/b.jpg" {
 		t.Fatalf("unexpected request %+v", s.request)
+	}
+}
+
+func TestCarouselMultipart(t *testing.T) {
+	s := &carouselMock{}
+	app := fiber.New(fiber.Config{BodyLimit: 60 * 1024 * 1024})
+	InitRestSend(app, s)
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	_ = writer.WriteField("phone", "5511999999999")
+	_ = writer.WriteField("body", "Teste")
+	_ = writer.WriteField("card_titles", `["A","B"]`)
+	for _, name := range []string{"a.jpg", "b.png"} {
+		file, err := writer.CreateFormFile("images", name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, _ = file.Write([]byte("image bytes"))
+	}
+	_ = writer.Close()
+	req := httptest.NewRequest("POST", "/send/carousel", &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	res, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 || s.calls != 1 {
+		t.Fatalf("status=%d calls=%d", res.StatusCode, s.calls)
+	}
+	if len(s.request.Uploads) != 2 || s.request.Uploads[0].Name != "a.jpg" || string(s.request.Uploads[1].Data) != "image bytes" || len(s.request.CardTitles) != 2 {
+		t.Fatalf("bad request: %+v", s.request)
+	}
+}
+func TestCarouselMultipartRejectsTooMany(t *testing.T) {
+	s := &carouselMock{}
+	app := fiber.New()
+	InitRestSend(app, s)
+	var body bytes.Buffer
+	w := multipart.NewWriter(&body)
+	_ = w.WriteField("phone", "5511999999999")
+	for i := 0; i < 11; i++ {
+		f, _ := w.CreateFormFile("images", "a.jpg")
+		_, _ = f.Write([]byte("x"))
+	}
+	_ = w.Close()
+	req := httptest.NewRequest("POST", "/send/carousel", &body)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	res, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 400 || s.calls != 0 {
+		t.Fatalf("status=%d calls=%d", res.StatusCode, s.calls)
 	}
 }

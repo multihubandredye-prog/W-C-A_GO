@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"encoding/json"
+	"io"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,10 +14,42 @@ import (
 // SendCarousel is isolated from existing send endpoints for easy removal.
 func (controller *Send) SendCarousel(c *fiber.Ctx) error {
 	var request domainSend.CarouselRequest
-	if err := c.BodyParser(&request); err != nil {
+	if strings.HasPrefix(c.Get("Content-Type"), "multipart/form-data") {
+		form, err := c.MultipartForm()
+		if err != nil {
+			return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Formulário inválido"})
+		}
+		files := form.File["images"]
+		if len(files) < 2 || len(files) > 10 {
+			return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Selecione de 2 a 10 imagens"})
+		}
+		request.Phone = c.FormValue("phone")
+		request.Body = c.FormValue("body")
+		request.ButtonText = c.FormValue("button_text")
+		if titles := c.FormValue("card_titles"); titles != "" {
+			if err := json.Unmarshal([]byte(titles), &request.CardTitles); err != nil {
+				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Títulos inválidos"})
+			}
+		}
+		for _, file := range files {
+			if file.Size <= 0 || file.Size > 5*1024*1024 {
+				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Cada imagem deve ter até 5 MiB"})
+			}
+			f, err := file.Open()
+			if err != nil {
+				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Não foi possível ler a imagem"})
+			}
+			data, readErr := io.ReadAll(io.LimitReader(f, 5*1024*1024+1))
+			f.Close()
+			if readErr != nil || len(data) == 0 || len(data) > 5*1024*1024 {
+				return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Não foi possível ler a imagem ou ela excede 5 MiB"})
+			}
+			request.Uploads = append(request.Uploads, domainSend.CarouselUpload{Name: file.Filename, Data: data})
+		}
+	} else if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Invalid request"})
 	}
-	if strings.TrimSpace(request.Phone) == "" || strings.TrimSpace(request.ImagePaths) == "" {
+	if strings.TrimSpace(request.Phone) == "" || (strings.TrimSpace(request.ImagePaths) == "" && len(request.Uploads) == 0) {
 		return c.Status(fiber.StatusBadRequest).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "phone and image_paths are required"})
 	}
 	sender, ok := controller.Service.(domainSend.ICarouselSender)
