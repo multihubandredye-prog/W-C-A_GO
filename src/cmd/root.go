@@ -533,7 +533,7 @@ func initApp() {
 	whatsappDB := whatsapp.InitWaDB(ctx, config.DBURI)
 	var keysDB *sqlstore.Container
 	if config.ExperimentalPrimarySignalStore {
-		logrus.Warn("Experimental primary Signal store enabled; existing secondary Signal state is not migrated. Use only a fresh isolated test database")
+		logrus.Warn("Primary Signal store enabled; existing secondary Signal state is not migrated")
 	} else if config.DBKeysURI != "" {
 		keysDB = whatsapp.InitWaDB(ctx, config.DBKeysURI)
 	}

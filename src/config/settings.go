@@ -27,7 +27,7 @@ var (
 
 	DBURI                          = "file:storages/whatsapp.db"
 	DBKeysURI                      = ""
-	ExperimentalPrimarySignalStore = false // isolated testing only; does not migrate existing sessions
+	ExperimentalPrimarySignalStore = false // opt-in primary Signal store; does not migrate existing sessions
 
 	WhatsappAutoReplyMessage          string
 	WhatsappAutoMarkRead              = false // Auto-mark incoming messages as read

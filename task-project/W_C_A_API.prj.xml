@@ -890,7 +890,7 @@ mkdir -p /data/data/net.dinglisch.android.taskerm/files/WCA
 # Cria ou sobrescreve o arquivo .env com todo o conteúdo
 cat &gt; /data/data/net.dinglisch.android.taskerm/files/WCA/.env &lt;&lt; 'ENVEOF'
 # ============================================================
-#  GoWA - WhatsApp REST API
+#  Whats-connect-api
 #  Ambiente: WhatsConnectApi - Tasker
 # ============================================================
 
@@ -906,11 +906,14 @@ APP_TRUSTED_PROXIES=0.0.0.0/0
 # Database Settings
 DB_URI=file:storages/whatsapp.db?_foreign_keys=on
 DB_KEYS_URI=file::memory:?cache=shared&amp;_foreign_keys=on
+WCA_EXPERIMENTAL_PRIMARY_SIGNAL_STORE=true
 
 # WhatsApp Settings
 WHATSAPP_AUTO_REPLY=
 WHATSAPP_AUTO_MARK_READ=false
 WHATSAPP_AUTO_REJECT_CALL=false
+WHATSAPP_AUTO_ANSWER_CALL=false
+WHATSAPP_AUTO_ANSWER_AUDIO=
 WHATSAPP_AUTO_DOWNLOAD_MEDIA=true
 AUTO_DELETE_MEDIA=true
 AUTO_DELETE_MEDIA_DURATION=30
