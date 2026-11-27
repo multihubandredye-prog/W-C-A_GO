@@ -13,7 +13,6 @@ import (
 	pkgError "github.com/multihubandredye-prog/W-C-A_GO/pkg/error"
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
 	"github.com/multihubandredye-prog/W-C-A_GO/validations"
-	fiberUtils "github.com/gofiber/fiber/v2/utils"
 	"github.com/purpshell/meowcaller"
 	"github.com/sirupsen/logrus"
 )
@@ -36,79 +35,81 @@ func (service serviceSend) SendCall(ctx context.Context, request domainSend.Call
 		return response, err
 	}
 
-	var tempAudioPath string
-	var deleteTempFile bool
+	var mp3Source meowcaller.AudioSource
+	var audioPath string
+	var temporaryInput string
 	defer func() {
-		if deleteTempFile && tempAudioPath != "" {
-			_ = os.Remove(tempAudioPath)
+		if temporaryInput != "" {
+			_ = os.Remove(temporaryInput)
 		}
 	}()
-
-	var mp3Source meowcaller.AudioSource
-	if request.Audio != nil {
-		// Uploaded file (multipart): persist to a temp file so meowcaller's
-		// MP3 decoder can stream it, exactly like the URL/base64 paths.
-		uploaded, errOpen := request.Audio.Open()
-		if errOpen != nil {
-			return response, pkgError.ValidationError(fmt.Sprintf("failed to open the uploaded audio file: %v", errOpen))
-		}
-		audioBytes, errRead := io.ReadAll(uploaded)
-		_ = uploaded.Close()
-		if errRead != nil {
-			return response, pkgError.ValidationError(fmt.Sprintf("failed to read the uploaded audio file: %v", errRead))
-		}
-		tempAudioPath = fmt.Sprintf("%s/temp_call_%s.mp3", config.PathMedia, fiberUtils.UUIDv4())
-		if errWrite := os.WriteFile(tempAudioPath, audioBytes, 0644); errWrite != nil {
-			return response, pkgError.InternalServerError(fmt.Sprintf("failed to write temp audio file: %v", errWrite))
-		}
-		deleteTempFile = true
-		if mp3, errMP3 := meowcaller.MP3File(tempAudioPath); errMP3 == nil {
-			mp3Source = mp3
-		} else {
-			// Fail fast with a clear message: the upload is a user action,
-			// unlike the legacy paths which only warn and keep the call.
-			return response, pkgError.ValidationError("the uploaded audio file must be a valid MP3")
-		}
-	} else if request.AudioURL != "" {
-		audioBytes, _, errDownload := utils.DownloadAudioFromURL(request.AudioURL)
-		if errDownload != nil {
-			return response, pkgError.ValidationError(fmt.Sprintf("failed to download audio from URL: %v", errDownload))
-		}
-		tempAudioPath = fmt.Sprintf("%s/temp_call_%s.mp3", config.PathMedia, fiberUtils.UUIDv4())
-		if errWrite := os.WriteFile(tempAudioPath, audioBytes, 0644); errWrite != nil {
-			return response, pkgError.InternalServerError(fmt.Sprintf("failed to write temp audio file: %v", errWrite))
-		}
-		deleteTempFile = true
-		if mp3, errMP3 := meowcaller.MP3File(tempAudioPath); errMP3 == nil {
-			mp3Source = mp3
-		} else {
-			logrus.Warnf("Failed to open downloaded MP3 file %s for call: %v", tempAudioPath, errMP3)
-		}
-	} else if request.AudioPath != "" {
-		// 1) First check if it is an existing file on the server filesystem
-		if _, errStat := os.Stat(request.AudioPath); errStat == nil {
-			if mp3, errMP3 := meowcaller.MP3File(request.AudioPath); errMP3 == nil {
-				mp3Source = mp3
-			} else {
-				logrus.Warnf("Failed to open local MP3 file %s for call: %v", request.AudioPath, errMP3)
+	if request.Audio != nil || request.AudioURL != "" {
+		var audioBytes []byte
+		if request.Audio != nil {
+			uploaded, errOpen := request.Audio.Open()
+			if errOpen != nil {
+				return response, pkgError.ValidationError("Failed to open uploaded audio")
+			}
+			audioBytes, err = io.ReadAll(io.LimitReader(uploaded, 20_000_001))
+			_ = uploaded.Close()
+			if err != nil || len(audioBytes) == 0 || len(audioBytes) > 20_000_000 {
+				return response, pkgError.ValidationError("Audio is empty or exceeds 20 MB")
 			}
 		} else {
-			// 2) Otherwise try decoding as Base64 string
+			audioBytes, _, err = utils.DownloadAudioFromURL(request.AudioURL)
+			if err != nil {
+				return response, pkgError.ValidationError("Failed to download audio")
+			}
+			if len(audioBytes) == 0 || len(audioBytes) > 20_000_000 {
+				return response, pkgError.ValidationError("Audio is empty or exceeds 20 MB")
+			}
+		}
+		f, e := os.CreateTemp(config.PathMedia, ".wca-call-input-*")
+		if e != nil {
+			return response, pkgError.InternalServerError("Unable to prepare temporary audio")
+		}
+		temporaryInput = f.Name()
+		_, e = f.Write(audioBytes)
+		closeErr := f.Close()
+		if e != nil || closeErr != nil {
+			return response, pkgError.InternalServerError("Unable to write temporary audio")
+		}
+		audioPath = temporaryInput
+	} else if request.AudioPath != "" {
+		if _, errStat := os.Stat(request.AudioPath); errStat == nil {
+			audioPath = request.AudioPath
+		} else {
 			audioBytes, errBase64 := utils.Base64ToBytes(request.AudioPath)
 			if errBase64 != nil {
-				return response, pkgError.ValidationError("audio_path: file does not exist on server filesystem and is not a valid base64 audio string. For remote files, use audio_url or send a Base64 string.")
+				return response, pkgError.ValidationError("audio_path must be an existing file or valid Base64 audio")
 			}
-			tempAudioPath = fmt.Sprintf("%s/temp_call_%s.mp3", config.PathMedia, fiberUtils.UUIDv4())
-			if errWrite := os.WriteFile(tempAudioPath, audioBytes, 0644); errWrite != nil {
-				return response, pkgError.InternalServerError(fmt.Sprintf("failed to write temp base64 audio file: %v", errWrite))
+			if len(audioBytes) == 0 || len(audioBytes) > 20_000_000 {
+				return response, pkgError.ValidationError("Audio is empty or exceeds 20 MB")
 			}
-			deleteTempFile = true
-			if mp3, errMP3 := meowcaller.MP3File(tempAudioPath); errMP3 == nil {
-				mp3Source = mp3
-			} else {
-				logrus.Warnf("Failed to open base64 MP3 file %s for call: %v", tempAudioPath, errMP3)
+			f, e := os.CreateTemp(config.PathMedia, ".wca-call-input-*")
+			if e != nil {
+				return response, pkgError.InternalServerError("Unable to prepare temporary audio")
 			}
+			temporaryInput = f.Name()
+			_, e = f.Write(audioBytes)
+			closeErr := f.Close()
+			if e != nil || closeErr != nil {
+				return response, pkgError.InternalServerError("Unable to write temporary audio")
+			}
+			audioPath = temporaryInput
 		}
+	}
+	if audioPath != "" {
+		info, e := os.Stat(audioPath)
+		if e != nil || !info.Mode().IsRegular() || info.Size() <= 0 || info.Size() > 20_000_000 {
+			return response, pkgError.ValidationError("Audio is empty, inaccessible or exceeds 20 MB")
+		}
+		var cleanup func()
+		mp3Source, cleanup, e = openCallAudio(ctx, audioPath, config.PathMedia)
+		if e != nil {
+			return response, pkgError.ValidationError(e.Error())
+		}
+		defer cleanup()
 	}
 
 	// The meowcaller client must be the one created before the whatsmeow

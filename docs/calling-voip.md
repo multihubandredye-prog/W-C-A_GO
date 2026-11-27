@@ -28,8 +28,8 @@ A rota `POST /send/call` foi implementada para permitir que a API realize chamad
 |---|---|---|---|
 | `phone` | string | **Sim** | Número do destinatário com DDI e DDD (ex: `5581999999999`) |
 | `duration` | int | Não | Duração em segundos da chamada antes de encerrar (padrão 15s) |
-| `audio_url` | string | Não | URL pública (http/https) do áudio MP3 para a API baixar e tocar na chamada |
-| `audio_path` | string | Não | Áudio em Base64 (`data:audio/mp3;base64,...` ou string pura) OU caminho de arquivo MP3 no servidor |
+| `audio_url` | string | Não | URL pública (http/https) de áudio para a API baixar e tocar na chamada |
+| `audio_path` | string | Não | Áudio em Base64 (`data:audio/mp3;base64,...` ou string pura) OU caminho de arquivo de áudio no servidor |
 
 ### Exemplo 1: Toque de Alerta / Chamada Perdida
 ```bash
@@ -107,3 +107,7 @@ Ao disparar uma requisição para `POST /send/call` e atender a ligação no cel
 - **Status Homologado (Áudio na Linha Funcionando):**  
   `INFO: Call <ID> is ready (RTP/relay media flowing); starting duration timer (30s)`  
   *(Se esta linha aparecer no log, significa que o handshake UDP/TURN foi concluído com sucesso e o arquivo MP3 começou a ser reproduzido diretamente na chamada!)*
+
+### Formatos de áudio
+
+A API aceita MP3 diretamente e converte outros formatos compatíveis com o FFmpeg disponível antes de iniciar a chamada, incluindo OPUS/OGG, WAV, M4A/AAC e FLAC quando os respectivos codecs estão presentes. Entrada e saída são limitadas a 20.000.000 bytes; erro de conversão impede a chamada. O arquivo original não é alterado e arquivos temporários são removidos. No Android, é necessário o FFmpeg do projeto com libmp3lame. Teste o codec e a chamada real no dispositivo.

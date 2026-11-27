@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.26**
+Versão atual: **2.27**
 
-Arquivo atual: `central-wca-2.26.html`
+Arquivo atual: `central-wca-2.27.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -258,3 +258,5 @@ As confirmações `message.ack` possuem filtros independentes para entrega, leit
 ## Atendimento automático de chamadas
 
 A versão 2.9 permite ativar o atendimento automático experimental de áudio individual e informar o MP3 privado na pasta `WCA/audio-call`. Ela grava `WHATSAPP_AUTO_ANSWER_CALL` e `WHATSAPP_AUTO_ANSWER_AUDIO` no `.env`; exige recusa automática desativada e reinício da API. Os valores são preservados ao salvar outras opções. A API precisa conter a implementação; chamadas reais e a chave de criptografia ainda precisam ser testadas.
+
+A caixa postal aceita MP3, OPUS, OGG, WAV, M4A, AAC e FLAC locais de até 20 MB. A Central copia MP3 como antes e converte os demais para MP3 privado usando o FFmpeg do projeto. Se a conversão falhar, o .env não é salvo. Requer FFmpeg com os decodificadores correspondentes e encoder libmp3lame.
