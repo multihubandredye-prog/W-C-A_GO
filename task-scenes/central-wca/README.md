@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.28**
+Versão atual: **2.29**
 
-Arquivo atual: `central-wca-2.28.html`
+Arquivo atual: `central-wca-2.29.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -262,3 +262,5 @@ A versão 2.9 permite ativar o atendimento automático experimental de áudio in
 A caixa postal aceita MP3, OPUS, OGG, WAV, M4A, AAC e FLAC locais de até 20 MB. A Central copia MP3 como antes e converte os demais para MP3 privado usando o FFmpeg do projeto. Se a conversão falhar, o .env não é salvo. Requer FFmpeg com os decodificadores correspondentes e encoder libmp3lame.
 
 A caixa postal permite selecionar, para cada WhatsApp, atendimento sem espera ou com atraso de 1 a 10 segundos; o símbolo ? apresenta a explicação. Requer API compatível com `answer_delay_seconds`, senão a Central não salva as regras para evitar descartar o tempo. Configurações antigas começam sem espera.
+
+O tempo de atendimento é escolhido em uma lista compacta integrada ao visual da caixa postal, sem o seletor nativo do Android.
