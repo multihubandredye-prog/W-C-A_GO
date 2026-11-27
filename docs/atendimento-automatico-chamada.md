@@ -1,6 +1,6 @@
 # Atendimento automático de chamadas de áudio — experimental
 
-A API pode tentar atender automaticamente chamadas **individuais de áudio**, reproduzir um MP3 e desligar ao terminar. Não usa Tasker, webhook ou `/call/answer` para iniciar o atendimento. A configuração vale para **todos os dispositivos conectados à mesma API e todos os números**; não há filtros, agenda, grupos nem vídeo nesta versão. O webhook existente continua funcionando e a rota manual permanece disponível.
+A API pode tentar atender automaticamente chamadas **individuais de áudio**, reproduzir um MP3 e desligar ao terminar. Não usa Tasker, webhook ou `/call/answer` para iniciar o atendimento. A configuração vale para **todos os dispositivos conectados à mesma API e todos os números**; não há filtros, agenda, grupos nem vídeo nesta versão. O webhook existente continua funcionando. A rota manual de atendimento foi removida; `/send/call` permanece disponível para originar chamadas.
 
 No `.env` da API (no aparelho), configure:
 

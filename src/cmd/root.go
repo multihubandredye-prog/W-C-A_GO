@@ -169,6 +169,10 @@ func initEnvConfig() {
 		config.DBKeysURI = normalizeDatabaseURI(envDBKEYSURI)
 	}
 
+	if viper.IsSet("wca_experimental_primary_signal_store") {
+		config.ExperimentalPrimarySignalStore = viper.GetBool("wca_experimental_primary_signal_store")
+	}
+
 	// WhatsApp settings
 	if envAutoReply := viper.GetString("whatsapp_auto_reply"); envAutoReply != "" {
 		config.WhatsappAutoReplyMessage = envAutoReply
@@ -528,7 +532,9 @@ func initApp() {
 
 	whatsappDB := whatsapp.InitWaDB(ctx, config.DBURI)
 	var keysDB *sqlstore.Container
-	if config.DBKeysURI != "" {
+	if config.ExperimentalPrimarySignalStore {
+		logrus.Warn("Experimental primary Signal store enabled; existing secondary Signal state is not migrated. Use only a fresh isolated test database")
+	} else if config.DBKeysURI != "" {
 		keysDB = whatsapp.InitWaDB(ctx, config.DBKeysURI)
 	}
 
