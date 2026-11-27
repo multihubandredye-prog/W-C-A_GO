@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/multihubandredye-prog/W-C-A_GO/infrastructure/whatsapp"
 	"github.com/multihubandredye-prog/W-C-A_GO/pkg/utils"
@@ -29,7 +30,18 @@ func autoCallPolicyPut(c *fiber.Ctx) error {
 	if e := p.Validate(); e != nil {
 		return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: e.Error()})
 	}
-	if e := d.SetAutoCallPolicy(p); e != nil {
+	var fields map[string]json.RawMessage
+	if e := json.Unmarshal(c.Body(), &fields); e != nil || fields == nil {
+		return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Invalid policy JSON"})
+	}
+	_, hasDelay := fields["answer_delay_seconds"]
+	var saveErr error
+	if hasDelay {
+		saveErr = d.SetAutoCallPolicy(p)
+	} else {
+		saveErr = d.SetAutoCallPolicyPreservingDelay(p)
+	}
+	if saveErr != nil {
 		return c.Status(500).JSON(utils.ResponseData{Status: 500, Code: "POLICY_SAVE_FAILED", Message: "Could not save automatic call policy"})
 	}
 	return c.JSON(utils.ResponseData{Status: 200, Code: "SUCCESS", Message: "Automatic call policy saved", Results: p})

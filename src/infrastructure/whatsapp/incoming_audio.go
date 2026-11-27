@@ -34,6 +34,7 @@ type inboundCall interface {
 }
 type incomingEntry struct {
 	call                           inboundCall
+	firstObserved                  time.Time
 	deviceKey, callerPhone         string
 	identityRequired               bool
 	offerKnown, group, video, busy bool
@@ -88,7 +89,7 @@ func (r *incomingRegistry) slot(id string) *incomingEntry {
 		if len(r.calls) >= 256 {
 			return nil
 		}
-		e = &incomingEntry{done: make(chan struct{})}
+		e = &incomingEntry{done: make(chan struct{}), firstObserved: time.Now()}
 		r.calls[id] = e
 	}
 	return e
@@ -307,23 +308,45 @@ func (r *incomingRegistry) autoAnswer(id, path string, open func(string) (meowca
 	e := r.calls[id]
 	device, phone := "", ""
 	required := false
+	var firstObserved time.Time
+	var done <-chan struct{}
 	if e != nil {
 		device, phone, required = e.deviceKey, e.callerPhone, e.identityRequired
+		firstObserved, done = e.firstObserved, e.done
 	}
 	r.mu.Unlock()
+	if e == nil {
+		return
+	}
 	if required && device == "" {
 		logrus.Warn("Automatic call skipped: device identity unavailable")
 		return
 	}
 	if device != "" {
-		allowed, policyErr := allowsAutomaticCall(r.policyPath, device, phone, time.Now())
+		policy, policyErr := loadDevicePolicy(r.policyPath, device)
 		if policyErr != nil {
 			logrus.Warnf("Automatic call policy check failed: %v", policyErr)
 			return
 		}
-		if !allowed {
+		allowed, policyErr := policy.Allows(phone, time.Now())
+		if policyErr != nil || !allowed {
 			logrus.Infof("Automatic call skipped by policy")
 			return
+		}
+		remaining := time.Until(firstObserved.Add(time.Duration(policy.AnswerDelaySeconds) * time.Second))
+		if remaining > 0 {
+			timer := time.NewTimer(remaining)
+			select {
+			case <-done:
+				timer.Stop()
+				return
+			case <-timer.C:
+			}
+			// Recheck filters and schedule after the wait; a caller may have hung up.
+			allowed, policyErr = allowsAutomaticCall(r.policyPath, device, phone, time.Now())
+			if policyErr != nil || !allowed {
+				return
+			}
 		}
 	}
 	src, err := open(path)

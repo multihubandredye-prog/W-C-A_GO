@@ -85,6 +85,10 @@ func loadDevicePolicy(path, device string) (AutoCallPolicy, error) {
 	return p, nil
 }
 func saveDevicePolicy(path, device string, p AutoCallPolicy) error {
+	return saveDevicePolicyPreservingDelay(path, device, p, false)
+}
+
+func saveDevicePolicyPreservingDelay(path, device string, p AutoCallPolicy, preserveDelay bool) error {
 	if device == "" {
 		return errors.New("device identity unavailable")
 	}
@@ -96,6 +100,9 @@ func saveDevicePolicy(path, device string, p AutoCallPolicy) error {
 	f, err := readPolicyFile(path)
 	if err != nil {
 		return err
+	}
+	if existing, ok := f.Devices[device]; ok && preserveDelay {
+		p.AnswerDelaySeconds = existing.AnswerDelaySeconds
 	}
 	if existing, ok := f.Devices[device]; ok && existing.ListsVersion == 1 && p.ListsVersion == 0 {
 		return errors.New("outdated policy client cannot overwrite separate lists")
@@ -159,6 +166,15 @@ func (d *DeviceInstance) SetAutoCallPolicy(p AutoCallPolicy) error {
 		return err
 	}
 	return saveDevicePolicy(AutoCallPoliciesPath, key, p)
+}
+
+// Older Central versions omit the delay; keep it rather than silently resetting it.
+func (d *DeviceInstance) SetAutoCallPolicyPreservingDelay(p AutoCallPolicy) error {
+	key, err := d.policyDeviceKey()
+	if err != nil {
+		return err
+	}
+	return saveDevicePolicyPreservingDelay(AutoCallPoliciesPath, key, p, true)
 }
 func allowsAutomaticCall(path, device, phone string, now time.Time) (bool, error) {
 	p, err := loadDevicePolicy(path, device)

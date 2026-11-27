@@ -33,3 +33,7 @@ As regras ficam em `/data/data/net.dinglisch.android.taskerm/files/WCA/audio-cal
 ## Outros formatos na Central
 
 A partir da Central 2.27, a interface aceita arquivos locais MP3, OPUS, OGG, WAV, M4A, AAC e FLAC de até 20.000.000 bytes. MP3 continua sendo copiado como antes; os demais são convertidos pelo FFmpeg do projeto para o MP3 privado antes de salvar. Falha na conversão não grava o .env. A API de caixa postal continua lendo o MP3 privado; é necessário testar codecs e permissões no Android.
+
+## Tempo para atender por WhatsApp
+
+A política inclui `answer_delay_seconds` de 0 a 10 (padrão 0 = sem espera). A contagem inicia na primeira observação da chamada pela API; após a espera, filtros e horários são reavaliados, e o desligamento remoto cancela a espera. A resposta e a mídia dependem da rede e da biblioteca. A Central 2.28 exige uma API que informe esse campo; clientes antigos que não enviam o campo preservam o valor existente ao salvar. Após instalar uma API nova, evite voltar a uma versão antiga, pois ela pode descartar esse campo ao gravar políticas.

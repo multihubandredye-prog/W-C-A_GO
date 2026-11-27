@@ -13,6 +13,7 @@ import (
 // AutoCallPolicy is the per-device rule. This is a policy engine only; it does
 // not read any file, update WhatsApp state, or enable answering by itself.
 type AutoCallPolicy struct {
+	AnswerDelaySeconds  int      `json:"answer_delay_seconds"`
 	ListsVersion        int      `json:"lists_version"`
 	AllowedNumbers      []string `json:"allowed_numbers"`
 	IgnoredNumbers      []string `json:"ignored_numbers"`
@@ -40,6 +41,9 @@ func validPolicyClock(s string) (int, error) {
 	return h*60 + m, nil
 }
 func (p AutoCallPolicy) Validate() error {
+	if p.AnswerDelaySeconds < 0 || p.AnswerDelaySeconds > 10 {
+		return errors.New("answer delay must be between 0 and 10 seconds")
+	}
 	if p.Mode != "all" && p.Mode != "allow" && p.Mode != "ignore" {
 		return errors.New("invalid mode")
 	}
