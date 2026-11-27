@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.25**
+Versão atual: **2.26**
 
-Arquivo atual: `central-wca-2.25.html`
+Arquivo atual: `central-wca-2.26.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -251,7 +251,7 @@ A consulta de dispositivos não solicita reconexão e o botão de reconectar foi
 
 Fechar o pareamento não executa logout. Listas vazias não apagam automaticamente o cache, inclusive durante inicialização. Dispositivos só são acrescentados ao cache quando a API informa estado logged_in. As escritas do arquivo de dispositivos são serializadas. Se a API não responder durante a remoção, o resultado é tratado como incerto.
 
-O menu oferece **Reiniciar WCA**, com confirmação, para reiniciar o serviço pela tarefa do Tasker.
+O menu oferece **Reiniciar WCA**, com confirmação, para reiniciar o serviço pela tarefa do Tasker. Todas as ações que solicitam esse reinício exibem um indicador indeterminado até o Tasker encerrar a cena; se a solicitação falhar imediatamente, o indicador desaparece e é apresentado um aviso. O indicador não confirma que a API já iniciou.
 
 As confirmações `message.ack` possuem filtros independentes para entrega, leitura pelo destinatário e leitura pela própria conta. O evento geral precisa estar habilitado ou a lista geral de eventos deve estar vazia (o que permite todos); as três opções são gravadas no `.env` e aplicadas após reiniciar a API. Na configuração inicial da cena, o evento e os filtros ficam desativados. Em configurações existentes sem as chaves, é preservado o comportamento anterior quando o evento geral está permitido. A caixa geral controla a entrega; ao ativar uma leitura com a caixa desmarcada, é solicitada confirmação e a caixa é marcada. Se já estiver marcada, não há nova confirmação. Desmarcar a caixa ou desativar a última leitura desliga as duas leituras. As seções e a lista de eventos permanecem visíveis, sem recolhimento.
 
