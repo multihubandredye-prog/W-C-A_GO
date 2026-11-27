@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.15**
+Versão atual: **2.16**
 
-Arquivo atual: `central-wca-2.15.html`
+Arquivo atual: `central-wca-2.16.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
