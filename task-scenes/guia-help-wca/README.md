@@ -1,8 +1,8 @@
 # Guia / Help WCA — Cena V2
 
 Projeto: `007-GUIA/HELP [wca]V2`
-Versão atual: **1.33**
-Arquivo: `guia-help-wca-1.33.html` — arquivo único, com HTML + CSS + JavaScript inline.
+Versão atual: **1.34**
+Arquivo: `guia-help-wca-1.34.html` — arquivo único, com HTML + CSS + JavaScript inline.
 
 
 O cabeçalho não utiliza vídeo decorativo.
@@ -15,6 +15,7 @@ O cabeçalho não utiliza vídeo decorativo.
 - A pesquisa ignora diferenças entre letras maiúsculas/minúsculas e entre caracteres com ou sem acento;
 - Preserva a navegação rápida, gestos laterais, listas expansíveis e botão para voltar ao topo;
 - Exibe as **63 tarefas de envio** com suas variáveis, incluindo a tarefa 062 de cartão Pix e a 063 de carrossel de imagens;
+- Explica a caixa postal de chamadas, configuração, listas por WhatsApp e horários;
 - Exibe os **21 grupos de variáveis do Receiver**;
 - Documenta as variáveis atuais do receptor, incluindo diagnóstico da requisição, contexto e estados detalhados de presença;
 - Explica métricas do sistema, recuperação de mídia expirada, inclusão de mensagens enviadas no webhook e persistência de conversas;

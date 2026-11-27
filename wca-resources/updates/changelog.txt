@@ -1,4 +1,6 @@
 [16/09/2026]
+➪ A Central ganhou a caixa postal para chamadas individuais de áudio: é possível configurar uma mensagem MP3, escolher contatos e definir dias e horários por WhatsApp. O Guia explica a configuração e as limitações.
+➪ A API recebeu o envio experimental de carrossel de imagens, com cartões e botões de seleção; o Guia documenta o exemplo da tarefa de envio e as variáveis de resposta do Receiver. A exibição e as respostas devem ser verificadas em aparelhos reais.
 ➪ Realizadas melhorias gerais e correções de erros para aprimorar a estabilidade e o funcionamento do sistema.
 ➪ A API recebeu o endpoint de cartão Pix interativo, que envia uma imagem com botão para copiar a chave, sem processar pagamento; o Guia também documenta a tarefa Tasker e suas variáveis.
 ➪ Adicionado ao projeto o Multi Envios Disparos WCA, com a tarefa correspondente para gerenciar envios e agendamentos.
