@@ -77,3 +77,17 @@ func autoCallContacts(c *fiber.Ctx) error {
 	}
 	return c.JSON(utils.ResponseData{Status: 200, Code: "SUCCESS", Message: "Individual contacts", Results: items})
 }
+
+func autoCallCopyAudio(c *fiber.Ctx) error {
+	var req struct {
+		AudioPath string `json:"audio_path"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "BAD_REQUEST", Message: "Provide an absolute local MP3 audio_path"})
+	}
+	path, err := whatsapp.CopyAutoCallAudio(req.AudioPath)
+	if err != nil {
+		return c.Status(400).JSON(utils.ResponseData{Status: 400, Code: "AUDIO_COPY_FAILED", Message: err.Error()})
+	}
+	return c.JSON(utils.ResponseData{Status: 200, Code: "SUCCESS", Message: "Audio copied", Results: map[string]string{"audio_path": path}})
+}

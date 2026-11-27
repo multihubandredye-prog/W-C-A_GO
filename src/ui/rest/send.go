@@ -32,6 +32,7 @@ func InitRestSend(app fiber.Router, service domainSend.ISendUsecase) Send {
 	app.Post("/send/pix-card", rest.SendPixCard)
 	app.Post("/send/list", rest.SendList)
 	app.Post("/send/call", rest.SendCall)
+	app.Post("/call/auto-audio", autoCallCopyAudio)
 	app.Get("/call/auto-contacts", autoCallContacts)
 	app.Get("/call/auto-policy", autoCallPolicyGet)
 	app.Put("/call/auto-policy", autoCallPolicyPut)
