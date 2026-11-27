@@ -21,3 +21,11 @@ A Central WCA 2.11 preserva o estado de `WCA_EXPERIMENTAL_PRIMARY_SIGNAL_STORE` 
 ## Teste real recomendado
 
 Depois de instalar uma API que contenha este código, ative a opção, verifique o MP3 e ligue de outro WhatsApp sem depender do webhook. Confira se a chamada é atendida, se todo o áudio chega e se desliga. Teste também vídeo, grupo, desligamento remoto, MP3 ausente e recusa ativa. Se falhar, consulte logs com `[meowcaller]` e `Automatic audio call`; não compartilhe chaves, números ou dados sensíveis. O uso do banco principal persistente ajudou em testes reais após reinício, mas não garante a recuperação de mensagens ou sessões existentes. Não refaça pareamento nem apague bancos sem análise e autorização.
+
+## Regras por WhatsApp — Central 2.12
+
+Cada WhatsApp conectado pode selecionar todos, somente selecionados ou ignorar selecionados. Contatos individuais vêm da sessão selecionada; números que não puderem ser resolvidos não são listados e podem ser adicionados manualmente com código do país. Se um filtro estiver ativo e o número da chamada não puder ser identificado, a API não atende automaticamente. Chamadas de grupos e vídeos continuam fora do atendimento. A recusa automática continua tendo prioridade.
+
+Dias e horas são opcionais e individuais por WhatsApp, com fuso IANA explícito; início inclusivo e fim exclusivo. Em horário que atravessa a meia-noite, o dia escolhido é o dia de início. Fora do período, a API não atende nem recusa por causa dessa regra.
+
+As regras ficam em `/data/data/net.dinglisch.android.taskerm/files/WCA/audio-call/auto-call-policies.json`, com marcador ao lado. São dados sensíveis. Antes de configurar regras, mantém-se o comportamento anterior de atender todos. Após configurar, arquivo ausente com marcador ou arquivo inválido impede atendimento automático; não apague nem edite os arquivos manualmente sem backup e análise. A Central salva as regras de cada WhatsApp separadamente do botão de salvar o `.env`. O caminho do MP3 e a ativação global continuam no `.env`.

@@ -255,3 +255,30 @@ func TestAnswerAcceptsConnectingButNotAlreadyActive(t *testing.T) {
 		r.clear()
 	}
 }
+
+func TestAutoAnswerAppliesPerDevicePolicy(t *testing.T) {
+	config.WhatsappAutoAnswerCall = false
+	config.WhatsappAutoRejectCall = false
+	path := filepath.Join(t.TempDir(), "policies.json")
+	if err := saveDevicePolicy(path, "device-a", AutoCallPolicy{Mode: "allow", Numbers: []string{"5511999999999"}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := saveDevicePolicy(path, "device-b", AutoCallPolicy{Mode: "ignore", Numbers: []string{"5511999999999"}}); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		device, phone string
+		want          int32
+	}{{"device-a", "5511999999999", 1}, {"device-a", "5511888888888", 0}, {"device-b", "5511999999999", 0}, {"device-b", "5511888888888", 1}, {"device-b", "", 0}, {"", "5511999999999", 0}} {
+		r := newIncomingRegistry()
+		r.policyPath = path
+		c := &fakeInbound{id: "test"}
+		r.noteOfferIdentity("test", tc.device, tc.phone, false, false)
+		r.register(c)
+		r.autoAnswer("test", "test", func(string) (meowcaller.AudioSource, error) { return &fakeAudio{}, nil })
+		if got := c.answers.Load(); got != tc.want {
+			t.Fatalf("device %s phone %s got %d want %d", tc.device, tc.phone, got, tc.want)
+		}
+		r.clear()
+	}
+}

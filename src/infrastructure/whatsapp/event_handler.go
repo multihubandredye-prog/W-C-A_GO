@@ -81,7 +81,15 @@ func handler(ctx context.Context, instance *DeviceInstance, rawEvt any) {
 			isGroup = true
 		}
 		if instance.incoming != nil {
-			instance.incoming.noteOffer(evt.CallID, isGroup, isVideo)
+			deviceKey, phone := "", ""
+			if client != nil && client.Store != nil && client.Store.ID != nil {
+				deviceKey = client.Store.ID.ToNonAD().String()
+			}
+			peer := NormalizeJIDFromLID(ctx, evt.CallCreator, client).ToNonAD()
+			if peer.Server == "s.whatsapp.net" {
+				phone = peer.User
+			}
+			instance.incoming.noteOfferIdentity(evt.CallID, deviceKey, phone, isGroup, isVideo)
 		}
 		handleCallOffer(ctx, evt, chatStorageRepo, instance.JID(), client)
 	case *events.CallTerminate:

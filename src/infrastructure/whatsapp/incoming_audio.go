@@ -34,19 +34,22 @@ type inboundCall interface {
 }
 type incomingEntry struct {
 	call                           inboundCall
+	deviceKey, callerPhone         string
+	identityRequired               bool
 	offerKnown, group, video, busy bool
 	player                         *meowcaller.Player
 	done                           chan struct{}
 	once                           sync.Once
 }
 type incomingRegistry struct {
-	mu      sync.Mutex
-	calls   map[string]*incomingEntry
-	changed chan struct{}
+	mu         sync.Mutex
+	calls      map[string]*incomingEntry
+	changed    chan struct{}
+	policyPath string
 }
 
 func newIncomingRegistry() *incomingRegistry {
-	return &incomingRegistry{calls: make(map[string]*incomingEntry), changed: make(chan struct{})}
+	return &incomingRegistry{calls: make(map[string]*incomingEntry), changed: make(chan struct{}), policyPath: AutoCallPoliciesPath}
 }
 
 // signalLocked wakes requests that arrived before both offer handlers finished.
@@ -119,6 +122,17 @@ func (r *incomingRegistry) noteOffer(id string, group, video bool) {
 	r.signalLocked()
 	r.mu.Unlock()
 	time.AfterFunc(90*time.Second, func() { r.expire(id, e) })
+}
+func (r *incomingRegistry) noteOfferIdentity(id, deviceKey, callerPhone string, group, video bool) {
+	r.mu.Lock()
+	e := r.slot(id)
+	if e != nil {
+		e.deviceKey = deviceKey
+		e.callerPhone = callerPhone
+		e.identityRequired = true
+	}
+	r.mu.Unlock()
+	r.noteOffer(id, group, video)
 }
 func (r *incomingRegistry) expire(id string, e *incomingEntry) {
 	r.mu.Lock()
@@ -288,6 +302,29 @@ func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 func (r *incomingRegistry) autoAnswer(id, path string, open func(string) (meowcaller.AudioSource, error)) {
 	if err := r.waitForCall(context.Background(), id, 4*time.Second); err != nil {
 		return
+	}
+	r.mu.Lock()
+	e := r.calls[id]
+	device, phone := "", ""
+	required := false
+	if e != nil {
+		device, phone, required = e.deviceKey, e.callerPhone, e.identityRequired
+	}
+	r.mu.Unlock()
+	if required && device == "" {
+		logrus.Warn("Automatic call skipped: device identity unavailable")
+		return
+	}
+	if device != "" {
+		allowed, policyErr := allowsAutomaticCall(r.policyPath, device, phone, time.Now())
+		if policyErr != nil {
+			logrus.Warnf("Automatic call policy check failed: %v", policyErr)
+			return
+		}
+		if !allowed {
+			logrus.Infof("Automatic call skipped by policy")
+			return
+		}
 	}
 	src, err := open(path)
 	if err != nil {
