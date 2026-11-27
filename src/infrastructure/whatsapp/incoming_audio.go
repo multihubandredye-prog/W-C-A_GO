@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -15,10 +16,10 @@ import (
 )
 
 var (
-	ErrCallUnavailable   = errors.New("chamada não está disponível ou não está mais tocando")
-	ErrCallUnsupported   = errors.New("somente chamadas de áudio individuais são suportadas")
-	ErrCallConflict      = errors.New("chamada já está sendo atendida")
-	ErrAutoRejectEnabled = errors.New("desative a recusa automática de chamadas antes de usar esta rota")
+	ErrCallUnavailable   = errors.New("Call is unavailable or no longer ringing")
+	ErrCallUnsupported   = errors.New("Only individual audio calls are supported")
+	ErrCallConflict      = errors.New("Call is already being answered")
+	ErrAutoRejectEnabled = errors.New("Disable automatic call rejection before using this endpoint")
 )
 
 type inboundCall interface {
@@ -39,13 +40,45 @@ type incomingEntry struct {
 	once                           sync.Once
 }
 type incomingRegistry struct {
-	mu    sync.Mutex
-	calls map[string]*incomingEntry
+	mu      sync.Mutex
+	calls   map[string]*incomingEntry
+	changed chan struct{}
 }
 
 func newIncomingRegistry() *incomingRegistry {
-	return &incomingRegistry{calls: make(map[string]*incomingEntry)}
+	return &incomingRegistry{calls: make(map[string]*incomingEntry), changed: make(chan struct{})}
 }
+
+// signalLocked wakes requests that arrived before both offer handlers finished.
+func (r *incomingRegistry) signalLocked() { close(r.changed); r.changed = make(chan struct{}) }
+
+func (r *incomingRegistry) waitForCall(ctx context.Context, id string, timeout time.Duration) error {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		r.mu.Lock()
+		e := r.calls[id]
+		if e != nil && e.offerKnown && e.call != nil {
+			r.mu.Unlock()
+			return nil
+		}
+		changed := r.changed
+		r.mu.Unlock()
+		select {
+		case <-changed:
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-timer.C:
+			r.mu.Lock()
+			e = r.calls[id]
+			offerKnown, callRegistered := e != nil && e.offerKnown, e != nil && e.call != nil
+			r.mu.Unlock()
+			logrus.Warnf("Incoming call %s unavailable after waiting: offer_received=%t meowcaller_registered=%t; check device selection and meowcaller logs", id, offerKnown, callRegistered)
+			return ErrCallUnavailable
+		}
+	}
+}
+
 func (r *incomingRegistry) slot(id string) *incomingEntry {
 	e := r.calls[id]
 	if e == nil {
@@ -83,6 +116,7 @@ func (r *incomingRegistry) noteOffer(id string, group, video bool) {
 	e.offerKnown = true
 	e.group = group
 	e.video = video
+	r.signalLocked()
 	r.mu.Unlock()
 	time.AfterFunc(90*time.Second, func() { r.expire(id, e) })
 }
@@ -114,7 +148,9 @@ func (r *incomingRegistry) register(c inboundCall) {
 		return
 	}
 	e.call = c
+	r.signalLocked()
 	r.mu.Unlock()
+	logrus.Infof("Incoming call %s registered by meowcaller", id)
 	c.OnEnd(func(reason string) { logrus.Infof("Incoming call %s ended: %s", id, reason); r.remove(id, e) })
 	time.AfterFunc(90*time.Second, func() { r.expire(id, e) })
 }
@@ -138,27 +174,27 @@ func openIncomingMP3(path string) (meowcaller.AudioSource, error) {
 	const maxBytes = 20 * 1000 * 1000
 	path = strings.TrimSpace(path)
 	if !filepath.IsAbs(path) || !strings.EqualFold(filepath.Ext(path), ".mp3") {
-		return nil, errors.New("audio_path deve ser um caminho absoluto de arquivo MP3")
+		return nil, errors.New("audio_path must be an absolute path to an MP3 file")
 	}
 	root, err := filepath.EvalSymlinks("/storage/emulated/0")
 	if err != nil {
-		return nil, errors.New("armazenamento compartilhado indisponível")
+		return nil, errors.New("Shared storage is unavailable")
 	}
 	resolved, err := filepath.EvalSymlinks(path)
 	if err != nil {
-		return nil, errors.New("arquivo de áudio não encontrado")
+		return nil, errors.New("Audio file not found")
 	}
 	rel, err := filepath.Rel(root, resolved)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
-		return nil, errors.New("áudio deve estar no armazenamento compartilhado")
+		return nil, errors.New("Audio file must be in shared storage")
 	}
 	info, err := os.Stat(resolved)
 	if err != nil || !info.Mode().IsRegular() || info.Size() <= 0 || info.Size() > maxBytes {
-		return nil, errors.New("MP3 vazio, inacessível ou maior que 20 MB")
+		return nil, errors.New("MP3 is empty, inaccessible, or larger than 20 MB")
 	}
 	source, err := meowcaller.MP3File(resolved)
 	if err != nil {
-		return nil, errors.New("MP3 inválido ou incompatível")
+		return nil, errors.New("Invalid or unsupported MP3")
 	}
 	return source, nil
 }
@@ -221,7 +257,7 @@ func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 	})
 	if err := c.Answer(); err != nil {
 		r.remove(id, e)
-		return fmt.Errorf("falha ao atender: %w", err)
+		return fmt.Errorf("Failed to answer call: %w", err)
 	}
 	go func() {
 		select {
@@ -236,7 +272,7 @@ func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 	return nil
 }
 
-func (d *DeviceInstance) AnswerIncomingAudio(id, path string) error {
+func (d *DeviceInstance) AnswerIncomingAudio(ctx context.Context, id, path string) error {
 	if config.WhatsappAutoRejectCall {
 		return ErrAutoRejectEnabled
 	}
@@ -251,5 +287,10 @@ func (d *DeviceInstance) AnswerIncomingAudio(id, path string) error {
 		_ = src.Close()
 		return ErrCallUnavailable
 	}
-	return r.answer(strings.TrimSpace(id), src)
+	id = strings.TrimSpace(id)
+	if err := r.waitForCall(ctx, id, 4*time.Second); err != nil {
+		_ = src.Close()
+		return err
+	}
+	return r.answer(id, src)
 }

@@ -8,7 +8,7 @@
 - Desative a recusa automática (`WHATSAPP_AUTO_REJECT_CALL=false`) e reinicie a API se alterar a configuração. A recusa automática existente não foi alterada; se estiver ativa, ela pode recusar a chamada antes da solicitação.
 - Configure o webhook e use o `CallID` do evento `call.offer`. O Java Receiver já expõe esse valor como `%call_id`; selecione na requisição o mesmo dispositivo que recebeu a chamada.
 - O MP3 deve estar no próprio aparelho onde a API roda, em `/storage/emulated/0/`, ser legível pelo processo, válido e ter no máximo 20 MB (20.000.000 bytes). O arquivo original não é apagado nem alterado. O endpoint não aceita URL, arquivo remoto nem upload multipart.
-- Atenda rapidamente, enquanto a chamada ainda toca. Pode ocorrer uma pequena corrida entre o webhook e o registro interno: se receber `409` indicando chamada indisponível, pode tentar novamente após uma pequena espera, enquanto ela tocar. Não repita após receber sucesso.
+- Atenda rapidamente, enquanto a chamada ainda toca. Pode ocorrer uma pequena corrida entre o webhook e o registro interno: a rota aguarda até quatro segundos pelo registro antes de responder `409`. Se isso ocorrer, verifique o dispositivo e os logs `Incoming call ... unavailable` e `[meowcaller]`, e tente novamente apenas enquanto a ligação tocar. Não repita após receber sucesso.
 
 ## Exemplo
 

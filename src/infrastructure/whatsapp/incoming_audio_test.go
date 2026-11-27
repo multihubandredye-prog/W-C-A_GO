@@ -1,11 +1,13 @@
 package whatsapp
 
 import (
+	"context"
 	"errors"
 	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/multihubandredye-prog/W-C-A_GO/config"
 	"github.com/purpshell/meowcaller"
@@ -127,5 +129,25 @@ func TestIncomingAnswerFailureClosesAudio(t *testing.T) {
 	s := &fakeAudio{}
 	if r.answer("bad", s) == nil || s.closed.Load() != 1 {
 		t.Fatal("failed answer did not close source")
+	}
+}
+
+func TestWaitForIncomingCallHandlers(t *testing.T) {
+	r := newIncomingRegistry()
+	r.noteOffer("pending", false, false)
+	result := make(chan error, 1)
+	go func() { result <- r.waitForCall(context.Background(), "pending", time.Second) }()
+	time.Sleep(20 * time.Millisecond)
+	r.register(&fakeInbound{id: "pending"})
+	if err := <-result; err != nil {
+		t.Fatalf("wait should succeed after registration: %v", err)
+	}
+	if !errors.Is(r.waitForCall(context.Background(), "missing", 10*time.Millisecond), ErrCallUnavailable) {
+		t.Fatal("missing call must time out")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if !errors.Is(r.waitForCall(ctx, "missing", time.Second), context.Canceled) {
+		t.Fatal("canceled request must stop waiting")
 	}
 }
