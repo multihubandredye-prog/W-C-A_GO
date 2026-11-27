@@ -65,7 +65,22 @@ func loadDevicePolicy(path, device string) (AutoCallPolicy, error) {
 	}
 	p, ok := f.Devices[device]
 	if !ok {
-		return AutoCallPolicy{Mode: "all"}, nil
+		return AutoCallPolicy{Mode: "all", ListsVersion: 1, AllowedNumbers: []string{}, IgnoredNumbers: []string{}, UnclassifiedNumbers: []string{}}, nil
+	}
+	// Older files only contain one list. Its meaning is known in a filtered
+	// mode; in all mode preserve it separately rather than guessing.
+	if p.ListsVersion == 0 {
+		p.ListsVersion = 1
+		p.AllowedNumbers, p.IgnoredNumbers, p.UnclassifiedNumbers = []string{}, []string{}, []string{}
+		switch p.Mode {
+		case "allow":
+			p.AllowedNumbers = append(p.AllowedNumbers, p.Numbers...)
+		case "ignore":
+			p.IgnoredNumbers = append(p.IgnoredNumbers, p.Numbers...)
+		default:
+			p.UnclassifiedNumbers = append(p.UnclassifiedNumbers, p.Numbers...)
+			p.Numbers = []string{}
+		}
 	}
 	return p, nil
 }
@@ -81,6 +96,9 @@ func saveDevicePolicy(path, device string, p AutoCallPolicy) error {
 	f, err := readPolicyFile(path)
 	if err != nil {
 		return err
+	}
+	if existing, ok := f.Devices[device]; ok && existing.ListsVersion == 1 && p.ListsVersion == 0 {
+		return errors.New("outdated policy client cannot overwrite separate lists")
 	}
 	f.Devices[device] = p
 	data, err := json.MarshalIndent(f, "", "  ")

@@ -13,13 +13,17 @@ import (
 // AutoCallPolicy is the per-device rule. This is a policy engine only; it does
 // not read any file, update WhatsApp state, or enable answering by itself.
 type AutoCallPolicy struct {
-	Mode            string   `json:"mode"`    // all, allow, ignore
-	Numbers         []string `json:"numbers"` // canonical international digits
-	ScheduleEnabled bool     `json:"schedule_enabled"`
-	Days            []int    `json:"days"`     // Sunday=0 through Saturday=6
-	Start           string   `json:"start"`    // HH:MM, inclusive
-	End             string   `json:"end"`      // HH:MM, exclusive; before start means overnight
-	Timezone        string   `json:"timezone"` // IANA name
+	ListsVersion        int      `json:"lists_version"`
+	AllowedNumbers      []string `json:"allowed_numbers"`
+	IgnoredNumbers      []string `json:"ignored_numbers"`
+	UnclassifiedNumbers []string `json:"unclassified_numbers"`
+	Mode                string   `json:"mode"`    // all, allow, ignore
+	Numbers             []string `json:"numbers"` // canonical international digits
+	ScheduleEnabled     bool     `json:"schedule_enabled"`
+	Days                []int    `json:"days"`     // Sunday=0 through Saturday=6
+	Start               string   `json:"start"`    // HH:MM, inclusive
+	End                 string   `json:"end"`      // HH:MM, exclusive; before start means overnight
+	Timezone            string   `json:"timezone"` // IANA name
 }
 
 var internationalDigits = regexp.MustCompile(`^[1-9][0-9]{6,14}$`)
@@ -51,6 +55,41 @@ func (p AutoCallPolicy) Validate() error {
 			return errors.New("duplicate phone number")
 		}
 		seen[n] = true
+	}
+	if p.ListsVersion != 0 && p.ListsVersion != 1 {
+		return errors.New("unsupported lists version")
+	}
+	if p.ListsVersion == 1 {
+		for _, list := range [][]string{p.AllowedNumbers, p.IgnoredNumbers, p.UnclassifiedNumbers} {
+			if len(list) > 5000 {
+				return errors.New("too many numbers")
+			}
+			seenList := map[string]bool{}
+			for _, n := range list {
+				if !internationalDigits.MatchString(n) || seenList[n] {
+					return errors.New("invalid or duplicate list number")
+				}
+				seenList[n] = true
+			}
+		}
+		var expected []string
+		if p.Mode == "allow" {
+			expected = p.AllowedNumbers
+		} else if p.Mode == "ignore" {
+			expected = p.IgnoredNumbers
+		}
+		if len(expected) != len(p.Numbers) {
+			return errors.New("active numbers do not match mode")
+		}
+		active := map[string]bool{}
+		for _, n := range expected {
+			active[n] = true
+		}
+		for _, n := range p.Numbers {
+			if !active[n] {
+				return errors.New("active numbers do not match mode")
+			}
+		}
 	}
 	if p.ScheduleEnabled {
 		if p.Timezone == "" || p.Timezone == "Local" {
