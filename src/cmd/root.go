@@ -230,6 +230,15 @@ func initEnvConfig() {
 	if viper.IsSet("whatsapp_auto_reject_call") {
 		config.WhatsappAutoRejectCall = viper.GetBool("whatsapp_auto_reject_call")
 	}
+	if viper.IsSet("whatsapp_auto_answer_call") {
+		config.WhatsappAutoAnswerCall = viper.GetBool("whatsapp_auto_answer_call")
+	}
+	if viper.IsSet("whatsapp_auto_answer_audio") {
+		config.WhatsappAutoAnswerAudio = strings.TrimSpace(viper.GetString("whatsapp_auto_answer_audio"))
+	}
+	if config.WhatsappAutoAnswerCall && config.WhatsappAutoRejectCall {
+		logrus.Warn("Automatic call answering is disabled because automatic call rejection is enabled")
+	}
 	if envPresenceOnConnect := viper.GetString("whatsapp_presence_on_connect"); envPresenceOnConnect != "" {
 		config.WhatsappPresenceOnConnect = envPresenceOnConnect
 	}

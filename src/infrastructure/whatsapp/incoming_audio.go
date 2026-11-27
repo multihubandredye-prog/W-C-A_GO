@@ -148,10 +148,13 @@ func (r *incomingRegistry) register(c inboundCall) {
 		return
 	}
 	e.call = c
+	c.OnEnd(func(reason string) { logrus.Infof("Incoming call %s ended: %s", id, reason); r.remove(id, e) })
 	r.signalLocked()
 	r.mu.Unlock()
 	logrus.Infof("Incoming call %s registered by meowcaller", id)
-	c.OnEnd(func(reason string) { logrus.Infof("Incoming call %s ended: %s", id, reason); r.remove(id, e) })
+	if config.WhatsappAutoAnswerCall && !config.WhatsappAutoRejectCall {
+		go r.autoAnswer(id, config.WhatsappAutoAnswerAudio, openAutoAnswerMP3)
+	}
 	time.AfterFunc(90*time.Second, func() { r.expire(id, e) })
 }
 func (r *incomingRegistry) clear() {
@@ -171,14 +174,22 @@ func (r *incomingRegistry) clear() {
 
 // Open only local, regular MP3 files under Android shared storage. Original files are not modified.
 func openIncomingMP3(path string) (meowcaller.AudioSource, error) {
+	return openMP3Under(path, "/storage/emulated/0")
+}
+
+func openAutoAnswerMP3(path string) (meowcaller.AudioSource, error) {
+	return openMP3Under(path, "/data/data/net.dinglisch.android.taskerm/files/WCA/audio-call")
+}
+
+func openMP3Under(path, allowedRoot string) (meowcaller.AudioSource, error) {
 	const maxBytes = 20 * 1000 * 1000
 	path = strings.TrimSpace(path)
 	if !filepath.IsAbs(path) || !strings.EqualFold(filepath.Ext(path), ".mp3") {
 		return nil, errors.New("audio_path must be an absolute path to an MP3 file")
 	}
-	root, err := filepath.EvalSymlinks("/storage/emulated/0")
+	root, err := filepath.EvalSymlinks(allowedRoot)
 	if err != nil {
-		return nil, errors.New("Shared storage is unavailable")
+		return nil, errors.New("Allowed audio directory is unavailable")
 	}
 	resolved, err := filepath.EvalSymlinks(path)
 	if err != nil {
@@ -186,7 +197,7 @@ func openIncomingMP3(path string) (meowcaller.AudioSource, error) {
 	}
 	rel, err := filepath.Rel(root, resolved)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
-		return nil, errors.New("Audio file must be in shared storage")
+		return nil, errors.New("Audio file must be inside the allowed audio directory")
 	}
 	info, err := os.Stat(resolved)
 	if err != nil || !info.Mode().IsRegular() || info.Size() <= 0 || info.Size() > maxBytes {
@@ -200,7 +211,7 @@ func openIncomingMP3(path string) (meowcaller.AudioSource, error) {
 }
 
 // answer reserves a ringing call exactly once; the returned acknowledgement does not
-// imply the remote party heard audio. Media playback begins only when OnReady fires.
+// imply the remote party heard audio. The player is attached after Answer.
 func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 	transferred := false
 	defer func() {
@@ -225,7 +236,7 @@ func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 		r.mu.Unlock()
 		return ErrCallConflict
 	}
-	if e.call.State() != meowcaller.CallPhaseRinging {
+	if phase := e.call.State(); phase != meowcaller.CallPhaseRinging && phase != meowcaller.CallPhaseConnecting {
 		r.mu.Unlock()
 		return ErrCallUnavailable
 	}
@@ -246,19 +257,19 @@ func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 			}
 		}()
 	})
-	c.OnReady(func() {
-		select {
-		case <-e.done:
-			return
-		default:
-		}
-		c.Subscribe(player)
-		logrus.Infof("Incoming call %s ready; playing notice", id)
-	})
 	if err := c.Answer(); err != nil {
 		r.remove(id, e)
 		return fmt.Errorf("Failed to answer call: %w", err)
 	}
+	// The upstream example subscribes after Answer. Waiting for OnReady can
+	// block outbound playback indefinitely when no inbound RTP is received.
+	select {
+	case <-e.done:
+		return ErrCallUnavailable
+	default:
+	}
+	c.Subscribe(player)
+	logrus.Infof("Incoming call %s: answer requested and audio player attached", id)
 	go func() {
 		select {
 		case <-e.done:
@@ -270,6 +281,22 @@ func (r *incomingRegistry) answer(id string, src meowcaller.AudioSource) error {
 		}
 	}()
 	return nil
+}
+
+// autoAnswer runs separately from whatsmeow's event dispatch: the offer handler
+// must be allowed to finish and publish the audio/group classification first.
+func (r *incomingRegistry) autoAnswer(id, path string, open func(string) (meowcaller.AudioSource, error)) {
+	if err := r.waitForCall(context.Background(), id, 4*time.Second); err != nil {
+		return
+	}
+	src, err := open(path)
+	if err != nil {
+		logrus.Warnf("Automatic audio call %s not answered: %v", id, err)
+		return
+	}
+	if err := r.answer(id, src); err != nil {
+		logrus.Warnf("Automatic audio call %s not answered: %v", id, err)
+	}
 }
 
 func (d *DeviceInstance) AnswerIncomingAudio(ctx context.Context, id, path string) error {

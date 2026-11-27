@@ -2,9 +2,9 @@
 
 Projeto: `001-CENTRAL_WHATS_CONNECT_API [wca]`
 
-Versão atual: **2.8**
+Versão atual: **2.9**
 
-Arquivo atual: `central-wca-2.8.html`
+Arquivo atual: `central-wca-2.9.html`
 
 A cena é um único arquivo HTML, com CSS e JavaScript inline, para uso no componente WebView das Scenes V2 do Tasker.
 
@@ -254,3 +254,7 @@ Fechar o pareamento não executa logout. Listas vazias não apagam automaticamen
 O menu oferece **Reiniciar WCA**, com confirmação, para reiniciar o serviço pela tarefa do Tasker.
 
 As confirmações `message.ack` possuem filtros independentes para entrega, leitura pelo destinatário e leitura pela própria conta. O evento geral precisa estar habilitado ou a lista geral de eventos deve estar vazia (o que permite todos); as três opções são gravadas no `.env` e aplicadas após reiniciar a API. Na configuração inicial da cena, o evento e os filtros ficam desativados. Em configurações existentes sem as chaves, é preservado o comportamento anterior quando o evento geral está permitido. A caixa geral controla a entrega; ao ativar uma leitura com a caixa desmarcada, é solicitada confirmação e a caixa é marcada. Se já estiver marcada, não há nova confirmação. Desmarcar a caixa ou desativar a última leitura desliga as duas leituras. As seções e a lista de eventos permanecem visíveis, sem recolhimento.
+
+## Atendimento automático de chamadas
+
+A versão 2.9 permite ativar o atendimento automático experimental de áudio individual e informar o MP3 privado na pasta `WCA/audio-call`. Ela grava `WHATSAPP_AUTO_ANSWER_CALL` e `WHATSAPP_AUTO_ANSWER_AUDIO` no `.env`; exige recusa automática desativada e reinício da API. Os valores são preservados ao salvar outras opções. A API precisa conter a implementação; chamadas reais e a chave de criptografia ainda precisam ser testadas.

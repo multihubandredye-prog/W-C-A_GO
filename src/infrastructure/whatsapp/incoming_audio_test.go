@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -20,6 +23,7 @@ func (s *fakeAudio) Close() error                { s.closed.Add(1); return nil }
 
 type fakeInbound struct {
 	id            string
+	phase         *meowcaller.CallPhase
 	video         bool
 	answerErr     error
 	answers       atomic.Int32
@@ -28,8 +32,13 @@ type fakeInbound struct {
 	end           func(string)
 }
 
-func (c *fakeInbound) ID() string                   { return c.id }
-func (c *fakeInbound) State() meowcaller.CallPhase  { return meowcaller.CallPhaseRinging }
+func (c *fakeInbound) ID() string { return c.id }
+func (c *fakeInbound) State() meowcaller.CallPhase {
+	if c.phase != nil {
+		return *c.phase
+	}
+	return meowcaller.CallPhaseRinging
+}
 func (c *fakeInbound) IsVideo() bool                { return c.video }
 func (c *fakeInbound) OnReady(f func())             { c.ready = f }
 func (c *fakeInbound) OnEnd(f func(string))         { c.end = f }
@@ -50,12 +59,8 @@ func TestIncomingAnswerLifecycle(t *testing.T) {
 	if err := r.answer("a", s); err != nil {
 		t.Fatal(err)
 	}
-	if c.subscriptions.Load() != 0 {
-		t.Fatal("must wait for ready")
-	}
-	c.ready()
 	if c.subscriptions.Load() != 1 {
-		t.Fatal("ready must subscribe")
+		t.Fatal("player must be attached without waiting for inbound RTP")
 	}
 	another := &fakeAudio{}
 	if !errors.Is(r.answer("a", another), ErrCallConflict) || another.closed.Load() != 1 {
@@ -149,5 +154,104 @@ func TestWaitForIncomingCallHandlers(t *testing.T) {
 	cancel()
 	if !errors.Is(r.waitForCall(ctx, "missing", time.Second), context.Canceled) {
 		t.Fatal("canceled request must stop waiting")
+	}
+}
+
+func TestAutoAnswerAfterOfferAndRegistration(t *testing.T) {
+	r := newIncomingRegistry()
+	c := &fakeInbound{id: "auto"}
+	r.register(c)
+	done := make(chan struct{})
+	src := &fakeAudio{}
+	go func() {
+		r.autoAnswer("auto", "unused", func(string) (meowcaller.AudioSource, error) { return src, nil })
+		close(done)
+	}()
+	r.noteOffer("auto", false, false)
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("automatic answer did not finish")
+	}
+	if c.answers.Load() != 1 || c.subscriptions.Load() != 1 {
+		t.Fatal("automatic answer or player not started")
+	}
+	c.end("done")
+	if src.closed.Load() != 1 {
+		t.Fatal("automatic player did not close")
+	}
+}
+func TestAutoRejectsUnsupportedCallAndInvalidSource(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		group, video bool
+		badAudio     bool
+	}{
+		{"group", true, false, false}, {"video", false, true, false}, {"invalid audio", false, false, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := newIncomingRegistry()
+			c := &fakeInbound{id: tc.name}
+			r.noteOffer(tc.name, tc.group, tc.video)
+			r.register(c)
+			src := &fakeAudio{}
+			r.autoAnswer(tc.name, "path", func(string) (meowcaller.AudioSource, error) {
+				if tc.badAudio {
+					return nil, errors.New("bad MP3")
+				}
+				return src, nil
+			})
+			if c.answers.Load() != 0 {
+				t.Fatal("unsupported or invalid audio was answered")
+			}
+			if !tc.badAudio && src.closed.Load() != 1 {
+				t.Fatal("unsupported audio source not closed")
+			}
+		})
+	}
+}
+func TestOpenMP3UnderPreventsEscape(t *testing.T) {
+	root := t.TempDir()
+	outside := t.TempDir()
+	f := filepath.Join(outside, "outside.mp3")
+	if err := os.WriteFile(f, []byte("invalid"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "link.mp3")
+	if err := os.Symlink(f, link); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := openMP3Under(link, root); err == nil || !strings.Contains(err.Error(), "allowed audio directory") {
+		t.Fatal("symlink escape must fail")
+	}
+	if _, err := openMP3Under("https://example.com/file.mp3", root); err == nil {
+		t.Fatal("URL must fail")
+	}
+	f = filepath.Join(root, "bad.mp3")
+	if err := os.WriteFile(f, []byte("not an mp3"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := openMP3Under(f, root); err == nil {
+		t.Fatal("invalid mp3 accepted")
+	}
+}
+
+func TestAnswerAcceptsConnectingButNotAlreadyActive(t *testing.T) {
+	for _, tc := range []struct {
+		phase      meowcaller.CallPhase
+		wantAnswer bool
+	}{
+		{meowcaller.CallPhaseConnecting, true}, {meowcaller.CallPhaseActive, false}, {meowcaller.CallPhaseEnded, false},
+	} {
+		r := newIncomingRegistry()
+		phase := tc.phase
+		c := &fakeInbound{id: "phase", phase: &phase}
+		r.noteOffer("phase", false, false)
+		r.register(c)
+		err := r.answer("phase", &fakeAudio{})
+		if (err == nil) != tc.wantAnswer {
+			t.Fatalf("phase %v: unexpected answer result %v", phase, err)
+		}
+		r.clear()
 	}
 }

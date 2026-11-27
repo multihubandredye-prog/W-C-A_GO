@@ -511,6 +511,9 @@ func (m *DeviceManager) EnsureClient(ctx context.Context, deviceID string) (*Dev
 		inst.SetChatStorage(repo)
 	}
 
+	// Install meowcaller before the WCA webhook handler to avoid delaying its
+	// incoming-call callback behind persistence and webhook preparation.
+	inst.SetClient(client)
 	client.AddEventHandler(func(rawEvt any) {
 		handler(ctx, inst, rawEvt)
 	})
@@ -518,8 +521,6 @@ func (m *DeviceManager) EnsureClient(ctx context.Context, deviceID string) (*Dev
 	inst.SetOnLoggedOut(func(deviceID string) {
 		m.RemoveDevice(deviceID)
 	})
-
-	inst.SetClient(client)
 	inst.UpdateStateFromClient()
 
 	return inst, nil

@@ -44,6 +44,8 @@ var (
 	WhatsappWebhookDelayMS                     = 1500  // Delay between webhook deliveries per URL in milliseconds (0 = parallel delivery)
 	WhatsappWebhookMaxAttempts                 = 1     // Max webhook delivery attempts per URL (1 = no retry; legacy upstream behavior was 5)
 	WhatsappAutoRejectCall                     = false // Auto-reject incoming calls
+	WhatsappAutoAnswerCall                     = false // Automatically answer individual audio calls
+	WhatsappAutoAnswerAudio                    = ""    // MP3 in the private audio-call directory
 	WhatsappLogLevel                           = "ERROR"
 	WhatsappSettingMaxImageSize       int64    = 20000000  // 20MB
 	WhatsappSettingMaxFileSize        int64    = 50000000  // 50MB
