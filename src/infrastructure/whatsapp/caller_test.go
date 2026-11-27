@@ -101,3 +101,28 @@ func TestDeviceInstanceExposesCaller(t *testing.T) {
 		t.Fatal("SetClient must rebind the meowcaller client")
 	}
 }
+
+func TestAdoptClientKeepsSingleCallerAndSharedIncomingRegistry(t *testing.T) {
+	wa := whatsmeow.NewClient(&store.Device{}, nil)
+	original := NewDeviceInstance("original", wa, nil)
+	replacement := NewDeviceInstance("registry", nil, nil)
+	caller := original.GetCaller()
+	replacement.adoptClient(original)
+	if replacement.GetClient() != wa || replacement.GetCaller() != caller {
+		t.Fatal("replacement must reuse the already installed caller")
+	}
+	if replacement.incoming != original.incoming {
+		t.Fatal("webhook and selected device must share registry")
+	}
+	original.incoming.noteOffer("test-call", false, false)
+	original.incoming.register(&fakeInbound{id: "test-call"})
+	source := &fakeAudio{}
+	if err := replacement.incoming.answer("test-call", source); err != nil {
+		t.Fatalf("answer via replacement: %v", err)
+	}
+	replacement.incoming.clear()
+	original.SetClient(wa)
+	if original.GetCaller() != caller || original.incoming != replacement.incoming {
+		t.Fatal("rebinding same client must not install another caller")
+	}
+}

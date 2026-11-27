@@ -437,7 +437,7 @@ func (m *DeviceManager) loadFromRegistry(records []*domainChatStorage.DeviceReco
 		// If we had an existing device with client, transfer the client
 		if existingByJID != nil {
 			if client := existingByJID.GetClient(); client != nil {
-				instance.SetClient(client)
+				instance.adoptClient(existingByJID)
 				instance.UpdateStateFromClient()
 			}
 		}
@@ -467,7 +467,7 @@ func (m *DeviceManager) EnsureDefault(client *DeviceInstance) {
 		for _, inst := range m.devices {
 			if inst.JID() == clientJID {
 				// Update existing device with the new client
-				inst.SetClient(client.GetClient())
+				inst.adoptClient(client)
 				return
 			}
 		}

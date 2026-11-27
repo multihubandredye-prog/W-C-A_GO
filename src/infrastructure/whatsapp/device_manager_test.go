@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store"
 )
 
@@ -138,5 +139,18 @@ func TestListDevices_SameCreatedAt(t *testing.T) {
 					i, j, expected, result[j].ID())
 			}
 		}
+	}
+}
+
+func TestEnsureDefaultReusesCallerForMatchingDevice(t *testing.T) {
+	wa := whatsmeow.NewClient(&store.Device{}, nil)
+	source := NewDeviceInstance("source", wa, nil)
+	source.jid = "same@s.whatsapp.net"
+	target := NewDeviceInstance("target", nil, nil)
+	target.jid = source.jid
+	dm := &DeviceManager{devices: map[string]*DeviceInstance{"target": target}}
+	dm.EnsureDefault(source)
+	if target.GetClient() != wa || target.GetCaller() != source.GetCaller() || target.incoming != source.incoming {
+		t.Fatal("matching device should adopt caller and shared incoming registry")
 	}
 }

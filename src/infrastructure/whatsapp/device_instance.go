@@ -117,6 +117,9 @@ func (d *DeviceInstance) CreatedAt() time.Time {
 func (d *DeviceInstance) SetClient(client *whatsmeow.Client) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	if d.client == client && d.caller != nil {
+		return
+	}
 	if d.incoming != nil {
 		d.incoming.clear()
 	}
@@ -126,6 +129,30 @@ func (d *DeviceInstance) SetClient(client *whatsmeow.Client) {
 	d.caller = NewMeowCaller(client)
 	if d.caller != nil {
 		d.caller.OnIncomingCall(func(call *meowcaller.Call) { d.incoming.register(call) })
+	}
+	d.refreshIdentityLocked()
+	d.state = domainDevice.DeviceStateDisconnected
+}
+
+// adoptClient shares the already-installed call engine and inbound registry when a
+// legacy instance is replaced by its registry instance. Creating another engine
+// on the same whatsmeow client would decrypt each incoming offer twice, and the
+// old event handler would continue recording offers on a different registry.
+func (d *DeviceInstance) adoptClient(source *DeviceInstance) {
+	if source == nil || source == d {
+		return
+	}
+	source.mu.RLock()
+	client, caller, incoming := source.client, source.caller, source.incoming
+	source.mu.RUnlock()
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.incoming != nil && d.incoming != incoming {
+		d.incoming.clear()
+	}
+	d.client, d.caller, d.incoming = client, caller, incoming
+	if d.incoming == nil {
+		d.incoming = newIncomingRegistry()
 	}
 	d.refreshIdentityLocked()
 	d.state = domainDevice.DeviceStateDisconnected
