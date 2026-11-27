@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"context"
 	"fmt"
+	"github.com/purpshell/meowcaller/signaling"
 	"os"
 	"strings"
 	"time"
@@ -72,6 +73,16 @@ func handler(ctx context.Context, instance *DeviceInstance, rawEvt any) {
 	case *events.NewsletterMuteChange:
 		handleNewsletterMuteChange(ctx, evt, instance.JID(), client)
 	case *events.CallOffer:
+		isVideo := evt.Data != nil && signaling.OfferHasVideo(evt.Data)
+		isGroup := !evt.GroupJID.IsEmpty()
+		if evt.Data == nil {
+			isGroup = true
+		} else if _, group, err := signaling.ParseGroupInviteSnapshot(evt.Data); err != nil || group {
+			isGroup = true
+		}
+		if instance.incoming != nil {
+			instance.incoming.noteOffer(evt.CallID, isGroup, isVideo)
+		}
 		handleCallOffer(ctx, evt, chatStorageRepo, instance.JID(), client)
 	case *events.CallTerminate:
 		handleCallTerminate(ctx, evt, instance.JID(), client)

@@ -26,7 +26,8 @@ type DeviceInstance struct {
 	// caller is the meowcaller VoIP client bound to this device's whatsmeow
 	// client. It MUST be created before the whatsmeow client connects (see
 	// NewMeowCaller); it is what makes outbound calls leave "Conectando...".
-	caller *meowcaller.Client
+	caller   *meowcaller.Client
+	incoming *incomingRegistry
 }
 
 func NewDeviceInstance(deviceID string, client *whatsmeow.Client, chatStorageRepo domainChatStorage.IChatStorageRepository) *DeviceInstance {
@@ -37,7 +38,7 @@ func NewDeviceInstance(deviceID string, client *whatsmeow.Client, chatStorageRep
 		display = client.Store.PushName
 	}
 
-	return &DeviceInstance{
+	d := &DeviceInstance{
 		id:              deviceID,
 		client:          client,
 		chatStorageRepo: chatStorageRepo,
@@ -46,7 +47,12 @@ func NewDeviceInstance(deviceID string, client *whatsmeow.Client, chatStorageRep
 		jid:             jid,
 		createdAt:       time.Now(),
 		caller:          NewMeowCaller(client),
+		incoming:        newIncomingRegistry(),
 	}
+	if d.caller != nil {
+		d.caller.OnIncomingCall(func(call *meowcaller.Call) { d.incoming.register(call) })
+	}
+	return d
 }
 
 func (d *DeviceInstance) ID() string {
@@ -111,10 +117,16 @@ func (d *DeviceInstance) CreatedAt() time.Time {
 func (d *DeviceInstance) SetClient(client *whatsmeow.Client) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	if d.incoming != nil {
+		d.incoming.clear()
+	}
 	d.client = client
 	// Rebind the VoIP caller to the new client while it is still
 	// disconnected, so the call interception is in place before connecting.
 	d.caller = NewMeowCaller(client)
+	if d.caller != nil {
+		d.caller.OnIncomingCall(func(call *meowcaller.Call) { d.incoming.register(call) })
+	}
 	d.refreshIdentityLocked()
 	d.state = domainDevice.DeviceStateDisconnected
 }
